@@ -7,7 +7,7 @@
 /* 888-----d88'--888--`88.----.88'-`88.----.88'-888-------o--888--`88b.--oo-----.d8P */
 /* 888bood8P'--oo888oo-`Y8bood8P'---`Y8bood8P'-o888ooooood8-o888o--o888o-8""88888P'- */
 /* ================================================================================= */
-/* Copyright (c) MS-Design, 2011      Copyright (c) Millenium Interactive Ltd., 1994 */
+/* Copyr. (c) Mhatxotic Design, 2011     Copyr. (c) Millenium Interactive Ltd., 1994 */
 /* ================================================================================= */
 /* COMPILER DIRECTIVES                                                               */
 /* --------------------------------------------------------------------------------- */
@@ -3513,7 +3513,7 @@ VOID ProcessCommandLineParameters(VOID)
       // Version
       case '!': Exception(0, 0, "Diggers™ for Windows® 9x, NT, ME, 2K, XP and Vista.\n"
                                 "Version %u.%u (%u-bit); %s; MSVC %u.%u.\n"
-                                "Copyright © MS-Design, 2011.\n"
+                                "Copyright © Mhatxotic Design, 2011.\n"
                                 "Copyright © Millennium Interactive, 1994.\n"
                                 "\n"
                                 "UFMOD; Copyright © Asterix and Quantum, 2011.\n"

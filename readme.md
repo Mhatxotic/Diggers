@@ -4,7 +4,7 @@ A fan-remake of the classic strategy and platform game for MS-DOS and the Commod
 
 This version is extremely old, obsolete and for reference only. It is **NOT** the latest version of this game and was only designed for `Windows 9x/XP` 32-bit systems and will not run properly on Windows 7 and later because of Windows Explorer highjacking 8-bit palette changes.
 
-Visit [https://github.com/XMhat/MSEngine/tree/master/diggers](https://github.com/XMhat/MSEngine/tree/master/diggers) for the latest version of this game that works on all modern operating systems!
+Visit [https://github.com/Mhatxotic/Engine/tree/master/diggers](https://github.com/Mhatxotic/Engine/tree/master/diggers) for the latest version of this game that works on all modern operating systems!
 
 Originally based on Diggers v1.49 for PC-DOS (Floppy disk version).
 Uses music, textures and sound from Amiga CD32 version.
@@ -118,7 +118,7 @@ Please delete `DIGGERS.DAT` if you have problems running the game and then try a
 ## Credits
 
 * All code and conversion...
-  * Copyright © MS-Design, 2011.
+  * Copyright © Mhatxotic Design, 2011.
 * Original version sound, music and graphics....
   * Copyright © Millenium Interactive, 1994.
 

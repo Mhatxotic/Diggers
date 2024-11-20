@@ -7,7 +7,7 @@
 /* 888-----d88'--888--`88.----.88'-`88.----.88'-888-------o--888--`88b.--oo-----.d8P */
 /* 888bood8P'--oo888oo-`Y8bood8P'---`Y8bood8P'-o888ooooood8-o888o--o888o-8""88888P'- */
 /* ================================================================================= */
-/* Copyright (c) MS-Design, 2007     Copyright (c) Millennium Interactive Ltd., 1994 */
+/* Copyr. (c) Mhatxotic Design, 2011     Copyr. (c) Millenium Interactive Ltd., 1994 */
 /* ================================================================================= */
 /* INCLUDES                                                                          */
 /* --------------------------------------------------------------------------------- */
@@ -182,10 +182,10 @@ FILETYPE VFT_APP
   {
     BLOCK "08090000"
     {
-      VALUE "CompanyName", "MS-Design"
+      VALUE "CompanyName", "Mhatxotic Design"
       VALUE "FileDescription", "Diggers"
       VALUE "FileVersion", "Windows® 4.0"
-      VALUE "LegalCopyright", "© MS-Design. All rights reserved."
+      VALUE "LegalCopyright", "© Mhatxotic Design. All rights reserved."
       VALUE "OriginalFilename", "DIGGERS.EXE"
     }
   }
