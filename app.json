@@ -1,0 +1,32 @@
+{
+  "Version": 1,
+  "Constants": {
+    "app_author": "Mhatxotic Design",
+    "app_cflags": 6,
+    "app_copyright": "Copyright © Millennium Interactive, 1994. All Rights Reserved",
+    "app_description": "A remake of the classic Amiga/DOS game for MacOS, Windows and Linux",
+    "app_icon": "app/icon.png",
+    "app_longname": "Diggers",
+    "app_shortname": "Diggers",
+    "app_version": "R49",
+    "app_website": "Mhatxotic.GitHub.IO/Diggers",
+    "ast_modbundle": true,
+    "con_font": "app/console.ttf",
+    "con_fontflags": 4,
+    "con_fontheight": 8,
+    "con_fontpadding": 1,
+    "con_fontlspacing": 1,
+    "con_fonttexsize": 256,
+    "con_fontwidth": 8,
+    "err_minram": 67108864,
+    "err_minvram": 8388608,
+    "lua_gcpause": 0,
+    "lua_script": "src/main.lua",
+    "lua_ticktimeout": 10,
+    "vid_orheight": 240,
+    "vid_orwidth": 320,
+    "vid_subpixround": 2,
+    "win_heightmin": 240,
+    "win_widthmin": 320
+  }
+}
