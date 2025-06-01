@@ -222,44 +222,48 @@ local function ProcScore()
     -- Done for now
     return;
   end
+  -- Get category data and if category needs tallying?
   local aData<const> = aTotals[iTotalId];
-  -- Cateogories need tallying?
   if aData[1] == 1 then
     -- No more categories left to add? Set finished
     if aData[4] == 0 then aData[1] = 2;
-    elseif aData[3] >= 0 then
-      if aData[2] < aData[3] then
-        aData[2] = aData[2] + aData[4];
-        if aData[2] >= aData[3] then
-          aData[2] = aData[3];
-          aData[12] = UtilFormatNumber(aData[2], 0);
-          iScoreItem = aData[2] * aData[5]
-          aData[9] = UtilFormatNumber(iScoreItem, 0);
-          aData[1] = 2;
-          iTotalScore = iTotalScore + iScoreItem;
-          strScore = UtilFormatNumber(iTotalScore, 0);
-          iScoreItem = 0;
-        else
-          iScoreItem = aData[2] * aData[5];
-          aData[9] = UtilFormatNumber(iScoreItem, 0);
-          strScore = UtilFormatNumber(iTotalScore + iScoreItem, 0);
-        end
+    -- Still tallying?
+    else
+      -- Do tally function
+      local function Tallied()
+        -- Clamp value
+        aData[2] = aData[3];
+        -- Set human readable final quantity
+        aData[12] = UtilFormatNumber(aData[2], 0);
+        -- Set final score for quantity and update human readable score
+        iScoreItem = aData[2] * aData[5]
+        aData[9] = UtilFormatNumber(iScoreItem, 0);
+        -- Update total score and human readable score
+        iTotalScore = iTotalScore + iScoreItem;
+        strScore = UtilFormatNumber(iTotalScore, 0);
+        -- Set category completed to goto next category
+        aData[1] = 2;
+        -- Clear score incase the next category is zero
+        iScoreItem = 0;
       end
-    elseif aData[2] > aData[3] then
-      aData[2] = aData[2] + aData[4];
-      aData[12] = UtilFormatNumber(aData[2], 0);
-      iScoreItem = aData[2] * aData[5];
-      aData[9] = UtilFormatNumber(iScoreItem, 0);
-      strScore = UtilFormatNumber(iTotalScore + iScoreItem, 0);
-    elseif aData[2] <= aData[3] then
-      aData[2] = aData[3];
-      aData[12] = UtilFormatNumber(aData[2], 0);
-      iScoreItem = aData[2] * aData[5]
-      aData[9] = UtilFormatNumber(iScoreItem, 0);
-      aData[1] = 2;
-      iTotalScore = iTotalScore + iScoreItem;
-      strScore = UtilFormatNumber(iTotalScore, 0);
-      iScoreItem = 0;
+      -- Tallying function
+      local function Tally()
+        -- Add to tally
+        aData[2] = aData[2] + aData[4];
+        -- Set human readable final quantity
+        aData[12] = UtilFormatNumber(aData[2], 0);
+        -- Set tallied score for quantity and update human readable score
+        iScoreItem = aData[2] * aData[5]
+        aData[9] = UtilFormatNumber(iScoreItem, 0);
+        -- Update human readable score
+        strScore = UtilFormatNumber(iTotalScore + iScoreItem, 0);
+      end
+      -- Category counting up?
+      if aData[3] >= 0 then
+        -- Run function depending if tallying or tally finished
+        if aData[2] >= aData[3] then Tallied() else Tally() end;
+      -- Category counting down? If tallying completed or overflowed?
+      elseif aData[2] <= aData[3] then Tallied() else Tally() end;
     end
     -- Update rank
     for iI = 1, #aRanks do
