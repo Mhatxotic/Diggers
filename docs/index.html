@@ -22,15 +22,35 @@
   <META name="viewport" content="width=device-width, initial-scale=1">
   <TITLE>Diggers</TITLE>
   <STYLE media="screen">
-  BODY { background-color:#111; border:0; font-family:sans-serif; overflow-x:hidden; text-shadow: 1px 1px #111 }
+  * { border:0;margin:0;padding:0;font-size:0 }
+  #MAIN { overflow:hidden;background-color:black }
+  #BG { position:absolute;z-index:-1;background:url('diggers.webp');width:100vw;height:100vh;background-size:100vw;background-position:center center;background-repeat:round;filter:blur(16px) }
+  #TITLE { display:none }
+  #BOX { position:absolute;display:flex;justify-content:center;align-items:center;width:100%;height:100%;flex-flow:wrap;margin:-10px }
+  #BOX UL { display:block;list-style-type:none;margin:10px }
+  #BOX UL LI { display:inline-block;margin:10px 5px 10px 5px }
+  #BOX UL LI A { font-size:24px;width:25%;background-color:green;text-decoration:none;padding:10px;font-size:16px;color:white }
+  #BOX UL LI A:HOVER { background-color:yellow; }
+  #BOX DIV { display:block;width:100%;text-align:center }
+  #BOX DIV IMG { width:50% }
+  #BOX DIV #SS, #BOX DIV UL LI A { border:black 1px solid;box-shadow:0 0 10px rgba(0,0,0,0.5);border-radius:10px; }
+  ADDRESS { text-align:center }
+  ADDRESS { margin:10px }
   </STYLE>
 </HEAD>
-<BODY id="idx.top">
-  <H1>Diggers fan remake</H1>
-  <UL>
-    <LI><A href="https://github.com/Mhatxotic/Diggers">Project page</A></LI>
-    <LI><A href="https://github.com/Mhatxotic/Engine">Engine page</A></LI>
-  </UL>
+<BODY ID="MAIN">
+  <H1 ID="TITLE">Diggers fan remake</H1>
+  <DIV ID="BG"></DIV>
+  <DIV ID="BOX">
+    <DIV><IMG SRC="diggers.png"/></DIV>
+    <DIV>
+      <UL>
+        <LI><A href="https://github.com/Mhatxotic/Diggers">Project page</A></LI>
+        <LI><A href="https://github.com/Mhatxotic/Engine">Engine page</A></LI>
+      </UL>
+    </DIV>
+    <DIV><A HREF="diggers.webp"><IMG ID="SS" SRC="diggers.webp"/></a></DIV>
+  </DIV>
   <ADDRESS>Copyright &copy; 2006-2025 Mhatxotic Design, All Rights Reserved.</ADDRESS>
 </BODY>
 </HTML>
