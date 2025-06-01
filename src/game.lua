@@ -1222,9 +1222,6 @@ local function CreatePlayer(iX, iY, iPlayerId, iRaceId, bIsAI)
     if not bIsAI then
       -- Set to un-shroud the players' objects
       aPlayer.US = true;
-      -- Set viewpoint on this player and synchronise
-      ScrollViewPortTo(iX - iScrTilesWd2, iY - iScrTilesHd2);
-      ForceViewport();
       -- Add capital carried and reset its value
       aActivePlayer.M = aActivePlayer.M + aGlobalData.gCapitalCarried;
       aGlobalData.gCapitalCarried = 0;
@@ -1239,6 +1236,9 @@ local function CreatePlayer(iX, iY, iPlayerId, iRaceId, bIsAI)
       -- Demo mode
       bAIvsAI = true;
     end
+    -- Set viewpoint on this player and synchronise
+    ScrollViewPortTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
+    ForceViewport();
   -- Set opponent player
   else aOpponentPlayer = aPlayer end;
   -- Adjust starting X co-ordinate for first Digger at the trade centre
@@ -2172,7 +2172,7 @@ local function RenderShroud()
   -- Calculate the X pixel position to draw at
   local iXdraw<const> = iStageL + iPixCenPosX;
   -- Set shroud colour
-  texSpr:SetCRGB(aShroudColour[1], aShroudColour[2], aShroudColour[3]);
+  texSpr:SetCRGBA(aShroudColour[1], aShroudColour[2], aShroudColour[3], 0.975);
   -- For each screen row to draw tile at
   for iY = 0, iTilesHeight do
     -- Calculate the Y position to grab from the level data
@@ -2189,7 +2189,7 @@ local function RenderShroud()
     end
   end
   -- Restore shroud colour
-  texSpr:SetCRGB(1.0, 1.0, 1.0);
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
 end
 -- Render all objects ------------------------------------------------------ --
 local function RenderObjects()
@@ -4312,10 +4312,6 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       CreatePlayer(aPlayerData[1], aPlayerData[2], iPlayerId,
                    aPlayerData[3], aPlayerData[4]);
     end
-    -- Set focus on the third Digger on the active player and defocus it
-    SelectObject(aActivePlayer.D[3]);
-    ForceViewport();
-    SelectObject();
     -- Set player race and level if not set (gam_test used)
     if not aGlobalData.gSelectedRace then
       aGlobalData.gSelectedRace = aActivePlayer.R end;

@@ -217,7 +217,6 @@ local function InitDebugPlay(iId)
       end
     end
     -- Render shroud
-    texSpr:SetCA(0.9);
     RenderShroud();
     -- Get system information
     local nCpu<const>, nSys<const> = CoreCPUUsage();

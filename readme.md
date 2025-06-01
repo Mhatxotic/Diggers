@@ -2,42 +2,40 @@
 
 # Diggers Fan Remake for MacOS, Linux and Windows
 
-## Table of contents…
-1. [Screenshots](#screenshots)…
-2. [Status](#status)…
-3. [System Requirements](#system-requirements)…
-4. [Downloading](#downloading)…
-5. [Running](#running)…
-6. [About](#about)…
-7. [Story](#story)…
-8. [Objectives](#objectives)…
-9. [Setup](#setup)…
-10. [Controls](#controls)…
-11. [Advanced](#advanced)…
-12. [Modding](#modding)…
-13. [FAQ](#faq)…
-14. [Credits](#credits)…
-15. [Contributing](#contributing)…
-16. [License](#license)…
+## [Contents](#contents)…
+ 1. [Screenshots](#screenshots)…
+ 2. [About](#about)…
+ 3. [System Requirements](#system-requirements)…
+ 4. [Downloading](#downloading)…
+ 5. [Running](#running)…
+ 6. [Story](#story)…
+ 7. [Objectives](#objectives)…
+ 8. [Setup](#setup)…
+ 9. [Controls](#controls)…
+10. [Advanced](#advanced)…
+11. [Modding](#modding)…
+12. [FAQ](#faq)…
+13. [Credits](#credits)…
+14. [Contributing](#contributing)…
 
 ## [Screenshots](#screenshots)…
 ![Screenshots](/docs/diggers.webp?raw=true "Screenshots")
 
-## [Status](#status)…
-This Diggers fan remake was started in 2006 as a basic Win32 C application using DirectDraw, DirectSound and DirectMedia then rewritten from scratch in C++ from the ground up with a new fully customisable engine called *Mhatxotic Engine* to utilise open source, cross-platform technologies and conformed to ISO coding standards.
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
+## [About](#about)…
+Diggers is a puzzle video game for the Amiga CD32 in which the player takes control of a mining team excavating a planet for precious minerals. It was later released for the Amiga 1200 and DOS. Diggers was bundled with the CD32 at launch, along with a 2D platformer entitled Oscar on the same CD. A sequel, Diggers 2: Extractors, was released for DOS in 1995.
+
+The game is set on the planet Zarg, where four races are vying for the gems and ores buried there. The four races are: the Habbish, who dig quickly and have high endurance, yet are impatient and prone to wander off; Grablins, who dig the fastest, have good stamina but are weak fighters; Quarriors, who are slow diggers but strong fighters; and the F'Targs, who are mediocre but regain their health quickly. The player chooses one of the four races, then sends out five man teams to mine a region. There are 34 regions in all, with two accessible at the beginning of the game. Each region has an amount of money the player must amass in order to beat it and open up the adjacent territories. Time plays a role, as there is always a computer controlled opposing race in the region, competing with the player to be the first to achieve the monetary goal.
+
+The gameplay is similar in some ways to Lemmings, with the player issuing orders to his five miners, not directly controlling them. The stages themselves are viewed from the side - the mineshafts that extend throughout the levels give the impression of an anthill. The player commands his units to dig and, when needed, perform more specific actions such as picking up gems and fighting enemy diggers. The races have various personalities, and will occasionally do things without the player commanding them to; this can range from good (such as fighting an enemy) to very bad (walking into a deep pool of water and drowning). As the miners dig, rubies, gold, emeralds, and diamonds will appear.
+
+At any time the player can teleport a miner back to the starting point and send him to the 'Zargon Stock Exchange', in order to trade the finds for money. Only three commodities are traded at one time, and the prices for each fluctuate depending on how much of a particular item has recently been sold. Here the player may also visit a shop and buy special mining tools, such as dynamite, automated drillers and bridge components. The miners themselves are expendable (though a monetary loss will be incurred for each lost worker), with a fresh set of five available each time a new level is entered.
+
+This Diggers fan remake was started in 2006 as a [basic Win32 C application](https://github.com/Mhatxotic/Diggers/releases/tag/Diggers-R00) using DirectDraw, DirectSound and DirectMedia then rewritten from scratch in C++ from the ground up with a new fully customisable engine called *Mhatxotic Engine* to utilise open source, cross-platform technologies and conformed to ISO coding standards.
 
 Diggers is a completely playable game from start to finish but will always be a work-in-progress since it is difficult and incredibly time consuming to work on a game single-handedly and there are always issues with upstream code due to the balancing of modernisation and compatibility. However, the following information is the current estimated status of the game…
 
-### MacOS engine outstanding issues…
-* If the game quits uncleanly, you have to run the game with `app_clearmutex=1` to clear the mutex that controls only allowing one instance of the game.
-
-### Linux engine outstanding issues…
-* Sometimes the full-screen/window toggle key might not work properly because of duplicated input keys. Hopefully will be fixed in Ubuntu 24.04 LTS.
-* Skipping one rendered frame every few seconds only on Wayland, perhaps when only using a `59.97hz` NTSC display. Probably need to make animations based on time and not frames which could be extremely difficult.
-
-### Game outstanding issues…
-* No French, German or Italian book, intro nor UI localisations yet.
-
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [System Requirements](#system-requirements)…
 | | Minimum | Recommended | Note |
 | --- | --- | --- | --- |
@@ -54,29 +52,23 @@ Diggers is a completely playable game from start to finish but will always be a 
 | **Disk Space** | 48MB (Read-Only) | 64MB (Read+Write) | Portable! |
 | **Network** | None | None | Unused. |
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Downloading](#downloading)…
 You can always get the latest version of this project [here](https://github.com/Mhatxotic/Diggers/releases).
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Running](#running)…
 
 ### Windows version…
 Running the Windows version should be trivial. Just double click on the executable file. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is not writable then at `C:\Users\<Username>\AppData\Roaming\Mhatxotic Design\Diggers`.
 
 ### Linux version…
-The Linux version is linked against an external package that you need to install for the game to work. These packages can be installed with `sudo apt-get install libglfw3 libopenal1`. You can read about the libraries in the [readme.md](readme.md) file. Simply run the game with `./Diggers`. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is now writable then at `~/.local/Mhatxotic Design/Diggers`.
+The Linux version is linked against an external package that you need to install for the game to work. These packages can be installed with `sudo apt-get install libglfw3 libopenal1`. You can read about the libraries used in the [credits](#credits) section. Simply run the game with `./Diggers`. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is now writable then at `~/.local/Mhatxotic Design/Diggers`.
 
 ### MacOS version…
 Opening the `.dmg` file disk image will require you to bypass Gatekeeper. To bypass Gatekeeper, simply run the `Terminal.app` and `chdir` to the directory where you downloaded the disk image with `chdir ~/Downloads` and then execute the following command to remove the quarantine flag from the disk image archive with `xattr -d com.apple.quarantine Diggers-R<x>-MacOS-Universal.dmg` where `<x>` is the version of this application. You should then be able to mount the disk image and run the game without any issue. All the files required for the game are stored inside the `Diggers.app/Contents/Resources/diggers.adb` archive. Persistent data is stored at `~/Library/Application Support/Mhatxotic Design/Diggers`.
 
-## [About](#about)…
-Diggers is a puzzle video game for the Amiga CD32 in which the player takes control of a mining team excavating a planet for precious minerals. It was later released for the Amiga 1200 and DOS. Diggers was bundled with the CD32 at launch, along with a 2D platformer entitled Oscar on the same CD. A sequel, Diggers 2: Extractors, was released for DOS in 1995.
-
-The game is set on the planet Zarg, where four races are vying for the gems and ores buried there. The four races are: the Habbish, who dig quickly and have high endurance, yet are impatient and prone to wander off; Grablins, who dig the fastest, have good stamina but are weak fighters; Quarriors, who are slow diggers but strong fighters; and the F'Targs, who are mediocre but regain their health quickly. The player chooses one of the four races, then sends out five man teams to mine a region. There are 34 regions in all, with two accessible at the beginning of the game. Each region has an amount of money the player must amass in order to beat it and open up the adjacent territories. Time plays a role, as there is always a computer controlled opposing race in the region, competing with the player to be the first to achieve the monetary goal.
-
-The gameplay is similar in some ways to Lemmings, with the player issuing orders to his five miners, not directly controlling them. The stages themselves are viewed from the side - the mineshafts that extend throughout the levels give the impression of an anthill. The player commands his units to dig and, when needed, perform more specific actions such as picking up gems and fighting enemy diggers. The races have various personalities, and will occasionally do things without the player commanding them to; this can range from good (such as fighting an enemy) to very bad (walking into a deep pool of water and drowning). As the miners dig, rubies, gold, emeralds, and diamonds will appear.
-
-At any time the player can teleport a miner back to the starting point and send him to the 'Zargon Stock Exchange', in order to trade the finds for money. Only three commodities are traded at one time, and the prices for each fluctuate depending on how much of a particular item has recently been sold. Here the player may also visit a shop and buy special mining tools, such as dynamite, automated drillers and bridge components. The miners themselves are expendable (though a monetary loss will be incurred for each lost worker), with a fresh set of five available each time a new level is entered.
-
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Story](#story)…
 This is no ordinary day on the planet, Zarg. Today is the glorius 412th. The day that each year, signals the commencement of one months frenzied digging. Four races of diggers, are tunneling their way to the Zargon Mineral Trading centre. they each, have an ambition, that requires them to mine as much as the planets mineral wealth, as possible.
 
@@ -84,9 +76,11 @@ Observing the quarrelsome diggers from afar, is a mysterious stranger. Each of t
 
 As the diggers wait nervously, the stranger heads toward the trading centre. for him, the ultimate test. the greatest challenge of his life lies ahead. the rewards for success, will be wealth unlimited. the results of failure, are unthinkable!
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Objectives](#objectives)…
 Guide one of the four available races to raising 17,500 Zogs by mining valuable minerals across 34 zones in order to build their dream creation.
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Setup](#setup)…
 Press `F1` at any time in the game to access the setup screen, `F2` to configure the key binds, `F3` to show the acknowledgements, `F11` to centre the window to the monitor or `F12` to write a direct frame buffer screenshot to disk.
 
@@ -150,10 +144,11 @@ Press `F1` at any time in the game to access the setup screen, `F2` to configure
 * **ABOUT**
   - Show the acknowledgements.
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Controls](#controls)…
 You can control the game with just a mouse which is novice difficulty like the Amiga computer and DOS version. Adding use of the keyboard alongside the mouse makes the game quite easy to play. Playing with a controller is hard as it will basically emulate the mouse like the Amiga CD32 version of the game did.
 
-### Basic controls
+### Basic controls…
 All scenes out of the game will usually allow `any button` to select any point of interest which will normally be accompanied by a tooltip in the bottom-right hand corner of the screen and the `mouse wheel`, `L1`, `L2`, `R1` or `R2 game controller buttons` to cycle quickly through multiple choices on some screens.
 
 In-game, the `left mouse button` or `first game controller button` will select the point of interest under the cursor and the `right mouse button` or `second game controller button` will bring up a menu for the selected in-game object. Pressing the `START` button will pause and unpause the game.
@@ -162,7 +157,7 @@ Pressing the `SELECT BUTTON` to enter the setup screen at any time.
 
 To see a complete keyboard shortcut listing, press the `F2` key at any time.
 
-### Cursors
+### Cursors…
 If you move the cursor and the cursor becomes anything but an arrow graphic, then than particular item on the screen is selectable, e.g.
 * 4 small arrows pointing to the centre…
   - Select/Perform action/Go here.
@@ -208,6 +203,7 @@ The hud is explained as follows from left to right…
 * `World`+`F` on a Mac…
   - Switch between native full-screen and decorated window mode which may persist through app restarts using native functionality. Using the MacOS options disables the `Alt`+`Enter` logic and you have to exit native full-screen mode to be able to use that shortcut again.
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Advanced](#advanced)…
 If for some reason you're an advanced-user or admin and need to fine tune how the game engine works, we have some command-line parameters that might be useful and you can overload as much as the operating system allows…
 
@@ -215,7 +211,7 @@ If for some reason you're an advanced-user or admin and need to fine tune how th
 * (*Linux*): `./diggers.elf cvar=value [cvar=value [...]]`
 * (*MacOS*): `open /Applications/Diggers.app --args cvar=value [cvar=value [...]]` or `./diggers.mac cvar=value [cvar=value [...]]`
 
-### Examples:-
+### Examples…
 * `diggers.exe vid_fs=1`
   - Will make the engine startup in full-screen.
 * `diggers.exe con_disabled=0`
@@ -225,12 +221,14 @@ If for some reason you're an advanced-user or admin and need to fine tune how th
 
 You can change cvars by opening up the console with the `GRAVE` key (key under `ESCAPE` key). In the release version of the game, the console is semi-permanantly disabled, you can re-enable the console by using `con_disabled=0` to re-enable it. CVars can obviously be overloaded onto the command-line, not just one setting. This key may not be available on most keyboards so you can change it by changing the `con_key1` or `con_key2` var. This is a GLFW specific [key code](https://www.glfw.org/docs/3.4/group__keys.html). Once you're in the console, type `cmdlist` for the commands you can use or `cvarlist` for the settings you can change and escape key to clear the text input or to close the console.
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Modding](#modding)…
 All the assets for the default release of Diggers is contained inside the `diggers.elf` binary on Linux, `diggers.exe` on Windows and in a separate `.adb` file on MacOS alongside the `diggers.mac` binary which is a non-solid maximum compression 7-zip file. If you know how the Quake or Half-Life engine works then overriding internal files operates similar to the engine. You can easily override any of the assets by mimicking the directory structure on disk or in another external `.adb` file alongside the executable file. The `.adb` files are sorted by name at startup and checked in reverse order so if you have an archive called `diggers.adb`, `diggers1.adb` then another archive called `diggers0.adb`, since the files are enumerated alphabetically, `diggers1.adb` and all its assets will take precedence over the prior archives `diggers0.adb` and `diggers.adb` in that order.
 
 ### Graphics…
 Basic support for scaled textures is supported. To use, you add a text file called `scale.txt` to the `tex` directory which contains a simple integer of the scaling factor of your texture pack (i.e. `2`) which modifies the main frame buffer to be double the size, then all your textures (keeping the same filename structure as the game) have to be enlarged using that factor from the games' original texture size (e.g. `tex/sprites.png` is `512x512` pixel dimensions by default, so if the factor is `2` then your new texture size must be `1024x1024` pixels) so you can add more detail. Do not change any positioning of any of the tiles because the tile positions are scaled using the same factor too. You can put all these files in a `.adb` (7-zip) file to override the original games data files but you must not use a `solid` mode archive or load times will be crippled. Do not modify or include `tex/smask.png` or `tex/lmask.png` in your archives as these binary tile sets are used for the mask collision system which is not scaled. The limit is capped to `16` even though the theoretical limit is `25` (if GPU supports `16384x16384` pixel textures) as the largest texture is `tex/bookpage.png` at `640x640` pixels at 1X scale. You also do not have to keep the 8-bit palette texture format so you can use 32-bit depth textures if you like. As long as `LibPNG` supports the format you want, the engine should be able to process it.
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [F.A.Q.](#faq)…
 * **Q. This does not [look](https://www.youtube.com/watch?v=9w7v3TXBEGY) like the original game.**
   - A. The original game was in a 320x200 resolution which is not an aspect ratio of 16:9 or even 4:3 like most modern displays are and adaptations had to be made to support all display types and most of the old textures had to be updated to be compatible with OpenGL. If you can help upgrade the textures to make them look better (up to 16x scale of the original) then that would be awesome!
@@ -240,57 +238,48 @@ Basic support for scaled textures is supported. To use, you add a text file call
   - A. Try specifying the parameter `sql_defaults=1` command-line option to reset all the engine settings to default. If this doesn't work you'll have to delete the `.udb` file or set `sql_defaults=2` and start again from scratch thus losing all your Diggers saved game data. All that said though, the game shouldn't really crash though so please send me any logs/crash dumps you may have.
 * **Q. Can I [speed run](https://en.wikipedia.org/wiki/Speedrunning) or [T.A.S.](https://en.wikipedia.org/wiki/Tool-assisted_speedrun) this game?**
   - A. This game is overkill on RNG but you can set the seed that makes the `math.random()` function predictable on the command-line with the `lua_randomseed=value` argument so hopefully you can use that to your advantage.
+* **Q. What's with the fog?**
+  - A. The point of the fog was to only limit the visible area like the original versions of the game would show.
 
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [Credits](#credits)…
 ### Diggers for Amiga, CD32 and DOS…
-* **Programmed by…**
-  - *Mike Froggatt* (PC) and *Toby Simpson* (Amiga).
-* **Additional DOS programming…**
-  - *Keith Hook*.
-* **Original design and Amiga programming…**
-  - *Toby Simpson*.
-* **Graphics…**
-  - *Jason Wilson*.
-* **Music and effects…**
-  - *Richard Joseph* and *Graham King*.
-* **Additional graphics…**
-  - *Tony Heap* and *Jason Riley*.
-* **Narrative text…**
-  - *Martin Oliver*.
-* **Additional design…**
-  - *Michael Hayward*, *Ian Saunter* and *Tony Fagelman*.
-* **Level design…**
-  - *Toby Simpson* and *Tony Fagelman*.
-* **Quality assurance…**
-  - *Steve Murphy*, *Paul Dobson* and *Kelly Thomas*.
-* **Intro & outro sequence…**
-  - *Mike Ball* and *Mike Froggatt*.
-* **Book production…**
-  - *Alan Brand*, *Steve Loughran*, *Matrin Oliver* and *Tony Fagelman*.
-* **Special thanks…**
-  - *Chris Ludwig*, *Wayne Lutz*, *Dave Pocock*, *Sharon McGuffie* and *Ben Simpson*.
-* **Produced By…**
-  - *Tony Fagelman* and *Millennium*.
+| Title | Author(s) |
+| --- | --- |
+| **Programmed by** | *Mike Froggatt* (PC) and *Toby Simpson* (Amiga). |
+| **Additional DOS programming** | *Keith Hook*. |
+| **Original design and Amiga programming** | *Toby Simpson*. |
+| **Graphics** | *Jason Wilson*. |
+| **Music and effects** | *Richard Joseph* and *Graham King*. |
+| **Additional graphics** | *Tony Heap* and *Jason Riley*. |
+| **Narrative text** | *Martin Oliver*. |
+| **Additional design** | *Michael Hayward*, *Ian Saunter* and *Tony  Fagelman*. |
+| **Level design** | *Toby Simpson* and *Tony Fagelman*. |
+| **Quality assurance** | *Steve Murphy*, *Paul Dobson* and *Kelly Thomas*. |
+| **Intro and outro sequence** | *Mike Ball* and *Mike Froggatt*. |
+| **Book production** | *Alan Brand*, *Steve Loughran*, *Matrin Oliver* and *Tony Fagelman*. |
+| **Special thanks** | *Chris Ludwig*, *Wayne Lutz*, *Dave Pocock*, *Sharon McGuffie* and *Ben Simpson*. |
+| **Produced by** | *Tony Fagelman* and *Millennium*. |
 
 ### Diggers fan remake for Windows, MacOS and Linux…
-* **Complete conversion…**
-  - By *Mhat* of *Mhatxotic Design*.
-* **Setup music…**
-  - *Super Stardust - Special Mission 1* by *PowerTrace*.
-* **Credits music…**
-  - *4U 07:00 V2001* by *Enuo*.
-* **Game over music loop…**
-  - *1000 Years Of Funk* by *Dimitri D. L.*.
-* **Special thanks…**
-  - [ModArchive.Org](https://www.modarchive.org).
-  - [AmigaRemix.Com](https://www.amigaremix.com).
+| Title | Credit(s) |
+| --- | --- |
+| **Complete conversion** | By *Mhat* of *Mhatxotic Design*. |
+| **Setup music** | *Super Stardust - Special Mission 1* by *PowerTrace*. |
+| **Credits music** | *4U 07:00 V2001* by *Enuo*. |
+| **Game over music loop** | *1000 Years Of Funk* by *Dimitri D. L.*. |
+| **Special thanks** | [ModArchive.Org](https://www.modarchive.org) and [AmigaRemix.Com](https://www.amigaremix.com). |
 
-Please read [this document](/readme.md) on the third party software used in this game.
+### Remake credits…
+| Credit | Reason |
+| --- | --- |
+| **Your name here.** |
+
+### Engine credits…
+Please read [this document](https://github.com/Mhatxotic/Engine?tab=readme-ov-file#credits) on the third party software used in this game.
 
 ## [Contributing](#contributing)…
-See [this document](/contributing.md) for details on contributing to this project.
+Thank you for your interest in contributing to the [Diggers](https://github.com/Mhatxotic/Diggers) project. If you decide to contribute code in any way — whether that may be via [issues](https://github.com/Mhatxotic/Diggers/issues), [discussions](https://github.com/Mhatxotic/Diggers/discussions), [pull requests](https://github.com/Mhatxotic/Diggers/pulls) or any other medium then by doing so you accept that you give full and permanent permission for us to use and modify your code as we see fit. As gratitude, your (nick)name or organisation will be credited in the [credits](#credits) section in this file and in the credits section of the game.
 
-## [License](#license)…
-Please read [this document](/license.md) for the license and disclaimer for use of this software.
-
-## Copyright © 2006-2025 Mhatxotic Design. All Rights Reserved.
+<sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
+## [Copyright © 2006-2025 Mhatxotic Design. All Rights Reserved](https://github.com/mhatxotic).

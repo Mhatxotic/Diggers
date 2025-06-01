@@ -8,7 +8,7 @@
     "app_icon": "app/icon.png",
     "app_longname": "Diggers",
     "app_shortname": "Diggers",
-    "app_version": "R49",
+    "app_version": "R50",
     "app_website": "Mhatxotic.GitHub.IO/Diggers",
     "ast_modbundle": true,
     "con_font": "app/console.ttf",
