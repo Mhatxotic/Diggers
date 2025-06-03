@@ -240,6 +240,8 @@ Basic support for scaled textures is supported. To use, you add a text file call
   - A. Try specifying the parameter `sql_defaults=1` command-line option to reset all the engine settings to default. If this doesn't work you'll have to delete the `.udb` file or set `sql_defaults=2` and start again from scratch thus losing all your Diggers saved game data. All that said though, the game shouldn't really crash though so please send me any logs/crash dumps you may have.
 * **Q. Can I [speed run](https://en.wikipedia.org/wiki/Speedrunning) or [T.A.S.](https://en.wikipedia.org/wiki/Tool-assisted_speedrun) this game?**
   - A. This game is overkill on RNG but you can set the seed that makes the `math.random()` function predictable on the command-line with the `lua_randomseed=value` argument so hopefully you can use that to your advantage.
+* **Q. What's with the fog?**
+  - A. The point of the fog was to only limit the visible area like the original versions of the game would show.
 
 ## [Credits](#credits)…
 ### Diggers for Amiga, CD32 and DOS…
