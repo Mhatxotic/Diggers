@@ -44,7 +44,7 @@ Diggers is a completely playable game from start to finish but will always be a 
 | **Memory** *(Windows)* | 16MB *(XP/X86)* | 128MB+ *(Win7/X64)* | Close estimate. |
 | **System** *(MacOS)* | 10.15 *(Intel)* / 11 *(Arm)* | 11.0+ *(Arm)* | FAT Universal executable. |
 | **Memory** *(MacOS)* | 256MB *(Intel)* | 512MB *(Arm)* | Close estimate. |
-| **System** *(Linux)* | Ubuntu 23.10 *(X64)* | Ubuntu 23.04+ *(X64)* | See below for packages. |
+| **System** *(Linux)* | Ubuntu 24.04 *(X64)* | Mint 22.1+ *(X64)* | See below for packages. |
 | **Memory** *(Linux)* | 16MB | 128MB+ | Wild estimate. |
 | **Graphics** | NV GF8K/ATI R600 | NV GF8K+/ATI R600+ | OpenGL 3.2 compatible. |
 | **Audio** | Any sound device | Any sound device | OpenAL 1.1 compatible. |
@@ -63,7 +63,7 @@ You can always get the latest version of this project [here](https://github.com/
 Running the Windows version should be trivial. Just double click on the executable file. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is not writable then at `C:\Users\<Username>\AppData\Roaming\Mhatxotic Design\Diggers`.
 
 ### Linux version…
-The Linux version is linked against an external package that you need to install for the game to work. These packages can be installed with `sudo apt-get install libglfw3 libopenal1`. You can read about the libraries used in the [credits](#credits) section. Simply run the game with `./Diggers`. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is now writable then at `~/.local/Mhatxotic Design/Diggers`.
+The Linux version is linked against the `libglfw3` external package that you need to install for the game to work. This can be installed with `sudo apt-get install libglfw3`. You can read about the libraries used in the [engine documentation](https://github.com/Mhatxotic/Engine?tab=readme-ov-file#credits). Simply run the game with `./diggers.elf` in a terminal or press `ALT+F2` to bring up the run dialog box to find the aforementioned executable. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is now writable then at `~/.local/Mhatxotic Design/Diggers`. The Linux version is compatible with the Ubuntu and Mint distributions and should be compatible with all other Ubuntu based distributions. Compatibility with other Ubuntu and non-Ubuntu distributions is unknown at this time so please contact us if our binaries are compatible or incompatible so we can build a compatibility list.
 
 ### MacOS version…
 Opening the `.dmg` file disk image will require you to bypass Gatekeeper. To bypass Gatekeeper, simply run the `Terminal.app` and `chdir` to the directory where you downloaded the disk image with `chdir ~/Downloads` and then execute the following command to remove the quarantine flag from the disk image archive with `xattr -d com.apple.quarantine Diggers-R<x>-MacOS-Universal.dmg` where `<x>` is the version of this application. You should then be able to mount the disk image and run the game without any issue. All the files required for the game are stored inside the `Diggers.app/Contents/Resources/diggers.adb` archive. Persistent data is stored at `~/Library/Application Support/Mhatxotic Design/Diggers`.
@@ -231,7 +231,7 @@ Basic support for scaled textures is supported. To use, you add a text file call
 <sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## [F.A.Q.](#faq)…
 * **Q. This does not [look](https://www.youtube.com/watch?v=9w7v3TXBEGY) like the original game.**
-  - A. The original game was in a 320x200 resolution which is not an aspect ratio of 16:9 or even 4:3 like most modern displays are and adaptations had to be made to support all display types and most of the old textures had to be updated to be compatible with OpenGL. If you can help upgrade the textures to make them look better (up to 16x scale of the original) then that would be awesome!
+  - A. The original game was in a `320x200` resolution which is not an aspect ratio of `16:9` or even `4:3` like most modern displays are and adaptations had to be made to support all display types and most of the old textures had to be updated to be compatible with OpenGL. If you can help upgrade the textures to make them look better (up to `16x` scale of the original) then that would be awesome!
 * **Q. I got an error, strange behaviour or found a bug.**
   - A. You can start the game with the `log_file=...` (filename) and the `log_level=4` parameters to give a pretty detailed log of what the app is doing so you can send me that along with as much info as possible such as the `.log` `.crt` `.dbg` and `.udb` files that the app generates. Neither of these files will contain any personal information, only technical information to help me squash the problem.
 * **Q. I've picked the wrong game-engine settings and the game crashed/won't start.**
