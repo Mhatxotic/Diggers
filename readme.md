@@ -44,7 +44,7 @@ Diggers is a completely playable game from start to finish but will always be a 
 | **Memory** *(Windows)* | 16MB *(XP/X86)* | 128MB+ *(Win7/X64)* | Close estimate. |
 | **System** *(MacOS)* | 10.15 *(Intel)* / 11 *(Arm)* | 11.0+ *(Arm)* | FAT Universal executable. |
 | **Memory** *(MacOS)* | 256MB *(Intel)* | 512MB *(Arm)* | Close estimate. |
-| **System** *(Linux)* | Ubuntu 23.10 *(X64)* | Ubuntu 23.04+ *(X64)* | See below for packages. |
+| **System** *(Linux)* | Ubuntu 24.04 *(X64)* | Mint 22.1+ *(X64)* | See below for packages. |
 | **Memory** *(Linux)* | 16MB | 128MB+ | Wild estimate. |
 | **Graphics** | NV GF8K/ATI R600 | NV GF8K+/ATI R600+ | OpenGL 3.2 compatible. |
 | **Audio** | Any sound device | Any sound device | OpenAL 1.1 compatible. |
@@ -63,7 +63,7 @@ You can always get the latest version of this project [here](https://github.com/
 Running the Windows version should be trivial. Just double click on the executable file. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is not writable then at `C:\Users\<Username>\AppData\Roaming\Mhatxotic Design\Diggers`.
 
 ### Linux version…
-The Linux version is linked against an external package that you need to install for the game to work. These packages can be installed with `sudo apt-get install libglfw3 libopenal1`. You can read about the libraries used in the [credits](#credits) section. Simply run the game with `./Diggers`. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is now writable then at `~/.local/Mhatxotic Design/Diggers`.
+The Linux version is linked against the 'libglfw3' external package that you need to install for the game to work. This can be installed with `sudo apt-get install libglfw3`. You can read about the libraries used in the [credits](#credits) section. Simply run the game with `./Diggers`. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is now writable then at `~/.local/Mhatxotic Design/Diggers`. The Linux version is compatible with the Ubuntu and Mint distributions and should be compatible with all other Ubuntu based distributions. Compatibility with other Ubuntu and non-Ubuntu distributions is unknown so please contact us if our binaries are compatible or incompatible so we can build a compatibility list.
 
 ### MacOS version…
 Opening the `.dmg` file disk image will require you to bypass Gatekeeper. To bypass Gatekeeper, simply run the `Terminal.app` and `chdir` to the directory where you downloaded the disk image with `chdir ~/Downloads` and then execute the following command to remove the quarantine flag from the disk image archive with `xattr -d com.apple.quarantine Diggers-R<x>-MacOS-Universal.dmg` where `<x>` is the version of this application. You should then be able to mount the disk image and run the game without any issue. All the files required for the game are stored inside the `Diggers.app/Contents/Resources/diggers.adb` archive. Persistent data is stored at `~/Library/Application Support/Mhatxotic Design/Diggers`.
