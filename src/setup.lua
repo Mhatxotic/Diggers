@@ -1330,7 +1330,7 @@ local function OnScriptLoaded(GetAPI)
       -- Mods were pressed?
       if iMods > 0 then
         -- Control was pressed?
-        if iMods & iControl == iMods then
+        if iMods & iControl == iControl then
           -- Backspace was pressed? Set unbound
           if iKey == iBackspace then iKey = 0;
           -- C was pressed? Keep existing key
