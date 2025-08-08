@@ -46,7 +46,7 @@ local function ProcRenderPage()
   BlitLT(texPage, 8, 8);
   -- Render text
   fontSpeech:SetCRGB(0.45, 0.3, 0.22);
-  PrintW(fontSpeech, 77, 32, 298, strText);
+  PrintW(fontSpeech, 77, 28, 298, strText);
   -- Render illustration if set
   if aIllustration then
     BlitSLT(texPage, aIllustration[1], aIllustration[2], aIllustration[3]);
@@ -255,41 +255,54 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData,
+    cvLang;
   -- Grab imports
   BlitLT, BlitSLT, Fade, GameProc, InitCon, InitContinueGame, LoadResources,
     PlayMusic, PlayStaticSound, PrintW, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, RenderTipShadow, SetCallbacks,
     SetHotSpot, SetKeys, SetTip, aAssetsData, aBookData, aCursorIdData,
-    aSfxData, fontSpeech =
+    aSfxData, cvLang, fontSpeech =
       GetAPI("BlitLT", "BlitSLT", "Fade", "GameProc", "InitCon",
         "InitContinueGame", "LoadResources", "PlayMusic", "PlayStaticSound",
         "PrintW", "RegisterHotSpot", "RegisterKeys", "RenderAll",
         "RenderShadow", "RenderTip", "RenderTipShadow", "SetCallbacks",
         "SetHotSpot", "SetKeys", "SetTip", "aAssetsData", "aBookData",
-        "aCursorIdData", "aSfxData", "fontSpeech");
+        "aCursorIdData", "aSfxData", "cvLang", "fontSpeech");
   -- Set book data language
   local sLocale<const> = Core.Locale();
   CoreLog("Locale '"..sLocale.."' detected.");
   -- Grab language part and if not found?
   local sLang<const> = sLocale:sub(1, 2);
-  if not sLang or #sLang ~= 2 then
-    -- English is default language and log the error
-    aBookData = aBookData.en;
-    CoreLog("Locale '"..sLocale.."' not recognised! Defaulting to English.");
-  else
-    -- Get book language data
-    local aData<const> = aBookData[sLang];
+  -- Language selector
+  local function SelectLanguage(sSelectedLang, bRetry)
+    -- Not valid?
+    if #sSelectedLang ~= 2 then
+      -- Select English instead
+      CoreLog("Language invalid! Defaulting to English.");
+      SelectLanguage("en", true);
+    end
+    -- Get book language data and if it is there?
+    local aData<const> = aBookData[sSelectedLang];
     if aData then
       -- Accepted
       aBookData = aData;
-      CoreLog("Language '"..sLang.."' selected.");
+      CoreLog("Language '"..sSelectedLang.."' selected.");
+    -- Just incase to prevent recursive
+    elseif bRetry then error("Internal error: English not available!");
+    -- Not found?
     else
       -- English is default language and log the error
-      aBookData = aBookData.en;
-      CoreLog("Language '"..sLang.."' not supported! Defaulting to English.");
+      CoreLog("Language '"..sSelectedLang..
+        "' not supported! Defaulting to English.");
+      SelectLanguage("en", true);
     end
   end
+  -- Get language override and if specified? Select it
+  local sOverride<const> = cvLang:Get();
+  if #sOverride == 2 then SelectLanguage(sOverride)
+  -- Locale valid
+  else SelectLanguage(sLang) end;
   -- Prepare assets
   aZmtcTexture = aAssetsData.zmtc;
   aAssets = { aAssetsData.bookcover, aAssetsData.bookpage, false };

@@ -521,10 +521,9 @@ local function fcbTick()
           "' for type "..iType.." in "..sIdentifier.."!") end;
     end
     -- Resize frame buffer if texture scale different
-    local VariableGetInt<const>, aVariables<const> =
-      Variable.GetInt, Variable.Internal;
-    Fbo.Resize(VariableGetInt(aVariables.vid_orwidth) * iTexScale,
-               VariableGetInt(aVariables.vid_orheight) * iTexScale);
+    local aVariables<const> = Variable.Internal;
+    Fbo.Resize(aVariables.vid_orwidth:Get() * iTexScale,
+               aVariables.vid_orheight:Get() * iTexScale);
   -- No scale file found so no texture scale by default
   else iTexScale = 1 end;
   -- Refresh viewport info and automatically when window size changes
@@ -598,6 +597,8 @@ local function fcbTick()
     aAPI.cvIntro = VariableRegister("gam_intro", 1, iCFB, fcbEmpty);
     -- ...and a CVar that lets us start straight into a level
     aAPI.cvTest = VariableRegister("gam_test", "", aCVF.STRING, fcbEmpty);
+    -- ...and a CVar to force a different language
+    aAPI.cvLang = VariableRegister("gam_lang", "", aCVF.STRINGSAVE, fcbEmpty);
     -- Some library functions and variables only for this scope
     local InitBook, InitCon, InitCredits, InitTitleCredits, InitDebugPlay,
       InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
