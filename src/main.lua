@@ -521,10 +521,9 @@ local function fcbTick()
           "' for type "..iType.." in "..sIdentifier.."!") end;
     end
     -- Resize frame buffer if texture scale different
-    local VariableGetInt<const>, aVariables<const> =
-      Variable.GetInt, Variable.Internal;
-    Fbo.Resize(VariableGetInt(aVariables.vid_orwidth) * iTexScale,
-               VariableGetInt(aVariables.vid_orheight) * iTexScale);
+    local aVariables<const> = Variable.Internal;
+    Fbo.Resize(aVariables.vid_orwidth:Get() * iTexScale,
+               aVariables.vid_orheight:Get() * iTexScale);
   -- No scale file found so no texture scale by default
   else iTexScale = 1 end;
   -- Refresh viewport info and automatically when window size changes

@@ -12,11 +12,10 @@
 -- Core function aliases --------------------------------------------------- --
 local pairs<const>, random<const> = pairs, math.random;
 -- M-Engine function aliases ----------------------------------------------- --
-local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const>,
-  VariableGetInt<const> = Core.RAM, Display.VRAM, Util.Bytes, Variable.GetInt;
+local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const> =
+  Core.RAM, Display.VRAM, Util.Bytes;
 -- Consts ------------------------------------------------------------------ --
-local iCVAppTitle<const> = Variable.Internal.app_version;
-local strVersion<const> = VariableGetInt(iCVAppTitle).." ";
+local strVersion<const> = Variable.Internal.app_version:Get().." ";
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
   GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,

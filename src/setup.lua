@@ -25,8 +25,7 @@ local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   DisplayVidModeData<const>, DisplayVidModes<const>, DisplayVReset<const>,
   InputGetKeyName<const>, InputOnKey<const>, UtilClamp<const>,
   UtilClampInt<const>, UtilExplode<const>, UtilGetRatio<const>,
-  UtilWordWrap<const>, VariableGetInt<const>, VariableRegister<const>,
-  VariableResetInt<const>, VariableSetInt<const>, aCVars<const>,
+  UtilWordWrap<const>, VariableRegister<const>, aCVars<const>,
   aMods<const>, iCredits<const>, iNativeMode<const> =
     Audio.GetNumPBDevices, Audio.GetPBDeviceName, Audio.Reset, Core.CPUUsage,
     Core.Engine, Core.Library, Core.License, Core.RAM, Core.Time,
@@ -34,8 +33,7 @@ local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
     Display.MonitorData, Display.Monitors, Display.Reset, Display.VidModeData,
     Display.VidModes, Display.VReset, Input.GetKeyName, Input.OnKey,
     Util.Clamp, Util.ClampInt, Util.Explode, Util.GetRatio, Util.WordWrap,
-    Variable.GetInt, Variable.Register, Variable.ResetInt, Variable.SetInt,
-    Variable.Internal, Input.KeyMods, Core.Libraries.MAX,
+    Variable.Register, Variable.Internal, Input.KeyMods, Core.Libraries.MAX,
     Display.FSTypes.NATIVE;
 -- Read and prepare engine version information ----------------------------- --
 local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
@@ -46,17 +44,17 @@ sAppTitle, sAppVendor, sAppExeType =
 local sGameVersion<const>, sGameName<const>, sGameCopyr<const>,
       sGameDescription<const>, sGameWebsite<const>
       = -- ----------------------------------------------------------------- --
-      VariableGetInt(aCVars.app_version):upper(),
-      VariableGetInt(aCVars.app_longname):upper(),
-      VariableGetInt(aCVars.app_copyright):upper(),
-      VariableGetInt(aCVars.app_description):upper(),
-      VariableGetInt(aCVars.app_website):upper();
+      aCVars.app_version:Get():upper(),
+      aCVars.app_longname:Get():upper(),
+      aCVars.app_copyright:Get():upper(),
+      aCVars.app_description:Get():upper(),
+      aCVars.app_website:Get():upper();
 -- Other CVars used -------------------------------------------------------- --
-local iCVvidvsync<const>, iCVappdelay<const>, iCVtexfilter<const>,
-      iCVaudvol<const>, iCVaudstrvol<const>, iCVaudsamvol<const>,
-      iCVaudfmvvol<const>, iCVvidmonitor<const>, iCVwinwidth<const>,
-      iCVwinheight<const>, iCVvidfs<const>, iCVvidfsmode<const>,
-      iCVaudinterface
+local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>,
+      vAudvol<const>, vAudstrvol<const>, vAudsamvol<const>,
+      vAudfmvvol<const>, vVidmonitor<const>, vWinwidth<const>,
+      vWinheight<const>, vVidfs<const>, vVidfsmode<const>,
+      vAudinterface
       = -- ----------------------------------------------------------------- --
       aCVars.vid_vsync, aCVars.app_delay, aCVars.vid_texfilter, aCVars.aud_vol,
       aCVars.aud_strvol, aCVars.aud_samvol, aCVars.aud_fmvvol,
@@ -261,15 +259,15 @@ local function Refresh()
   -- Refresh monitor settings
   local function RefreshMonitorSettings()
     -- Initialise monitor video modes and use primary monitor if invalid
-    iMonitorId = tonumber(VariableGetInt(iCVvidmonitor));
+    iMonitorId = tonumber(vVidmonitor:Get());
     if iMonitorId < -1 or iMonitorId >= DisplayMonitors() then
       iMonitorId = -1 end;
     iMonitorIdOriginal = iMonitorId;
     -- Initialise video resolution and use desktop resolution if invalid
-    iFullScreenState = tonumber(VariableGetInt(iCVvidfs));
+    iFullScreenState = tonumber(vVidfs:Get());
     if iFullScreenState < 0 or iFullScreenState > 1 then
       iFullScreenState = 0 end;
-    iFullScreenMode = tonumber(VariableGetInt(iCVvidfsmode));
+    iFullScreenMode = tonumber(vVidfsmode:Get());
     -- If full-screen mode is enabled?
     if iFullScreenState == 1 then
       -- If full-screen mode is -1 (Exclusive full-screen)?
@@ -291,8 +289,8 @@ local function Refresh()
   -- Refresh window settings
   local function RefreshWindowSettings()
     -- Get window size
-    local iWindowWidth = tonumber(VariableGetInt(iCVwinwidth));
-    local iWindowHeight = tonumber(VariableGetInt(iCVwinheight));
+    local iWindowWidth = tonumber(vWinwidth:Get());
+    local iWindowHeight = tonumber(vWinheight:Get());
     -- Set to defaults if invalid
     if iWindowWidth < -1 then iWindowWidth = -1 end;
     if iWindowHeight < -1 then iWindowHeight = -1 end;
@@ -310,7 +308,7 @@ local function Refresh()
   end
   -- Refresh audio settings
   local function RefreshAudioSettings()
-    iAudioDeviceId = tonumber(VariableGetInt(iCVaudinterface));
+    iAudioDeviceId = tonumber(vAudinterface:Get());
     iAudioDeviceIdOriginal = iAudioDeviceId;
   end
   -- Perform refreshes
@@ -338,20 +336,20 @@ local function ApplySettings()
   if iWindowId >= 1 and iWindowId <= #aWindowSizes then
     local aData<const> = aWindowSizes[iWindowId];
     if aData[1] == 0 and aData[2] == 0 then bWindowReset = true end;
-    VariableSetInt(iCVwinwidth, aData[1]);
-    VariableSetInt(iCVwinheight, aData[2]);
+    vWinwidth:Integer(aData[1]);
+    vWinheight:Integer(aData[2]);
   end
   -- Set window variables if needed
-  if iFullScreenState == 2 then VariableSetInt(iCVvidfs, 1)
-                           else VariableSetInt(iCVvidfs, iFullScreenState) end;
+  if iFullScreenState == 2 then vVidfs:Integer(1);
+                           else vVidfs:Integer(iFullScreenState) end;
   -- If full-screen mode is resetting?
   if iFullScreenMode == -3 then
     -- Now set to default mode
     iFullScreenMode = -2;
-    VariableResetInt(iCVvidfsmode);
-  else VariableSetInt(iCVvidfsmode, iFullScreenMode) end;
-  VariableSetInt(iCVvidmonitor, iMonitorId);
-  VariableSetInt(iCVaudinterface, iAudioDeviceId);
+    vVidfsmode:Reset();
+  else vVidfsmode:Integer(iFullScreenMode) end;
+  vVidmonitor:Integer(iMonitorId);
+  vAudinterface:Integer(iAudioDeviceId);
   -- Reset audio subsystem if interface changed
   if iAudioDeviceIdOriginal ~= iAudioDeviceId then AudioReset() end;
   -- If GPU related parameters changed from original then reset video
@@ -737,14 +735,14 @@ local function OnScriptLoaded(GetAPI)
     iAudioDeviceId = -1;
     iWindowId = 1;
     -- Other options
-    VariableResetInt(iCVappdelay);
-    VariableResetInt(iCVvidvsync);
-    VariableResetInt(iCVtexfilter);
+    vAppdelay:Reset();
+    vVidvsync:Reset();
+    vTexfilter:Reset();
     -- Reset volumes
-    VariableResetInt(iCVaudvol);
-    VariableResetInt(iCVaudstrvol);
-    VariableResetInt(iCVaudsamvol);
-    VariableResetInt(iCVaudfmvvol);
+    vAudvol:Reset();
+    vAudstrvol:Reset();
+    vAudsamvol:Reset();
+    vAudfmvvol:Reset();
     -- Set new settings
     ApplySettings();
   end
@@ -900,10 +898,8 @@ local function OnScriptLoaded(GetAPI)
     if iWindowId > #aWindowSizes then iWindowId = #aWindowSizes end;
   end
   -- Frame limiter choice callbacks
-  local function GetVarVidVsync()
-    return tonumber(VariableGetInt(iCVvidvsync)) end;
-  local function GetVarAppDelay()
-    return tonumber(VariableGetInt(iCVappdelay)) end;
+  local function GetVarVidVsync() return tonumber(vVidvsync:Get()) end;
+  local function GetVarAppDelay() return tonumber(vAppdelay:Get()) end;
   local function LimiterGet()
     -- Get VSync value, thread delay and kernel tick rate
     local iFrameLimiter = 1 + GetVarVidVsync();
@@ -925,8 +921,8 @@ local function OnScriptLoaded(GetAPI)
     local iVSync, iDelay;
     if iFrameLimiter >= 4 then iVSync, iDelay = -1 + (iFrameLimiter % 4), 1;
     else iVSync, iDelay = -1 + iFrameLimiter, 0 end;
-    VariableSetInt(iCVvidvsync, iVSync);
-    VariableSetInt(iCVappdelay, iDelay);
+    vVidvsync:Integer(iVSync);
+    vAppdelay:Integer(iDelay);
   end
   local function LimiterDown()
     LimiterSet(UtilClampInt(LimiterGet()-1, 0, #aFrameLimiterLabels-1));
@@ -935,10 +931,8 @@ local function OnScriptLoaded(GetAPI)
     LimiterSet(UtilClampInt(LimiterGet()+1, 0, #aFrameLimiterLabels-1));
   end
   -- Filter choice callbacks
-  local function GetVarTexFilter()
-    return tonumber(VariableGetInt(iCVtexfilter)) end;
-  local function SetVarTexFilter(iV)
-    return VariableSetInt(iCVtexfilter, iV) end;
+  local function GetVarTexFilter() return tonumber(vTexfilter:Get()) end;
+  local function SetVarTexFilter(iV) return vTexfilter:Integer(iV) end;
   local function FilterUpdate()
     -- Point filtering if disabled
     if GetVarTexFilter() == 0 then return "Point" end;
@@ -971,29 +965,28 @@ local function OnScriptLoaded(GetAPI)
     iAudioDeviceId = iAudioDeviceId + 1;
   end
   -- Volume set utilities
-  local function VPrepare(sCV) return floor(VariableGetInt(sCV)*100).."%" end;
-  local function VSet(sCV, iAdj)
-    VariableSetInt(sCV,
-      UtilClamp(tonumber(VariableGetInt(sCV)) + (iAdj*0.05), 0, 1));
+  local function VPrepare(vCV) return floor(vCV:Get() * 100).."%" end;
+  local function VSet(vCV, iAdj)
+    vCV:Number(UtilClamp(tonumber(vCV:Get()) + (iAdj * 0.05), 0, 1));
   end
   -- Master volume callbacks
-  local function VMasterUpdate() return VPrepare(iCVaudvol) end;
-  local function VMasterSet(iAdj) VSet(iCVaudvol, iAdj) end;
+  local function VMasterUpdate() return VPrepare(vAudvol) end;
+  local function VMasterSet(iAdj) VSet(vAudvol, iAdj) end;
   local function VMasterDown() VMasterSet(-1) end;
   local function VMasterUp() VMasterSet(1) end;
   -- Stream volume callbacks
-  local function VStreamUpdate() return VPrepare(iCVaudstrvol) end;
-  local function VStreamSet(iAdj) VSet(iCVaudstrvol, iAdj) end;
+  local function VStreamUpdate() return VPrepare(vAudstrvol) end;
+  local function VStreamSet(iAdj) VSet(vAudstrvol, iAdj) end;
   local function VStreamDown() VStreamSet(-1) end;
   local function VStreamUp() VStreamSet(1) end;
   -- Sample volume callbacks
-  local function VSampleSet(iAdj) VSet(iCVaudsamvol, iAdj) end;
-  local function VSampleUpdate() return VPrepare(iCVaudsamvol) end;
+  local function VSampleSet(iAdj) VSet(vAudsamvol, iAdj) end;
+  local function VSampleUpdate() return VPrepare(vAudsamvol) end;
   local function VSampleDown() VSampleSet(-1) end;
   local function VSampleUp() VSampleSet(1) end;
   -- FMV volume callbacks
-  local function VFMVUpdate() return VPrepare(iCVaudfmvvol) end;
-  local function VFMVSet(iAdj) VSet(iCVaudfmvvol, iAdj) end;
+  local function VFMVUpdate() return VPrepare(vAudfmvvol) end;
+  local function VFMVSet(iAdj) VSet(vAudfmvvol, iAdj) end;
   local function VFMVDown() VFMVSet(-1) end;
   local function VFMVUp() VFMVSet(1) end;
   -- Apply functions to static option table
