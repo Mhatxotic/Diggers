@@ -20,20 +20,22 @@
   <META name="og:url" content="https://mhatxotic.github.io/Diggers/">
   <META name="robots" content="index,follow">
   <META name="viewport" content="width=device-width, initial-scale=1">
+  <LINK rel="icon" type="image/x-icon" href="favicon.ico">
   <TITLE>Diggers</TITLE>
   <STYLE media="screen">
   * { border:0;margin:0;padding:0;font-size:0 }
   #MAIN { overflow:hidden;background-color:black }
   #BG { position:absolute;z-index:-1;background:url('diggers.webp');width:100vw;height:100vh;background-size:100vw;background-position:center center;background-repeat:round;filter:blur(16px) }
   #TITLE { display:none }
-  #BOX { position:absolute;display:flex;justify-content:center;align-items:center;width:100%;height:100%;flex-flow:wrap;margin:-10px }
+  #BOX { position:absolute;display:flex;justify-content:center;align-items:center;width:100%;height:100%;flex-flow:wrap }
   #BOX UL { display:block;list-style-type:none;margin:10px }
   #BOX UL LI { display:inline-block;margin:10px 5px 10px 5px }
   #BOX UL LI A { font-size:24px;width:25%;background-color:green;text-decoration:none;padding:10px;font-size:16px;color:white }
   #BOX UL LI A:HOVER { background-color:yellow; }
   #BOX DIV { display:block;width:100%;text-align:center }
-  #BOX DIV IMG { width:50% }
-  #BOX DIV #SS, #BOX DIV UL LI A { border:black 1px solid;box-shadow:0 0 10px rgba(0,0,0,0.5);border-radius:10px; }
+	@media only screen and (min-width:640px) { #BOX DIV IMG { width:40% } }
+	@media only screen and (max-width:640px) { #BOX DIV IMG { width:75% } }
+  #BOX DIV #SS, #BOX DIV UL LI A { border:black 1px solid;box-shadow:0 0 10px rgba(0,0,0,0.5);border-radius:10px }
   ADDRESS { text-align:center }
   ADDRESS { margin:10px }
   </STYLE>
@@ -45,6 +47,7 @@
     <DIV><IMG SRC="diggers.png"/></DIV>
     <DIV>
       <UL>
+        <LI><A href="https://github.com/Mhatxotic/Diggers/releases">Download</A></LI>
         <LI><A href="https://github.com/Mhatxotic/Diggers">Project page</A></LI>
         <LI><A href="https://github.com/Mhatxotic/Engine">Engine page</A></LI>
       </UL>
