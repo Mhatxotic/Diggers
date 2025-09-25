@@ -57,7 +57,7 @@ local DisableKeyHandlers, MainProcFunc, RestoreKeyHandlers, SetKeys,
   SetHotSpot, SetTip = UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank,
     UtilBlank;
 -- Constants for loader ---------------------------------------------------- --
-local aBFlags<const> = Image.Flags;        -- Get bitmap loading flags
+local aBFlags<const> = Image.FlagsPre;     -- Get bitmap loading flags
 local iPNG<const> = aBFlags.TOGPU|aBFlags.FCE_PNG;-- Get forced PNG format flag
 local aPFlags<const> = Pcm.Flags;          -- Get waveform loading flags
 local iOGG<const> = aPFlags.FCE_OGG;       -- Get forced wave format
@@ -623,7 +623,7 @@ local function fcbTick()
     -- Ask modules to grab needed functions from the API
     for iI = 1, #aModules do
       local aModData<const> = aModules[iI];
-      aModData.F(GetAPI, aModData);
+      aModData.F(GetAPI, aModData, aAPI);
     end
     -- Main procedure callback
     local function MainCallback()
