@@ -14,7 +14,7 @@ local unpack<const> = table.unpack;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitLT, Fade, InitBook, InitFile, InitLobby, InitMap, InitRace,
   LoadResources, PlayStaticSound, PrintC, RenderShadow, RenderTipShadow,
-  SetCallbacks, SetHotSpot, SetKeys, aGlobalData, fontSpeech;
+  SetCallbacks, SetHotSpot, SetKeys, oGlobalData, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       aFlashData,                      -- Active hot point
@@ -31,30 +31,34 @@ local aAssets,                         -- Assets required
       sMsg,                            -- Controller speech message
       texCon,                          -- Controller texture
       texZmtc;                         -- Zmtc background texture
--- Tile ids (see data.lua/aAssetsData.cntrl.P) ----------------------------- --
+-- Tile ids (see data.lua/oAssetsData.cntrl.P) ----------------------------- --
 local tileSpeech<const>  = 1;          local tileConAnim<const> = 1;
 local tileFish<const>    = 4;          local tileMap<const>     = 8;
 local tileRace<const>    = 9;          local tileBook<const>    = 10;
 local tileFile<const>    = 11;
 -- Data for flashing textures to help the player know what to do ----------- --
 local aFlashCache<const> = {
-  [tileMap]  = { tileMap,  9,   9 }, [tileRace] = { tileRace, 242, 160 },
-  [tileBook] = { tileBook, 9, 176 }, [tileFile] = { tileFile,  76, 181 },
+  [tileMap]  = { tileMap,    9.0,   9.0 },
+  [tileRace] = { tileRace, 242.0, 160.0 },
+  [tileBook] = { tileBook,   9.0, 176.0 },
+  [tileFile] = { tileFile,  76.0, 181.0 },
 };
 -- Render callback --------------------------------------------------------- --
 local function ProcRender()
   -- Draw backdrop, controller screen and shadow around it
-  BlitLT(texZmtc, -96, 0);
-  BlitLT(texCon, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitLT(texZmtc, -96.0, 0.0);
+  BlitLT(texCon, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw animated fish. The first tile is already drawn.
   local iFishAnimId<const> = iAnimTimer % 5;
-  if iFishAnimId > 0 then BlitSLT(texCon, tileFish + iFishAnimId, 19, 135) end;
+  if iFishAnimId > 0 then
+    BlitSLT(texCon, tileFish + iFishAnimId, 19.0, 135.0) end;
   -- Controller talking?
   if iSpeechTimer > 0 then
     -- Draw controller speaking. The first tile is already drawn.
     local iAnimId<const> = iAnimTimer % 4;
-    if iAnimId > 0 then BlitSLT(texCon, iAnimId + tileConAnim, 100, 36) end;
+    if iAnimId > 0 then
+      BlitSLT(texCon, iAnimId + tileConAnim, 100.0, 36.0) end;
     -- Have flash data?
     if aFlashData then
       -- Draw flashing hotspot. The first tile is already drawn.
@@ -64,8 +68,8 @@ local function ProcRender()
           aFlashData[2], aFlashData[3]) end;
     end
     -- Draw speech bubble and caption
-    BlitSLT(texCon, tileSpeech, 147, 139);
-    PrintC(fontSpeech, 225, 146, sMsg);
+    BlitSLT(texCon, tileSpeech, 147.0, 139.0);
+    PrintC(fontSpeech, 225.0, 146.0, sMsg);
   end
   -- Draw tip
   RenderTipShadow();
@@ -102,7 +106,7 @@ local function GoTransition(fcbOnFadeOut, ...);
     fcbOnFadeOut(unpack(aParams));
   end
   -- Fade out to requested loading procedure
-  return Fade(0, 1, 0.04, ProcRender, OnFadeOut);
+  return Fade(0.0, 1.0, 0.04, ProcRender, OnFadeOut);
 end
 -- Hotspot function events ------------------------------------------------- --
 local function GoBook() GoTransition(InitBook, false) end;
@@ -132,11 +136,11 @@ local function OnAssetsLoaded(aResources)
     iSpeechListLoop = iSpeechListCount - 120;
   end
   -- If we're not in a new game?
-  if not aGlobalData.gNewGame then
+  if not oGlobalData.gNewGame then
     -- Set continue hotspot and keybank
     iHotSpotId, iKeyBankId = iHotSpotIdCont, iKeyBankIdCont;
     -- If no zone is selected?
-    if not aGlobalData.gSelectedLevel then
+    if not oGlobalData.gSelectedLevel then
       -- Player returned from completing a zone
       AddSpeechItem("WELCOME BACK, MASTER MINER");
       AddSpeechItem("PLEASE PICK YOUR NEXT ZONE", tileMap);
@@ -150,9 +154,9 @@ local function OnAssetsLoaded(aResources)
     -- Set new hotspot and keybank
     iHotSpotId, iKeyBankId = iHotSpotIdNew, iKeyBankIdNew;
     -- Race not selected?
-    if not aGlobalData.gSelectedRace then
+    if not oGlobalData.gSelectedRace then
       -- Zone not selected?
-      if not aGlobalData.gSelectedLevel then
+      if not oGlobalData.gSelectedLevel then
         -- Tell player to pick diggers race and zone
         AddSpeechItem("WELCOME, MASTER MINER", tileFile);
         AddSpeechItem("YOU'LL NEED TO PICK DIGGERS", tileRace);
@@ -162,7 +166,7 @@ local function OnAssetsLoaded(aResources)
       -- Player can also load previous progress
       AddSpeechItem("PAST RECORDS ARE HERE", tileFile);
     -- Race selected but zone not selected? Tell player to pick a zone
-    elseif not aGlobalData.gSelectedLevel then
+    elseif not oGlobalData.gSelectedLevel then
       AddSpeechItem("YOU MUST ALSO PICK A ZONE", tileMap);
     -- Player has picked zone and race?
     else
@@ -175,9 +179,9 @@ local function OnAssetsLoaded(aResources)
   AddSpeechItem("THE BOOK MAY BE OF HELP", tileBook);
   AddSpeechItem("AND DON'T TAKE ALL DAY");
   -- Set colour of speech text
-  fontSpeech:SetCRGB(0, 0, 0.25);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
   -- Change render procedures
-  Fade(1, 0, 0.04, ProcRender, OnFadedIn);
+  Fade(1.0, 0.0, 0.04, ProcRender, OnFadedIn);
 end
 -- Init controller screen function ----------------------------------------- --
 local function InitCon()
@@ -186,24 +190,24 @@ end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitSLT, BlitLT, Fade, InitBook, InitFile, InitLobby, InitMap, InitRace,
     LoadResources, PlayStaticSound, PrintC, RegisterHotSpot, RegisterKeys,
     RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys,
-    aAssetsData, aCursorIdData, aGlobalData, aSfxData, fontSpeech =
+    oAssetsData, oCursorIdData, oGlobalData, oSfxData, fontSpeech =
       GetAPI("BlitSLT", "BlitLT", "Fade", "InitBook", "InitFile", "InitLobby",
         "InitMap", "InitRace", "LoadResources", "PlayStaticSound", "PrintC",
         "RegisterHotSpot", "RegisterKeys", "RenderShadow", "RenderTipShadow",
-        "SetCallbacks", "SetHotSpot", "SetKeys", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aSfxData", "fontSpeech");
+        "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "oSfxData", "fontSpeech");
   -- Set assets data
-  aAssets = { aAssetsData.zmtc, aAssetsData.cntrl };
+  aAssets = { oAssetsData.zmtc, oAssetsData.cntrl };
   -- Set sound effect ids
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Required cursor id
   local iCSelect<const>, iCExit<const> =
-    aCursorIdData.SELECT, aCursorIdData.EXIT;
+    oCursorIdData.SELECT, oCursorIdData.EXIT;
   -- Set up hotspots data
   local aHSMap<const>, aHSBook<const>, aHSFile<const>,
         aHSCntrl<const>, aHSExit<const> =
@@ -220,20 +224,20 @@ local function OnScriptLoaded(GetAPI)
   iHotSpotIdCont =
     RegisterHotSpot({ aHSMap, aHSBook, aHSFile, aHSCntrl, aHSExit });
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local iPress<const> = Input.States.PRESS;
   local sName<const> = "ZMTC CONTROLLER";
   local aKBLobby<const>, aKBBook<const>, aKBFile<const>, aKBZone<const> =
-    { aKeys.ESCAPE, GoLobby, "zmtccgtl", "GO TO LOBBY"   },
-    { aKeys.B,      GoBook,  "zmtcrtb",  "READ THE BOOK" },
-    { aKeys.F,      GoFile,  "zmtcfs",   "FILE STORAGE"  },
-    { aKeys.Z,      GoMap,   "zmtccsz",  "SELECT ZONE"   };
+    { oKeys.ESCAPE, GoLobby, "zmtccgtl", "GO TO LOBBY"   },
+    { oKeys.B,      GoBook,  "zmtcrtb",  "READ THE BOOK" },
+    { oKeys.F,      GoFile,  "zmtcfs",   "FILE STORAGE"  },
+    { oKeys.Z,      GoMap,   "zmtccsz",  "SELECT ZONE"   };
   -- Register keybank for continue game
   iKeyBankIdCont = RegisterKeys(sName,
     { [iPress] = { aKBLobby, aKBBook, aKBFile, aKBZone } });
   -- Register keybank for new game
   iKeyBankIdNew = RegisterKeys(sName, { [iPress] = { aKBLobby, aKBBook,
-    aKBFile, { aKeys.R, GoRace, "zmtccsrc", "SELECT RACE" }, aKBZone } });
+    aKBFile, { oKeys.R, GoRace, "zmtccsrc", "SELECT RACE" }, aKBZone } });
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitCon = InitCon }, F = OnScriptLoaded };

@@ -11,7 +11,7 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local pairs<const>, random<const> = pairs, math.random;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const> =
   Core.RAM, Display.VRAM, Util.Bytes;
 -- Consts ------------------------------------------------------------------ --
@@ -19,9 +19,9 @@ local strVersion<const> = Variable.Internal.app_version:Get().." ";
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
   GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
-  LoadResources, LoadSaveData, PlayStaticSound, PrintC, ProcessViewPort,
-  RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject, SetHotSpot,
-  aKeyBankCats, aLevelsData, aObjectTypes, aObjects, fontTiny;
+  LoadResources, LoadSaveData, PlayStaticSound, PrintC, RegisterFBUCallback,
+  RenderObjects, RenderTerrain, SelectObject, SetHotSpot, tKeyBankCats,
+  aLevelsData, oObjectTypes, aObjs, fontTiny;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets to load
       fcbEnterAnimProc,                -- Enter animation procedure
@@ -30,9 +30,9 @@ local aAssets,                         -- Assets to load
       iHotSpotId,                      -- Button hotspot id
       iKeyBankId,                      -- Title key bank id
       iNextUpdate,                     -- Next system information update
-      iPostSGX,                        -- Quit game post position
       iSSelect,                        -- Select sound effect id
-      iStageB, iStageL, iStageR,       -- Stage bounds
+      nPostSGX,                        -- Quit game post position
+      nStageB, nStageL, nStageR,       -- Stage bounds
       strCredits,                      -- Credits
       strSubTitle,                     -- Version and system information text
       texTitle;                        -- Texture tile
@@ -42,42 +42,42 @@ local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
 sAppTitle, sAppVendor, sAppExeType =
   sAppTitle:upper(), sAppVendor:upper(), sAppExeType:upper();
 -- Static element positions ------------------------------------------------ --
-local iCentreX, iCreditsY, iLogoX, iLogoY, iPostY, iSubY =
-  160, 206, 79, 12, 72, 58;
+local nCentreX, nCreditsY, nLogoX, nLogoY, nPostY, nSubY =
+  160.0, 206.0, 79.0, 12.0, 72.0, 58.0;
 -- Render in procedure ----------------------------------------------------- --
 local function RenderProcEnterAnim()
   -- Scroll in amount
-  local n1, n2 = 160, 168;
+  local n1, n2 = 160.0, 168.0;
   -- Initial animation procedure
   local function RenderProcInitialAnim()
     -- Render terrain and game objects
     RenderTerrain();
     RenderObjects();
     -- Render title objects
-    BlitSLT(texTitle, 2, iLogoX, 12 - n1);
-    BlitSLT(texTitle, 3, iStageL - n1, iPostY);
-    BlitSLT(texTitle, 4, iStageR - (168 - n2), iPostY);
+    BlitSLT(texTitle, 2, nLogoX, 12.0 - n1);
+    BlitSLT(texTitle, 3, nStageL - n1, nPostY);
+    BlitSLT(texTitle, 4, nStageR - (168.0 - n2), nPostY);
     -- Render status text
-    fontTiny:SetCRGB(1, 0.9, 0);
-    PrintC(fontTiny, iCentreX, 58 - n1, strSubTitle);
-    PrintC(fontTiny, iCentreX, 206 + n1, strCredits);
+    fontTiny:SetCRGB(1.0, 0.9, 0.0);
+    PrintC(fontTiny, nCentreX, 58.0 - n1, strSubTitle);
+    PrintC(fontTiny, nCentreX, 206.0 + n1, strCredits);
     -- Move components in
     n1 = n1 - (n1 * 0.1);
     n2 = n2 - (n2 * 0.1);
-    if n1 > 1 and n2 > 1 then return end;
+    if n1 > 1.0 and n2 > 1.0 then return end;
     -- Animation completed
     local function RenderProcFinishedAnim()
       -- Render terrain and game objects
       RenderTerrain();
       RenderObjects();
       -- Render title objects
-      BlitSLT(texTitle, 2, iLogoX, iLogoY);
-      BlitSLT(texTitle, 3, iStageL, iPostY);
-      BlitSLT(texTitle, 4, iPostSGX, iPostY);
+      BlitSLT(texTitle, 2, nLogoX, nLogoY);
+      BlitSLT(texTitle, 3, nStageL, nPostY);
+      BlitSLT(texTitle, 4, nPostSGX, nPostY);
       -- Render status text
-      fontTiny:SetCRGB(1, 0.9, 0);
-      PrintC(fontTiny, iCentreX, iSubY, strSubTitle);
-      PrintC(fontTiny, iCentreX, iCreditsY, strCredits);
+      fontTiny:SetCRGB(1.0, 0.9, 0.0);
+      PrintC(fontTiny, nCentreX, nSubY, strSubTitle);
+      PrintC(fontTiny, nCentreX, nCreditsY, strCredits);
     end
     -- Set finished callback and execute it
     fcbEnterAnimProc = RenderProcFinishedAnim;
@@ -90,24 +90,24 @@ end
 -- Render fade out procedure ----------------------------------------------- --
 local function RenderProcLeaveAnim()
   -- Scroll in amount
-  local n1, n2 = 160, 168;
+  local n1, n2 = 160.0, 168.0;
   -- Initial animation procedure
   local function RenderProcInitialAnim()
     -- Render terrain and game objects
     RenderTerrain();
     RenderObjects();
     -- Render title objects
-    BlitSLT(texTitle, 2, iLogoX, -148 + n1);
-    BlitSLT(texTitle, 3, iStageL - 168 + n1, iPostY);
-    BlitSLT(texTitle, 4, iStageR - n2, iPostY);
+    BlitSLT(texTitle, 2, nLogoX, -148.0 + n1);
+    BlitSLT(texTitle, 3, nStageL - 168.0 + n1, nPostY);
+    BlitSLT(texTitle, 4, nStageR - n2, nPostY);
     -- Render status text
-    fontTiny:SetCRGB(1, 0.9, 0);
-    PrintC(fontTiny, iCentreX, 58 - n1, strSubTitle);
-    PrintC(fontTiny, iCentreX, 370 - n1, strCredits);
+    fontTiny:SetCRGB(1.0, 0.9, 0.0);
+    PrintC(fontTiny, nCentreX, 58.0 - n1, strSubTitle);
+    PrintC(fontTiny, nCentreX, 370.0 - n1, strCredits);
     -- Move components in
     n1 = n1 - (n1 * 0.05);
     n2 = n2 - (n2 * 0.05);
-    if n1 >= 1 and n2 >= 1 then return end;
+    if n1 >= 1.0 and n2 >= 1.0 then return end;
     -- Animation completed
     local function RenderProcFinishedAnim()
       -- Render terrain and game objects
@@ -124,30 +124,8 @@ local function RenderProcLeaveAnim()
 end
 -- Render fade out procedure ----------------------------------------------- --
 local function RenderProcLeave() fcbLeaveAnimProc() end;
--- When demo level as loaded? ---------------------------------------------- --
-local function ProcLogic()
-  -- Process game functions
-  GameProc();
-  -- Process viewport scrolling
-  ProcessViewPort();
-  -- Refresh system information every second
-  if GetGameTicks() % 60 == 59 then fcbRC() end;
-  -- Select a random digger on the first tick
-  if GetGameTicks() % 600 == 599 then
-    -- Set next RAM update time
-    iNextUpdate = GetGameTicks() + 60;
-    -- Find a digger from the opposing player
-    local aPlayer;
-    if random() >= 0.5 then aPlayer = GetOpponentPlayer();
-                       else aPlayer = GetActivePlayer() end;
-    local aObject = aPlayer.D[random(#aPlayer.D)];
-    -- Still not found? Find a random object
-    if not aObject then aObject = aObjects[random(#aObjects)] end;
-    -- Select the object if we got something!
-    if aObject then SelectObject(aObject) end;
-  end
-  -- Return if it is not time to show the credits
-  if GetGameTicks() % 1500 < 1499 then return end;
+-- Enter fade out to credits procedure ------------------------------------- --
+local function FadeOutToCredits()
   -- When demo level faded out?
   local function OnFadeToCredits()
     -- Remove frame buffer update callback
@@ -160,7 +138,32 @@ local function ProcLogic()
     InitTitleCredits(true);
   end
   -- Fade out to credits
-  Fade(0, 1, 0.04, RenderProcLeave, OnFadeToCredits);
+  Fade(0.0, 1.0, 0.04, RenderProcLeave, OnFadeToCredits);
+end
+-- When demo level as loaded? ---------------------------------------------- --
+local function ProcLogic()
+  -- Process game functions
+  GameProc();
+  -- Refresh system information every second
+  if GetGameTicks() % 60 == 59 then fcbRC() end;
+  -- Select a random digger on the first tick
+  if GetGameTicks() % 600 == 599 then
+    -- Set next RAM update time
+    iNextUpdate = GetGameTicks() + 60;
+    -- Find a digger from the opposing player
+    local oPlayer;
+    if random() >= 0.5 then oPlayer = GetOpponentPlayer();
+                       else oPlayer = GetActivePlayer() end;
+    local oObj = oPlayer.D[random(#oPlayer.D)];
+    -- Still not found? Find a random object
+    if not oObj then oObj = aObjs[random(#aObjs)] end;
+    -- Select the object if we got something!
+    if oObj then SelectObject(oObj) end;
+  end
+  -- Return if it is not time to show the credits
+  if GetGameTicks() % 1500 < 1499 then return end;
+  -- Fade to credits
+  FadeOutToCredits();
 end
 -- Render function --------------------------------------------------------- --
 local function ProcRender() fcbEnterAnimProc() end;
@@ -201,11 +204,12 @@ local function DetectVideoMemory()
   fcbRC();
 end
 -- Framebuffer changed callback -------------------------------------------- --
-local function OnStageUpdated(...)
-  -- Update stage bounds
-  local _ _, _, iStageL, _, iStageR, iStageB = ...;
+local function OnStageUpdated(_, _, iStageL, _, iStageR, iStageB)
+  -- Update stage bounds converting to numbers
+  nStageL, nStageR, nStageB =
+    iStageL + 0.0, iStageR + 0.0, iStageB + 0.0;
   -- Recalculate post start game position
-  iPostSGX = iStageR - 168;
+  nPostSGX = nStageR - 168.0;
   -- Re-detect video RAM
   DetectVideoMemory();
 end
@@ -232,8 +236,8 @@ local function GoLoadLevel(strTitle)
   if #aZones <= 1 then aZones[1], aZones[2] = 1, 2 end;
   -- Load AI vs AI and use random zone
   LoadLevel(aZones[random(#aZones)], strTitle, iKeyBankId,
-    aObjectTypes.DIGRANDOM, true, aObjectTypes.DIGRANDOM, true,
-    ProcLogic, ProcRender, iHotSpotId);
+    oObjectTypes.DIGRANDOM, true, oObjectTypes.DIGRANDOM, true,
+    ProcLogic, ProcRender, FadeOutToCredits, iHotSpotId, nil, nil, true);
 end
 -- When faded out to quit -------------------------------------------------- --
 local function OnFadeOutToQuit() Core.Quit(0) end;
@@ -242,7 +246,7 @@ local function GoQuit()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Fade to black then quit
-  return Fade(0, 1, 0.04, RenderProcLeave, OnFadeOutToQuit, true);
+  return Fade(0.0, 1.0, 0.04, RenderProcLeave, OnFadeOutToQuit, true);
 end
 -- When faded out to start game -------------------------------------------- --
 local function OnFadeOutToLobby()
@@ -262,21 +266,21 @@ local function GoLobby()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Start fading out
-  Fade(0, 1, 0.04, RenderProcLeave, OnFadeOutToLobby, true);
+  Fade(0.0, 1.0, 0.04, RenderProcLeave, OnFadeOutToLobby, true);
 end
 -- Resources are ready? ---------------------------------------------------- --
 local function OnAssetsLoaded(aResources, bNoMusic)
   -- Initialise title texture
   texTitle = aResources[1];
-  texTitle:SetCRGBA(1, 1, 1, 1);
+  texTitle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Initialise credits
   strCredits = "ORIGINAL VERSIONS BY TOBY SIMPSON AND MIKE FROGGATT\n\z
     (C) 1994 MILLENNIUM INTERACTIVE LTD. ALL RIGHTS RESERVED\n\rcffffff4f\z
     POWERED BY "..sAppTitle.." (C) 2025 "..sAppVendor..". \z
       ALL RIGHTS RESERVED\n\z
-    PRESS "..aKeyBankCats.gksc[9].." TO SETUP, "..
-      aKeyBankCats.gksb[9].." TO SET KEYS OR "..
-      aKeyBankCats.gksa[9].." TO SEE ACKNOWLEDGEMENTS AT ANY TIME";
+    PRESS "..tKeyBankCats.gksc[9].." TO SETUP, "..
+      tKeyBankCats.gksb[9].." TO SET KEYS OR "..
+      tKeyBankCats.gksa[9].." TO SEE ACKNOWLEDGEMENTS AT ANY TIME";
   -- Load demonstration level without or with title music
   if bNoMusic then GoLoadLevel() else GoLoadLevel("title") end;
 end
@@ -287,36 +291,35 @@ end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Get imports
   BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
     GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
-    LoadResources, LoadSaveData, PlayStaticSound, PrintC, ProcessViewPort,
-    RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderObjects,
-    RenderTerrain, SelectObject, SetHotSpot, aAssetsData, aCursorIdData,
-    aKeyBankCats, aLevelsData, aObjectTypes, aObjects, aSfxData, fontTiny =
+    LoadResources, LoadSaveData, PlayStaticSound, PrintC, RegisterFBUCallback,
+    RegisterHotSpot, RegisterKeys, RenderObjects, RenderTerrain, SelectObject,
+    SetHotSpot, oAssetsData, oCursorIdData, tKeyBankCats, aLevelsData,
+    oObjectTypes, aObjs, oSfxData, fontTiny =
       GetAPI("BlitSLT", "DeInitLevel", "Fade", "GameProc", "GetActivePlayer",
         "GetGameTicks", "GetOpponentPlayer", "InitLobby", "InitNewGame",
         "InitTitleCredits", "LoadLevel", "LoadResources", "LoadSaveData",
-        "PlayStaticSound", "PrintC", "ProcessViewPort", "RegisterFBUCallback",
-        "RegisterHotSpot", "RegisterKeys", "RenderObjects", "RenderTerrain",
-        "SelectObject", "SetHotSpot", "aAssetsData", "aCursorIdData",
-        "aKeyBankCats", "aLevelsData", "aObjectTypes", "aObjects", "aSfxData",
-        "fontTiny");
+        "PlayStaticSound", "PrintC", "RegisterFBUCallback", "RegisterHotSpot",
+        "RegisterKeys", "RenderObjects", "RenderTerrain", "SelectObject",
+        "SetHotSpot", "oAssetsData", "oCursorIdData", "tKeyBankCats",
+        "aLevelsData", "oObjectTypes", "aObjs", "oSfxData", "fontTiny");
   -- Build assets data
-  aAssets = { aAssetsData.title };
+  aAssets = { oAssetsData.title };
   -- Get sound id
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   iKeyBankId = RegisterKeys("TITLE SCREEN", { [Input.States.PRESS] = {
-    { aKeys.ENTER,  GoLobby, "tsst", "START GAME" },
-    { aKeys.ESCAPE, GoQuit,  "tsqg", "QUIT GAME" }
+    { oKeys.ENTER,  GoLobby, "tsst", "START GAME" },
+    { oKeys.ESCAPE, GoQuit,  "tsqg", "QUIT GAME" }
   } });
   -- Register hot spots
   iHotSpotId = RegisterHotSpot({
-    {  54, 152,  69,  29, 1, aCursorIdData.EXIT, false, false, GoQuit  },
-    {  38, 137,  86,  46, 2, aCursorIdData.OK,   false, false, GoLobby }
+    {  54, 152,  69,  29, 1, oCursorIdData.EXIT, false, false, GoQuit  },
+    {  38, 137,  86,  46, 2, oCursorIdData.OK,   false, false, GoLobby }
   });
 end
 -- Return imports and exports ---------------------------------------------- --

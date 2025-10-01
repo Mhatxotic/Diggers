@@ -9,9 +9,9 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
--- Lua aliases (optimisation) ---------------------------------------------- --
+-- Core function aliases --------------------------------------------------- --
 local collectgarbage<const> = collectgarbage;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreCatchup<const>, CoreTime<const>, FontPrint<const>, FontPrintC<const>,
   FontPrintCT<const>, FontPrintM<const>, FontPrintR<const>, FontPrintS<const>,
   FontPrintU<const>, FontPrintUR<const>, FontPrintW<const>, FontPrintWS<const>,
@@ -31,166 +31,175 @@ local ClearStates, IsMouseInBounds, MusicVolume, SetCallbacks, SetHotSpot,
 -- Locals ------------------------------------------------------------------ --
 local fcbFading = false;               -- Fading callback
 local fontLittle,                      -- Little font
-      iLoadX, iLoadY,                  -- Loader position
-      iStageBottom, iStageLeft,        -- Stage bottom and left co-ord
-      iStageRight, iStageTop,          -- Stage right and top co-ord
-      iTexScale,                       -- Texture scale
+      nLoadX, nLoadY,                  -- Loader position
+      nStageB, nStageL,                -- Stage bottom and left co-ord
+      nStageR, nStageT,                -- Stage right and top co-ord
+      nTexScale,                       -- Texture scale
       sTip,                            -- Current tip and bounds
       texSpr;                          -- Sprites texture
 -- Print text left with scale ---------------------------------------------- --
-local function Print(fontHandle, iX, iY, sText)
-  FontPrint(fontHandle, iX * iTexScale, iY * iTexScale, sText);
+local function Print(fontHandle, nX, nY, sText)
+  FontPrint(fontHandle, nX * nTexScale, nY * nTexScale, sText);
 end
 -- Print text centre with scale -------------------------------------------- --
-local function PrintC(fontHandle, iX, iY, sText)
-  FontPrintC(fontHandle, iX * iTexScale, iY * iTexScale, sText);
+local function PrintC(fontHandle, nX, nY, sText)
+  FontPrintC(fontHandle, nX * nTexScale, nY * nTexScale, sText);
 end
 -- Print text centre with texture glyphs and scale ------------------------- --
-local function PrintCT(fontHandle, iX, iY, sText, texHandle)
-  FontPrintCT(fontHandle, iX * iTexScale, iY * iTexScale, sText, texHandle);
+local function PrintCT(fontHandle, nX, nY, sText, texHandle)
+  FontPrintCT(fontHandle, nX * nTexScale, nY * nTexScale, sText, texHandle);
 end
 -- Print text right with scale --------------------------------------------- --
-local function PrintR(fontHandle, iX, iY, sText)
-  FontPrintR(fontHandle, iX * iTexScale, iY * iTexScale, sText);
+local function PrintR(fontHandle, nX, nY, sText)
+  FontPrintR(fontHandle, nX * nTexScale, nY * nTexScale, sText);
 end
 -- Simulate a print with maximum width ------------------------------------- --
-local function PrintWS(fontHandle, iWidth, strText)
-  return FontPrintWS(fontHandle, iWidth * iTexScale, 0, strText) / iTexScale;
+local function PrintWS(fontHandle, nWidth, strText)
+  return FontPrintWS(fontHandle, nWidth * nTexScale, 0, strText) / nTexScale;
 end
 -- Print with maximum width ------------------------------------------------ --
-local function PrintW(fontHandle, iX, iY, iWrapX, strText)
-  FontPrintW(fontHandle, iX * iTexScale, iY * iTexScale,
-    iWrapX * iTexScale, 0, strText);
+local function PrintW(fontHandle, nX, nY, nWrapX, strText)
+  FontPrintW(fontHandle, nX * nTexScale, nY * nTexScale,
+    nWrapX * nTexScale, 0, strText);
 end
 -- Simulate a print -------------------------------------------------------- --
 local function PrintS(fontHandle, strText)
-  return FontPrintS(fontHandle, strText) / iTexScale;
+  return FontPrintS(fontHandle, strText) / nTexScale;
 end
 -- Print a scrolling string ------------------------------------------------ --
-local function PrintM(fontHandle, iX, iY, iScroll, iWidth, sText)
-  FontPrintM(fontHandle, iX * iTexScale, iY * iTexScale,
-    iScroll * iTexScale, iWidth * iTexScale, sText);
+local function PrintM(fontHandle, nX, nY, nScroll, nWidth, sText)
+  FontPrintM(fontHandle, nX * nTexScale, nY * nTexScale,
+    nScroll * nTexScale, nWidth * nTexScale, sText);
 end
 -- Print text upwards (left align) ----------------------------------------- --
-local function PrintU(fontHandle, iX, iY, sText)
-  FontPrintU(fontHandle, iX * iTexScale, iY * iTexScale, sText);
+local function PrintU(fontHandle, nX, nY, sText)
+  FontPrintU(fontHandle, nX * nTexScale, nY * nTexScale, sText);
 end
 -- Print text upwards (right align) ---------------------------------------- --
-local function PrintUR(fontHandle, iX, iY, sText)
-  FontPrintUR(fontHandle, iX * iTexScale, iY * iTexScale, sText);
+local function PrintUR(fontHandle, nX, nY, sText)
+  FontPrintUR(fontHandle, nX * nTexScale, nY * nTexScale, sText);
 end
 -- Blit bounds with scale -------------------------------------------------- --
-local function BlitLTRB(texHandle, iX1, iY1, iX2, iY2)
-  TextureBlitLTRB(texHandle, iX1 * iTexScale, iY1 * iTexScale,
-                             iX2 * iTexScale, iY2 * iTexScale);
+local function BlitLTRB(texHandle, nX1, nY1, nX2, nY2)
+  TextureBlitLTRB(texHandle, nX1 * nTexScale, nY1 * nTexScale,
+                             nX2 * nTexScale, nY2 * nTexScale);
 end
 -- Blit tile/coords/size/angle with scale ---------------------------------- --
-local function BlitSLTWHA(texHandle, iTileId, iX, iY, iW, iH, nA)
-  TextureBlitSLTWHA(texHandle, iTileId, iX * iTexScale, iY * iTexScale,
-                                        iW * iTexScale, iH * iTexScale, nA);
+local function BlitSLTWHA(texHandle, iTileId, nX, nY, nW, nH, nA)
+  TextureBlitSLTWHA(texHandle, iTileId, nX * nTexScale, nY * nTexScale,
+                                        nW * nTexScale, nH * nTexScale, nA);
 end
 -- Blit tile/coords/size with scale ---------------------------------------- --
-local function BlitSLTWH(texHandle, iTileId, iX, iY, iW, iH)
-  TextureBlitSLTWH(texHandle, iTileId, iX * iTexScale, iY * iTexScale,
-                                       iW * iTexScale, iH * iTexScale);
+local function BlitSLTWH(texHandle, iTileId, nX, nY, nW, nH)
+  TextureBlitSLTWH(texHandle, iTileId, nX * nTexScale, nY * nTexScale,
+                                       nW * nTexScale, nH * nTexScale);
 end
 -- Blit tile/bounds with scale --------------------------------------------- --
-local function BlitSLTRB(texHandle, iTileId, iX1, iY1, iX2, iY2)
-  TextureBlitSLTRB(texHandle, iTileId, iX1 * iTexScale, iY1 * iTexScale,
-                                       iX2 * iTexScale, iY2 * iTexScale);
+local function BlitSLTRB(texHandle, iTileId, nX1, nY1, nX2, nY2)
+  TextureBlitSLTRB(texHandle, iTileId, nX1 * nTexScale, nY1 * nTexScale,
+                                       nX2 * nTexScale, nY2 * nTexScale);
 end
 -- Blit tile/x/y with scale ------------------------------------------------ --
-local function BlitSLT(texHandle, iTileId, iX, iY)
-  TextureBlitSLT(texHandle, iTileId, iX * iTexScale, iY * iTexScale);
+local function BlitSLT(texHandle, iTileId, nX, nY)
+  TextureBlitSLT(texHandle, iTileId, nX * nTexScale, nY * nTexScale);
 end
 -- Blit tile/x/y with scale and angle -------------------------------------- --
-local function BlitSLTA(texHandle, iTileId, iX, iY, nAngle)
-  TextureBlitSLTA(texHandle, iTileId, iX * iTexScale, iY * iTexScale, nAngle);
+local function BlitSLTA(texHandle, iTileId, nX, nY, nAngle)
+  TextureBlitSLTA(texHandle, iTileId, nX * nTexScale, nY * nTexScale, nAngle);
 end
 -- Blit x/y with scale ----------------------------------------------------- --
-local function BlitLT(texHandle, iX, iY)
-  TextureBlitLT(texHandle, iX * iTexScale, iY * iTexScale);
+local function BlitLT(texHandle, nX, nY)
+  TextureBlitLT(texHandle, nX * nTexScale, nY * nTexScale);
 end
 -- Set vertex for video handle --------------------------------------------- --
-local function SetVLTRB(vidHandle, iX1, iY1, iX2, iY2)
-  VideoSetVLTRB(vidHandle, iX1 * iTexScale, iY1 * iTexScale,
-                           iX2 * iTexScale, iY2 * iTexScale);
+local function SetVLTRB(vidHandle, nX1, nY1, nX2, nY2)
+  VideoSetVLTRB(vidHandle, nX1 * nTexScale, nY1 * nTexScale,
+                           nX2 * nTexScale, nY2 * nTexScale);
 end
 -- Add a tile to a texture ------------------------------------------------- --
-local function TileA(texHandle, iX1, iY1, iX2, iY2)
-  return TextureTileA(texHandle, iX1 * iTexScale, iY1 * iTexScale,
-                                 iX2 * iTexScale, iY2 * iTexScale);
+local function TileA(texHandle, nX1, nY1, nX2, nY2)
+  return TextureTileA(texHandle, nX1 * nTexScale, nY1 * nTexScale,
+                                 nX2 * nTexScale, nY2 * nTexScale);
 end
 -- Do render the tip ------------------------------------------------------- --
-local function DoRenderTip(iX)
+local function DoRenderTip(nX)
   -- Draw the background of the tip rect
-  BlitSLT(texSpr, 847, iX,      216);
-  BlitSLT(texSpr, 848, iX + 16, 216);
-  BlitSLT(texSpr, 848, iX + 32, 216);
-  BlitSLT(texSpr, 848, iX + 48, 216);
-  BlitSLT(texSpr, 849, iX + 64, 216);
+  BlitSLT(texSpr, 847, nX,        216.0);
+  BlitSLT(texSpr, 848, nX + 16.0, 216.0);
+  BlitSLT(texSpr, 848, nX + 32.0, 216.0);
+  BlitSLT(texSpr, 848, nX + 48.0, 216.0);
+  BlitSLT(texSpr, 849, nX + 64.0, 216.0);
   -- Set tip colour and render the text
-  fontLittle:SetCRGB(1, 1, 1);
-  PrintC(fontLittle, iX + 40, 220, sTip);
+  fontLittle:SetCRGB(1.0, 1.0, 1.0);
+  PrintC(fontLittle, nX + 40.0, 220.0, sTip);
 end
 -- Render the tip in the bottom right -------------------------------------- --
 local function RenderTip()
   -- Return if no tip
   if not sTip then return end;
   -- Draw tip in different positions if mouse cursor is over the tip
-  if IsMouseInBounds(232, 216, 312, 232) then DoRenderTip(144);
-                                         else DoRenderTip(232) end;
+  if IsMouseInBounds(232, 216, 312, 232) then DoRenderTip(144.0);
+                                         else DoRenderTip(232.0) end;
 end
 -- Render shadow ----------------------------------------------------------- --
-local function RenderShadow(iL, iT, iR, iB)
+local function RenderShadow(nLeft, nTop, nRight, nBottom)
   -- Draw a shadow using the solid sprite
   texSpr:SetCA(0.2);
-  BlitSLTRB(texSpr, 1023, iL+3, iB, iR, iB+1); -- Horizontal row 1
-  BlitSLTRB(texSpr, 1023, iR, iT+3, iR+1, iB); -- Vertical column 1
+  -- Horizontal row 1
+  BlitSLTRB(texSpr, 1023, nLeft + 3.0, nBottom, nRight, nBottom + 1.0);
+  -- Vertical column 1
+  BlitSLTRB(texSpr, 1023, nRight, nTop + 3.0, nRight + 1.0, nBottom);
   texSpr:SetCA(0.1);
-  BlitSLTRB(texSpr, 1023, iL+4, iB, iR, iB+2); -- Horizontal row 2
-  BlitSLTRB(texSpr, 1023, iR, iT+4, iR+2, iB); -- Vertical column 2
-  BlitSLTRB(texSpr, 1023, iR, iB, iR+2, iB+1); -- Horizontal corner 1
-  BlitSLTRB(texSpr, 1023, iR, iB, iR+1, iB+2); -- Vertical corner 2
+  -- Horizontal row 2
+  BlitSLTRB(texSpr, 1023, nLeft + 4.0, nBottom, nRight, nBottom + 2.0);
+  -- Vertical column 2
+  BlitSLTRB(texSpr, 1023, nRight, nTop + 4.0, nRight + 2.0, nBottom);
+  -- Horizontal corner 1
+  BlitSLTRB(texSpr, 1023, nRight, nBottom, nRight + 2.0, nBottom + 1.0);
+  -- Vertical corner 2
+  BlitSLTRB(texSpr, 1023, nRight, nBottom, nRight + 1.0, nBottom + 2.0);
   texSpr:SetCA(0.05);
-  BlitSLTRB(texSpr, 1023, iL+5, iB, iR, iB+3); -- Horizontal row 3
-  BlitSLTRB(texSpr, 1023, iR, iT+5, iR+3, iB); -- Vertical column 3
-  texSpr:SetCA(1);
+  -- Horizontal row 3
+  BlitSLTRB(texSpr, 1023, nLeft + 5.0, nBottom, nRight, nBottom + 3.0);
+  -- Vertical column 3
+  BlitSLTRB(texSpr, 1023, nRight, nTop + 5.0, nRight + 3.0, nBottom);
+  texSpr:SetCA(1.0);
 end
 -- Render the tip and shadow ----------------------------------------------- --
 local function RenderTipShadow()
   -- Return if no tip
   if not sTip then return end;
   -- Render the tip
-  DoRenderTip(232)
+  DoRenderTip(232.0)
   -- Render the shadow
-  RenderShadow(232, 216, 312, 232);
+  RenderShadow(232.0, 216.0, 312.0, 232.0);
 end;
 -- Set bottom right tip ---------------------------------------------------- --
 local function SetTip(strTip) sTip = strTip end;
 -- Loading indicator ------------------------------------------------------- --
 local function ProcLoader()
-  texSpr:SetCRGBA(1, 1, 1, 1);
-  BlitSLTA(texSpr, 801, iLoadX, iLoadY, CoreTime() * 2);
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+  BlitSLTA(texSpr, 801, nLoadX, nLoadY, CoreTime() * 2.0);
 end
 -- Render fade ------------------------------------------------------------- --
-local function RenderFade(nAmount, iL, iT, iR, iB, iS)
+local function RenderFade(nAmount, nLeft, nTop, nRight, nBottom, iS)
   texSpr:SetCA(nAmount);
-  BlitSLTRB(texSpr, iS or 1023, iL or iStageLeft,  iT or iStageTop,
-                                iR or iStageRight, iB or iStageBottom);
-  texSpr:SetCA(1);
+  BlitSLTRB(texSpr, iS or 1023,
+    nLeft or nStageL, nTop or nStageT,
+    nRight or nStageR, nBottom or nStageB);
+  texSpr:SetCA(1.0);
 end
 -- Fade -------------------------------------------------------------------- --
-local function Fade(S, E, C, D, A, M, L, T, R, B, Z)
+local function Fade(nStart, nEnd, nStep, fcbDuring, fcbAfter, bAndMusic)
   -- Check parameters
-  if not UtilIsNumber(S) then
-    error("Invalid starting value number! "..tostring(S)) end;
-  if not UtilIsNumber(E) then
-    error("Invalid ending value number! "..tostring(E)) end;
-  if not UtilIsNumber(C) then
-    error("Invalid fade inc/decremember value! "..tostring(C)) end
-  if not UtilIsFunction(A) then
-    error("Invalid after function! "..tostring(A)) end;
+  if not UtilIsNumber(nStart) then
+    error("Invalid starting value number! "..tostring(nStart)) end;
+  if not UtilIsNumber(nEnd) then
+    error("Invalid ending value number! "..tostring(nEnd)) end;
+  if not UtilIsNumber(nStep) then
+    error("Invalid fade inc/decremember value! "..tostring(nStep)) end
+  if not UtilIsFunction(fcbAfter) then
+    error("Invalid after function! "..tostring(fcbAfter)) end;
   -- If already fading, run the after function
   if UtilIsFunction(fcbFading) then fcbFading() end;
   -- Disable all keybanks and globals
@@ -202,24 +211,24 @@ local function Fade(S, E, C, D, A, M, L, T, R, B, Z)
     -- Clear states
     ClearStates();
     -- Call users during function
-    D();
+    fcbDuring();
     -- Clamp new fade value
-    S = UtilClamp(nVal, 0, 1);
+    nStart = UtilClamp(nVal, 0.0, 1.0);
     -- Render blackout
-    RenderFade(S, L, T, R, B, Z);
+    RenderFade(nStart, nStageL, StageTop, nStageR, nStageB);
     -- Fade music too
-    if M then MusicVolume(1 - S) end;
+    if bAndMusic then MusicVolume(1.0 - nStart) end;
   end
   -- Finished function
   local function Finish()
     -- Reset fade vars
-    S, fcbFading = E, nil;
+    nStart, fcbFading = nEnd, nil;
     -- Enable global keys
     SetKeys(true);
     -- Just draw tip while the after function decides what to do
     SetCallbacks(nil, ProcLoader);
     -- Call the after function
-    A();
+    fcbAfter();
   end
   -- Cleanup function
   local function Clean()
@@ -229,15 +238,15 @@ local function Fade(S, E, C, D, A, M, L, T, R, B, Z)
     CoreCatchup();
   end
   -- Fade out?
-  if S < E then
+  if nStart < nEnd then
     -- Save old fade function
-    fcbFading = A;
+    fcbFading = fcbAfter;
     -- Function during
     local function ProcFadeOut()
       -- Fade out
-      During(S + C);
+      During(nStart + nStep);
       -- Finished if we reached the ending point
-      if S < E then return end;
+      if nStart < nEnd then return end;
       -- Cleanup
       Clean();
       -- Call finish function
@@ -246,17 +255,17 @@ local function Fade(S, E, C, D, A, M, L, T, R, B, Z)
     -- Set fade out procedure
     SetCallbacks(nil, ProcFadeOut);
   -- Fade in?
-  elseif S > E then
+  elseif nStart > nEnd then
     -- Cleanup
     Clean();
     -- Save old fade function
-    fcbFading = A;
+    fcbFading = fcbAfter;
     -- Function during
     local function OnFadeInFrame()
       -- Fade in
-      During(S - C);
+      During(nStart - nStep);
       -- Finished if we reached the ending point
-      if S <= E then Finish() end;
+      if nStart <= nEnd then Finish() end;
     end
     -- Set fade in procedure
     SetCallbacks(nil, OnFadeInFrame);
@@ -268,33 +277,37 @@ local function Fade(S, E, C, D, A, M, L, T, R, B, Z)
     Finish();
   end
 end
+-- Set frame buffer update callback (always active) ------------------------ --
+local function OnStageUpdated(_, _, iStageL, iStageT, iStageR, iStageB)
+  nStageL, nStageT, nStageR, nStageB =
+    iStageL + 0.0, iStageT + 0.0, iStageR + 0.0, iStageB + 0.0;
+  nLoadX, nLoadY = nStageR - 24.0, nStageB - 24.0;
+end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions only for this scope
   local RegisterFBUCallback;
   -- Get and store texture scale
   ClearStates, IsMouseInBounds, MusicVolume, RegisterFBUCallback, SetCallbacks,
-    SetHotSpot, SetKeys, fontLittle, iTexScale, texSpr =
+    SetHotSpot, SetKeys, fontLittle, nTexScale, texSpr =
       GetAPI("ClearStates", "IsMouseInBounds", "MusicVolume",
         "RegisterFBUCallback", "SetCallbacks", "SetHotSpot", "SetKeys",
         "fontLittle", "iTexScale", "texSpr");
+  -- Convert texture scale to number
+  nTexScale = nTexScale + 0.0;
   -- Set frame buffer update callback (always active)
-  local function OnStageUpdated(...)
-    local _; _, _, iStageLeft, iStageTop, iStageRight, iStageBottom = ...;
-    iLoadX, iLoadY = iStageRight - 24, iStageBottom - 24;
-  end
   RegisterFBUCallback("blit", OnStageUpdated);
   -- Return if texture scale is set to 1
-  if iTexScale <= 1 then return end;
+  if nTexScale <= 1 then return end;
   -- Enumerate cursor id datas
   for iId, aCData in pairs(GetAPI("aCursorData")) do
     -- Save original cursor id position adjustments
-    local iX<const>, iY<const> = aCData[3], aCData[4];
+    local nX<const>, nY<const> = aCData[3], aCData[4];
     -- Backup values
-    aCData[5], aCData[6] = iX, iY;
+    aCData[5], aCData[6] = nX, nY;
     -- Scale current values
-    aCData[3] = iX * iTexScale;
-    aCData[4] = iY * iTexScale;
+    aCData[3] = nX * nTexScale;
+    aCData[4] = nY * nTexScale;
   end
 end
 -- Return imports and exports ---------------------------------------------- --

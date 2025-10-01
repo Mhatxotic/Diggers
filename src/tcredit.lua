@@ -10,7 +10,7 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, Fade, InitTitle, LoadResources, PlayMusic, PrintC, PrintWS,
   SetCallbacks, SetHotSpot, SetKeys, aCreditsData, fontLarge, fontLittle;
@@ -21,8 +21,8 @@ local aAssetsMusic,                    -- Assets when music is required
       iCreditsCounter, iCreditsNext,   -- Credits timer and next trigger
       iHotSpotId,                      -- Hot spot id
       iKeyBankId,                      -- Key bank for title credits keys
-      strCredits1, iCredits1Y,         -- Large font title text and position
-      strCredits2, iCredits2Y,         -- Small font subtitle text and position
+      strCredits1, nCredits1Y,         -- Large font title text and position
+      strCredits2, nCredits2Y,         -- Small font subtitle text and position
       texTitle;                        -- Title screen texture
 -- Set new credit ---------------------------------------------------------- --
 local function SetCreditId(iId)
@@ -36,23 +36,23 @@ local function SetCreditId(iId)
   strCredits1, strCredits2 = aData[1], aData[2];
   -- Now we need to measure the height of all three strings so we
   -- can place the credits in the exact vertical centre of the screen
-  local iCredits1H<const> = PrintWS(fontLittle, 320, strCredits1);
-  local iCredits2H<const> = PrintWS(fontLarge, 320, strCredits2)/2;
-  iCredits1Y = 120 - iCredits2H - 4 - iCredits1H;
-  iCredits2Y = 120 - iCredits2H;
+  local nCredits1H<const> = PrintWS(fontLittle, 320.0, strCredits1);
+  local nCredits2H<const> = PrintWS(fontLarge, 320.0, strCredits2) / 2.0;
+  nCredits1Y = 120.0 - nCredits2H - 4.0 - nCredits1H;
+  nCredits2Y = 120.0 - nCredits2H;
   -- Success
   return true;
 end
 -- Render credits proc ----------------------------------------------------- --
 local function ProcRender()
   -- Set text colour
-  fontLittle:SetCRGB(1, 0.7, 1);
-  fontLarge:SetCRGB(1, 1, 1);
+  fontLittle:SetCRGB(1.0, 0.7, 1.0);
+  fontLarge:SetCRGB(1.0, 1.0, 1.0);
   -- Draw background
-  BlitLT(texTitle, -96, 0);
+  BlitLT(texTitle, -96.0, 0.0);
   -- Display text compared to amount of time passed
-  PrintC(fontLittle, 160, iCredits1Y, strCredits1);
-  PrintC(fontLarge, 160, iCredits2Y, strCredits2);
+  PrintC(fontLittle, 160.0, nCredits1Y, strCredits1);
+  PrintC(fontLarge, 160.0, nCredits2Y, strCredits2);
 end
 -- On fade out init title screen without setting music --------------------- --
 local function OnFadedOutToTitle()
@@ -64,7 +64,7 @@ end
 -- Fade out to title screen ------------------------------------------------ --
 local function GoExit()
   -- Start fading out
-  Fade(0, 1, 0.04, ProcRender, OnFadedOutToTitle);
+  Fade(0.0, 1.0, 0.04, ProcRender, OnFadedOutToTitle);
 end
 -- Credits main logic ------------------------------------------------------ --
 local function ProcLogic()
@@ -91,13 +91,13 @@ local function OnAssetsLoaded(aResources, bNoMusic)
   -- Play music
   if not bNoMusic then PlayMusic(aResources[2]) end;
   -- Initialise zarg texture and tile
-  texTitle:SetCRGBA(1, 1, 1, 1);
+  texTitle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Credits counter and texts
   iCreditsCounter, iCreditsNext = 0, 0;
   -- Set new credit function
   SetCreditId(1);
   -- Fade in
-  Fade(1, 0, 0.04, ProcRender, OnFadedIn);
+  Fade(1.0, 0.0, 0.04, ProcRender, OnFadedIn);
 end
 -- Initialise the credits screen function ---------------------------------- --
 local function InitTitleCredits(bNoMusic)
@@ -109,23 +109,21 @@ end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterKeys, RegisterHotSpot, aAssetsData;
+  local RegisterKeys, RegisterHotSpot, oAssetsData;
   -- Get imports
   BlitLT, Fade, InitTitle, LoadResources, PlayMusic, PrintC, PrintWS,
     RegisterKeys, RegisterHotSpot, SetCallbacks, SetHotSpot, SetKeys,
-    aAssetsData, aCreditsData, fontLarge, fontLittle =
+    oAssetsData, aCreditsData, fontLarge, fontLittle =
       GetAPI("BlitLT", "Fade", "InitTitle", "LoadResources", "PlayMusic",
         "PrintC", "PrintWS", "RegisterKeys", "RegisterHotSpot", "SetCallbacks",
-        "SetHotSpot", "SetKeys", "aAssetsData", "aCreditsData", "fontLarge",
+        "SetHotSpot", "SetKeys", "oAssetsData", "aCreditsData", "fontLarge",
         "fontLittle");
   -- Get assets data
-  local aTexture<const> = aAssetsData.title;
-  aAssetsNoMusic = { aTexture };
-  aAssetsMusic = { aTexture, aAssetsData.titlem };
+  local oTexture<const> = oAssetsData.title;
+  aAssetsNoMusic = { oTexture };
+  aAssetsMusic = { oTexture, oAssetsData.titlem };
   -- Register hotspots
-  iHotSpotId = RegisterHotSpot({
-    { 0, 0, 0, 240, 3, 0, false, false, GoExit }
-  });
+  iHotSpotId = RegisterHotSpot({{ 0, 0, 0, 240, 3, 0, false, false, GoExit }});
   -- Register keybinds
   iKeyBankId = RegisterKeys("TITLE CREDITS", {
     [Input.States.PRESS] =

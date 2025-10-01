@@ -11,7 +11,7 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local pairs<const>, floor<const> = pairs, math.floor;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreTicks<const>, UtilClampInt<const>, UtilFormatNumber<const>,
   UtilIsNumber<const>, UtilIsTable<const> = Core.Ticks, Util.ClampInt,
     Util.FormatNumber, Util.IsNumber, Util.IsTable;
@@ -20,10 +20,9 @@ local BlitSLT, BlitLT, Fade, GetMouseX, GetMouseY, InitCon, InitLobby,
   IsMouseXGreaterEqualThan, IsMouseXLessThan,  IsMouseYGreaterEqualThan,
   IsMouseYLessThan, LoadResources, PlayStaticSound, RegisterFBUCallback,
   RenderTipShadow, SetCallbacks, SetCursor, SetCursorPos, SetHotSpot, SetKeys,
-  SetTip, aGlobalData, aLevelsData, aZoneData;
+  SetTip, oGlobalData, aLevelsData, aZoneData;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
-      aHoverData,                      -- Selected zone
       aSelectedZone,                   -- Currently selected zone
       aZoneAvail,                      -- Zones available
       aZoneCache, aFlagCache,          -- Zone hot points and completion cache
@@ -43,6 +42,7 @@ local iSClick, iSSelect,               -- Sound effect ids
 local iZoneScroll;                     -- Zone button scrolling id
 local iZoneMaxX, iZoneMaxY;            -- Maximum map bounds
 local iZonePosX, iZonePosY = 0, 0;     -- Map scroll position (persists)
+local oHoverData;                      -- Selected zone
 local texZone;                         -- Zone map graphics texture
 -- Set specific object ----------------------------------------------------- --
 local function SetZone(iAdjust)
@@ -86,12 +86,12 @@ end
 -- Set main tick procedure ------------------------------------------------- --
 local function SetTick(fcbFunc) SetCallbacks(fcbFunc, RenderMap) end;
 -- Functions to execute for action timer ----------------------------------- --
-local aActionData<const> = {
-  [  1] = function() SetTip(aHoverData.n) end,
-  [ 60] = function() SetTip(aHoverData.t.n) end,
+local oActionData<const> = {
+  [  1] = function() SetTip(oHoverData.n) end,
+  [ 60] = function() SetTip(oHoverData.t.n) end,
   [120] = function()
-    SetTip(UtilFormatNumber(aHoverData.w.r, 0).." TO WIN") end,
-  [180] = function() SetTip(aHoverData.w.n) end,
+    SetTip(UtilFormatNumber(oHoverData.w.r, 0).." TO WIN") end,
+  [180] = function() SetTip(oHoverData.w.n) end,
   [240] = function() SetTip("ZONE "..iHoverZone.."/"..#aZoneData) end,
   [300] = function() iActionTimer = 0 end
 }
@@ -99,7 +99,7 @@ local aActionData<const> = {
 local function ProcZoneHover()
   -- Increase action timer, match callback and run it
   iActionTimer = iActionTimer + 1;
-  local fcbActionCallback<const> = aActionData[iActionTimer];
+  local fcbActionCallback<const> = oActionData[iActionTimer];
   if fcbActionCallback then fcbActionCallback() end;
 end
 -- Common function for selecting a new point of interest ------------------- --
@@ -109,9 +109,9 @@ local function OnHoverGeneric(iCId, iCmd, sTip, bTick)
   -- Set requested cursor
   SetCursor(iCId);
   -- Unset tick if not a command number
-  if not UtilIsNumber(aHoverData) then SetTick() end;
+  if not UtilIsNumber(oHoverData) then SetTick() end;
   -- Update command for click
-  aHoverData = iCmd;
+  oHoverData = iCmd;
   -- Set tip
   SetTip(sTip);
 end
@@ -178,7 +178,7 @@ local function OnHover()
           -- Reset action timer for tip
           iActionTimer = 0;
           -- Set selected level
-          aHoverData = aLevelsData[iHoverZone];
+          oHoverData = aLevelsData[iHoverZone];
         end
         -- Got a zone
         return;
@@ -215,7 +215,7 @@ local function OnStageUpdated(...)
   AdjustMapViewX(0);
   AdjustMapViewY(0);
   -- The mouse could be over something else now so clear selections
-  aHoverData = 0;
+  oHoverData = 0;
   OnHoverGeneric(iCArrow, nil, nil);
 end
 -- When screen has faded out ----------------------------------------------- --
@@ -230,11 +230,11 @@ end
 -- Play sound and start fading out to controller --------------------------- --
 local function GoFadeController()
   PlayStaticSound(iSSelect);
-  Fade(0, 1, 0.04, RenderMap, OnFadedOutToController);
+  Fade(0.0, 1.0, 0.04, RenderMap, OnFadedOutToController);
 end
 -- Set selected zone and transition to controller -------------------------- --
 local function FinishAndAccept()
-  aGlobalData.gSelectedLevel = iHoverZone;
+  oGlobalData.gSelectedLevel = iHoverZone;
   aSelectedZone = aZoneData[iHoverZone][8];
   GoFadeController();
 end
@@ -253,23 +253,23 @@ local function GoScrollDown() AdjustMapViewY(8) OnHover() end;
 -- Cursor drag event ------------------------------------------------------- --
 local function OnDrag(_, _, _, iMoveX, iMoveY)
   -- Move the map to how the mouse is dragging
-  AdjustMapViewX(iMoveX);
-  AdjustMapViewY(iMoveY);
+  AdjustMapViewX(-iMoveX);
+  AdjustMapViewY(-iMoveY);
   -- Keep arrow shown
   SetCursor(iCArrow)
 end
 -- Cursor pressed event ---------------------------------------------------- --
 local function OnPress()
   -- Ignore if nothing pressed or left button not pressed
-  if not aHoverData then return;
+  if not oHoverData then return;
   -- If a zone is selected then accept the level and fade out to lobby
-  elseif UtilIsTable(aHoverData) then FinishAndAccept();
+  elseif UtilIsTable(oHoverData) then FinishAndAccept();
   -- If mouse is over the exit then cancel back to lobby
-  elseif 0 == aHoverData then GoFadeController();
-  elseif 1 == aHoverData then SetTick(GoScrollLeft);
-  elseif 2 == aHoverData then SetTick(GoScrollRight);
-  elseif 3 == aHoverData then SetTick(GoScrollUp);
-  elseif 4 == aHoverData then SetTick(GoScrollDown) end;
+  elseif 0 == oHoverData then GoFadeController();
+  elseif 1 == oHoverData then SetTick(GoScrollLeft);
+  elseif 2 == oHoverData then SetTick(GoScrollRight);
+  elseif 3 == oHoverData then SetTick(GoScrollUp);
+  elseif 4 == oHoverData then SetTick(GoScrollDown) end;
 end
 -- On map faded in --------------------------------------------------------- --
 local function OnMapFadedIn()
@@ -284,7 +284,7 @@ local function OnAssetsLoaded(aResources)
   -- Clear zone and flag cache
   aZoneCache, aFlagCache, aZoneAvail = { }, { }, { };
   -- Levels completed
-  local aLevelsCompleted<const> = aGlobalData.gLevelsCompleted;
+  local aLevelsCompleted<const> = oGlobalData.gLevelsCompleted;
   -- Rebuild flag data cache
   for iZoneId in pairs(aLevelsCompleted) do
     aFlagCache[1 + #aFlagCache] = aZoneData[iZoneId][8];
@@ -317,7 +317,7 @@ local function OnAssetsLoaded(aResources)
   -- a zone is already hovered over, we need to reset the hovered zone id.
   iHoverZone = 0;
   -- If a zone is selected
-  local iSelectedZone<const> = aGlobalData.gSelectedLevel;
+  local iSelectedZone<const> = oGlobalData.gSelectedLevel;
   if iSelectedZone then aSelectedZone = aZoneData[iSelectedZone][8];
                    else aSelectedZone = nil end;
   -- Set button scrolling id
@@ -325,7 +325,7 @@ local function OnAssetsLoaded(aResources)
   -- Register frame buffer update
   RegisterFBUCallback("map", OnStageUpdated);
   -- Change render procedures
-  Fade(1, 0, 0.04, RenderMap, OnMapFadedIn);
+  Fade(1.0, 0.0, 0.04, RenderMap, OnMapFadedIn);
 end
 -- Init zone selection screen function ------------------------------------- --
 local function InitMap()
@@ -335,50 +335,50 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitSLT, BlitLT, Fade, GetMouseX, GetMouseY, InitCon, InitLobby,
     IsMouseXGreaterEqualThan, IsMouseXLessThan, IsMouseYGreaterEqualThan,
     IsMouseYLessThan, LoadResources, PlayStaticSound, RegisterFBUCallback,
     RegisterHotSpot, RegisterKeys, RenderTipShadow, SetCallbacks, SetCursor,
-    SetCursorPos, SetHotSpot, SetKeys, SetTip, aAssetsData, aCursorIdData,
-    aGlobalData, aLevelsData, aSfxData, aZoneData =
+    SetCursorPos, SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData,
+    oGlobalData, aLevelsData, oSfxData, aZoneData =
       GetAPI("BlitSLT", "BlitLT", "Fade", "GetMouseX", "GetMouseY", "InitCon",
         "InitLobby", "IsMouseXGreaterEqualThan", "IsMouseXLessThan",
         "IsMouseYGreaterEqualThan", "IsMouseYLessThan", "LoadResources",
         "PlayStaticSound", "RegisterFBUCallback", "RegisterHotSpot",
         "RegisterKeys", "RenderTipShadow", "SetCallbacks", "SetCursor",
-        "SetCursorPos", "SetHotSpot", "SetKeys", "SetTip", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aLevelsData", "aSfxData",
+        "SetCursorPos", "SetHotSpot", "SetKeys", "SetTip", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "aLevelsData", "oSfxData",
         "aZoneData");
   -- Set assets data
-  aAssets = { aAssetsData.map };
+  aAssets = { oAssetsData.map };
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local aScrollU<const>, aScrollD<const>, aScrollL<const>, aScrollR<const> =
-    { aKeys.UP,     GoScrollUp,    "zmtczsu", "SCROLL MAP UP"    },
-    { aKeys.DOWN,   GoScrollDown,  "zmtczsd", "SCROLL MAP DOWN"  },
-    { aKeys.LEFT,   GoScrollLeft,  "zmtczsl", "SCROLL MAP LEFT"  },
-    { aKeys.RIGHT,  GoScrollRight, "zmtczsr", "SCROLL MAP RIGHT" };
-  local aStates<const> = Input.States;
+    { oKeys.UP,     GoScrollUp,    "zmtczsu", "SCROLL MAP UP"    },
+    { oKeys.DOWN,   GoScrollDown,  "zmtczsd", "SCROLL MAP DOWN"  },
+    { oKeys.LEFT,   GoScrollLeft,  "zmtczsl", "SCROLL MAP LEFT"  },
+    { oKeys.RIGHT,  GoScrollRight, "zmtczsr", "SCROLL MAP RIGHT" };
+  local oStates<const> = Input.States;
   iKeyBankId = RegisterKeys("ZMTC ZONE SELECT", {
-    [aStates.PRESS] = {
-      { aKeys.ESCAPE, GoFadeController,       "zmtczsc", "GO TO CONTROLLER" },
-      { aKeys.ENTER,  GoFinishAndAcceptCheck, "zmtczsa", "ACCEPT ZONE"      },
-      { aKeys.MINUS,  GoPreviousZone,         "zmtczpz", "PREVIOUS ZONE"    },
-      { aKeys.EQUAL,  GoNextZone,             "zmtcznz", "NEXT ZONE"        },
+    [oStates.PRESS] = {
+      { oKeys.ESCAPE, GoFadeController,       "zmtczsc", "GO TO CONTROLLER" },
+      { oKeys.ENTER,  GoFinishAndAcceptCheck, "zmtczsa", "ACCEPT ZONE"      },
+      { oKeys.MINUS,  GoPreviousZone,         "zmtczpz", "PREVIOUS ZONE"    },
+      { oKeys.EQUAL,  GoNextZone,             "zmtcznz", "NEXT ZONE"        },
       aScrollU, aScrollD, aScrollL, aScrollR
-    }, [aStates.REPEAT] = {
+    }, [oStates.REPEAT] = {
       aScrollU, aScrollD, aScrollL, aScrollR
     }
   });
   -- Set cursor ids
   iCLeft, iCRight, iCTop, iCBottom, iCSelect, iCArrow, iCExit =
-    aCursorIdData.LEFT, aCursorIdData.RIGHT, aCursorIdData.TOP,
-      aCursorIdData.BOTTOM, aCursorIdData.SELECT, aCursorIdData.ARROW,
-      aCursorIdData.EXIT;
+    oCursorIdData.LEFT, oCursorIdData.RIGHT, oCursorIdData.TOP,
+      oCursorIdData.BOTTOM, oCursorIdData.SELECT, oCursorIdData.ARROW,
+      oCursorIdData.EXIT;
   -- Set sound effect ids
-  iSSelect, iSClick = aSfxData.SELECT, aSfxData.CLICK;
+  iSSelect, iSClick = oSfxData.SELECT, oSfxData.CLICK;
   -- Add centre positions for zone data
   for iIndex = 1, #aZoneData do
     -- Get zone data, calculate and set centre position

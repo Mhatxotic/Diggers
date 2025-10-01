@@ -9,14 +9,14 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
--- Lua aliases (optimisation) ---------------------------------------------- --
+-- Core function aliases --------------------------------------------------- --
 local collectgarbage<const>, cos<const>, error<const>, floor<const>,
   format<const>, pairs<const>, random<const>, remove<const>, rep<const>,
   sin<const>, tonumber<const>, tostring<const>, type<const>, unpack<const> =
     collectgarbage, math.cos, error, math.floor, string.format,
     pairs, math.random, table.remove, string.rep, math.sin, tonumber,
     tostring, type, table.unpack;
--- M-Engine aliases (optimisation) ----------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
   CoreEnd<const>, CoreLog<const>, CoreLogEx<const>, CoreOnTick<const>,
   CoreQuit<const>, CoreReset<const>, CoreStack<const>, CoreWrite<const>,
@@ -32,14 +32,15 @@ local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
     Util.IsInteger, Util.IsString, Util.IsTable, Variable.Register;
 -- Locals ------------------------------------------------------------------ --
 local CBProc, CBRender;                -- Generic tick callbacks
-local aAPI<const> = { };               -- API to send to other functions
-local aCache = { };                    -- File cache
 local aModules<const> = { };           -- Modules data
 local bTestMode = false;               -- Test mode enabled
 local fFont<const> = Font.Console();   -- Main console class
 local fboMain<const> = Fbo.Main();     -- Main frame buffer object class
-local fcbFrameBufferCbs<const> = { };  -- Frame buffer updated function
+local iAPI = 0;                        -- Variables in API
 local iTexScale;                       -- Texture scale
+local oAPI<const> = { };               -- API to send to other functions
+local oCache = { };                    -- File cache
+local oFrameBufferCbs<const> = { };    -- Frame buffer updated function
 -- Stage dimensions -------------------------------------------------------- --
 local iStageWidth  = 320;              -- Width of stage (Monitor)
 local iStageHeight = 240;              -- Height of stage (Monitor)
@@ -53,30 +54,30 @@ local iStageLeftO  = iStageLeft;       -- Left of stage (unscaled)
 local iStageTopO   = iStageTop;        -- Top of stage (unscaled)
 local iStageRightO = iStageRight;      -- Right of stage (unscaled)
 -- These could be called even though they aren't initialised yet ----------- --
-local DisableKeyHandlers, MainProcFunc, RestoreKeyHandlers, SetKeys,
-  SetHotSpot, SetTip = UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank,
-    UtilBlank;
+local CursorRender, DisableKeyHandlers, JoystickProc, MainProcFunc,
+  RestoreKeyHandlers, SetKeys, SetHotSpot, SetTip = UtilBlank, UtilBlank,
+    UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank;
 -- Constants for loader ---------------------------------------------------- --
-local aBFlags<const> = Image.FlagsPre;     -- Get bitmap loading flags
-local iPNG<const> = aBFlags.TOGPU|aBFlags.FCE_PNG;-- Get forced PNG format flag
-local aPFlags<const> = Pcm.Flags;          -- Get waveform loading flags
-local iOGG<const> = aPFlags.FCE_OGG;       -- Get forced wave format
-local aPrFlags<const> = Asset.Progress;    -- Asset progress flags
-local iFStart<const> = aPrFlags.FILESTART; -- File opened with information
+local oBFlags<const> = Image.FlagsPre;     -- Get bitmap loading flags
+local iPNG<const> = oBFlags.TOGPU|oBFlags.FCE_PNG;-- Get forced PNG format flag
+local oPFlags<const> = Pcm.Flags;          -- Get waveform loading flags
+local iOGG<const> = oPFlags.FCE_OGG;       -- Get forced wave format
+local oPrFlags<const> = Asset.Progress;    -- Asset progress flags
+local iFStart<const> = oPrFlags.FILESTART; -- File opened with information
 -- Table debug function (global on purpose) -------------------------------- --
-function Debug(aData)
+function Debug(oData)
   -- Printing function
   local function Print(iIndent, sWhat) CoreWrite(rep(" ", iIndent)..sWhat) end
   -- Debug a variable
-  local function DoDump(sName, aData, iLv)
+  local function DoDump(sName, oData, iLv)
     -- Print variable name
-    Print(iLv, sName.." ("..tostring(aData)..") = {");
+    Print(iLv, sName.." ("..tostring(oData)..") = {");
     -- Index
     local iI = 0;
     -- Increase indent
     iLv = iLv + 2;
     -- Enumerate keys and values
-    for sK, vV in pairs(aData) do
+    for sK, vV in pairs(oData) do
       -- Recurse if a table
       if UtilIsTable(vV) then DoDump(sK, vV, iLv);
       -- Print key and value
@@ -87,55 +88,70 @@ function Debug(aData)
     -- Decrease indent
     iLv = iLv - 2;
     -- Print total
-    Print(iLv, "} = "..iI.." ["..#aData.."]");
+    Print(iLv, "} = "..iI.." ["..#oData.."]");
   end
   -- Must be a table
-  if UtilIsTable(aData) then return DoDump("ROOT", aData, 0) end;
+  if UtilIsTable(oData) then return DoDump("ROOT", oData, 0) end;
   -- Just a variable
-  Print(0, type(aData).." = "..tostring(aData));
+  Print(0, type(oData).." = "..tostring(oData));
 end
--- Parse the return value of a script -------------------------------------- --
-local function ParseScriptResult(sName, aModData)
+-- Check and put functions in API ------------------------------------------ --
+local function PutAPI(sName, oModAPI)
   -- Check parameters
-  if not UtilIsString(sName) then error("Bad name: "..tostring(sName)) end;
-  if not UtilIsTable(aModData) then error(sName..": bad return!") end;
-  local fcbModCb<const> = aModData.F;
-  if not UtilIsFunction(fcbModCb) then error(sName..": bad callback!") end;
-  local aModAPI<const> = aModData.A;
-  if not UtilIsTable(aModAPI) then error(sName..": bad api!") end;
-  -- Set name of module
-  aModData.N = sName;
+  if not UtilIsTable(oModAPI) then error(sName..": bad api!") end;
+  -- How many functions registered?
+  local iFunctions = 0;
   -- Add functions to the api
-  for sKey, vVar in pairs(aModAPI) do
+  for sKey, vVar in pairs(oModAPI) do
     -- Check variable name
     if not UtilIsString(sKey) then
       error(sName.."["..tostring(sKey).."] bad key!") end;
     -- Check not already registered
-    if aAPI[sKey] ~= nil then
+    if oAPI[sKey] ~= nil then
       error(sName.."["..sKey.."] already registered!") end;
     -- Check that value is valid
     if nil == vVar then error(sName.."["..sKey.."] bad variable!") end;
     -- Assign variable in internal API
-    aAPI[sKey] = vVar;
+    oAPI[sKey] = vVar;
+    -- API function added
+    iFunctions = iFunctions + 1;
   end
+  -- Add to total functions
+  iAPI = iAPI + iFunctions;
+  -- Log result
+  CoreLog("Module '"..sName.."' added "..iFunctions.." members (now "..
+    iAPI..") to the API.");
+end
+-- Parse the return value of a script -------------------------------------- --
+local function ParseScriptResult(sName, oModData)
+  -- Check parameters
+  if not UtilIsString(sName) then error("Bad name: "..tostring(sName)) end;
+  if not UtilIsTable(oModData) then error(sName..": bad return!") end;
+  local fcbModCb<const> = oModData.F;
+  if not UtilIsFunction(fcbModCb) then error(sName..": bad callback!") end;
+  local oModAPI<const> = oModData.A;
+  -- Set name of module
+  oModData.N = sName;
+  -- Put functions in API
+  PutAPI(sName, oModAPI);
   -- Put returned data in API for later when everything is loaded and we'll
   -- call the modules callback function with the fully loaded API.
-  aModules[1 + #aModules] = aModData;
+  aModules[1 + #aModules] = oModData;
 end
 -- Function to parse a script ---------------------------------------------- --
-local function ParseScript(aScript)
+local function ParseScript(asScript)
   -- Get name of module
-  local sName<const> = aScript:Name();
+  local sName<const> = asScript:Name();
   -- Compile the script and parse the return value
-  ParseScriptResult(sName, AssetParseBlock(sName, 1, aScript));
+  ParseScriptResult(sName, AssetParseBlock(sName, 1, asScript));
   -- Return success
   return true;
 end
 -- Get callbacks ----------------------------------------------------------- --
 local function GetCallbacks() return CBProc, CBRender end;
 -- Set callbacks ----------------------------------------------------------- --
-local function SetCallbacks(CBP, CBR)
-  CBProc, CBRender = CBP or UtilBlank, CBR or UtilBlank end;
+local function SetCallbacks(fcbTick, fcbRender)
+  CBProc, CBRender = fcbTick or UtilBlank, fcbRender or UtilBlank end;
 -- Error handler ----------------------------------------------------------- --
 local function SetErrorMessage(sReason)
   -- Activate main frame buffer object just incase it isn't
@@ -154,7 +170,7 @@ local function SetErrorMessage(sReason)
   end
   -- Prune too many lines
   if #aLines > 15 then
-    while #aLines > 15 do remove(aLines, #aLines) end;
+    while #aLines > 15 do remove(aLines) end;
     aLines[1 + #aLines] = "...more";
   end
   -- Build short reason
@@ -171,9 +187,9 @@ local function SetErrorMessage(sReason)
   -- Get key states
   local iRelease<const> = Input.States.RELEASE;
   -- Keys used in tick function
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local iKeyC<const>, iKeyR<const>, iKeyA<const>, iKeyP<const>, iKeyF<const> =
-    aKeys.C, aKeys.R, aKeys.A, aKeys.P, aKeys.F;
+    oKeys.C, oKeys.R, oKeys.A, oKeys.P, oKeys.F;
   -- Disable key handlers
   DisableKeyHandlers();
   -- Input event callback
@@ -211,9 +227,9 @@ local function SetErrorMessage(sReason)
     local nTime<const>, nRed = CoreTime();
     nRed = cos(nTime) * sin(nTime) + 0.5;
     -- Show error message
-    fboMain:SetClearColour(nRed, 0, 0, 1);
-    fFont:SetCRGBA(1, 1, 1, 1);
-    fFont:SetSize(1);
+    fboMain:SetClearColour(nRed, 0.0, 0.0, 1.0);
+    fFont:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+    fFont:SetSize(1.0);
     fFont:PrintW(iTextLeft, iTextTop, iTextRight, 0, sMessage);
     -- Draw frame if we changed the background colour
     if nTime >= nNext then FboDraw() nNext = nTime + 0.032 end;
@@ -268,7 +284,7 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
   if not UtilIsFunction(fComplete) then
     error("Finished callback is invalid! "..tostring(fComplete)) end;
   -- Initialise queue
-  local sDst, aInfo, aNCache, iTotal, iLoaded = "", { }, { }, nil, nil;
+  local sDst, aInfo, oNCache, iTotal, iLoaded = "", { }, { }, nil, nil;
   -- Progress update on asynchronous loading
   local function ProgressUpdate(iCmd, ...)
     if iCmd == iFStart then aInfo = { ... } end;
@@ -280,17 +296,17 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
   -- Load item
   local function LoadItem(iI)
     -- Get resource data
-    local aResource<const> = aResources[iI];
-    if not UtilIsTable(aResource) then
+    local oResource<const> = aResources[iI];
+    if not UtilIsTable(oResource) then
       error("Supplied table at index "..iI.." is invalid!") end;
     -- Get type of resource and throw error if the type is invalid
-    local iType<const> = aResource.T;
+    local iType<const> = oResource.T;
     local aTypeData<const> = aTypes[iType];
     if not UtilIsTable(aTypeData) then
       error("Supplied load type of '"..tostring(iType)..
         "' is invalid at index "..iI.."!") end;
     -- Get destination file to load and check it
-    sDst = aTypeData[3]..aResource.F..aTypeData[4];
+    sDst = aTypeData[3]..oResource.F..aTypeData[4];
     if #sDst == 0 then error("Filename at index "..iI.." is empty!") end;
     -- Build parameters table to send to function
     local aSrcParams<const> = aTypeData[2];
@@ -302,16 +318,16 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
     CoreLog("Loading resource "..iI.."/"..iTotal.." of type "..iType..": '"..
       sDst.."'...");
     -- Get no-cache setting
-    local bNoCache<const> = aResource.NC;
+    local bNoCache<const> = oResource.NC;
     -- When final handle has been acquired
     local function OnHandle(vHandle, bCached)
       -- Set handle for final callback
       aOutputHandles[iI] = vHandle;
       -- Cache the handle unless requested not to
-      if not bNoCache then aNCache[sDst] = vHandle end;
+      if not bNoCache then oNCache[sDst] = vHandle end;
       -- Set stage 2 duration and total duration
-      aResource.ST2 = CoreTime() - aResource.ST2;
-      aResource.ST3 = aResource.ST1 + aResource.ST2;
+      oResource.ST2 = CoreTime() - oResource.ST2;
+      oResource.ST3 = oResource.ST1 + oResource.ST2;
       -- Loaded counter increment
       iLoaded = iLoaded + 1;
       -- No need to show intermediate load times if cached
@@ -319,19 +335,19 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
       -- Wasn't cached?
       else
         -- Calculate times for log
-        bCached = " ("..UtilDuration(aResource.ST1, 3).."+"..
-                        UtilDuration(aResource.ST2, 3);
+        bCached = " ("..UtilDuration(oResource.ST1, 3).."+"..
+                        UtilDuration(oResource.ST2, 3);
         -- Add no cache flag and finish string
         if bNoCache then bCached = bCached.."/NC).";
                     else bCached = bCached..")." end;
       end
       -- Say in log that we loaded
       CoreLog("Loaded resource "..iLoaded.."/"..iTotal..": '"..
-        sDst.."' in "..UtilDuration(aResource.ST3, 3).." sec"..bCached);
+        sDst.."' in "..UtilDuration(oResource.ST3, 3).." sec"..bCached);
       -- Load the next item if not completed yet
       if iLoaded < iTotal then return LoadItem(iI + 1) end;
       -- Set new cache
-      aCache = aNCache;
+      oCache = oNCache;
       -- Enable global keys
       SetKeys(true);
       -- Clear tip
@@ -346,14 +362,14 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
       -- Get current time
       local nTime<const> = CoreTime();
       -- Set stage 1 duration and stage 2 start time
-      aResource.ST1 = nTime - aResource.ST1;
-      aResource.ST2 = nTime;
+      oResource.ST1 = nTime - oResource.ST1;
+      oResource.ST2 = nTime;
       -- Get final call parameters and if not specified?
-      local aParams = aResource.P;
+      local aParams = oResource.P;
       if aParams == nil then
         -- Set empty parameters table
         aParams = { };
-        aResource.P = aParams;
+        oResource.P = aParams;
       -- Check that user specified parameters are valid
       elseif not UtilIsTable(aParams) then
         error("Invalid params "..tostring(aParams).." at index "..iI.."!") end;
@@ -367,15 +383,15 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
       -- Setup second stage
       SetupSecondStage();
       -- Load the file and set the handle
-      OnHandle(aTypeData[5](vData, unpack(aResource.P)));
+      OnHandle(aTypeData[5](vData, unpack(oResource.P)));
     end
     aDstParams[1 + #aDstParams] = OnLoaded;
     -- Set stage 1 time
-    aResource.ST1 = CoreTime();
+    oResource.ST1 = CoreTime();
     -- Reset info for progress update
-    while #aInfo > 0 do remove(aInfo, #aInfo) end;
+    while #aInfo > 0 do remove(aInfo) end;
     -- Send cached handle if it exists
-    local vCached<const> = aCache[sDst];
+    local vCached<const> = oCache[sDst];
     if vCached then
       -- Setup second stage
       SetupSecondStage();
@@ -411,12 +427,12 @@ local function RefreshViewportInfo()
   -- pixel boundary
   iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight, iStageBottom,
     iOrthoWidth, iOrthoHeight =
-      floor(iStageWidth)//iTexScale, floor(iStageHeight)//iTexScale,
-      floor(iStageLeftO)//iTexScale, floor(iStageTopO)//iTexScale,
-      floor(iStageRightO)//iTexScale, floor(iStageBottom)//iTexScale,
-      floor(iOrthoWidth)//iTexScale, floor(iOrthoHeight)//iTexScale;
+      floor(iStageWidth) // iTexScale, floor(iStageHeight) // iTexScale,
+      floor(iStageLeftO) // iTexScale, floor(iStageTopO) // iTexScale,
+      floor(iStageRightO) // iTexScale, floor(iStageBottom) // iTexScale,
+      floor(iOrthoWidth) // iTexScale, floor(iOrthoHeight) // iTexScale;
   -- Call frame buffer callbacks
-  for _, fcbC in pairs(fcbFrameBufferCbs) do
+  for _, fcbC in pairs(oFrameBufferCbs) do
     -- Protected call so we can handle errors
     local bResult<const>, sReason<const> = xpcall(fcbC, CoreStack,
       iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight,
@@ -432,7 +448,7 @@ local function RegisterFrameBufferUpdateCallback(sName, fCB)
   if nil ~= fCB and not UtilIsFunction(fCB) then
     error("Invalid callback function! "..tostring(fCB)) end;
   -- Register callback when frame buffer is updated
-  fcbFrameBufferCbs[sName] = fCB;
+  oFrameBufferCbs[sName] = fCB;
   -- If a callback was set then call it
   if nil ~= fCB then
     fCB(iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight,
@@ -440,92 +456,110 @@ local function RegisterFrameBufferUpdateCallback(sName, fCB)
 end
 -- Returns wether test mode is enabled ------------------------------------- --
 local function GetTestMode() return bTestMode end;
+-- Load the texture scale value -------------------------------------------- --
+local function LoadTextureScale(oAssetsData)
+  -- Customised texture scale file exists?
+  local sScaleFile<const> = "tex/scale.txt";
+  if not Asset.FileExists(sScaleFile) then iTexScale = 1 return end;
+  -- Load the texture scale number from file and make sure it is valid
+  local nTexScale<const> = tonumber(Asset.File(sScaleFile, 0):ToString());
+  if not nTexScale then error("Erroneous texture scale '"..
+    tostring(nTexScale).."' in '"..sScaleFile.."'!") end;
+  if not UtilIsInteger(nTexScale) then error("Texture scale '"..
+    nTexScale.."' must be integral in '"..sScaleFile.."'!") end;
+  if nTexScale < 1 or nTexScale > 16 then
+    error("Scale '"..nTexScale.."' out of range in '"..sScaleFile.."'!") end;
+  -- Set new accepted scale
+  iTexScale = nTexScale;
+  -- Get maximum texture size and make sure guest's GPU supports it. 1024^2
+  -- is the maximum size texture we use at 1X scale.
+  local iMaxUsedTexSize<const> = 1024;
+  local iMaxSize<const> = Texture.MaxSize();
+  if iTexScale * iMaxUsedTexSize > iMaxSize then
+    local _<const>, _<const>, sDisplay<const> = Display.GPU();
+    error("Fatal error! The installed "..iTexScale.."X scale texture pack \z
+           is not supported on this rendering device ("..sDisplay..") as \z
+           it will only support a maximum scale of "..
+           (iMaxSize//iMaxUsedTexSize).."X ("..iMaxSize.."^2).");
+  end
+  -- Now we have to scale all relavant co-ordinates so for each asset
+  for sIdentifier, oAssetData in pairs(oAssetsData) do
+    -- Get type and if not valid show an error
+    local iType<const> = oAssetData.T;
+    if not UtilIsInteger(iType) then
+      error("Invalid type '"..tostring(iType).."' in "..
+        sIdentifier.."!") end;
+    -- Get type data and if not valid then show an error
+    local aTypeItem<const> = aTypes[iType];
+    if not UtilIsTable(aTypeItem) then
+      error("Invalid type data '"..tostring(aTypeItem).."' in "..
+        sIdentifier.."!") end;
+    -- Check that we have parameters to modify and if we do?
+    local aParamsToModify<const> = aTypeItem[7];
+    if UtilIsTable(aParamsToModify) then
+      -- Get and check function parameters
+      local aFuncParams<const> = oAssetData.P;
+      if not UtilIsTable(aFuncParams) then
+        error("Invalid func params data '"..tostring(aFuncParams)..
+          "' in data for type "..iType.." in "..sIdentifier.."!") end;
+      -- Walk through the parameters to modify
+      for iPMIndex = 1, #aParamsToModify do
+        -- Get and check the function param
+        local iFPIndex<const> = aParamsToModify[iPMIndex];
+        local vParam<const> = aFuncParams[iFPIndex];
+        if UtilIsTable(vParam) then
+          -- Scale all its values
+          for iPAIndex = 1, #vParam do
+            -- Get current value and make sure it is valid
+            local iValue<const> = vParam[iPAIndex];
+            if UtilIsInteger(iValue) then
+              vParam[iPAIndex] = iValue * iTexScale;
+            -- Invalid value type
+            else error("Invalid array param type '"..tostring(iValue)..
+              "' at '"..iPAIndex..":"..iFPIndex"' for type "..iType..
+              " in "..sIdentifier.."!") end;
+          end
+        -- Scale just the integer
+        elseif UtilIsInteger(vParam) then
+          aFuncParams[iFPIndex] = vParam * iTexScale;
+        -- Unknown format. This is an error
+        else error("Invalid param type '"..tostring(vParam).."' at '"..
+          iFPIndex"' for type "..iType.." in "..sIdentifier.."!") end;
+      end
+    -- Invalid parameters to modify data if not nil
+    elseif aParamsToModify ~= nil then
+      error("Invalid type param data '"..tostring(aParamsToModify)..
+        "' for type "..iType.." in "..sIdentifier.."!") end;
+  end
+  -- Resize frame buffer if texture scale different
+  local oVariables<const> = Variable.Internal;
+  Fbo.Resize(oVariables.vid_orwidth:Get() * iTexScale,
+             oVariables.vid_orheight:Get() * iTexScale);
+end
+-- Main procedure callback ------------------------------------------------- --
+local function MainCallback()
+  -- Poll joysticks (input.lua)
+  JoystickProc();
+  -- Execute logic tick
+  CBProc();
+  -- Render the scene
+  CBRender();
+  -- Render the cursor (input.lua)
+  CursorRender();
+  -- Draw screen at end of engine tick
+  FboDraw();
+end
 -- The first tick function ------------------------------------------------- --
 local function fcbTick()
   -- Load base assets data
   local aScriptTypeData<const> = aTypes[9];
-  local aAssetsData, aBaseAssets, iBaseScripts, iBaseFonts, iBaseTextures,
+  local oAssetsData, aBaseAssets, iBaseScripts, iBaseFonts, iBaseTextures,
     iBaseMasks, iBaseSounds, aBaseSounds;
-  aAssetsData, aBaseAssets, iBaseScripts, iBaseFonts, iBaseTextures,
+  oAssetsData, aBaseAssets, iBaseScripts, iBaseFonts, iBaseTextures,
     iBaseMasks, iBaseSounds, aBaseSounds =
       Asset.Parse(aScriptTypeData[3].."asset"..aScriptTypeData[4], 9);
-  -- Customised texture scale file exists?
-  local sScaleFile<const> = "tex/scale.txt";
-  if Asset.FileExists(sScaleFile) then
-    -- Load the texture scale number from file and make sure it is valid
-    local nTexScale<const> = tonumber(Asset.File(sScaleFile, 0):ToString());
-    if not nTexScale then error("Erroneous texture scale '"..
-      tostring(nTexScale).."' in '"..sScaleFile.."'!") end;
-    -- Round it down and check it incase it's not a valid integer and check it
-    iTexScale = floor(nTexScale);
-    if iTexScale ~= nTexScale or iTexScale > 16 then
-      error("Bad texture scale '"..nTexScale.."' in '"..sScaleFile.."'!") end;
-    -- Get maximum texture size and make sure guest's GPU supports it. 1024^2
-    -- is the maximum size texture we use at 1X scale.
-    local iMaxUsedTexSize<const> = 1024;
-    local iMaxSize<const> = Texture.MaxSize();
-    if iTexScale * iMaxUsedTexSize > iMaxSize then
-      local _<const>, _<const>, sDisplay<const> = Display.GPU();
-      error("Fatal error! The installed "..iTexScale.."X scale texture pack \z
-             is not supported on this rendering device ("..sDisplay..") as \z
-             it will only support a maximum scale of "..
-             (iMaxSize//iMaxUsedTexSize).."X ("..iMaxSize.."^2).");
-    end
-    -- Now we have to scale all relavant co-ordinates so for each asset
-    for sIdentifier, aAssetData in pairs(aAssetsData) do
-      -- Get type and if not valid show an error
-      local iType<const> = aAssetData.T;
-      if not UtilIsInteger(iType) then
-        error("Invalid type '"..tostring(iType).."' in "..
-          sIdentifier.."!") end;
-      -- Get type data and if not valid then show an error
-      local aTypeItem<const> = aTypes[iType];
-      if not UtilIsTable(aTypeItem) then
-        error("Invalid type data '"..tostring(aTypeItem).."' in "..
-          sIdentifier.."!") end;
-      -- Check that we have parameters to modify and if we do?
-      local aParamsToModify<const> = aTypeItem[7];
-      if UtilIsTable(aParamsToModify) then
-        -- Get and check function parameters
-        local aFuncParams = aAssetData.P;
-        if not UtilIsTable(aFuncParams) then
-          error("Invalid func params data '"..tostring(aFuncParams)..
-            "' in data for type "..iType.." in "..sIdentifier.."!") end;
-        -- Walk through the parameters to modify
-        for iPMIndex = 1, #aParamsToModify do
-          -- Get and check the function param
-          local iFPIndex = aParamsToModify[iPMIndex];
-          local vParam = aFuncParams[iFPIndex];
-          if UtilIsTable(vParam) then
-            -- Scale all its values
-            for iPAIndex = 1, #vParam do
-              -- Get current value and make sure it is valid
-              local iValue<const> = vParam[iPAIndex];
-              if UtilIsInteger(iValue) then
-                vParam[iPAIndex] = iValue * iTexScale;
-              -- Invalid value type
-              else error("Invalid array param type '"..tostring(iValue)..
-                "' at '"..iPAIndex..":"..iFPIndex"' for type "..iType..
-                " in "..sIdentifier.."!") end;
-            end
-          -- Scale just the integer
-          elseif UtilIsInteger(vParam) then
-            aFuncParams[iFPIndex] = vParam * iTexScale;
-          -- Unknown format. This is an error
-          else error("Invalid param type '"..tostring(vParam).."' at '"..
-            iFPIndex"' for type "..iType.." in "..sIdentifier.."!") end;
-        end
-      -- Invalid parameters to modify data if not nil
-      elseif aParamsToModify ~= nil then
-        error("Invalid type param data '"..tostring(aParamsToModify)..
-          "' for type "..iType.." in "..sIdentifier.."!") end;
-    end
-    -- Resize frame buffer if texture scale different
-    local aVariables<const> = Variable.Internal;
-    Fbo.Resize(aVariables.vid_orwidth:Get() * iTexScale,
-               aVariables.vid_orheight:Get() * iTexScale);
-  -- No scale file found so no texture scale by default
-  else iTexScale = 1 end;
+  -- Load texture scale
+  LoadTextureScale(oAssetsData);
   -- Refresh viewport info and automatically when window size changes
   Fbo.OnRedraw(RefreshViewportInfo);
   RefreshViewportInfo();
@@ -539,104 +573,97 @@ local function fcbTick()
     SetCallbacks = SetCallbacks, SetErrorMessage = SetErrorMessage,
     TimeIt = TimeIt, fcbEmpty = fcbEmpty } });
   -- Store texture scale and assets data
-  aAPI.iTexScale = iTexScale;
-  aAPI.aAssetsData = aAssetsData;
+  oAPI.iTexScale = iTexScale;
+  oAPI.oAssetsData = oAssetsData;
   -- When base assets have loaded
   local function OnLoaded(aResources)
     -- Set font handles
-    aAPI.fontLarge, aAPI.fontLittle, aAPI.fontTiny, aAPI.fontSpeech =
+    oAPI.fontLarge, oAPI.fontLittle, oAPI.fontTiny, oAPI.fontSpeech =
       aResources[iBaseFonts], aResources[iBaseFonts + 1],
       aResources[iBaseFonts + 2], aResources[iBaseFonts + 3];
     -- Set sprites texture
-    aAPI.texSpr = aResources[iBaseTextures];
+    oAPI.texSpr = aResources[iBaseTextures];
     -- Set and check masks
-    aAPI.maskLevel, aAPI.maskSprites =
+    oAPI.maskLevel, oAPI.maskSprites =
       aResources[iBaseMasks], aResources[iBaseMasks + 1];
     -- Function to grab an API function. This function will be sent to all
     -- the above loaded modules.
     local function GetAPI(...)
       -- Get functions and if there is only one then return it
-      local tFuncs<const> = { ... }
-      if #tFuncs == 0 then error("No functions specified to check") end;
+      local aFuncs<const> = { ... }
+      if #aFuncs == 0 then error("No functions specified to check") end;
       -- Functions already added
-      local aAdded<const> = { };
+      local oAdded<const> = { };
       -- Find each function specified and return all of them
-      local tRets<const> = { };
-      for iI = 1, #tFuncs do
+      local aRets<const> = { };
+      for iI = 1, #aFuncs do
         -- Check parameter
-        local sMember<const> = tFuncs[iI];
+        local sMember<const> = aFuncs[iI];
         if not UtilIsString(sMember) then
           error("Function name at "..iI.." is invalid") end;
         -- Check if we already cached this member and if already have it?
-        local iCached<const> = aAdded[sMember];
+        local iCached<const> = oAdded[sMember];
         if iCached ~= nil then
           -- Print an error so we can remove duplicates
           error("Member '"..sMember.."' at parameter "..iI..
             " already requested at parameter "..iCached.."!");
         end
         -- Get the function callback and if it's a function?
-        local vMember<const> = aAPI[sMember];
+        local vMember<const> = oAPI[sMember];
         if vMember == nil then
           error("Invalid member '"..sMember.."'! "..tostring(vMember));
         end
         -- Cache function so we can track duplicated
-        aAdded[sMember] = iI;
+        oAdded[sMember] = iI;
         -- Add it to returns
-        tRets[1 + #tRets] = vMember;
+        aRets[1 + #aRets] = vMember;
       end
       -- Unpack returns table and return all the functions requested
-      return unpack(tRets);
+      return unpack(aRets);
     end
     -- Register file data CVar
-    local aCVF<const> = Variable.Flags;
+    local oCVF<const> = Variable.Flags;
     -- Default CVar flags for boolean storage
-    local iCFB<const> = aCVF.BOOLEANSAVE;
+    local iCFB<const> = oCVF.BOOLEANSAVE;
     -- ...and a CVar that lets us show setup for the first time
-    aAPI.cvSetup = VariableRegister("gam_setup", 1, iCFB, fcbEmpty);
+    oAPI.cvSetup = VariableRegister("gam_setup", 1, iCFB, fcbEmpty);
     -- ...and a CVar that lets us skip the intro
-    aAPI.cvIntro = VariableRegister("gam_intro", 1, iCFB, fcbEmpty);
+    oAPI.cvIntro = VariableRegister("gam_intro", 1, iCFB, fcbEmpty);
     -- ...and a CVar that lets us start straight into a level
-    aAPI.cvTest = VariableRegister("gam_test", "", aCVF.STRING, fcbEmpty);
+    oAPI.cvTest = VariableRegister("gam_test", "", oCVF.STRING, fcbEmpty);
     -- ...and a CVar to force a different language
-    aAPI.cvLang = VariableRegister("gam_lang", "", aCVF.STRINGSAVE, fcbEmpty);
+    oAPI.cvLang = VariableRegister("gam_lang", "", oCVF.STRINGSAVE, fcbEmpty);
+    -- Ask modules to grab needed functions from the API (first chance)
+    for iI = 1, #aModules do
+      local oModData<const> = aModules[iI];
+      local fcbFunc<const> = oModData.I;
+      if fcbFunc then PutAPI(oModData.N, fcbFunc(GetAPI)) end;
+    end
+    -- Assign loaded sound effects (audio.lua)
+    GetAPI("RegisterSounds")(aResources, iBaseSounds, #aBaseSounds);
+    -- Ask modules to grab needed functions from the API (last chance)
+    for iI = 1, #aModules do
+      local oModData<const> = aModules[iI];
+      local fcbFunc<const> = oModData.F;
+      if fcbFunc then fcbFunc(GetAPI, oModData, oAPI) end;
+    end
     -- Some library functions and variables only for this scope
     local InitBook, InitCon, InitCredits, InitTitleCredits, InitDebugPlay,
       InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
-      InitRace, InitScene, InitScore, InitTitle, JoystickProc, LoadLevel,
-      aLevelsData, aObjectTypes, aRacesData;
+      InitRace, InitScene, InitScore, InitTitle, LoadLevel, aLevelsData,
+      oObjectTypes, aRacesData;
     -- Load dependecies we need on this module
-    DisableKeyHandlers, InitBook, InitCon, InitCredits, InitDebugPlay,
-      InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
-      InitRace, InitScene, InitScore, InitTitle, InitTitleCredits,
+    CursorRender, DisableKeyHandlers, InitBook, InitCon, InitCredits,
+      InitDebugPlay, InitEnding, InitFail, InitFile, InitIntro, InitMap,
+      InitNewGame, InitRace, InitScene, InitScore, InitTitle, InitTitleCredits,
       JoystickProc, LoadLevel, RestoreKeyHandlers, SetHotSpot, SetKeys, SetTip,
-      aLevelsData, aObjectTypes, aRacesData =
-        GetAPI("DisableKeyHandlers", "InitBook", "InitCon", "InitCredits",
-          "InitDebugPlay", "InitEnding", "InitFail", "InitFile", "InitIntro",
-          "InitMap", "InitNewGame", "InitRace", "InitScene", "InitScore",
-          "InitTitle", "InitTitleCredits", "JoystickProc", "LoadLevel",
-          "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
-          "aLevelsData", "aObjectTypes", "aRacesData");
-    -- Assign loaded sound effects (audio.lua)
-    GetAPI("RegisterSounds")(aResources, iBaseSounds, #aBaseSounds);
-    -- Get cursor render function (input.lua)
-    local CursorRender<const> = aAPI.CursorRender;
-    -- Ask modules to grab needed functions from the API
-    for iI = 1, #aModules do
-      local aModData<const> = aModules[iI];
-      aModData.F(GetAPI, aModData, aAPI);
-    end
-    -- Main procedure callback
-    local function MainCallback()
-      -- Poll joysticks (input.lua)
-      JoystickProc();
-      -- Execute tick and render callbacks
-      CBProc();
-      CBRender();
-      -- Render the cursor (input.lua)
-      CursorRender();
-      -- Draw screen at end of LUA tick
-      FboDraw();
-    end
+      aLevelsData, oObjectTypes, aRacesData =
+        GetAPI("CursorRender", "DisableKeyHandlers", "InitBook", "InitCon",
+          "InitCredits", "InitDebugPlay", "InitEnding", "InitFail", "InitFile",
+          "InitIntro", "InitMap", "InitNewGame", "InitRace", "InitScene",
+          "InitScore", "InitTitle", "InitTitleCredits", "JoystickProc",
+          "LoadLevel", "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
+          "aLevelsData", "oObjectTypes", "aRacesData");
     -- Set main callback
     fcbTick = MainCallback;
     -- Init game counters so testing stuff quickly works properly
@@ -644,82 +671,86 @@ local function fcbTick()
     -- Hide the cursor
     InputSetCursor(false);
     -- Test mode requested?
-    local sTestValue<const> = aAPI.cvTest:Get();
+    local sTestValue<const> = oAPI.cvTest:Get();
     if #sTestValue > 0 then
       -- Test mode enabled
       bTestMode = true;
       -- Get start level
       local iStartLevel<const> = tonumber(sTestValue) or 0;
       -- Test random level? (game.lua)
-      if iStartLevel == 0 then
-        return LoadLevel(random(#aLevelsData), "game", -1);
+      if iStartLevel == 0 then LoadLevel(random(#aLevelsData), "game", -1);
       -- Test a specific level (game.lua)
       elseif iStartLevel >= 1 and iStartLevel <= #aLevelsData then
-        return LoadLevel(iStartLevel, "game", -1);
+        LoadLevel(iStartLevel, "game", -1);
       -- Test a specific level with starting scene (scene.lua)
       elseif iStartLevel > #aLevelsData and iStartLevel <= #aLevelsData*2 then
-        return InitScene(iStartLevel-#aLevelsData, "game");
+        InitScene(iStartLevel - #aLevelsData, "game");
       -- Testing infinite play mode? (debug.lua)
-      elseif iStartLevel == -1 then return InitDebugPlay();
+      elseif iStartLevel == -1 then InitDebugPlay();
       -- Testing the fail screen (fail.lua)
-      elseif iStartLevel == -2 then return InitFail();
+      elseif iStartLevel == -2 then InitFail();
       -- Testing the game over (score.lua)
-      elseif iStartLevel == -3 then return InitScore();
+      elseif iStartLevel == -3 then InitScore();
       -- Testing the final credits (ending.lua)
-      elseif iStartLevel == -4 then return InitCredits(false);
+      elseif iStartLevel == -4 then InitCredits(false);
       -- Testing the final rolling credits (ending.lua)
-      elseif iStartLevel == -5 then return InitCredits(true);
+      elseif iStartLevel == -5 then InitCredits(true);
       -- Testing the title screen rolling credits (tcredits.lua)
-      elseif iStartLevel == -6 then return InitTitleCredits();
+      elseif iStartLevel == -6 then InitTitleCredits();
       -- Testing the controller screen (cntrl.lua)
-      elseif iStartLevel == -7 then return InitCon();
+      elseif iStartLevel == -7 then InitCon();
       -- Testing the book screen (book.lua)
-      elseif iStartLevel == -8 then return InitBook();
+      elseif iStartLevel == -8 then InitBook();
       -- Testing the race screen (race.lua)
-      elseif iStartLevel == -9 then return InitRace();
+      elseif iStartLevel == -9 then InitRace();
       -- Testing the map screen (map.lua)
-      elseif iStartLevel == -10 then return InitMap();
+      elseif iStartLevel == -10 then InitMap();
       -- Testing the file select screen (file.lua)
-      elseif iStartLevel == -11 then return InitFile();
+      elseif iStartLevel == -11 then InitFile();
       -- Testing a races ending (ending.lua)
       elseif iStartLevel > -16 and iStartLevel <= -12 then
-        return InitEnding(#aRacesData + (-16 - iStartLevel));
+        InitEnding(#aRacesData + (-16 - iStartLevel));
       -- Reserved for testing win and map post mortem (game/post.lua)
       elseif iStartLevel <= -16 and iStartLevel > -16 - #aLevelsData then
-        return LoadLevel(-iStartLevel-15, "game", -1, nil, nil, nil, nil, nil,
+        LoadLevel(-iStartLevel-15, "game", -1, nil, nil, nil, nil, nil, nil,
           nil, nil, 17550);
-      end
+      -- Invalid test code so skip the below return
+      else goto invalid end;
+      -- Valid test code
+      do return end;
+      -- Invalid test mode label
+      ::invalid::
     end
     -- If being run for first time
-    if 0 == tonumber(aAPI.cvSetup:Get()) then
+    if 0 == tonumber(oAPI.cvSetup:Get()) then
       -- Skip intro? Initialise title screen
-      if 0 == tonumber(aAPI.cvIntro:Get()) then return InitTitle() end;
+      if 0 == tonumber(oAPI.cvIntro:Get()) then return InitTitle() end;
       -- Initialise intro with setup dialog
       return InitIntro(false);
     end
     -- Initialise setup screen by default
     InitIntro(true);
     -- No longer show setup screen
-    aAPI.cvSetup:Boolean(false);
+    oAPI.cvSetup:Boolean(false);
   end
   -- Start loading assets
   local fcbProgress<const> = LoadResources("Core", aBaseAssets, OnLoaded);
   -- Get console font and do positional calculations
   local fSolid<const> = TextureCreate(Image.Colour(0xFFFFFFFF), 0);
-  local iWidth<const>, iHeight<const>, iBorder<const> =
-    (300 * iTexScale), (2 * iTexScale), (1 * iTexScale);
-  local iX<const> = (160 * iTexScale) - (iWidth / 2) - iBorder;
-  local iY<const> = (120 * iTexScale) - (iHeight / 2) - iBorder;
-  local iBorderX2<const> = iBorder * 2;
-  local iXPlus1<const>, iYPlus1<const> = iX + iBorder, iY + iBorder;
-  local iXBack<const> = iX + iWidth + iBorderX2
-  local iYBack<const> = iY + iHeight + iBorderX2;
-  local iXBack2<const> = iX + iWidth + iBorder;
-  local iYBack2<const> = iY + iHeight + (iBorderX2 - iBorder);
-  local iXText<const> = iX + iWidth + iBorderX2;
-  local iYText<const> = iY - (3 * iTexScale);
+  local nWidth<const>, nHeight<const>, nBorder<const> =
+    (300.0 * iTexScale), (2.0 * iTexScale), (1.0 * iTexScale);
+  local nX<const> = (160.0 * iTexScale) - (nWidth / 2.0) - nBorder;
+  local nY<const> = (120.0 * iTexScale) - (nHeight / 2.0) - nBorder;
+  local nBorderX2<const> = nBorder * 2.0;
+  local nXPlus1<const>, nYPlus1<const> = nX + nBorder, nY + nBorder;
+  local nXBack<const> = nX + nWidth + nBorderX2
+  local nYBack<const> = nY + nHeight + nBorderX2;
+  local nXBack2<const> = nX + nWidth + nBorder;
+  local nYBack2<const> = nY + nHeight + (nBorderX2 - nBorder);
+  local nXText<const> = nX + nWidth + nBorderX2;
+  local nYText<const> = nY - (3.0 * iTexScale);
   -- Last percentage
-  local nLastPercentage = -1;
+  local nLastPercentage = -1.0;
   -- Loader display function
   local function LoaderProc()
     -- Get current progress and return if progress hasn't changed
@@ -727,16 +758,16 @@ local function fcbTick()
     if nPercent == nLastPercentage then return end;
     nLastPercentage = nPercent;
     -- Draw progress bar
-    fSolid:SetCRGBA(1, 0, 0, 1);        -- Border
-    fSolid:BlitLTRB(iX, iY, iXBack, iYBack);
-    fSolid:SetCRGBA(0.25, 0, 0, 1);     -- Backdrop
-    fSolid:BlitLTRB(iXPlus1, iYPlus1, iXBack2, iYBack2);
-    fSolid:SetCRGBA(1, 1, 1, 1);        -- Progress
-    fSolid:BlitLTRB(iXPlus1, iYPlus1, iXPlus1+(nPercent*iWidth), iYBack2);
+    fSolid:SetCRGBA(1.0, 0.0, 0.0, 1.0); -- Border
+    fSolid:BlitLTRB(nX, nY, nXBack, nYBack);
+    fSolid:SetCRGBA(0.25, 0.0, 0.0, 1.0); -- Backdrop
+    fSolid:BlitLTRB(nXPlus1, nYPlus1, nXBack2, nYBack2);
+    fSolid:SetCRGBA(1.0, 1.0, 1.0, 1.0); -- Progress
+    fSolid:BlitLTRB(nXPlus1, nYPlus1, nXPlus1+(nPercent*nWidth), nYBack2);
     fFont:SetSize(iTexScale);
-    fFont:SetCRGBA(1, 1, 1, 1);         -- Filename & percentage
-    fFont:PrintU(iX, iYText, sFile);
-    fFont:PrintUR(iXText, iYText, format("%.f%% Completed", nPercent * 100));
+    fFont:SetCRGBA(1.0, 1.0, 1.0, 1.0); -- Filename & percentage
+    fFont:PrintU(nX, nYText, sFile);
+    fFont:PrintUR(nXText, nYText, format("%.f%% Completed", nPercent * 100));
     -- Catchup accumulator (we don't care about it);
     CoreCatchup();
     -- Draw screen at end of LUA tick
