@@ -12,7 +12,7 @@
 -- Core function aliases --------------------------------------------------- --
 local error<const>, tostring<const>, unpack<const> =
   error, tostring, table.unpack;
--- M-Engine aliases (optimisation) ----------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreTicks<const>, UtilBlank<const>, UtilIsTable<const>,
   UtilIsBoolean<const>, UtilIsInteger<const> =
     Core.Ticks, Util.Blank, Util.IsTable, Util.IsBoolean, Util.IsInteger;
@@ -21,9 +21,9 @@ local BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, InitBank, InitCon,
   InitContinueGame, InitScene, InitShop, InitTitle, LoadResources, PlayMusic,
   PlayStaticSound, Print, RegisterFBUCallback, RenderAll, RenderShadow,
   RenderTip, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys, SetTip,
-  aGlobalData, fontSpeech;
+  oGlobalData, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
-local aActiveObject,                   -- Selected object when entering lobby
+local oObjActive,                   -- Selected object when entering lobby
       aClosedAssetsMusic,              -- Out of game lobby with music
       aClosedAssetsNoMusic,            -- Out of game lobby with no music
       aOpenAssetsMusic,                -- In-game lobby with music
@@ -40,23 +40,23 @@ local aActiveObject,                   -- Selected object when entering lobby
       iKeyBankClosedSelectedId,        -- Closed key bank selected
       iKeyBankOpenedId,                -- Opened key bank id
       iSSelect,                        -- Select sound effect id
-      iStageL, iStageR,                -- Stage bounds
+      nStageL, nStageR,                -- Stage bounds
       texLobby,                        -- Lobby texture
       texZmtc;                         -- Background texture
 -- Register frame buffer update -------------------------------------------- --
-local function OnStageUpdated(...)
-  local _; _, _, iStageL, _, iStageR, _ = ...;
+local function OnStageUpdated(_, _, iStageL, _, iStageR)
+  nStageL, nStageR = iStageL + 0.0, iStageR + 0.0;
 end
 -- Lobby open render proc -------------------------------------------------- --
 local function RenderOpen()
   -- Render game interface, backdrop, shadow and tip
   RenderAll();
-  BlitLT(texLobby, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitLT(texLobby, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Render fire
   local iFrame<const> = CoreTicks() % 9;
-  if iFrame >= 6 then BlitSLT(texLobby, 1, 113, 74);
-  elseif iFrame >= 3 then BlitSLT(texLobby, 2, 113, 74);
+  if iFrame >= 6 then BlitSLT(texLobby, 1, 113.0, 74.0);
+  elseif iFrame >= 3 then BlitSLT(texLobby, 2, 113.0, 74.0);
   else fcbRenderExtra() end;
   -- Render tip
   RenderTip();
@@ -64,18 +64,18 @@ end
 -- Lobby closed render proc ------------------------------------------------ --
 local function RenderClosed()
   -- Draw backdrop, lobby background and shadow around lobby
-  BlitLT(texZmtc, -96, 0);
-  RenderShadow(8, 8, 312, 208);
-  BlitLT(texLobby, 8, 8);
+  BlitLT(texZmtc, -96.0, 0.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
+  BlitLT(texLobby, 8.0, 8.0);
   -- Render fire
   local iFrame<const> = CoreTicks() % 9;
-  if iFrame >= 6 then BlitSLT(texLobby, 4, 113, 74);
-  elseif iFrame >= 3 then BlitSLT(texLobby, 3, 113, 74);
+  if iFrame >= 6 then BlitSLT(texLobby, 4, 113.0, 74.0);
+  elseif iFrame >= 3 then BlitSLT(texLobby, 3, 113.0, 74.0);
   -- Flash if not ready to play
   else fcbRenderExtra() end;
   -- Draw foliage
-  BlitSLT(texLobby, 1, iStageR-238, 184);
-  BlitSLT(texLobby, 2, iStageL,      56);
+  BlitSLT(texLobby, 1, nStageR - 238.0, 184.0);
+  BlitSLT(texLobby, 2, nStageL,          56.0);
   -- Render tip
   RenderTipShadow();
 end
@@ -114,31 +114,31 @@ local function OnLoadedClosed(aResources, bSetMusic)
   -- Register frame buffer update
   RegisterFBUCallback("lobby", OnStageUpdated);
   -- Set speech colour to white
-  fontSpeech:SetCRGBAI(0xFFFFFFFF);
+  fontSpeech:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Fade In a closed lobby
-  Fade(1, 0, 0.04, RenderClosed, OnFadedIn);
+  Fade(1.0, 0.0, 0.04, RenderClosed, OnFadedIn);
 end
 -- Not ready callback ------------------------------------------------------ --
 local function NotReadyCallback() Print(fontSpeech, 157, 115, "!") end;
 -- Init lobby function ----------------------------------------------------- --
 local function InitLobby(bNoSetMusic, iSaveMusicPos)
   -- Active object must be specified or omitted
-  aActiveObject = GetActiveObject();
-  if aActiveObject ~= nil and not UtilIsTable(aActiveObject) then
-    error("Invalid object owner table! "..tostring(aActiveObject)) end;
+  oObjActive = GetActiveObject();
+  if oObjActive ~= nil and not UtilIsTable(oObjActive) then
+    error("Invalid object owner table! "..tostring(oObjActive)) end;
   -- No set music flag can be nil set to false as a result
   if bNoSetMusic == nil then bNoSetMusic = false;
   -- Else if it's specified and it's not a boolean then show error
   elseif not UtilIsBoolean(bNoSetMusic) then
     error("Invalid set music flag! "..tostring(bNoSetMusic));
   -- Must specify position if bNoSetMusic is false
-  elseif aActiveObject and not bNoSetMusic and
+  elseif oObjActive and not bNoSetMusic and
     not UtilIsInteger(iSaveMusicPos) then
       error("Invalid save pos id! "..tostring(iSaveMusicPos)); end;
   -- Resources to load
   local aAssets, fcbOnLoaded;
   -- In a game?
-  if aActiveObject then
+  if oObjActive then
     -- In-game onloaded event
     fcbOnLoaded = OnLoadedOpened;
     -- Set resources depending on music requested
@@ -154,8 +154,8 @@ local function InitLobby(bNoSetMusic, iSaveMusicPos)
     if bNoSetMusic then aAssets = aClosedAssetsNoMusic;
                    else aAssets = aClosedAssetsMusic end;
     -- If game is ready to play?
-    if aGlobalData.gSelectedLevel ~= nil and
-       aGlobalData.gSelectedRace ~= nil then
+    if oGlobalData.gSelectedLevel ~= nil and
+       oGlobalData.gSelectedRace ~= nil then
       -- Can exit to zone start hotspots
       iHotSpotClosedSelectedId = iHotSpotClosedReadyId;
       -- Player is allowed to begin the zone
@@ -163,7 +163,7 @@ local function InitLobby(bNoSetMusic, iSaveMusicPos)
       -- Set exclamation mark callback
       fcbRenderExtra = UtilBlank;
     -- If game has been saved?
-    elseif aGlobalData.gGameSaved then
+    elseif oGlobalData.gGameSaved then
       -- Can't exit hotspots
       iHotSpotClosedSelectedId = iHotSpotClosedExitId;
       -- Player is allowed to exit to the title screen
@@ -199,7 +199,7 @@ local function ExitClose(bFadeMusic, fcbCallback, ...)
     texLobby, texZmtc = nil, nil;
   end
   -- Fade out to title screen
-  return Fade(0, 1, 0.04, RenderClosed, OnFadeOutClosed, bFadeMusic);
+  return Fade(0.0, 1.0, 0.04, RenderClosed, OnFadeOutClosed, bFadeMusic);
 end
 -- Click when lobby is opened ---------------------------------------------- --
 local function ExitOpen(fcbCallback, ...)
@@ -222,40 +222,40 @@ local function GoClose() ExitOpen(InitContinueGame, true) end;
 local function GoCntrl() ExitClose(false, InitCon) end;
 local function GoShop() ExitOpen(InitShop) end;
 local function GoStart()
-  ExitClose(true, InitScene, aGlobalData.gSelectedLevel) end;
+  ExitClose(true, InitScene, oGlobalData.gSelectedLevel) end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, InitBank, InitCon,
     InitContinueGame, InitScene, InitShop, InitTitle, LoadResources, PlayMusic,
     PlayStaticSound, Print, RegisterFBUCallback, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, RenderTipShadow, SetCallbacks,
-    SetHotSpot, SetKeys, SetTip, aAssetsData, aCursorIdData, aGlobalData,
-    aSfxData, fontSpeech =
+    SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData, oGlobalData,
+    oSfxData, fontSpeech =
       GetAPI("BlitLT", "BlitSLT", "Fade", "GameProc", "GetActiveObject",
         "InitBank", "InitCon", "InitContinueGame", "InitScene", "InitShop",
         "InitTitle", "LoadResources", "PlayMusic", "PlayStaticSound", "Print",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderAll", "RenderShadow", "RenderTip", "RenderTipShadow",
-        "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aSfxData", "fontSpeech");
+        "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "oSfxData", "fontSpeech");
   -- Prepare assets
-  local aMusicAsset<const> = aAssetsData.lobbym;
-  local aClosedTexture<const> = aAssetsData.lobbyc;
-  local aZmtcTexture<const> = aAssetsData.zmtc;
+  local aMusicAsset<const> = oAssetsData.lobbym;
+  local aClosedTexture<const> = oAssetsData.lobbyc;
+  local aZmtcTexture<const> = oAssetsData.zmtc;
   aClosedAssetsNoMusic = { aZmtcTexture, aClosedTexture };
   aClosedAssetsMusic = { aZmtcTexture, aClosedTexture, aMusicAsset };
-  local aOpenTexture<const> = aAssetsData.lobbyo;
+  local aOpenTexture<const> = oAssetsData.lobbyo;
   aOpenAssetsNoMusic = { aOpenTexture };
   aOpenAssetsMusic = { aOpenTexture, aMusicAsset };
   -- Set sound effect ids
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Set cursor ids
   local iCOK<const>, iCSelect<const>, iCExit<const>, iCArrow<const> =
-    aCursorIdData.OK, aCursorIdData.SELECT, aCursorIdData.EXIT,
-    aCursorIdData.ARROW;
+    oCursorIdData.OK, oCursorIdData.SELECT, oCursorIdData.EXIT,
+    oCursorIdData.ARROW;
   -- Frequently used hotspots
   local aControllerHotSpot<const>, aHotSpot<const> =
     { 151, 124,  13,  13, 0, iCSelect, "CONTROLLER", false, GoCntrl },
@@ -277,18 +277,18 @@ local function OnScriptLoaded(GetAPI)
     {   0,   0,   0, 240, 3, iCExit,   "CONTINUE", false, GoClose }
   });
   -- Prepare key bind registration
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
-  local iEscape<const> = aKeys.ESCAPE;
-  local iPress<const> = aStates.PRESS;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
+  local iEscape<const> = oKeys.ESCAPE;
+  local iPress<const> = oStates.PRESS;
   local sName<const> = "ZMTC LOBBY";
   -- Register open lobby keybanks
   iKeyBankOpenedId = RegisterKeys(sName, { [iPress] = {
-    { aKeys.B, GoBank,  "zmtclb",  "BANK"          },
-    { aKeys.S, GoShop,  "zmtcls",  "SHOP"          },
+    { oKeys.B, GoBank,  "zmtclb",  "BANK"          },
+    { oKeys.S, GoShop,  "zmtcls",  "SHOP"          },
     { iEscape, GoClose, "zmtclcg", "CONTINUE GAME" }
   } } );
   -- Controller bind
-  local aController<const> = { aKeys.ENTER, GoCntrl, "zmtclc", "CONTROLLER" };
+  local aController<const> = { oKeys.ENTER, GoCntrl, "zmtclc", "CONTROLLER" };
   -- Register closed lobby keybanks
   iKeyBankClosedExitId = RegisterKeys(sName, { [iPress] = { aController,
     { iEscape, GoAbort, "zmtclatg", "ABORT THE GAME" } } });

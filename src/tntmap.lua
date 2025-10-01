@@ -10,15 +10,15 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local TextureCreateTS<const>, ImageRaw<const>, AssetCreate<const>
       = -- ----------------------------------------------------------------- --
       Texture.CreateTS, Image.Raw, Asset.Create;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
-  aLevelData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
-  RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjects, aTileData,
-  aTileFlags, texSpr;
+local BlitSLTWH, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
+  aLvlData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
+  RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjs, aTileData,
+  oTileFlags, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets;                         -- Assets required
 local iBSize<const> = 128 * 128 * 3;   -- Byte size of map
@@ -68,18 +68,20 @@ local function ProcRender()
   -- Render everything
   RenderAll();
   -- Draw appropriate background
-  BlitLT(texMap, 8, 8);
+  BlitLT(texMap, 8.0, 8.0);
   -- Render shadow
-  RenderShadow(8, 8, 312, 208);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Render tip
   RenderTip();
   -- Draw terrain
-  BlitSLTRB(texTerrain, iTerrainPage, 32, 44, 288, 172);
+  BlitSLTWH(texTerrain, iTerrainPage, 32, 44, 256, 128);
   -- Dim appropriate button
-  texSpr:SetCRGBA(1, 0, 0, 0.5);
-  if iTerrainPage == 0 then BlitSLTRB(texSpr, 1022, 140, 179, 157, 196);
-  elseif iTerrainPage == 1 then BlitSLTRB(texSpr, 1022, 162, 179, 179, 196) end;
-  texSpr:SetCRGBA(1, 1, 1, 1);
+  texSpr:SetCRGBA(1.0, 0.0, 0.0, 0.5);
+  if iTerrainPage == 0 then
+    BlitSLTWH(texSpr, 1022, 140.0, 179.0, 17.0, 17.0);
+  elseif iTerrainPage == 1 then
+    BlitSLTWH(texSpr, 1022, 162.0, 179.0, 17.0, 17.0) end;
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
 end
 -- TNT map procedure ------------------------------------------------------- --
 local function ProcLogic()
@@ -101,7 +103,7 @@ local function ProcLogic()
     -- For each pixel column
     for iX = 0, 127 do
       -- Get tile at level position and tile flags at it
-      local iTId<const> = aLevelData[iLYPos + iX];
+      local iTId<const> = aLvlData[iLYPos + iX];
       local iTFlags<const> = aTileData[1 + iTId];
       -- Get bitmap position and then the locations of the components
       local iBPos<const> = iBYPos + (iX * 3);
@@ -125,11 +127,11 @@ local function ProcLogic()
     end
   end
   -- For each object, treat as POI
-  for iObjectId = 1, #aObjects do
+  for iObjectId = 1, #aObjs do
     -- Get object
-    local aObj<const> = aObjects[iObjectId];
+    local oObj<const> = aObjs[iObjectId];
     -- Get position in pixel in bitmap for object
-    local iPos<const> = (iBSize - ((aObj.AY + 1) * 384)) + (aObj.AX * 3) + 3;
+    local iPos<const> = (iBSize - ((oObj.AY + 1) * 384)) + (oObj.AX * 3) + 3;
     -- Make a white RGB dot
     asBData:WU16LE(iPos - 2, 0xFFFF);
     asBData:WU8(iPos - 3, 0xFF);
@@ -156,25 +158,25 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
-  BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
+  BlitSLTWH, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
     LoadResources, PlayStaticSound, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot,
-    SetKeys, aAssetsData, aCursorIdData, aLevelData, aObjects, aSfxData,
-    aTileData, aTileFlags, texSpr =
-      GetAPI("BlitSLTRB", "BlitLT", "Fade", "GameProc", "GetGameTicks",
+    SetKeys, oAssetsData, oCursorIdData, aLvlData, aObjs, oSfxData,
+    aTileData, oTileFlags, texSpr =
+      GetAPI("BlitSLTWH", "BlitLT", "Fade", "GameProc", "GetGameTicks",
         "InitContinueGame", "LoadResources", "PlayStaticSound",
         "RegisterHotSpot", "RegisterKeys", "RenderAll", "RenderShadow",
-        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "aAssetsData",
-        "aCursorIdData", "aLevelData", "aObjects", "aSfxData", "aTileData",
-        "aTileFlags", "texSpr");
+        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "aLvlData", "aObjs", "oSfxData", "aTileData",
+        "oTileFlags", "texSpr");
   -- Setup required assets
-  aAssets = { aAssetsData.tntmap };
+  aAssets = { oAssetsData.tntmap };
   -- Get sound effects
-  iSSelect, iSClick = aSfxData.SELECT, aSfxData.CLICK;
+  iSSelect, iSClick = oSfxData.SELECT, oSfxData.CLICK;
   -- Get cursor ids
-  local iCExit, iCSelect = aCursorIdData.EXIT, aCursorIdData.SELECT;
+  local iCExit, iCSelect = oCursorIdData.EXIT, oCursorIdData.SELECT;
   -- Setup hotspots
   local aHUp<const>, aHDown<const>, aHMap<const>, aHExit<const> =
     { 140, 179,  17,  17, 0, iCSelect, "PAGE UP",   GoScroll, GoUp   },
@@ -184,17 +186,17 @@ local function OnScriptLoaded(GetAPI)
   iHotSpotIdUp = RegisterHotSpot({ aHUp, aHMap, aHExit });
   iHotSpotIdDown = RegisterHotSpot({ aHDown, aHMap, aHExit });
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local sName<const> = "IN-GAME TNT MAP";
   local iPress<const> = Input.States.PRESS;
   local aKExit<const>, aKUp<const>, aKDown<const> =
-    { aKeys.ESCAPE, GoExit, "igtnte",  "LEAVE"       },
-    { aKeys.UP,     GoUp,   "igtntsu", "SCROLL UP"   },
-    { aKeys.DOWN,   GoDown, "igtntsd", "SCROLL DOWN" };
+    { oKeys.ESCAPE, GoExit, "igtnte",  "LEAVE"       },
+    { oKeys.UP,     GoUp,   "igtntsu", "SCROLL UP"   },
+    { oKeys.DOWN,   GoDown, "igtntsd", "SCROLL DOWN" };
   iKeyBankIdUp = RegisterKeys(sName, { [iPress] = { aKUp, aKExit } });
   iKeyBankIdDown = RegisterKeys(sName, { [iPress] = { aKDown, aKExit } });
   -- Store water and solid tile flags
-  iWFlags, iSFlags = aTileFlags.W, aTileFlags.D + aTileFlags.AD;
+  iWFlags, iSFlags = oTileFlags.W, oTileFlags.D + oTileFlags.AD;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitTNTMap = InitTNTMap }, F = OnScriptLoaded };

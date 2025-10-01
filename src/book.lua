@@ -10,7 +10,7 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreLog<const>, UtilBlank<const>, UtilClampInt<const> =
   Core.Log, Util.Blank, Util.ClampInt;
 -- Diggers function and data aliases --------------------------------------- --
@@ -23,8 +23,7 @@ local aAssets,                         -- Assets required
       aBookData,                       -- Book data
       aIllustration;                   -- Illustration data
 local aPageHotSpots<const> = { };      -- Page specific hotspots
-local aZmtcTexture,                    -- Lobby closed texture asset
-      fcbFinish,                       -- Callback to call to exit
+local fcbFinish,                       -- Callback to call to exit
       fcbOnPageAssetsPost,             -- When page assets have loaded
       fcbProcLogic,                    -- Main page logic callback
       fcbProcRenderBack,               -- Rendering background callback
@@ -35,6 +34,7 @@ local aZmtcTexture,                    -- Lobby closed texture asset
       iKeyBankStartId,                 -- Key bank to set when cover page load
       iPage,                           -- Book current page
       iSClick, iSSelect,               -- Sound effects used
+      oZmtcTexture,                    -- Lobby closed texture asset
       strExitTip, strPage, strText,    -- Tip strings and actual page text
       strPageNext, strPageLast,        -- Next and last page tips
       texCover, texPage, texZmtc;      -- Book, page and bg texture handles
@@ -43,10 +43,10 @@ local function ProcRenderPage()
   -- Render book background
   fcbProcRenderBack();
   -- Render page
-  BlitLT(texPage, 8, 8);
+  BlitLT(texPage, 8.0, 8.0);
   -- Render text
   fontSpeech:SetCRGB(0.45, 0.3, 0.22);
-  PrintW(fontSpeech, 77, 28, 298, strText);
+  PrintW(fontSpeech, 77, 28.0, 298.0, strText);
   -- Render illustration if set
   if aIllustration then
     BlitSLT(texPage, aIllustration[1], aIllustration[2], aIllustration[3]);
@@ -59,7 +59,7 @@ local function LoadPage(fcbOnComplete)
   -- Set text, illustration data
   strText, aIllustration = aPage.T, aPage.I;
   -- Set text line spacing if specified
-  fontSpeech:SetLSpacing(aPage.L or 0);
+  fontSpeech:SetLSpacing(aPage.L or 0.0);
   -- Update page and set it as tip
   strPage = "PAGE "..iPage.."/"..#aBookData;
   SetTip(strPage)
@@ -107,14 +107,14 @@ local function HoverNext() SetTip(strPageNext) end;
 local function HoverLast() SetTip(strPageLast) end;
 -- Scroll wheel callback --------------------------------------------------- --
 local function OnScroll(nX, nY)
-  if nY > 0 then GoLast() elseif nY < 0 then GoNext() end;
+  if nY > 0.0 then GoLast() elseif nY < 0.0 then GoNext() end;
 end
 -- On render callback ------------------------------------------------------ --
 local function ProcRenderCover()
   -- Render background
   fcbProcRenderBack();
   -- Draw backdrop
-  BlitLT(texCover, 8, 8);
+  BlitLT(texCover, 8.0, 8.0);
 end
 -- Change cover to inside the book ----------------------------------------- --
 local function GoOpen()
@@ -139,12 +139,12 @@ local function ProcRenderBackInGame()
   -- Draw tip
   RenderTip();
   -- Render shadow
-  RenderShadow(8, 8, 312, 208);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
 end
 -- Set render background function ------------------------------------------ --
 local function ProcRenderBackLobby()
   -- Render static background
-  BlitLT(texZmtc, -54, 0);
+  BlitLT(texZmtc, -54.0, 0.0);
   -- Draw tip and return
   RenderTipShadow();
 end
@@ -167,7 +167,7 @@ end
 -- Cover loaded in-lobby supplimental callback ----------------------------- --
 local function OnPageAssetsPostLobby()
   -- From controller screen? Fade in
-  Fade(1, 0, 0.04, fcbProcRender, OnPageAssetsPostLobbyFadedIn);
+  Fade(1.0, 0.0, 0.04, fcbProcRender, OnPageAssetsPostLobbyFadedIn);
 end
 -- Finish in-game supplimental callback ------------------------------------ --
 local function ExitInGame()
@@ -192,7 +192,7 @@ local function ExitLobby()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Fade out to controller
-  Fade(0, 1, 0.04, fcbProcRender, OnExitLobbyFadedOut);
+  Fade(0.0, 1.0, 0.04, fcbProcRender, OnExitLobbyFadedOut);
 end
 -- Lobby cover resources laoded -------------------------------------------- --
 local function OnAssetsLoadedLobby(texHandle)
@@ -241,7 +241,7 @@ local function InitBook(bFromInGame)
     -- Set text for exit tip
     strExitTip = "CONTROLLER";
     -- Load backdrop from closed lobby
-    aAssets[3] = aZmtcTexture;
+    aAssets[3] = oZmtcTexture;
     -- Set specific behaviour from the lobby
     fcbProcCustomHandle = OnAssetsLoadedLobby;
     fcbOnPageAssetsPost = OnPageAssetsPostLobby;
@@ -253,22 +253,22 @@ local function InitBook(bFromInGame)
   LoadResources("Book", aAssets, OnAssetsLoaded, fcbProcCustomHandle);
 end
 -- Scripts have been loaded ------------------------------------------------ --
-local function OnScriptLoaded(GetAPI, aModData, aAPI)
+local function OnScriptLoaded(GetAPI, aModData, oAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData,
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData,
     cvLang;
   -- Grab imports
   BlitLT, BlitSLT, Fade, GameProc, InitCon, InitContinueGame, LoadResources,
     PlayMusic, PlayStaticSound, PrintW, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, RenderTipShadow, SetCallbacks,
-    SetHotSpot, SetKeys, SetTip, aAssetsData, aCursorIdData, aSfxData, cvLang,
+    SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData, oSfxData, cvLang,
     fontSpeech =
       GetAPI("BlitLT", "BlitSLT", "Fade", "GameProc", "InitCon",
         "InitContinueGame", "LoadResources", "PlayMusic", "PlayStaticSound",
         "PrintW", "RegisterHotSpot", "RegisterKeys", "RenderAll",
         "RenderShadow", "RenderTip", "RenderTipShadow", "SetCallbacks",
-        "SetHotSpot", "SetKeys", "SetTip", "aAssetsData", "aCursorIdData",
-        "aSfxData", "cvLang", "fontSpeech");
+        "SetHotSpot", "SetKeys", "SetTip", "oAssetsData", "oCursorIdData",
+        "oSfxData", "cvLang", "fontSpeech");
   -- Language selector
   local function SelectLanguage(sSelectedLang, bRetry)
     -- Auto-detect language?
@@ -280,7 +280,7 @@ local function OnScriptLoaded(GetAPI, aModData, aAPI)
       SelectLanguage("", true);
     end
     -- Get book language data and if it is there?
-    local aData<const> = aAPI["aBookData_"..sSelectedLang];
+    local aData<const> = oAPI["aBookData_"..sSelectedLang];
     if aData then
       -- Accepted
       aBookData = aData;
@@ -299,35 +299,38 @@ local function OnScriptLoaded(GetAPI, aModData, aAPI)
   -- Select requested language override
   SelectLanguage(cvLang:Get());
   -- Prepare assets
-  aZmtcTexture = aAssetsData.zmtc;
-  aAssets = { aAssetsData.bookcover, aAssetsData.bookpage, false };
+  oZmtcTexture = oAssetsData.zmtc;
+  aAssets = { oAssetsData.bookcover, oAssetsData.bookpage, false };
   -- Register key binds
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
-  local iPress<const>, iRepeat<const> = aStates.PRESS, aStates.REPEAT;
-  local aClose<const>, aPrev<const>, aNext<const> =
-    { aKeys.ESCAPE, GoExit, "zmtctbcl", "CLOSE" },
-    { aKeys.LEFT, GoLast, "zmtctbpp", "PREVIOUS PAGE" },
-    { aKeys.RIGHT, GoNext, "zmtctbnp", "NEXT PAGE" };
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
+  local iPress<const>, iRepeat<const> = oStates.PRESS, oStates.REPEAT;
+  local aClose<const>, aClose2<const>, aPrev<const>, aNext<const> =
+    { oKeys.ESCAPE, GoExit, "zmtctbcl", "CLOSE BOOK" },
+    { oKeys.F8, GoExit, "zmtctbclb", "CLOSE BOOK (IN-GAME TOGGLE)" },
+    { oKeys.LEFT, GoLast, "zmtctbpp", "PREVIOUS PAGE" },
+    { oKeys.RIGHT, GoNext, "zmtctbnp", "NEXT PAGE" };
   local sName<const> = "ZMTC BOOK";
-  iKeyBankPageId = RegisterKeys(sName, { [iPress] = { aClose, aPrev, aNext,
-    { aKeys.N1, GoChapter1, "zmtctbgcon", "ABOUT THIS BOOK" },
-    { aKeys.N2, GoChapter2, "zmtctbgctw", "HOW TO START DIGGERS" },
-    { aKeys.N3, GoChapter3, "zmtctbgcth", "THE PLANET ZARG" },
-    { aKeys.N4, GoChapter4, "zmtctbgcfo", "RACE DESCRIPTIONS" },
-    { aKeys.N5, GoChapter5, "zmtctbgcfi", "ZONE DESCRIPTIONS" },
-    { aKeys.N6, GoChapter6, "zmtctbgcsi", "FLORA AND FAUNA" },
-    { aKeys.N7, GoChapter7, "zmtctbgcse", "THE MINING STORE" },
-    { aKeys.N8, GoChapter8, "zmtctbgcei", "MINING APPARATUS" },
-    { aKeys.N9, GoChapter9, "zmtctbgcni", "ZARGON BANK" },
-    { aKeys.N0, GoChapter10, "zmtctbgcte", "ZARGON STOCK MARKET" },
-    { aKeys.MINUS, GoChapter11, "zmtctbgcel", "ZARGON MINING HISTORY" },
-    { aKeys.BACKSPACE, GoIndex, "zmtctbc", "CONTENTS" },
+  iKeyBankPageId = RegisterKeys(sName, { [iPress] = {
+    aClose, aClose2, aPrev, aNext,
+    { oKeys.N1, GoChapter1, "zmtctbgcon", "ABOUT THIS BOOK" },
+    { oKeys.N2, GoChapter2, "zmtctbgctw", "HOW TO START DIGGERS" },
+    { oKeys.N3, GoChapter3, "zmtctbgcth", "THE PLANET ZARG" },
+    { oKeys.N4, GoChapter4, "zmtctbgcfo", "RACE DESCRIPTIONS" },
+    { oKeys.N5, GoChapter5, "zmtctbgcfi", "ZONE DESCRIPTIONS" },
+    { oKeys.N6, GoChapter6, "zmtctbgcsi", "FLORA AND FAUNA" },
+    { oKeys.N7, GoChapter7, "zmtctbgcse", "THE MINING STORE" },
+    { oKeys.N8, GoChapter8, "zmtctbgcei", "MINING APPARATUS" },
+    { oKeys.N9, GoChapter9, "zmtctbgcni", "ZARGON BANK" },
+    { oKeys.N0, GoChapter10, "zmtctbgcte", "ZARGON STOCK MARKET" },
+    { oKeys.MINUS, GoChapter11, "zmtctbgcel", "ZARGON MINING HISTORY" },
+    { oKeys.BACKSPACE, GoIndex, "zmtctbc", "CONTENTS" },
   }, [iRepeat]={ aPrev, aNext } });
-  iKeyBankCoverId = RegisterKeys(sName, { [iPress] = { aClose,
-    { aKeys.ENTER, GoOpen, "zmtcbob", "OPEN BOOK" } } });
+  iKeyBankCoverId = RegisterKeys(sName, { [iPress] = {
+    aClose, aClose2,
+    { oKeys.ENTER, GoOpen, "zmtcbob", "OPEN BOOK" } } });
   -- Set cursor ids
   local iCOK<const>, iCSelect<const>, iCExit<const> =
-    aCursorIdData.OK, aCursorIdData.SELECT, aCursorIdData.EXIT;
+    oCursorIdData.OK, oCursorIdData.SELECT, oCursorIdData.EXIT;
   -- Hotspots for all screens
   local aHSIndex<const>, aHSNext<const>, aHSLast<const>, aHSIdle<const>,
     aHSExit<const> =
@@ -375,7 +378,7 @@ local function OnScriptLoaded(GetAPI, aModData, aAPI)
   iHotSpotPageId = RegisterHotSpot({ aHSIndex, aHSNext, aHSLast, aHSIdle,
     aHSExit });
   -- Set sound effect ids
-  iSClick, iSSelect = aSfxData.CLICK, aSfxData.SELECT;
+  iSClick, iSSelect = oSfxData.CLICK, oSfxData.SELECT;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitBook = InitBook }, F = OnScriptLoaded };

@@ -10,7 +10,7 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Assets metadata --------------------------------------------------------- --
-local aAssetsData<const> = {
+local oAssetsData<const> = {
   -- Explanation ----------------------------------------------------------- --
   -- T = Type value for LoadResources() from aTypes{} table in main.hpp.
   -- F = The base file name of the asset
@@ -59,29 +59,29 @@ local aAssetsData<const> = {
     --  h   i   j   k   l   m   n   o   p   q   r   s   t   u   v   w   x   y
         4,  2,  4,  5,  2,  6,  4,  4,  4,  4,  4,  4,  4,  4,  4,  6,  4,  4,
     -- 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139
-    --  z   {   |   }   ~   ⌂   Ç   ü   é   â   ä   à   å   ç   ê   ë   è   ï
+    --  z   {   |   }   ~   ⌂   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?
         4,  4,  2,  4,  6,  6,  5,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
     -- 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157
-    --  î   ì   Ä   Å   É   æ   Æ   ô   ö   ò   û   ù   ÿ   Ö   Ü   ø   £   Ø
-        4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+    --  ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?
+        4,  4,  4,  2,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
     -- 158 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175
-    --  ×   ƒ   á   í   ó   ú   ñ   Ñ   ª   º   ¿   ®   ¬   ½   ¼   ¡   «   »
-        4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+    --  ?   ?   ?   ¡   ¢   £   ¤   ¥   ¦   §   ¨   ©   ª   «   ¬   ?   ®   ¯
+        4,  4,  4,  2,  5,  5,  6,  4,  2,  4,  4,  8,  4,  5,  4,  1,  8,  4,
     -- 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193
-    --  ░   ▒   ▓   │   ┤   Á   Â   À   ©   ╣   ║   ╗   ╝   ¢   ¥   ┐   À   ┴
-        4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  5,  4,
+    --  °   ±   ²   ³   ´   µ   ¶   ·   ¸   ¹   º   »   ¼   ½   ¾   ¿   À   Á
+        4,  4,  4,  4,  4,  4,  0,  4,  4,  4,  4,  5,  8,  8,  8,  5,  5,  5,
     -- 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211
-    --  ┬   ├   Ä   ┼   ã   Ç   È   É   ╩   ╦   ╠   ═   ╬   ¤   ð   Ð   Ê   Ë
-        4,  4,  5,  4,  4,  5,  5,  5,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+    --  Â   Ã   Ä   Å   Æ   Ç   È   É   Ê   Ë   Ì   Í   Î   Ï   Ð   Ñ   Ò   Ó
+        5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  4,  4,  4,  4,  6,  6,  5,  5,
     -- 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229
-    --  Ô   ı   Ö   Î   Ï   ┘   ┌   █   Ü   ¦   Ì   ß   à   ?   Ô   Ò   ä   Õ
-        5,  4,  5,  4,  4,  4,  4,  4,  5,  4,  4,  5,  4,  4,  4,  4,  4,  4,
+    --  Ô   Õ   Ö   ×   Ø   Ù   Ú   Û   Ü   Ý   Þ   ß   à   á   â   ã   ä   å
+        5,  5,  5,  4,  7,  5,  5,  5,  5,  6,  4,  5,  4,  4,  4,  5,  4,  4,
     -- 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247
-    --  µ   ç   è   é   ê   Ù   ý   í   î   ï   ?  SHY  ±   ‗   ô   ¶   ö   ÷
-        4,  4,  4,  4,  4,  4,  4,  2,  4,  3,  4,  4,  4,  4,  4,  4,  4,  4,
+    --  æ   ç   è   é   ê   ë   ì   í   î   ï   ð   ñ   ò   ó   ô   õ   ö   ÷
+        4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  5,  4,  4,  4,  5,  4,  4,
     -- 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265
-    --  ¸   ù   ¨   û   ü   ³   ²   ■   ?   œ   ?   ?   ?   ?   ?   ?   ?   ?
-        4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
+    --  ø   ù   ú   û   ü   ý   þ   ÿ   ?   œ   ?   ?   ?   ?   ?   ?   ?   ?
+        6,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
     -- 266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283
     --  ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?
         4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
@@ -332,9 +332,9 @@ local aBaseScripts<const> = {
   { T=9, F="setup"   },
 };
 -- Base fonts that are to be loaded (and scaled) --------------------------- --
-local aBaseFonts<const> = { aAssetsData.font16, aAssetsData.font8,
-  aAssetsData.font5, aAssetsData.font10 };
-local aBaseTextures<const> = { aAssetsData.sprites };
+local aBaseFonts<const> = { oAssetsData.font16, oAssetsData.font8,
+  oAssetsData.font5, oAssetsData.font10 };
+local aBaseTextures<const> = { oAssetsData.sprites };
 -- Base masks that are to be loaded ---------------------------------------- --
 local aBaseMasks<const> = {
   { T=6, F="lmask", P={ 16, 16 } },
@@ -368,6 +368,6 @@ local iBaseTextures<const> = iBaseFonts + #aBaseFonts;
 local iBaseMasks<const> = iBaseTextures + #aBaseTextures;
 local iBaseSounds<const> = iBaseMasks + #aBaseMasks;
 -- Return all the assets data to main.lua ---------------------------------- --
-return aAssetsData, aBaseAssets, iBaseScripts, iBaseFonts,
+return oAssetsData, aBaseAssets, iBaseScripts, iBaseFonts,
        iBaseTextures, iBaseMasks, iBaseSounds, aBaseSounds;
 -- End-of-File ============================================================= --

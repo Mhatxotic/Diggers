@@ -9,10 +9,10 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
--- Lua aliases (optimisation) ---------------------------------------------- --
+-- Core function aliases --------------------------------------------------- --
 local error<const>, floor<const>, pairs<const>, remove<const>, tostring<const>,
   xpcall<const> = error, math.floor, pairs, table.remove, tostring, xpcall;
--- M-Engine aliases (optimisation) ----------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreStack<const>, CoreTicks<const>, DisplayReset<const>,
   InputClearStates<const>, InputGetJoyAxis<const>, InputGetJoyButton<const>,
   InputGetNumJoyAxises<const>, InputGetNumJoyButtons<const>,
@@ -30,17 +30,17 @@ local CoreStack<const>, CoreTicks<const>, DisplayReset<const>,
     Util.Clamp, Util.IsBoolean, Util.IsFunction, Util.IsInteger, Util.IsString,
     Util.IsTable, Fbo.Main();
 -- Diggers function and data aliases --------------------------------------- --
-local aCursorIdData, InitSetup, RegisterFBUCallback, SetErrorMessage, SetTip,
+local oCursorIdData, InitSetup, RegisterFBUCallback, SetErrorMessage, SetTip,
   aCursorData, iTexScale, texSpr;
 -- Get input press states -------------------------------------------------- --
-local aStates<const> = Input.States;
-local iPress<const> = aStates.PRESS;
-local iRelease<const> = aStates.RELEASE;
-local iRepeat<const> = aStates.REPEAT;
+local oStates<const> = Input.States;
+local iPress<const> = oStates.PRESS;
+local iRelease<const> = oStates.RELEASE;
+local iRepeat<const> = oStates.REPEAT;
 -- Keyboard ---------------------------------------------------------------- --
 local aGlobalKeyBinds;                 -- Global keybinds (defined later)
 local aKeyBank<const> = { };           -- All keys
-local aKeyBankCats<const> = { };       -- All keys categorised
+local tKeyBankCats<const> = { };       -- All keys categorised
 local aKeyBankActive;                  -- Key/state/func translation lookup
 local iKeyBank = 0;                    -- Currently active keybank
 -- Mouse ------------------------------------------------------------------- --
@@ -188,11 +188,8 @@ local function SetCursor(iIdentifier)
   -- Set cursor id
   iCId = iIdentifier;
 end
--- Execute command if mouse is overing ------------------------------------- --
-local function CheckHotSpotHover(aHotSpot)
-  -- Return if mouse not in bounds
-  if not IsMouseInBounds(aHotSpot[1], aHotSpot[2],
-                         aHotSpot[3], aHotSpot[4]) then return end;
+-- Do execute command if mouse is overing ---------------------------------- --
+local function DoHotSpotHover(aHotSpot)
   -- Set the cursor
   SetCursor(aHotSpot[6]);
   -- Call the function if it is available?
@@ -203,6 +200,14 @@ local function CheckHotSpotHover(aHotSpot)
       xpcall(fcbCb, CoreStack, iCursorX, iCursorY);
     if not bResult then SetErrorMessage(sReason) end;
   end
+end
+-- Execute command if mouse is overing ------------------------------------- --
+local function CheckHotSpotHover(aHotSpot)
+  -- Return if mouse not in bounds
+  if not IsMouseInBounds(aHotSpot[1], aHotSpot[2],
+                         aHotSpot[3], aHotSpot[4]) then return end;
+  -- Do the hover
+  DoHotSpotHover(aHotSpot);
   -- Success
   return true;
 end
@@ -244,9 +249,11 @@ local function OnMouseClick(iButton, iState)
         local fcbCb<const> = aHotSpot[9][1 + iState];
         if fcbCb then
           -- Protected call so we can handle errors
-          local bResult<const>, sReason<const> =
+          local bResult<const>, vResult<const> =
             xpcall(fcbCb, CoreStack, iButton, iCursorX, iCursorY);
-          if not bResult then SetErrorMessage(sReason) end;
+          if not bResult then SetErrorMessage(vResult);
+          -- If click was processed then run hover func to refresh position
+          elseif vResult then DoHotSpotHover(aHotSpot) end;
         end
         -- Done
         return;
@@ -510,12 +517,12 @@ local function OnMouseMove(nX, nY)
   if not bResult then return SetErrorMessage(sReason) end;
 end
 -- Categorise the keys ----------------------------------------------------- --
-local function RegisterCategorise(sName, aKeys)
+local function RegisterCategorise(sName, oKeys)
   -- Check that given table is valid
-  if not UtilIsTable(aKeys) then
-    error("Key table is invalid! "..tostring(aKeys)) end;
+  if not UtilIsTable(oKeys) then
+    error("Key table is invalid! "..tostring(oKeys)) end;
   -- Check and add all keys to global bank in key bank
-  for iCategory, aBinds in pairs(aKeys) do
+  for iCategory, aBinds in pairs(oKeys) do
     -- Check that given table is valid
     if not UtilIsTable(aBinds) then
       error("Invalid key binds table in category "..iCategory.."! "..
@@ -544,7 +551,7 @@ local function RegisterCategorise(sName, aKeys)
       if not UtilIsString(sDesc) or #sDesc == 0 then
         error("Invalid label "..tostring(sDesc).." at index "..iIndex) end;
       -- Check if we've registered this and if we haven't?
-      local aExisting<const> = aKeyBankCats[sId];
+      local aExisting<const> = tKeyBankCats[sId];
       if not aExisting then
         -- Must be 4 variables ONLY
         if #aBind ~= 4 then
@@ -556,8 +563,8 @@ local function RegisterCategorise(sName, aKeys)
         -- Set data with identifier. Duplicates will overwrite each other. This
         -- is the whole point since we may need to use the same bind but for
         -- different key states.
-        aKeyBankCats[1 + #aKeyBankCats] = aBind;
-        aKeyBankCats[sId] = aBind;
+        tKeyBankCats[1 + #tKeyBankCats] = aBind;
+        tKeyBankCats[sId] = aBind;
       -- We've registered it but show error if it's a different table
       elseif aExisting ~= aBind then
         error("Duplicate identifier '"..sId.."' between '"..sDesc..
@@ -567,18 +574,18 @@ local function RegisterCategorise(sName, aKeys)
   end
 end
 -- Register keys from other module and return to them an identifier -------- --
-local function RegisterKeys(sName, aKeys)
+local function RegisterKeys(sName, oKeys)
   -- Categories the keys
-  RegisterCategorise(sName, aKeys);
+  RegisterCategorise(sName, oKeys);
   -- Add keybinds to key bank
-  aKeyBank[1 + #aKeyBank] = { sName, aKeys };
+  aKeyBank[1 + #aKeyBank] = { sName, oKeys };
   -- Return identifier
   return #aKeyBank;
 end
 -- Return current keybinds list -------------------------------------------- --
 local function GetKeyBank() return iKeyBank end;
 -- Set global keys table --------------------------------------------------- --
-local function SetGlobalKeyBinds(aKeys) aGlobalKeyBinds = aKeys end;
+local function SetGlobalKeyBinds(oKeys) aGlobalKeyBinds = oKeys end;
 -- Set blank active key bank data ------------------------------------------ --
 local function SetBlankKeyBankData()
   aKeyBankActive = {
@@ -611,11 +618,11 @@ local function SetKeys(bState, iIdentifier)
     error("Invalid table index type: "..tostring(iIdentifier)) end;
   if iIdentifier == 0 then iKeyBank = 0 return end;
   -- Get and check identifier in key bank
-  local aKeys<const> = aKeyBank[iIdentifier];
-  if not UtilIsTable(aKeys) then
+  local oKeys<const> = aKeyBank[iIdentifier];
+  if not UtilIsTable(oKeys) then
     error("Invalid table index not registered: "..iIdentifier) end;
   -- Add binds from key bank to currently active keybinds
-  for iCategory, aBinds in pairs(aKeys[2]) do
+  for iCategory, aBinds in pairs(oKeys[2]) do
     local aKeyBankActiveCat<const> = aKeyBankActive[iCategory];
     for iIndex = 1, #aBinds do
       local aBind<const> = aBinds[iIndex];
@@ -672,11 +679,11 @@ local function GkCbSShot() SShotFbo(fboMain) end;
 local function OnScriptLoaded(GetAPI)
   -- Get imports
   InitSetup, RegisterFBUCallback, SetErrorMessage, SetTip, aCursorData,
-    aCursorIdData, iTexScale, texSpr =
+    oCursorIdData, iTexScale, texSpr =
       GetAPI("InitSetup", "RegisterFBUCallback", "SetErrorMessage", "SetTip",
-        "aCursorData", "aCursorIdData", "iTexScale", "texSpr");
+        "aCursorData", "oCursorIdData", "iTexScale", "texSpr");
   -- Get arrow and wait cursor ids
-  iCArrow, iCWait = aCursorIdData.ARROW, aCursorIdData.WAIT;
+  iCArrow, iCWait = oCursorIdData.ARROW, oCursorIdData.WAIT;
   -- Initialise keybinds list
   SetBlankKeyBankData();
   -- Enable input capture events
@@ -689,14 +696,14 @@ local function OnScriptLoaded(GetAPI)
   -- Enable cursor clamper when fbo changes
   RegisterFBUCallback("input", OnStageUpdated);
   -- Set the global keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   aGlobalKeyBinds = { [Input.States.PRESS] = {
-    { aKeys.F1,  GkCbConfig,           "gksc", "SETUP SCREEN"          };
-    { aKeys.F2,  GkCbBinds,            "gksb", "SETUP KEYBINDS"        },
-    { aKeys.F3,  GkCbReadme,           "gksa", "SHOW ACKNOWLEDGEMENTS" },
-    { aKeys.F10, InputSetCursorCentre, "gkcc", "SET CURSOR CENTRE"     },
-    { aKeys.F11, DisplayReset,         "gkwr", "RESET WINDOW SIZE"     },
-    { aKeys.F12, GkCbSShot,            "gkss", "TAKE SCREENSHOT"       },
+    { oKeys.F1,  GkCbConfig,           "gksc", "SETUP SCREEN"          };
+    { oKeys.F2,  GkCbBinds,            "gksb", "SETUP KEYBINDS"        },
+    { oKeys.F3,  GkCbReadme,           "gksa", "SHOW ACKNOWLEDGEMENTS" },
+    { oKeys.F10, InputSetCursorCentre, "gkcc", "SET CURSOR CENTRE"     },
+    { oKeys.F11, DisplayReset,         "gkwr", "RESET WINDOW SIZE"     },
+    { oKeys.F12, GkCbSShot,            "gkss", "TAKE SCREENSHOT"       },
   }}
   -- Add keybinds to key bank categories for configuration
   RegisterCategorise("GLOBAL", aGlobalKeyBinds);
@@ -716,5 +723,5 @@ return { F = OnScriptLoaded, A = { ClearStates = ClearStates,
   RegisterHotSpot = RegisterHotSpot, RegisterKeys = RegisterKeys,
   RestoreKeyHandlers = RestoreKeyHandlers, SetCursor = SetCursor,
   SetCursorPos = SetCursorPos, SetHotSpot = SetHotSpot, SetKeys = SetKeys,
-  aKeyBank = aKeyBank, aKeyBankCats = aKeyBankCats } };
+  aKeyBank = aKeyBank, tKeyBankCats = tKeyBankCats } };
 -- End-of-File ============================================================= --

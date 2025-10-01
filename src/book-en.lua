@@ -53,7 +53,8 @@ local aBookData<const> = {
         { 77, 161, 224, 7, 74 } }    -- Chapter 11/11: Zargon mining history
   -- Page 3 ---------------------------------------------------------------- --
   },{ T="ABOUT THIS BOOK\n\z
-    The Book of Zaro is simplicity itself to use. The Book uses a \z
+    \n\z
+    The Book of Zarg is simplicity itself to use. The Book uses a \z
     revolutionary substance called TNT to display it's pages. (See TNT.) \z
     Consequently, the Book only needs to contain the cover, one sheet of \z
     TNT and the control mechanism for TNT which are 3 cut emeralds that \z
@@ -74,9 +75,9 @@ local aBookData<const> = {
     \n\z
     The Book of Zarg is made of a remarkable paper-like substance known as \z
     TNT (Texturised Neural Transistors). The process of creating this \z
-    paper is so mind-bogglingly complicated that it is only fully"
+    paper is so mind-bogglingly complicated that it is only fully..."
   -- Page 5 ---------------------------------------------------------------- --
-  },{ T="understood by the three-brained Sloargs that inhabit the Great \z
+  },{ T="...understood by the three-brained Sloargs that inhabit the Great \z
     Hall of a Thousand Rustling Intellects on the planet Cerebralis, \z
     therefore an explanation will not be attempted. Suffice it to say that \z
     however it is done, TNT has had an impressive, some may say \z
@@ -87,11 +88,9 @@ local aBookData<const> = {
     TNT's effects are threefold and simple to explain.\n\z
     \n\z
     A. One sheet of TNT can contain an infinite number of words, thereby \z
-       reducing the thickness of books to one"
+       reducing the thickness of books to one page."
   -- Page 6 ---------------------------------------------------------------- --
-  },{ T="page.\n\z
-    \n\z
-    B. When a reader touches a sheet of TNT, it scans their brain to \z
+  },{ T="B. When a reader touches a sheet of TNT, it scans their brain to \z
        ascertain speech and reading patterns. a fraction of a nano-second \z
        it then presents the text in the reader's preferred language.\n\z
     \n\z
@@ -129,16 +128,15 @@ local aBookData<const> = {
     \n\z
     When you successfully complete a zone, either economically or through \z
     wiping out your opponent, a flag of success will be raised on that \z
-    zone.\n\z
-    \n\z
-    After selecting the zone of your choice, you are"
+    zone."
   -- Page 10 --------------------------------------------------------------- --
-  },{ T="returned back to the Controllers Office. If you are starting a \z
-    new game, he will suggest you now choose a race of diggers in which to \z
-    invest your money. Each race has different characteristics, different \z
-    goals, different strengths and weaknesses. (See chapter on RACES later \z
-    in the Book. We recommend you study the race descriptions before you \z
-    make your choice, as you must use the same race throughout the game. \n\z
+  },{ T="After selecting the zone of your choice, you arereturned back to \z
+    the Controllers Office. If you are starting a new game, he will suggest \z
+    you now choose a race of diggers in which to invest your money. Each \z
+    race has different characteristics, different goals, different strengths \z
+    and weaknesses. (See chapter on RACES later in the Book. We recommend \z
+    you study the race descriptions before you make your choice, as you must \z
+    use the same race throughout the game.\n\z
     \n\z
     In the Race Selection area, you can view a summary of the \z
     characteristics of each race, the sketched page and information can be \z
@@ -147,7 +145,7 @@ local aBookData<const> = {
   -- Page 11 --------------------------------------------------------------- --
   },{ T="anywhere else on the page.\n\z
     \n\z
-    Once you haue proceeded through these selection criteria you can begin \z
+    Once you have proceeded through these selection criteria you can begin \z
     the game.\n\z
     \n\z
     THE BANK\n\z
@@ -188,7 +186,7 @@ local aBookData<const> = {
     Search\n\z
     \n\z
     Teleport",
-    I={ 1, 164, 54 }, L=-1.5
+    I={ 1, 164.0, 54.0 }, L=-1.5
   -- Page 15 --------------------------------------------------------------- --
   },{ T="Jump\n\z
     \n\z
@@ -205,7 +203,7 @@ local aBookData<const> = {
     Return to main menu\n\z
     \n\z
     Walk left",
-    I={ 2, 164, 24 }, L=-1.5
+    I={ 2, 164.0, 24.0 }, L=-1.5
   -- Page 16 --------------------------------------------------------------- --
   },{ T="\n\z
     Digging directions\n\z
@@ -221,7 +219,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Cycles between teleport",
-    I={ 3, 164, 24 }, L=-0.75
+    I={ 3, 164.0, 24.0 }, L=-0.75
   -- Page 17 --------------------------------------------------------------- --
   },{ T="                                     CONTROL PANEL\n\z
         Cash Account                Items and gems collected\n\z
@@ -239,7 +237,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Digger selected      Machine selection      Diggers location",
-    I={ 4, 96, 51 }, L=-0.75
+    I={ 4, 96.0, 51.0 }, L=-0.75
   -- Page 18 --------------------------------------------------------------- --
   },{ T="DESCRIPTION OF RACE CHARACTERISTICS\n\z
     \n\z
@@ -253,7 +251,7 @@ local aBookData<const> = {
     \n\z
     Intelligence                                    Double healing\n\z
     ¶                                                      (F'Targs only)",
-    I={ 5, 140, 44 }, L=-1.5
+    I={ 5, 140.0, 44.0 }, L=-1.5
   -- Page 19 --------------------------------------------------------------- --
   },{ T="LOADING & SAVING\n\z
     \n\z
@@ -290,8 +288,11 @@ local aBookData<const> = {
   -- Page 22 --------------------------------------------------------------- --
   },{ T="1. Only five races of diggers are permitted to dig on the \z
        planet.\n\z
+       \n\z
     2. Each dig must be registered at the Zargon Mineral Trading Centre.\n\z
-    3. All minerals mined must be exchanged for cash at the Zaroon Bank.\n\z
+       \n\z
+    3. All minerals mined must be exchanged for cash at the Zargon Bank.\n\z
+       \n\z
     4. To encourage healthy competition, two races of diggers are allowed \z
        to mine each area of the planet."
   -- Page 23 --------------------------------------------------------------- --
@@ -307,12 +308,12 @@ local aBookData<const> = {
     they could continue digging for a\n\z
     long time, they are very impatient and soon lose interest in digging, \z
     preferring wherever possible to pilfer aluables mined by others.",
-    I={ 6, 210, 41 }
+    I={ 6, 210.0, 41.0 }
   -- Page 24 --------------------------------------------------------------- --
   },{ T="The Habbish are a mystical order ruled by their Lord High \z
     Habborg. This exalted being has decreed that his followers must build \z
     a fabulous temple complex, encrusted with gold ano jewels in his name. \z
-    The Habbish haue begun this work, but money is running out. They need \z
+    The Habbish have begun this work, but money is running out. They need \z
     to mine as many valuables as possible in order to complete the temple \z
     and pay off the galactic repo-men, the baseball bat wielding \z
     Thungurs.\n\z
@@ -337,7 +338,7 @@ local aBookData<const> = {
     The Grablins only weakness is for the fiendishly strong drink, Grok. \z
     Although described by others as an \"unaquirable taste\" with a smell \z
     \"worse than the",
-    I={ 7, 200, 15 }
+    I={ 7, 200.0, 15.0 }
   -- Page 26 --------------------------------------------------------------- --
   },{ T="breath of a fire-breathing Scabrosaur from the swirling slime \z
     pools of Sulphuria\" and \"more userul as a defensive shield against \z
@@ -366,7 +367,7 @@ local aBookData<const> = {
     yet adapted well to cramped mining conditions, they tire easily and \z
     are slow at digging. They are extremely reliable and patient, but \z
     lack initiative.",
-    I={ 8, 210, 20 }
+    I={ 8, 210.0, 20.0 }
   -- Page 28 --------------------------------------------------------------- --
   },{ T="The Quarriors are flat broke as they were recently tricked by a \z
     second-hand arms salescreature. Their ambition is to build a fortified \z
@@ -385,13 +386,12 @@ local aBookData<const> = {
     \n\z
     The F'Targs are the second fastest diggers. They are slower than the \z
     Grablins but can continue mining much longer than the others. They \z
-    enjoy digging but can be distracted by objects that take their fancy. \z
-    Their",
-    I={ 9, 210, 20 }
+    enjoy digging but can be distracted by objects that take their fancy.",
+    I={ 9, 210.0, 20.0 }
   -- Page 30 --------------------------------------------------------------- --
-  },{ T="desire to collect often gets them into trouble outside the mines. \z
-    They are not very aggressive or good at fighting but if hurt, they can \z
-    heal themselves twice as quickly as any other diggers.\n\z
+  },{ T="Their desire to collect often gets them into trouble outside the \z
+    mines. They are not very aggressive or good at fighting but if hurt, \z
+    they can heal themselves twice as quickly as any other diggers.\n\z
     \n\z
     The F'Targs ambition is to collect enough money to build their \z
     proposed Museum of Metal Marvels (unkindly nicknamed the Scrapheap) in \z
@@ -419,12 +419,10 @@ local aBookData<const> = {
     \n\z
     Desert - shifting sands and dunes cover this arid area of Zarg. The \z
     effects of erosion are evident here. Huge rock formations have been  \z
-    buried by the sand and compressed into impervious strength.\n\z
-    \n\z
-    Huge, brightly-coloured crystal structures stretch"
+    buried by the sand and compressed into impervious strength."
   -- Page 33 --------------------------------------------------------------- --
-  },{ T="under the sand. Underground lakes and water sources exist below \z
-    the surface.\n\z
+  },{ T="Huge, brightly-coloured crystal structures stretch under the sand. \z
+    Underground lakes and water sources exist below the surface.\n\z
     \n\z
     Ice - this is an area of freezing conditions with ice-cold seas and \z
     many ice-bergs. Particular care should be taken when digging within \z
@@ -433,13 +431,12 @@ local aBookData<const> = {
     \n\z
     Islands - this area is made up of a vast archipelago of islands dotted \z
     around a large ocean. Ail islands are joined deep below the water's \z
-    surface to form a huge sub-aqua mountain range.\n\z
-    \n\z
-    Mountains - area of jagged peaks and unstable rocky"
+    surface to form a huge sub-aqua mountain range."
   -- Page 34 --------------------------------------------------------------- --
-  },{ T="slopes which offers few places suitable for digging. However, \z
-    scattered through the mountains are large caves which may provide \z
-    better opportunities for operations.\n\z
+  },{ T="Mountains - area of jagged peaks and unstable rocky slopes which \z
+    offers few places suitable for digging. However, scattered through the \z
+    mountains are large caves which may provide better opportunities for \z
+    operations.\n\z
     \n\z
     Below the tough surface are deposits of hard rock which make digging \z
     impossible in some areas. Water sources can also be found below \z
@@ -448,9 +445,10 @@ local aBookData<const> = {
     Rocky Ground - an area resembling the Grand Canyon, it has numerous \z
     overhangs, precipices and precarious rock formations. Below the \z
     surface are large areas of impenetrable rock. Very little water is \z
-    evident near the surface but deep in the earth, water filled caverns"
+    evident near the surface but deep in the earth, water filled caverns \z
+    abound."
   -- Page 35 --------------------------------------------------------------- --
-  },{ T="abound. The course of long dried up rivers has created series of \z
+  },{ T="The course of long dried up rivers has created series of \z
     interlocked caves and passages between rock layers. Lost cities are \z
     believed to be in this level, possibly haunted by their former \z
     occupants."
@@ -459,14 +457,14 @@ local aBookData<const> = {
     \n\z
     The disappearance of the entire Frinklin Expedition of '95 dealt a \z
     severe blow to anthropological and botanical studies on the Planet \z
-    Zaro. As a result, no conclusive report on Zarg's flora and fauna \z
+    Zarg. As a result, no conclusive report on Zarg's flora and fauna \z
     exists - the following notes and pictures have been taken from a \z
     variety of professional and eye witness reports - and it is certain \z
     that other plant and animal life exists on the planet. Please send \z
     details, samples or sketches of new life forms to Professor A. Mazon, \z
     Tower of Creepers, Attenborough Institute of Galactic Greenery."
   -- Page 37 --------------------------------------------------------------- --
-  },{ T="Triffidus Carnivorous\n\z
+  },{ T="Triffidus Carnivorous...\n\z
     \n\z
     Lives in jungle and forest areas\n\z
     where it blends in with other\n\z
@@ -477,9 +475,9 @@ local aBookData<const> = {
     Upon capture and infra-red studying, one specimen's stomach was found \z
     to contain a beginner's guide to spotting dangerous plants and a pair \z
     of spectacles of a similar prescription to Dr Frinklin's.",
-    I={ 10, 200, 15 }
+    I={ 10, 200.0, 15.0 }
   -- Page 38 --------------------------------------------------------------- --
-  },{ T="Fungus Kaleidoscopus\n\z
+  },{ T="Fungus Kaleidoscopus...\n\z
     \n\z
     Found on the surface in a\n\z
     variety of locations, these fungi grow\n\z
@@ -490,7 +488,7 @@ local aBookData<const> = {
     wide variety of effects upon Some simply died, some became twice as \z
     strong while others seemed distracted and talked gibberish about pink \z
     giraffes.",
-    I={ 11, 200, 15 }
+    I={ 11, 200.0, 15.0 }
   -- Page 39 --------------------------------------------------------------- --
   },{ T="\n\z
     \n\z
@@ -500,24 +498,24 @@ local aBookData<const> = {
     \n\z
     \n\z
     \n\z
-    Stegosaurus\n\z
+    Stegosaurus...\n\z
     \n\z
     Large dinosaur that lives in subterranean caves. Sandy coloured \z
     skin, two horns.\n\z
     Normally docile, Stegosaurus will charge if provoked or threatened. \z
     In narrow tunnels Stegosaurus is capable of",
-    I={ 12, 96, 15 }
+    I={ 12, 96.0, 15.0 }
   -- Page 40 --------------------------------------------------------------- --
   },{ T="crushing victories over enemies.\n\z
     \n\z
-    Rotorysaurus\n\z
+    Rotorysaurus...\n\z
     \n\z
     A rather strange dinosaur, who inhabits the subterranean levels but \z
     occasionally strays to the surface of the planet. Generally considered \z
     to be rather placid, however, if provoked or attacked can turn and \z
     inflict severe damage on it's aggressors.\n\z
     \n\z
-    Velociraptor\n\z
+    Velociraptor...\n\z
     \n\z
     A dinosaur of quite astounding viciousness. Needs absolutely no \z
     provocation to attack. Simply hates the"
@@ -541,7 +539,7 @@ local aBookData<const> = {
     a miner, now retired. His story is below.\n\z
     \n\z
     \"It was 'orrible. The guvnor said we should dig into",
-    I={ 13, 96, 15 }
+    I={ 13, 96.0, 15.0 }
   -- Page 43 --------------------------------------------------------------- --
   },{ T="this bit of rock. Well, I don't mind telling you, I didn't like \z
     it, not one bit. Something was wrong you know, it wasn't quite right \z
@@ -568,7 +566,7 @@ local aBookData<const> = {
     ago. The frozen remains of one ot these beasts was discovered one year \z
     ago and more may be discovered in a petrified condition in icy areas. \z
     Woolly",
-    I={ 14, 96, 15 }
+    I={ 14, 96.0, 15.0 }
   -- Page 45 --------------------------------------------------------------- --
   },{ T="mammal meat has been eaten by starving Arctic explorers:\n\z
     \"Mnmn, just give me a ... second to stop mnmnmn ... chewing ...\"\n\z
@@ -589,7 +587,7 @@ local aBookData<const> = {
     Many varieties of fish are belleved to exist. However anglers' stories \z
     have proved somewhat unreliable. Few examples have ever been brought \z
     to the institute, \"it",
-    I={ 15, 96, 15 }
+    I={ 15, 96.0, 15.0 }
   -- Page 47 --------------------------------------------------------------- --
   },{ T="got away\" - and accurate size estimates have proved impossible. \z
     Tales of the ferocious \"Pikosaurus\" must also be taken with a pinch \z
@@ -608,7 +606,7 @@ local aBookData<const> = {
     believed to live deep underground, they are rarely seen and little is \z
     known of their behavioural patterns. The following is a Quarrior's \z
     account of his encounter with a sand worm.",
-    I={ 16, 96, 15 }
+    I={ 16, 96.0, 15.0 }
   -- Page 49 --------------------------------------------------------------- --
   },{ T="\"We were minding our own business, tunnelling away quietly - \z
     well, as quiet as you can get with dynamite and suddenly the floor \z
@@ -632,7 +630,7 @@ local aBookData<const> = {
     Mining stories that are retold in the many bars on the planet, say \z
     that the Ghosts are from those miners who were left to die by claim \z
     jumpers, and the Zombies are the result of those ghosts contact with \z
-    living diggers"
+    living diggers."
   -- Page 51 --------------------------------------------------------------- --
   },{ T="Our advice is to avoid these supposed apparitions at all costs. \z
     Not that tne authoritles belleve in such things. you understand.\n\z
@@ -645,16 +643,16 @@ local aBookData<const> = {
     \n\z
     Scattered throughout the planet are mowing portals, nicknamed \z
     Swirlyports. These unusual objects float gently through the \z
-    subterranean world. If a digger is"
+    subterranean world."
   -- Page 52 --------------------------------------------------------------- --
-  },{ T="caught in one of these he is instantly transported to a random \z
-    area in the zone. The religious zealots of the Habbish are convinced \z
-    that the Swirlyports are the spiritual remains of those Habbish who \z
-    have not gained full enlightenment and are destined to wander the \z
-    Planet Zarg in their present unfulfilled state. Other less spiritually \z
-    minded diggers put them down to yet another wonder of this strange \z
-    planet, and do not seek an explanation for their existence. A much \z
-    more sensible approach, we think.\n\z
+  },{ T="If a digger is caught in one of these he is instantly transported \z
+    to a random area in the zone. The religious zealots of the Habbish are \z
+    convinced that the Swirlyports are the spiritual remains of those \z
+    Habbish who have not gained full enlightenment and are destined to \z
+    wander the Planet Zarg in their present unfulfilled state. Other less \z
+    spiritually minded diggers put them down to yet another wonder of this \z
+    strange planet, and do not seek an explanation for their existence. A \z
+    much more sensible approach, we think.\n\z
     \n\z
     Large areas of the planet remain uncharted and largely undiscovered, \z
     and for this reason the above details are no more than current \z
@@ -689,7 +687,7 @@ local aBookData<const> = {
   -- Page 55 --------------------------------------------------------------- --
   },{ T="MINING EQUIPMENT\n\z
     \n\z
-    Flood gates\n\z
+    Flood gates...\n\z
     \n\z
     Price: 80 credits.\n\z
     Weight: 10 groads.\n\z
@@ -699,9 +697,9 @@ local aBookData<const> = {
     used to secure mining operations from rival diggers. Flood gates are \z
     extremely resilient to pressure and can withstand most digging \z
     machines, but they can be opened by large amounts of explosives",
-    I={ 17, 196, 29 }
+    I={ 17, 196.0, 29.0 }
   -- Page 56 --------------------------------------------------------------- --
-  },{ T="Telepole\n\z
+  },{ T="Telepole...\n\z
     \n\z
     \n\z
     \n\z
@@ -713,9 +711,9 @@ local aBookData<const> = {
     instantly. At the beginning of mining operations, each race of diggers \z
     is supplied with a teleport. Habbish can use any of the other diggers' \z
     telepoles. Other diggers can only use their telepoles.",
-    I={ 18, 196, 29 }
+    I={ 18, 196.0, 29.0 }
   -- Page 57 --------------------------------------------------------------- --
-  },{ T="Train Track\n\z
+  },{ T="Train Track...\n\z
     \n\z
     \n\z
     \n\z
@@ -727,21 +725,21 @@ local aBookData<const> = {
     pack of 5. Track must be positioned correctly. Once laid in position, \z
     it forms a permanent bond with the ground and cannot be moved, nor can \z
     it be dug through.",
-    I={ 19, 196, 29 }
+    I={ 19, 196.0, 29.0 }
   -- Page 58 --------------------------------------------------------------- --
-  },{ T="Automatic Mine Cart\n\z
+  },{ T="Automatic Mine Cart...\n\z
     \n\z
     \n\z
     \n\z
-    Price: 108 credits.\n\z
+    Price: 100 credits.\n\z
     Weight: 8 groads.\n\z
     \n\z
     General Information: An ingenious self-propelling and self-steering \z
     mine cart capable of holding large amounts of minerals. Ideal for \z
     quick transport of diggers or minerals between locations.",
-    I={ 20, 196, 29 }
+    I={ 20, 196.0, 29.0 }
   -- Page 59 --------------------------------------------------------------- --
-  },{ T="Small Tunnelling Machine\n\z
+  },{ T="Small Tunnelling Machine...\n\z
     \n\z
     \n\z
     \n\z
@@ -751,9 +749,9 @@ local aBookData<const> = {
     General Information: Cordless machine. Nicknamed 'the mole', this \z
     tunnelling machine is light and portable. Drills many times quicker \z
     than the fastest spade-wielding digger.",
-    I={ 21, 196, 29 }
+    I={ 21, 196.0, 29.0 }
   -- Page 60 --------------------------------------------------------------- --
-  },{ T="Single Bridge Bit\n\z
+  },{ T="Single Bridge Bit...\n\z
     \n\z
     \n\z
     \n\z
@@ -764,9 +762,9 @@ local aBookData<const> = {
     Extremely strong, can take heauy loads. Bridge bit must be securely \z
     anchored on firm ground. Bridges are vulnerable targets - caution must \z
     be exercised when crossing them.",
-    I={ 22, 196, 29 }
+    I={ 22, 196.0, 29.0 }
   -- Page 61 --------------------------------------------------------------- --
-  },{ T="Inflatable Boat\n\z
+  },{ T="Inflatable Boat...\n\z
     \n\z
     \n\z
     \n\z
@@ -775,9 +773,9 @@ local aBookData<const> = {
     \n\z
     General Information: Extremely durable crafts. Carrying capacity is \z
     limited to one digger. Unsuitable for rough seas or long voyages.",
-    I={ 23, 196, 29 }
+    I={ 23, 196.0, 29.0 }
   -- Page 62 --------------------------------------------------------------- --
-  },{ T="Vertical Digger\n\z
+  },{ T="Vertical Digger...\n\z
     \n\z
     \n\z
     \n\z
@@ -789,9 +787,9 @@ local aBookData<const> = {
     Once started, the 'corkscrew' continues drilling automatically for a \z
     set period of time or until it hits an obstacle. Beware using this \z
     equipment in watery areas.",
-    I={ 24, 196, 29 }
+    I={ 24, 196.0, 29.0 }
   -- Page 63 --------------------------------------------------------------- --
-  },{ T="Large Tunnelling Machine\n\z
+  },{ T="Large Tunnelling Machine...\n\z
     \n\z
     \n\z
     \n\z
@@ -804,9 +802,9 @@ local aBookData<const> = {
     exercised when operating the 'Monster'. Point at surface to be \z
     drilled and start up. Do not stand in front of the 'Monster' at any \z
     time.",
-    I={ 25, 196, 29 }
+    I={ 25, 196.0, 29.0 }
   -- Page 64 --------------------------------------------------------------- --
-  },{ T="Explosives\n\z
+  },{ T="Explosives...\n\z
     \n\z
     \n\z
     \n\z
@@ -818,9 +816,9 @@ local aBookData<const> = {
     rivals' mine.\n\z
     There is very little margin for error when using explosives, mistakes \z
     are often fatal!",
-    I={ 26, 196, 29 }
+    I={ 26, 196.0, 29.0 }
   -- Page 65 --------------------------------------------------------------- --
-  },{ T="Lift\n\z
+  },{ T="Lift...\n\z
     \n\z
     \n\z
     Price: 220 credits.\n\z
@@ -833,9 +831,9 @@ local aBookData<const> = {
     block at the top of the lift and the foot block at the bottom MUST be \z
     firmly anchored in a block of plain earth. Without these element in \z
     the correct position the lift will refuse to function.",
-    I={ 27, 196, 29 }
+    I={ 27, 196.0, 29.0 }
   -- Page 66 --------------------------------------------------------------- --
-  },{ T="TNT Map\n\z
+  },{ T="TNT Map...\n\z
     \n\z
     \n\z
     \n\z
@@ -846,9 +844,9 @@ local aBookData<const> = {
     apart from the guide! Utilising the special abilities of TNT paper, \z
     the map shows the entire zone with all it's features and is constantly \z
     updated.",
-    I={ 28, 196, 29 }
+    I={ 28, 196.0, 29.0 }
   -- Page 67 --------------------------------------------------------------- --
-  },{ T="First Aid Kit\n\z
+  },{ T="First Aid Kit...\n\z
     \n\z
     \n\z
     \n\z
@@ -859,7 +857,7 @@ local aBookData<const> = {
     will slowly replenish the stamina of the digger holding it. It is \z
     possible to give the kit to another digger who may benefit from any \z
     remaining \'medicine\'.",
-    I={ 29, 196, 29 }
+    I={ 29, 196.0, 29.0 }
   -- Page 68 --------------------------------------------------------------- --
   },{ T="ZARGON BANK\n\z
     \n\z
@@ -872,11 +870,10 @@ local aBookData<const> = {
     \n\z
     When a digger opens a current CASH account, the bank opens a savings \z
     STASH account for that customer. The bank will then automatically \z
-    transfer a percentage of all CASH and save it in the STASH account. \z
-    Money"
+    transfer a percentage of all CASH and save it in the STASH account."
   -- Page 69 --------------------------------------------------------------- --
-  },{ T="cannot be taken from the STASH account until a digger wishes to \z
-    leave the planet.\n\z
+  },{ T="Money cannot be taken from the STASH account until a digger wishes \z
+    to leave the planet.\n\z
     \n\z
     A Bank spokescreature, explained \"It's an insurance policy against \z
     customers absconding from the planet and leaving us with debts.\"\n\z
@@ -884,14 +881,13 @@ local aBookData<const> = {
     When a mining operation is first started, the Bank is quite prepared \z
     to make a loan of 100 credits to the Master Miner. However, the Master \z
     Miner must repay the loan at the end of each successful digging \z
-    operation within a zone.\n\z
-    \n\z
-    The Bank is then prepared to make up any deficit that"
+    operation within a zone."
   -- Page 70 --------------------------------------------------------------- --
-  },{ T="a Master Miner may have, when starting the next Zone, to ensure \z
-    that they have at least 100 credits. Obuiously, if the Master Miner \z
-    has more than 108 credits already, then they will not require the \z
-    services of the Bank in providing a loan.\n\z
+  },{ T="The Bank is then prepared to make up any deficit that a Master \z
+    Miner may have, when starting the next Zone, to ensure that they have at \z
+    least 100 credits. Obuiously, if the Master Miner has more than 100 \z
+    credits already, then they will not require the services of the Bank in \z
+    providing a loan.\n\z
     \n\z
     The Bank also operates a generous Trade-in policy for capital \z
     equipment, (lifts, mining machines, etc). Assuming a Master Miner is \z
@@ -899,14 +895,14 @@ local aBookData<const> = {
     behind all the equipment purchased to complete their operations. \z
     Therefore, the Bank arranges for it's valuers to wisit the mine, \z
     remoue the equipment, and pay about 75% of its value, assuming it is \z
-    in a salvageable condition, to"
+    in a salvageable condition, to the Master Miner. "
   -- Page 71 --------------------------------------------------------------- --
-  },{ T="the Master Miner. This ensures that the Master Miner sees some \z
-    return on his investment in equipment. This amount is carried forward \z
-    without further deductions spending on the next zone. Also the Bank \z
-    makes an extremely large profit selling the equipment as new back to \z
-    other mining operations, but of course that is only a vicious rumour \z
-    spread about by disgruntled, bankrupt miners."
+  },{ T="This ensures that the Master Miner sees some return on his \z
+    investment in equipment. This amount is carried forward without further \z
+    deductions spending on the next zone. Also the Bank makes an extremely \z
+    large profit selling the equipment as new back to other mining \z
+    operations, but of course that is only a vicious rumour spread about by \z
+    disgruntled, bankrupt miners."
   -- Page 72 --------------------------------------------------------------- --
   },{ T="ZARGON STOCK MARKET\n\z
     \n\z
@@ -933,7 +929,7 @@ local aBookData<const> = {
   },{ T="ZARGON MINING HISTORY\n\z
     \n\z
     The history of the planet Zarg is as colourful as the jewels that have \z
-    been mined from below its surface. Its legendary riches haue attracted \z
+    been mined from below its surface. Its legendary riches have attracted \z
     an enormous number of space jetsam and flotsam, diggers, bounty \z
     hunters and other get rich quick merchants.\n\z
     \n\z
@@ -941,12 +937,12 @@ local aBookData<const> = {
     few have left richer than when they arrived. Indeed, many have not \z
     left at all. The cause of Zarg's wealth is also the cause of many \z
     mining problems. The underground riches are caused by violent volcanic \z
-    and tectonic activity that convulse the planet"
+    and tectonic activity that convulse the planet for eight months a year."
   -- Page 75 --------------------------------------------------------------- --
-  },{ T="for eight months a year. While this regenerates mineral wealth \z
-    below the surface, it destroys most structures above ground. The \z
-    remains of many lost cities and civilisations are belleveo to be deep \z
-    underground, where they were swallowed up by the planet's upheavals."
+  },{ T="While this regenerates mineral wealth below the surface, it \z
+    destroys most structures above ground. The remains of many lost cities \z
+    and civilisations are belleveo to be deep underground, where they were \z
+    swallowed up by the planet's upheavals."
   -- Page 76 --------------------------------------------------------------- --
   },{ T="DAYLIGHT ROBBERY\n\z
     \n\z
@@ -957,12 +953,11 @@ local aBookData<const> = {
     Wearing a disguise and relying on sharp wits, Larson E. posed as a \z
     trouble shooter sent by the President of Interplanetary Banks Inc to \z
     check their security systems. so convincing was he that the staff gave \z
-    him a guided tour, showing their alarms and giving him code numbers.\n\z
-    \n\z
-    That night the bank robber returned to make good use"
+    him a guided tour, showing their alarms and giving him code numbers."
   -- Page 77 --------------------------------------------------------------- --
-  },{ T="of the information. When the staff opened up in the morning they \z
-    found the vaults empty and the following note.\n\z
+  },{ T="That night the bank robber returned to make good use of the \z
+    information. When the staff opened up in the morning they found the \z
+    vaults empty and the following note.\n\z
     \n\z
     \"It wasn't me,\n\z
     It was D.A. Lite & Rob Berry.\n\z
@@ -970,7 +965,7 @@ local aBookData<const> = {
     Thanks for the rocks suckers.\"\n\z
     \n\z
     Larson E.",
-    I={ 30, 212, 62 }
+    I={ 30, 212.0, 74.0 }
   -- Page 78 --------------------------------------------------------------- --
   },{ T="THE CRASH OF '94\n\z
     \n\z
@@ -984,32 +979,31 @@ local aBookData<const> = {
     Millions of credits went missing and the thieves were never traced, \z
     although for the entire following month no Grablin was seen vertical."
   -- Page 79 --------------------------------------------------------------- --
-  },{ T="Ancient Mining Advice and Player Tips\n\z
+  },{ T="Ancient Mining Advice and Player Tips...\n\z
     \n\z
     Past digging expeditions have often returned with records of what \z
     appears to be ancient mining graffiti etched into cavern walls. The \z
     apparent purpose of the graffiti being to inform and advise miners who \z
-    may follow in the artist's footsteps.\n\z
-    \n\z
-    The key points being:\n\z
-    \n\z
-    If you are impatient for riches you will reap more by mining in strips \z
-    than deep shafts.\n\z
-    \n\z
-    Use bridges wisely as they can not only cross water"
+    may follow in the artist's footsteps."
   -- Page 80 --------------------------------------------------------------- --
-  },{ T="but will empower you to jump higher and further.\n\z
-    \n\z
-    Don't exhaust yourself trying to dig through the immovable, blow the \z
-    darn thing out with explosives, but mind you don't flood yourself in \z
-    the process. However you can't blow an escape route out of the zone.\n\z
-    \n\z
-    Blood lust and killing may wipe out your the Zargan Bank trades in \z
-    Zogs not bodies, so dig for gems not revenge.\n\z
-    \n\z
-    Other than this sound advice you would be well advised to"
+  },{ T="The key points being:\n\z
+      \n\z
+    - If you are impatient for riches you will reap more by mining in strips \z
+      than deep shafts.\n\z
+      \n\z
+    - Use bridges wisely as they can not only cross water but will \z
+      empower you to jump higher and further.\n\z
+      \n\z
+    - Don't exhaust yourself trying to dig through the immovable, blow the \z
+      darn thing out with explosives, but mind you don't flood yourself in \z
+      the process. However you can't blow an escape route out of the zone."
   -- Page 81 --------------------------------------------------------------- --
-  },{ T="- Save the game every time you have completed a zone.\n\z
+  },{ T="- Blood lust and killing may wipe out your the Zargan Bank trades in \z
+      Zogs not bodies, so dig for gems not revenge.\n\z
+    \n\z
+    Other than this sound advice you would be well advised to:\n\z
+      \n\z
+    - Save the game every time you have completed a zone.\n\z
       \n\z
     - Always trade jewels at the bank immediately to maximise your wealth \z
       against that of your opponent, and to prevent theft of jewels below \z

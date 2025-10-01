@@ -204,7 +204,7 @@ local aBookData<const> = {
     Rechercher\n\z
     \n\z
     Téléporter",
-    I={ 1, 250, 54 }, L=-1.5
+    I={ 1, 250.0, 54.0 }, L=-1.5
   -- Page 16 ------------------------------------------------------------- --
   },{ T="Sauter\n\z
     \n\z
@@ -221,7 +221,7 @@ local aBookData<const> = {
     Retour au menu principal\n\z
     \n\z
     Marcher vers la gauche",
-    I={ 2, 170, 24 }, L=-1.5
+    I={ 2, 170.0, 24.0 }, L=-1.5
   -- Page 17 ------------------------------------------------------------- --
   },{ T="\n\z
     Direction d'excavation\n\z
@@ -237,7 +237,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Passage d'un pôle de télékinésie à l'autre",
-    I={ 3, 178, 24 }, L=-0.75
+    I={ 3, 178.0, 24.0 }, L=-0.75
   -- Page 18 ------------------------------------------------------------- --
   },{ T="                            PUPITRE DE COMMANDE\n\z
         Compte Cash                         Pierres précieuses ramassées\n\z
@@ -256,7 +256,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Mineur sélectionné      Sélection de machine      Emplacements",
-    I={ 4, 96, 51 }, L=-0.75
+    I={ 4, 96.0, 51.0 }, L=-0.75
   -- Page 19 ------------------------------------------------------------- --
   },{ T="LA PLANÈTE ZARG\n\z
     \n\z
@@ -309,7 +309,7 @@ local aBookData<const> = {
     longtemps, elles perdent vite tout intérêt dans cet exercice et \z
     préfèrent souvent se livrer au chapardage des richesses mises au jour \z
     par les autres.",
-    I={ 6, 210, 34 }
+    I={ 6, 210.0, 34.0 }
   -- Page 23 ------------------------------------------------------------- --
   },{ T="L'ordre mystique des Krishniches est soumis au tout-puissant Lord \z
     Hure, être exalté qui a décrété que son peuple devait lui ériger un \z
@@ -342,7 +342,7 @@ local aBookData<const> = {
     Les Dipsos n'ont qu'un seul point faible : leur goût pour le Irrox. \z
     poisson d'une concentration diabolique. Les Dipsos ne connaissent pas \z
     de limites quand il s'agit de...",
-    I={ 7, 214, 15 }
+    I={ 7, 214.0, 15.0 }
   -- Page 26 ------------------------------------------------------------- --
   },{ T="...ce breuvage, pourtant décrit comme ayant un \"goût \z
     inimaginable\", une odeur pire que l'haleine enflammée d'un \z
@@ -370,7 +370,7 @@ local aBookData<const> = {
     ils n'ont pas encore réussi à s'adapter parfaitement aux conditions \z
     inconfortables du travail de mine, se fatiguent facilement et creusent \z
     lentement.",
-    I={ 8, 210, 20 }
+    I={ 8, 210.0, 20.0 }
   -- Page 28 ------------------------------------------------------------- --
   },{ T="D'une patience et d'un sérieux remarquables, ils manouent \z
     cependant d'initiative.\n\z
@@ -395,7 +395,7 @@ local aBookData<const> = {
     et possédent une endurance bien supérieure à celle de ces derniers. \z
     Ils aiment creuser mais se laissent facilement distraire par les \z
     objets qui leur plaisent.",
-    I={ 9, 220, 16 }
+    I={ 9, 220.0, 16.0 }
   -- Page 30 ------------------------------------------------------------- --
   },{ T="Leur goût pour la brocante leur attire souvent des problèmes à \z
     l'extérieur de la mine. Ils ne sont ni très agressifs, ni très bons \z
@@ -440,7 +440,7 @@ local aBookData<const> = {
     \n\z
     Intelligence                                 Guérison rapide\n\z
     ¶                                                 (Manouches seulement)",
-    I={ 5, 150, 44 }, L=-1.5
+    I={ 5, 150.0, 44.0 }, L=-1.5
   -- Page 34 ------------------------------------------------------------- --
   },{ T="DESCRIPTION DES ZONES\n\z
     \n\z
@@ -516,7 +516,7 @@ local aBookData<const> = {
     formes de vie, vous pouvez les envouer au professeur Mazone, Tour \z
     Devis, Institut de Verdure Galactique Tazieff."
   -- Page 41 ------------------------------------------------------------- --
-  },{ T="Triffidus Carnivorus\n\z
+  },{ T="Triffidus Carnivorus...\n\z
     \n\z
     Pousse dans les régions couvertes\n\z
     de jungle et de forêt. où elle se\n\z
@@ -526,7 +526,7 @@ local aBookData<const> = {
     Plante carnivore d'une férocité\n\z
     extrême et d'un grand appétit, elle se reconnaít à la couleur \z
     inhabituelle de ses feuilles.",
-    I={ 10, 200, 15 }
+    I={ 10, 200.0, 15.0 }
   -- Page 42 ------------------------------------------------------------- --
   },{ T="À la suite de la capture et de l'examen à l'infrarouge d'un \z
     spécimen de cette espèce, il a été trouvé dans son estomac un guide du \z
@@ -534,7 +534,7 @@ local aBookData<const> = {
     dangereuses, ainsi qu'une paire de lunettes dont la description \z
     correspond à celle des lunettes du Dr. Frinklin."
   -- Page 43 ------------------------------------------------------------- --
-  },{ T="Fungus Kaleidoscopus\n\z
+  },{ T="Fungus Kaleidoscopus...\n\z
     \n\z
     Poussant à la surface de la terre\n\z
     dans des endroits variés, ces\n\z
@@ -547,13 +547,13 @@ local aBookData<const> = {
     Au cours d'une étude scientifique, des résultats ont prouvé que la \z
     consommation de ces champignons a des effets très divers selon les \z
     individus. Certains y ont succombés...",
-    I={ 11, 200, 15 }
+    I={ 11, 200.0, 15.0 }
   -- Page 44 ------------------------------------------------------------- --
   },{ T="...purement et simplement, d'autres sont devenus deux fois plus \z
     forts qu'avant, d'autres encore ont commencé à se comporter de façon \z
     étrange, tenant des discours inintelligibles sur des girafes roses."
   -- Page 45 ------------------------------------------------------------- --
-  },{ T="Stégosaurus\n\z
+  },{ T="Stégosaurus...\n\z
     \n\z
     Gros dinosaure vivant\n\z
     dans des grottes\n\z
@@ -566,9 +566,9 @@ local aBookData<const> = {
     menacez.\n\z
     \n\z
     Dans les tunnels étroits, il peut littéralement écraser ses ennemis.",
-    I={ 12, 134, 25 }
+    I={ 12, 134.0, 25.0 }
   -- Page 46 ------------------------------------------------------------- --
-  },{ T="Rotorysaurus\n\z
+  },{ T="Rotorysaurus...\n\z
     \n\z
     Dinosaure peu courant vivant dans les niveaux souterrains de la \z
     planète, bien, qu'il lui arrive de se retrouver à la surface après \z
@@ -576,7 +576,7 @@ local aBookData<const> = {
     cependant infliger de sévères dégâts à celui qui l'aura provoqué ou \z
     attaqué.\n\z
     \n\z
-    Vélocirapteur\n\z
+    Vélocirapteur...\n\z
     \n\z
     Dinosaure habité d'une méchanceté sidérante. N'attend aucunement \z
     d'être provoqué pour attaquer. Abhorre purement et simplement la vue \z
@@ -587,7 +587,7 @@ local aBookData<const> = {
     vous le rencontrez, fuyez aussi vite que vous le pouvez, ou attirez-le \z
     vers les mines de vos adversaires avant de vous enfuir."
   -- Page 48 ------------------------------------------------------------- --
-  },{ T="Oeufus Horribilis\n\z
+  },{ T="Oeufus Horribilis...\n\z
     \n\z
     La seule description\n\z
     dont on dispose\n\z
@@ -601,7 +601,7 @@ local aBookData<const> = {
     \"C'était l'horreur. Le gars a dit qu'on d'vait creuser dans c'te \z
     roche. Ben vous voulez que j'vous oise, ça m'disait déjà rien qui \z
     vaille: ça sentait l'roussi.",
-    I={ 13, 134, 25 }
+    I={ 13, 134.0, 25.0 }
   -- Page 49 ------------------------------------------------------------- --
   },{ T="Y'avait quec'chose qu'y allait pas, ch'ais pas quoi.... Enfin \z
     bref, c'est pas que ch'ois un fana, mais on a quand même continué, et \z
@@ -615,7 +615,7 @@ local aBookData<const> = {
     pu r'garder, j'me suis r'tourné et ch'uis parti en courant. C'tait \z
     carrément horrib.... mais où est c'te fichue bouteille?!\""
   -- Page 50 ------------------------------------------------------------- --
-  },{ T="Mammifères laineux\n\z
+  },{ T="Mammifères laineux...\n\z
     \n\z
     Gros mammifères ayant\n\z
     sans doute vecu sur\n\z
@@ -627,7 +627,7 @@ local aBookData<const> = {
     créatures pétrifiées dans d'autres régions glacées. Des explorateurs \z
     quit mouraient de faim dans l'Arctique ont déjà consommé de la viande \z
     de mammifères laineux.",
-    I={ 14, 142, 15 }
+    I={ 14, 142.0, 15.0 }
   -- Page 51 ------------------------------------------------------------- --
   },{ T="Ecoutons ce qu'ils en disent:\n\z
     \"Mnmn, laissez-moi juste ... une seconde pour finir mnmnmn... \z
@@ -636,7 +636,7 @@ local aBookData<const> = {
     adepte.\"\n\z
     \"Hommm, hommm, Lord Hure, hommm, hommm.\""
   -- Page 52 ------------------------------------------------------------- --
-  },{ T="Poissons\n\z
+  },{ T="Poissons...\n\z
     \n\z
     \n\z
     \n\z
@@ -649,7 +649,7 @@ local aBookData<const> = {
     ce qu'affirment les pêcheurs à la ligne s'est avéré parfois quelque \z
     peu fantaisiste et le peu de spécimens rapportés à l'institut \z
     (\"Il a filé!\") ne permet pas de confirmer leurs dires.",
-    I={ 15, 96, 15 }
+    I={ 15, 96.0, 15.0 }
   -- Page 53 ------------------------------------------------------------- --
   },{ T="Par ailleurs, les dimensions prêtées aux poissons se sont \z
     révélées impossibles. Faites bien la part du vrai et du faux (et aussi \z
@@ -670,7 +670,7 @@ local aBookData<const> = {
     les voit que rarement et que l'on ne sait que peu de choses sur leur \z
     comportement. Voici le témoignange d'un carrier après sa rencontre \z
     avec un ver des sables.",
-    I={ 16, 96, 15 }
+    I={ 16, 96.0, 15.0 }
   -- Page 55 ------------------------------------------------------------- --
   },{ T="Nous étions tout à notre travail, creusant tranquillement - \z
     enfin, si on peut travailler tranquillement avec de la dynamite - \z
@@ -761,7 +761,7 @@ local aBookData<const> = {
   -- Page 62 ------------------------------------------------------------- --
   },{ T="ÉQUIPEMENT DU MINEUR\n\z
     \n\z
-    Portes anti-inondation\n\z
+    Portes anti-inondation...\n\z
     \n\z
     Prix: 80 crédits.\n\z
     Poids: 10 essouffles.\n\z
@@ -773,7 +773,7 @@ local aBookData<const> = {
     anti-inondation résistent très bien à la pression et à l'action de la \z
     plupart des machines à forer, mais sont impuissantes face à une \z
     lourde charge d'explosifs.",
-    I={ 17, 196, 29 }
+    I={ 17, 196.0, 29.0 }
   -- Page 63 ------------------------------------------------------------- --
   },{ T="Telepole\n\z
     \n\z
@@ -788,9 +788,9 @@ local aBookData<const> = {
     minières, chaque race de mineurs reçoit un télépôle. Les Krishniches \z
     peuvent se servir des télépôles des autres mineurs. Les autres races \z
     ne peuvent utlliser que le leur.",
-    I={ 18, 196, 29 }
+    I={ 18, 196.0, 29.0 }
   -- Page 64 ------------------------------------------------------------- --
-  },{ T="Rails de chemin de fer\n\z
+  },{ T="Rails de chemin de fer...\n\z
     \n\z
     \n\z
     \n\z
@@ -803,9 +803,9 @@ local aBookData<const> = {
     positionner les rails convenablement dès le départ: une fois posés, \z
     ils sont définitivement reliés au sol et impossibles à déplacer ou à \z
     transpercer d'un cop de pioche",
-    I={ 19, 196, 29 }
+    I={ 19, 196.0, 29.0 }
   -- Page 65 ------------------------------------------------------------- --
-  },{ T="Wagon automatique\n\z
+  },{ T="Wagon automatique...\n\z
     \n\z
     \n\z
     \n\z
@@ -816,9 +816,9 @@ local aBookData<const> = {
     autopropulsé et à pilotage automatique. Peut transporter \z
     d'importantes quantités de matériel. Idéal pour le transport rapide \z
     des mineurs ou des minéraux d'un site à l'autre.",
-    I={ 20, 196, 29 }
+    I={ 20, 196.0, 29.0 }
   -- Page 66 ------------------------------------------------------------- --
-  },{ T="Petite foreuse\n\z
+  },{ T="Petite foreuse...\n\z
     \n\z
     \n\z
     \n\z
@@ -828,9 +828,9 @@ local aBookData<const> = {
     Informations générales: machine sans fil. Surnommée la \"taupe\". \z
     Légère et portable. Creuse beaucoup plus vite que le plus rapide des \z
     mineurs.",
-    I={ 21, 196, 29 }
+    I={ 21, 196.0, 29.0 }
   -- Page 67 ------------------------------------------------------------- --
-  },{ T="Section de pont\n\z
+  },{ T="Section de pont...\n\z
     \n\z
     \n\z
     \n\z
@@ -842,9 +842,9 @@ local aBookData<const> = {
     importantes. Une section de pont doit être fermement ancrée dans le \z
     sol. Attention: les ponts sont des cibles vulnérables - passez-les \z
     avec prudence.",
-    I={ 22, 196, 29 }
+    I={ 22, 196.0, 29.0 }
   -- Page 68 ------------------------------------------------------------- --
-  },{ T="Canot pneumatique\n\z
+  },{ T="Canot pneumatique...\n\z
     \n\z
     \n\z
     \n\z
@@ -854,9 +854,9 @@ local aBookData<const> = {
     Informations générales: objets à longue durée de vie. Capacité de \z
     transport limitée à une personne. N'est pas conçu pour les mers \z
     agitées ou les longues traversées.",
-    I={ 23, 196, 29 }
+    I={ 23, 196.0, 29.0 }
   -- Page 69 ------------------------------------------------------------- --
-  },{ T="Excavatrice verticale\n\z
+  },{ T="Excavatrice verticale...\n\z
     \n\z
     \n\z
     \n\z
@@ -869,9 +869,9 @@ local aBookData<const> = {
     façon automatique pendant un temps déterminé jusqu'à ce qu'il \z
     rencontre un obstacle. Abstenez-vous de l'utiliser dans les zones au \z
     sol détrempé.",
-    I={ 24, 196, 29 }
+    I={ 24, 196.0, 29.0 }
   -- Page 70 ------------------------------------------------------------- --
-  },{ T="Grande foreuse\n\z
+  },{ T="Grande foreuse...\n\z
     \n\z
     \n\z
     \n\z
@@ -883,9 +883,9 @@ local aBookData<const> = {
     à une vitesse remarquable. À ne manier qu'avec une précaution extrême. \z
     Pour commencer à creuser, pointez sur l'endroit choisi. Ne vous mettez \z
     jamais devant le \"monstre\". Cette machine ne fore que vers l'avant",
-    I={ 25, 196, 29 }
+    I={ 25, 196.0, 29.0 }
   -- Page 71 ------------------------------------------------------------- --
-  },{ T="Explosifs\n\z
+  },{ T="Explosifs...\n\z
     \n\z
     \n\z
     \n\z
@@ -897,9 +897,9 @@ local aBookData<const> = {
     résistants à la pioche ou pour forcer l'entrée d'une mine rivale. Le \z
     maniement des explosifs ne laisse que peu de place à l'improvisation. \z
     et la moindre erreur peut être fatale!",
-    I={ 26, 196, 29 }
+    I={ 26, 196.0, 29.0 }
   -- Page 72 ------------------------------------------------------------- --
-  },{ T="Monte-charge\n\z
+  },{ T="Monte-charge...\n\z
     \n\z
     \n\z
     \n\z
@@ -909,7 +909,7 @@ local aBookData<const> = {
     Informations generales: particulièrement utile pour transporter \z
     d'importantes quantités de matériel, de minéraux ou de personnes \z
     entre les veines et l'entrée de la mine.",
-    I={ 27, 196, 29 }
+    I={ 27, 196.0, 29.0 }
   -- Page 73x ------------------------------------------------------------- --
   },{ T="Une fois installé, le monte-charge occupe sa place définitive et \z
     ne peut être transféré à un endroit différent.\n\z
@@ -919,7 +919,7 @@ local aBookData<const> = {
     de sol solide; le bon positionnement de ces éléments est \z
     indispensable à la mise en route de la machine."
   -- Page 74 ------------------------------------------------------------- --
-  },{ T="Cacte au TNT\n\z
+  },{ T="Cacte au TNT...\n\z
     \n\z
     \n\z
     \n\z
@@ -931,9 +931,9 @@ local aBookData<const> = {
     qui utilise les propriétés du papier TNT, montre l'ensemble de la zone \z
     concernée avec toutes ses caractéristiques et fait l'objet d'une mise \z
     à jour régulière.",
-    I={ 28, 196, 29 }
+    I={ 28, 196.0, 29.0 }
   -- Page 75 ------------------------------------------------------------- --
-  },{ T="Trousse de secours\n\z
+  },{ T="Trousse de secours...\n\z
     \n\z
     \n\z
     \n\z
@@ -944,7 +944,7 @@ local aBookData<const> = {
     guérisseurs de la trousse vous rendront lentement toute votre vigueur \z
     physique. Les mineurs peuvent se passer cette trousse et profiter des \z
     médicaments restants.",
-    I={ 29, 196, 29 }
+    I={ 29, 196.0, 29.0 }
   -- Page 76 ------------------------------------------------------------- --
   },{ T="LA BANQUE DE ZARG\n\z
     \n\z
@@ -1052,7 +1052,7 @@ local aBookData<const> = {
     de tester les systèmes de sécurité. Il fut si convaincant que le \z
     personnel lui fit même faire une visite guidée de la banque, lui \z
     indiqua l'emplacement des...",
-    I={ 30, 212, 29 }
+    I={ 30, 212.0, 29.0 }
   -- Page 85 ------------------------------------------------------------- --
   },{ T="...sytèmes d'alarme et lui fournit les codes secrets.\n\z
     \n\z
@@ -1101,16 +1101,16 @@ local aBookData<const> = {
     \n\z
     La soif de sang et le crime peuvent servir à éliminer vos ennemis \z
     mais la monnaie d'échange à la banque de Zarg est le zog, pas le \z
-    cadavre, alors accumulez des trésors plutôt que la revanche.\n\z
-    \n\z
-    En plus de ces messages sonores, nous vous conseillons de:"
+    cadavre, alors accumulez des trésors plutôt que la revanche."
   -- Page 89 ------------------------------------------------------------- --
-  },{ T="- Sauvegardez le jeu une fois parvenu à la fin d'une zone.\n\z
-    \n\z
+  },{ T="En plus de ces messages sonores, nous vous conseillons de:\n\z
+      \n\z
+    - Sauvegardez le jeu une fois parvenu à la fin d'une zone.\n\z
+      \n\z
     - Vendez les bijoux immédiatement à la banque pour que vos richesses \z
       soient supérieures à celle de votre adversaire et pour empêcher que \z
       quelqu'un ne vous les vole sous terre.\n\z
-    \n\z
+      \n\z
     - N'oubliez pas la valeur marchande de votre équipement car vous \z
       pouvez le vendre au début d'une nouvelle zone."
   }

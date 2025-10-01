@@ -174,10 +174,10 @@ If you move the cursor and the cursor becomes anything but an arrow graphic, the
 The hud is explained as follows from left to right…
 
 * Money (4 digits)…
-  - Shows how much currency you have. You must grab gems by digging for them, stealing them from your opponent, and then ordering the digger home to enter the trade centre, entering the bank, and selling your gems. Making enough currency wins the zone. You can also spend currency at the shop to buy items that will assist you on your operations.
+  - Shows how much currency you have. You must grab gems by digging for them, stealing them from your opponent, and then ordering the digger home to enter the trade centre, entering the bank, and selling your gems. Making enough currency wins the zone. You can also spend currency at the shop to buy items that will assist you on your operations. You always start a zone with a loaned 100 Zogs plus capital carried over from the previous zone.
 * Inventory and health…
-  - This part of the hud displays the gems and other items in your inventory which you can drop at any time by going to the digger inventory menu.
-  - The health bar shows the health of your digger. It maxes out at 100% and will slowly regenerate if you stand still. It will turn orange if low and then turn red on imminent death. The heart changes speed depending on amount of health.
+  - This part of the hud displays the gems and other items in your inventory which you can drop at any time by going to the digger inventory menu. You can click on any item here to instantly drop it to the ground.
+  - The health bar shows the health of your digger. It maxes out at 100% and will slowly regenerate if you stand still. It will turn orange if low and then turn red on imminent death. The heart changes speed depending on amount of health. There are damage indicators above your digger for when for when your digger loses (white) or gains health (green).
 * Digger status…
   - This part of the hud shows what the selected digger is doing. This corresponds to the menu operation chosen.
 * Digger buttons and indicators…
@@ -214,10 +214,8 @@ If for some reason you're an advanced-user or admin and need to fine tune how th
 ### Examples…
 * `diggers.exe vid_fs=1`
   - Will make the engine startup in full-screen.
-* `diggers.exe con_disabled=0`
-  - Will disable the developer console.
-* `diggers.exe vid_fs=1 con_disabled=0`
-  - Will make the engine startup in full-screen and enable the developer console.
+* `diggers.exe vid_fs=0 win_border=0`
+  - Will make the engine startup in window mode and hide the window border.
 
 You can change cvars by opening up the console with the `GRAVE` key (key under `ESCAPE` key). In the release version of the game, the console is semi-permanantly disabled, you can re-enable the console by using `con_disabled=0` to re-enable it. CVars can obviously be overloaded onto the command-line, not just one setting. This key may not be available on most keyboards so you can change it by changing the `con_key1` or `con_key2` var. This is a GLFW specific [key code](https://www.glfw.org/docs/3.4/group__keys.html). Once you're in the console, type `cmdlist` for the commands you can use or `cvarlist` for the settings you can change and escape key to clear the text input or to close the console.
 
@@ -235,7 +233,7 @@ You can change cvars by opening up the console with the `GRAVE` key (key under `
 * `gam_slowdown` *(boolean)*
   - Emulate Amiga slowdown (`1`) or use normal PC speed (`0`).
 * `gam_test` *(integer)*
-  - Debug all parts of the game.
+  - Debug all parts of the game (see main.lua).
 
 <sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## Modding…
@@ -281,6 +279,7 @@ Basic support for scaled textures is supported. To use, you add a text file call
 | Title | Credit(s) |
 | --- | --- |
 | **Complete conversion** | By *Mhat* of *Mhatxotic Design*. |
+| **Lobby music** | *Nugem B.* ([with permission](https://youtu.be/GFsHnxVRI8s)). |
 | **Setup music** | *Super Stardust - Special Mission 1* by *PowerTrace*. |
 | **Credits music** | *4U 07:00 V2001* by *Enuo*. |
 | **Game over music loop** | *1000 Years Of Funk* by *Dimitri D. L.*. |

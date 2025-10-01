@@ -13,14 +13,14 @@
 local cos<const>, floor<const>, format<const>, pairs<const>, sin<const>,
   tonumber<const> =
     math.cos, math.floor, string.format, pairs, math.sin, tonumber;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local UtilFormatNumber<const>, UtilFormatTime<const>, CoreOSTime<const>,
   CoreTime<const>, VariableSave<const> = Util.FormatNumber, Util.FormatTime,
     Core.OSTime, Core.Time, Variable.Save;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintC,
   RenderFade, RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys,
-  SetTip, aLevelsData, aObjectData, aObjectTypes, fontSpeech, texSpr;
+  SetTip, aLevelsData, oObjectData, oObjectTypes, fontSpeech, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       aFileData, aNameData;            -- File and file names data
@@ -43,19 +43,19 @@ local sFileMatchText<const> =
   "^(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),\z
     (%d+),(%d+),(%d+),(%d+),([%d%s]*)$"
 -- Global data ------------------------------------------------------------- --
-local aGlobalData<const> = { };
+local oGlobalData<const> = { };
 -- Initialise a new game --------------------------------------------------- --
 local function InitNewGame()
-  aGlobalData.gBankBalance,      aGlobalData.gCapitalCarried,
-  aGlobalData.gGameSaved,        aGlobalData.gLevelsCompleted,
-  aGlobalData.gNewGame,          aGlobalData.gPercentCompleted,
-  aGlobalData.gSelectedLevel,    aGlobalData.gSelectedRace,
-  aGlobalData.gTotalCapital,     aGlobalData.gTotalExploration,
-  aGlobalData.gTotalDeaths,      aGlobalData.gTotalDug,
-  aGlobalData.gTotalGemsFound,   aGlobalData.gTotalGemsSold,
-  aGlobalData.gTotalIncome,      aGlobalData.gTotalEnemyKills,
-  aGlobalData.gTotalPurchases,   aGlobalData.gTotalHomicides,
-  aGlobalData.gTotalTimeTaken,   aGlobalData.gZogsToWinGame =
+  oGlobalData.gBankBalance,      oGlobalData.gCapitalCarried,
+  oGlobalData.gGameSaved,        oGlobalData.gLevelsCompleted,
+  oGlobalData.gNewGame,          oGlobalData.gPercentCompleted,
+  oGlobalData.gSelectedLevel,    oGlobalData.gSelectedRace,
+  oGlobalData.gTotalCapital,     oGlobalData.gTotalExploration,
+  oGlobalData.gTotalDeaths,      oGlobalData.gTotalDug,
+  oGlobalData.gTotalGemsFound,   oGlobalData.gTotalGemsSold,
+  oGlobalData.gTotalIncome,      oGlobalData.gTotalEnemyKills,
+  oGlobalData.gTotalPurchases,   oGlobalData.gTotalHomicides,
+  oGlobalData.gTotalTimeTaken,   oGlobalData.gZogsToWinGame =
     0,                             0,
     true,                          { },
     true,                          0,
@@ -90,7 +90,7 @@ local function LoadSaveData()
       if TTT and T and R and B and C and TSP and TC and TDE and TD and
          TGS and TGF and TI and TDG and TPE and TP and LC and L and
          T >= 1 and TTT >= 0 and R >= 0 and R <= 3 and
-         B <= aGlobalData.gZogsToWinGame and C >= 0 and C <= 9999 and
+         B <= oGlobalData.gZogsToWinGame and C >= 0 and C <= 9999 and
          TSP >= 0 and TC >= 0 and TDE >= 0 and TD >= 0 and TGS >= 0 and
          TGF >= 0 and TI >= 0 and TDG >= 0 and TPE >= 0 and TP >= 0 and
          LC >= 0 and LC <= #aLevelsData then
@@ -112,8 +112,8 @@ local function LoadSaveData()
               TGF, TI, TDG, TPE, TP, CL },
             format("%s (%s) %u%% (%s$)",
               UtilFormatTime(T, "%a %b %d %H:%M:%S %Y"):upper(),
-              aObjectData[aObjectTypes.FTARG + R].NAME,
-              floor(B / aGlobalData.gZogsToWinGame * 100),
+              oObjectData[oObjectTypes.FTARG + R].NAME,
+              floor(B / oGlobalData.gZogsToWinGame * 100),
               UtilFormatNumber(B, 0));
         else aNameData[iIndex] = "CORRUPTED SLOT "..iIndex.." (E#2)" end;
       else aNameData[iIndex] = "CORRUPTED SLOT "..iIndex.." (E#1)" end;
@@ -125,23 +125,25 @@ end
 -- Render callback --------------------------------------------------------- --
 local function RenderFile()
   -- Draw trace-centre backdrop, file screen and shadow
-  BlitLT(texZmtc, -96, 0);
-  BlitLT(texFile, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitLT(texZmtc, -96.0, 0.0);
+  BlitLT(texFile, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw message
-  fontSpeech:SetCRGB(0, 0, 0.25);
-  PrintC(fontSpeech, 160, 31, sMsg);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
+  PrintC(fontSpeech, 160.0, 31.0, sMsg);
   -- Render file names
   for iFileId = 1, #aSaveSlot do
+    -- Calculate Y
+    local nY<const> = iFileId * 13.0;
     -- File selected? Draw selection box!
     if iSelected == iFileId then
       local nTime<const> = CoreTime();
       RenderFade(0.5 + (sin(nTime) * cos(nTime) * 0.25),
-        35, 47 + (iFileId * 13), 285, 60 + (iFileId * 13));
+        35.0, 47.0 + nY, 285.0, 60.0 + nY);
     end
     -- Print name of file
-    fontSpeech:SetCRGB(1, 1, 1);
-    PrintC(fontSpeech, 160, 49 + (iFileId * 13), aNameData[iFileId]);
+    fontSpeech:SetCRGB(1.0, 1.0, 1.0);
+    PrintC(fontSpeech, 160.0, 49 + nY, aNameData[iFileId]);
   end
   -- Draw tip
   RenderTipShadow();
@@ -158,7 +160,7 @@ local function GoCntrl()
     InitCon();
   end
   -- Fade out
-  Fade(0, 1, 0.04, RenderFile, OnFadeOut);
+  Fade(0.0, 1.0, 0.04, RenderFile, OnFadeOut);
 end
 -- Item selected ----------------------------------------------------------- --
 local function Select(iId)
@@ -175,14 +177,14 @@ local function Select(iId)
   -- If not empty slot?
   if aFileData[iSelected] then
     -- If new game?
-    if not aGlobalData.gSelectedRace or aGlobalData.gNewGame then
+    if not oGlobalData.gSelectedRace or oGlobalData.gNewGame then
       iKeyBankIdSelected, iHotSpotIdSelected =
         iKeyBankIdLoadOnly, iHotSpotIdLoadOnly;
     -- Continuation game?
     else iKeyBankIdSelected, iHotSpotIdSelected =
       iKeyBankIdLoadSave, iHotSpotIdLoadSave end;
   -- Empty slot so if new game?
-  elseif not aGlobalData.gSelectedRace or aGlobalData.gNewGame then
+  elseif not oGlobalData.gSelectedRace or oGlobalData.gNewGame then
     iKeyBankIdSelected, iHotSpotIdSelected =
       iKeyBankIdNoLoadSave, iHotSpotIdNoLoadSave;
   -- Continuation game?
@@ -209,7 +211,7 @@ local function GoDelete()
   -- Key bank and hot spot selected
   local iKeyBankIdSelected, iHotSpotIdSelected;
   -- If new game?
-  if not aGlobalData.gSelectedRace or aGlobalData.gNewGame then
+  if not oGlobalData.gSelectedRace or oGlobalData.gNewGame then
     iKeyBankIdSelected, iHotSpotIdSelected =
       iKeyBankIdNoLoadSave, iHotSpotIdNoLoadSave;
   -- Continuation game?
@@ -224,29 +226,29 @@ local function GoLoad()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Get data and if no data then ignore
-  local Data<const> = aFileData[iSelected];
+  local aData<const> = aFileData[iSelected];
   -- Set variables
-  aGlobalData.gTotalTimeTaken, aGlobalData.gSelectedRace,
-  aGlobalData.gSelectedLevel,  aGlobalData.gZogsToWinGame,
-  aGlobalData.gBankBalance,    aGlobalData.gPercentCompleted,
-  aGlobalData.gCapitalCarried, aGlobalData.gNewGame,
-  aGlobalData.gGameSaved,      aGlobalData.gTotalHomicides,
-  aGlobalData.gTotalCapital,   aGlobalData.gTotalExploration,
-  aGlobalData.gTotalDeaths,    aGlobalData.gTotalGemsSold,
-  aGlobalData.gTotalGemsFound, aGlobalData.gTotalIncome,
-  aGlobalData.gTotalDug,       aGlobalData.gTotalEnemyKills,
-  aGlobalData.gTotalPurchases, aGlobalData.gLevelsCompleted =
-    Data[2],                     Data[3],
-    nil,                         17500,
-    Data[4],                     floor(aGlobalData.gBankBalance/
-                                       aGlobalData.gZogsToWinGame*100),
-    Data[5],                     false,
-    true,                        Data[6],
-    Data[7],                     Data[8],
-    Data[9],                     Data[10],
-    Data[11],                    Data[12],
-    Data[13],                    Data[14],
-    Data[15],                    Data[16];
+  oGlobalData.gTotalTimeTaken, oGlobalData.gSelectedRace,
+  oGlobalData.gSelectedLevel,  oGlobalData.gZogsToWinGame,
+  oGlobalData.gBankBalance,    oGlobalData.gPercentCompleted,
+  oGlobalData.gCapitalCarried, oGlobalData.gNewGame,
+  oGlobalData.gGameSaved,      oGlobalData.gTotalHomicides,
+  oGlobalData.gTotalCapital,   oGlobalData.gTotalExploration,
+  oGlobalData.gTotalDeaths,    oGlobalData.gTotalGemsSold,
+  oGlobalData.gTotalGemsFound, oGlobalData.gTotalIncome,
+  oGlobalData.gTotalDug,       oGlobalData.gTotalEnemyKills,
+  oGlobalData.gTotalPurchases, oGlobalData.gLevelsCompleted =
+    aData[2],                     aData[3],
+    nil,                          17500,
+    aData[4],                     floor(oGlobalData.gBankBalance/
+                                  oGlobalData.gZogsToWinGame * 100),
+    aData[5],                     false,
+    true,                         aData[6],
+    aData[7],                     aData[8],
+    aData[9],                     aData[10],
+    aData[11],                    aData[12],
+    aData[13],                    aData[14],
+    aData[15],                    aData[16];
   -- Set success message
   sMsg = "FILE LOADED SUCCESSFULLY!";
   -- Can save now
@@ -258,7 +260,7 @@ local function GoSave()
   -- Number of levels and levels completed
   local iZonesCompleted, sLevelsCompleted = 0, sEmptyString;
   -- For each level completed
-  for iZoneId in pairs(aGlobalData.gLevelsCompleted) do
+  for iZoneId in pairs(oGlobalData.gLevelsCompleted) do
     if iZonesCompleted == 0 then sLevelsCompleted = sLevelsCompleted..iZoneId;
     else sLevelsCompleted = sLevelsCompleted.." "..iZoneId end;
     iZonesCompleted = iZonesCompleted + 1;
@@ -268,18 +270,18 @@ local function GoSave()
   -- Write data
   aSaveSlot[iSelected]:String(
     format("%u,%u,%u,%d,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%s",
-      CoreOSTime(), aGlobalData.gTotalTimeTaken,
-      aGlobalData.gSelectedRace, aGlobalData.gBankBalance,
-      aGlobalData.gCapitalCarried, aGlobalData.gTotalHomicides,
-      aGlobalData.gTotalCapital, aGlobalData.gTotalExploration,
-      aGlobalData.gTotalDeaths, aGlobalData.gTotalGemsSold,
-      aGlobalData.gTotalGemsFound, aGlobalData.gTotalIncome,
-      aGlobalData.gTotalDug, aGlobalData.gTotalEnemyKills,
-      aGlobalData.gTotalPurchases, iZonesCompleted, sLevelsCompleted));
+      CoreOSTime(), oGlobalData.gTotalTimeTaken,
+      oGlobalData.gSelectedRace, oGlobalData.gBankBalance,
+      oGlobalData.gCapitalCarried, oGlobalData.gTotalHomicides,
+      oGlobalData.gTotalCapital, oGlobalData.gTotalExploration,
+      oGlobalData.gTotalDeaths, oGlobalData.gTotalGemsSold,
+      oGlobalData.gTotalGemsFound, oGlobalData.gTotalIncome,
+      oGlobalData.gTotalDug, oGlobalData.gTotalEnemyKills,
+      oGlobalData.gTotalPurchases, iZonesCompleted, sLevelsCompleted));
   -- Set message
   sMsg = "FILE "..iSelected.." SAVED SUCCESSFULLY!";
   -- Can exit to title
-  aGlobalData.gGameSaved = true;
+  oGlobalData.gGameSaved = true;
   -- Commit CVars on the game engine to persistent storage
   VariableSave();
   -- Refresh data
@@ -320,44 +322,44 @@ local function OnAssetsLoaded(aResources)
   -- Make sure nothing selected so load/save buttons are disabled
   iSelected, sMsg = nil, "SELECT FILE";
   -- Change render procedures
-  Fade(1, 0, 0.04, RenderFile, OnFadeIn);
+  Fade(1.0, 0.0, 0.04, RenderFile, OnFadeIn);
 end
 -- Init load/save screen function ------------------------------------------ --
 local function InitFile() LoadResources("File", aAssets, OnAssetsLoaded) end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData,
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData,
     fcbEmpty;
   -- Grab imports
   BlitLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintC,
     RegisterHotSpot, RegisterKeys, RenderFade, RenderShadow, RenderTipShadow,
-    SetCallbacks, SetHotSpot, SetKeys, SetTip, aAssetsData, aCursorIdData,
-    aLevelsData, aObjectData, aObjectTypes, aSfxData, fcbEmpty, fontSpeech,
+    SetCallbacks, SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData,
+    aLevelsData, oObjectData, oObjectTypes, oSfxData, fcbEmpty, fontSpeech,
     texSpr =
       GetAPI("BlitLT", "Fade", "InitCon", "LoadResources", "PlayStaticSound",
         "PrintC", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderShadow", "RenderTipShadow", "SetCallbacks", "SetHotSpot",
-        "SetKeys", "SetTip", "aAssetsData", "aCursorIdData", "aLevelsData",
-        "aObjectData", "aObjectTypes", "aSfxData", "fcbEmpty", "fontSpeech",
+        "SetKeys", "SetTip", "oAssetsData", "oCursorIdData", "aLevelsData",
+        "oObjectData", "oObjectTypes", "oSfxData", "fcbEmpty", "fontSpeech",
         "texSpr");
   -- Set assets data
-  aAssets = { aAssetsData.file, aAssetsData.zmtc };
+  aAssets = { oAssetsData.file, oAssetsData.zmtc };
   -- Set sound effect ids
-  iSClick, iSSelect = aSfxData.CLICK, aSfxData.SELECT;
+  iSClick, iSSelect = oSfxData.CLICK, oSfxData.SELECT;
   -- Setup key banks
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local iPress<const> = Input.States.PRESS;
   local aKBDelete<const>, aKBLoad<const>, aKBSave<const>, aKBFile1<const>,
     aKBFile2<const>, aKBFile3<const>, aKBFile4<const>, aKBEscape<const> =
-      { aKeys.BACKSPACE, GoDelete, "zmtcfdsf", "DELETE SELECTED FILE" },
-      { aKeys.L,         GoLoad,   "zmtcflsf", "LOAD SELECTED FILE"   },
-      { aKeys.S,         GoSave,   "zmtcfssf", "SAVE SELECTED FILE"   },
-      { aKeys.N1,        GoFile1,  "zmtcfsfa", "SELECT 1ST FILE"      },
-      { aKeys.N2,        GoFile2,  "zmtcfsfb", "SELECT 2ND FILE"      },
-      { aKeys.N3,        GoFile3,  "zmtcfsfc", "SELECT 3RD FILE"      },
-      { aKeys.N4,        GoFile4,  "zmtcfsfd", "SELECT 4TH FILE"      },
-      { aKeys.ESCAPE,    GoCntrl,  "zmtcfc",   "CANCEL"               };
+      { oKeys.BACKSPACE, GoDelete, "zmtcfdsf", "DELETE SELECTED FILE" },
+      { oKeys.L,         GoLoad,   "zmtcflsf", "LOAD SELECTED FILE"   },
+      { oKeys.S,         GoSave,   "zmtcfssf", "SAVE SELECTED FILE"   },
+      { oKeys.N1,        GoFile1,  "zmtcfsfa", "SELECT 1ST FILE"      },
+      { oKeys.N2,        GoFile2,  "zmtcfsfb", "SELECT 2ND FILE"      },
+      { oKeys.N3,        GoFile3,  "zmtcfsfc", "SELECT 3RD FILE"      },
+      { oKeys.N4,        GoFile4,  "zmtcfsfd", "SELECT 4TH FILE"      },
+      { oKeys.ESCAPE,    GoCntrl,  "zmtcfc",   "CANCEL"               };
   local sName<const> = "ZMTC FILE";
   iKeyBankIdLoadSave = RegisterKeys(sName, { [iPress] = { aKBDelete,
     aKBLoad, aKBSave, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBEscape } });
@@ -369,7 +371,7 @@ local function OnScriptLoaded(GetAPI)
     aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBEscape } });
   -- Get cursor ids
   local iCOK<const>, iCSelect<const>, iCExit<const> =
-    aCursorIdData.OK, aCursorIdData.SELECT, aCursorIdData.EXIT;
+    oCursorIdData.OK, oCursorIdData.SELECT, oCursorIdData.EXIT;
   -- Setup hot spots
   local aHSLoad<const>, aHSSave<const>, aHS1<const>, aHS2<const>, aHS3<const>,
     aHS4<const>, aHSFile<const>, aHSCntrl<const> =
@@ -404,5 +406,5 @@ end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitFile = InitFile,
   InitNewGame = InitNewGame, LoadSaveData = LoadSaveData,
-  aGlobalData = aGlobalData } };
+  oGlobalData = oGlobalData } };
 -- End-of-File ============================================================= --

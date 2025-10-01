@@ -16,7 +16,7 @@ local cos<const>, floor<const>, format<const>, ipairs<const>, len<const>,
     math.cos, math.floor, string.format, ipairs, utf8.len, math.maxinteger,
     math.max, math.min, pairs, table.remove, string.rep, math.sin, table.sort,
     tonumber, tostring;
--- M-Engine function and variable aliases ---------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   CoreCPUUsage<const>, CoreEngine<const>, CoreLibrary<const>,
   CoreLicense<const>, CoreRAM<const>, CoreTime<const>, DisplayFSType<const>,
@@ -25,8 +25,8 @@ local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   DisplayVidModeData<const>, DisplayVidModes<const>, DisplayVReset<const>,
   InputGetKeyName<const>, InputOnKey<const>, UtilClamp<const>,
   UtilClampInt<const>, UtilExplode<const>, UtilGetRatio<const>,
-  UtilWordWrap<const>, VariableRegister<const>, aCVars<const>,
-  aMods<const>, iCredits<const>, iNativeMode<const> =
+  UtilWordWrap<const>, VariableRegister<const>, oCVars<const>,
+  oMods<const>, iCredits<const>, iNativeMode<const> =
     Audio.GetNumPBDevices, Audio.GetPBDeviceName, Audio.Reset, Core.CPUUsage,
     Core.Engine, Core.Library, Core.License, Core.RAM, Core.Time,
     Display.FSType, Display.GetSize, Display.GPUFPS, Display.Monitor,
@@ -44,28 +44,28 @@ sAppTitle, sAppVendor, sAppExeType =
 local sGameVersion<const>, sGameName<const>, sGameCopyr<const>,
       sGameDescription<const>, sGameWebsite<const>
       = -- ----------------------------------------------------------------- --
-      aCVars.app_version:Get():upper(),
-      aCVars.app_longname:Get():upper(),
-      aCVars.app_copyright:Get():upper(),
-      aCVars.app_description:Get():upper(),
-      aCVars.app_website:Get():upper();
+      oCVars.app_version:Get():upper(),
+      oCVars.app_longname:Get():upper(),
+      oCVars.app_copyright:Get():upper(),
+      oCVars.app_description:Get():upper(),
+      oCVars.app_website:Get():upper();
 -- Other CVars used -------------------------------------------------------- --
-local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>,
-      vAudvol<const>, vAudstrvol<const>, vAudsamvol<const>,
-      vAudfmvvol<const>, vVidmonitor<const>, vWinwidth<const>,
-      vWinheight<const>, vVidfs<const>, vVidfsmode<const>,
-      vAudinterface
+local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>, vAudvol<const>,
+      vAudstrvol<const>, vAudsamvol<const>, vAudfmvvol<const>,
+      vVidmonitor<const>, vWinposx<const>, vWinposy<const>, vWinwidth<const>,
+      vWinheight<const>, vVidfs<const>, vVidfsmode<const>, vAudinterface<const>
       = -- ----------------------------------------------------------------- --
-      aCVars.vid_vsync, aCVars.app_delay, aCVars.vid_texfilter, aCVars.aud_vol,
-      aCVars.aud_strvol, aCVars.aud_samvol, aCVars.aud_fmvvol,
-      aCVars.vid_monitor, aCVars.win_width, aCVars.win_height, aCVars.vid_fs,
-      aCVars.vid_fsmode, aCVars.aud_interface;
+      oCVars.vid_vsync, oCVars.app_delay, oCVars.vid_texfilter, oCVars.aud_vol,
+      oCVars.aud_strvol, oCVars.aud_samvol, oCVars.aud_fmvvol,
+      oCVars.vid_monitor, oCVars.win_posx, oCVars.win_posy, oCVars.win_width,
+      oCVars.win_height, oCVars.vid_fs, oCVars.vid_fsmode,
+      oCVars.aud_interface;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
   GetMusic, InitSetup, IsMouseYLessThan, LoadResources, PlayMusic, PrintC,
   PrintM, PrintR, PrintS, Print, RegisterFBUCallback, RenderFade, RenderShadow,
   RestoreKeyHandlers, SetCallbacks, SetHotSpot, SetKeys, StopMusic, VideoPause,
-  VideoResume, aKeyBankCats, aKeyToLiteral, aSetupButtonData, aSetupOptionData,
+  VideoResume, tKeyBankCats, oKeyToLiteral, aSetupButtonData, aSetupOptionData,
   fontLarge, fontLittle, fontTiny, texSpr;
 -- Frame-limiter types ----------------------------------------------------- --
 local aFrameLimiterLabels<const> = {
@@ -113,8 +113,6 @@ local aAssets,                         -- Required assets
       fcbRender, fcbLogic,             -- Current input/render/logic funcs
       iLastHotSpot,                    -- Hotspot before entering setup
       iLastKeyBank,                    -- Keybank before entering setup
-      iStageB, iStageH, iStageL,       -- Bottom, height, left stage bounds
-      iStageR, iStageT, iStageW,       -- Right, top and width stage bounds
       musLast,                         -- Music handle before entering setup
       nButtonIntensity,                -- Current button intensity
       nButtonIntensityIncrement,       -- Current button intensity increment
@@ -122,10 +120,12 @@ local aAssets,                         -- Required assets
       nCPUUsageSystem,                 -- Current system CPU usage
       nGPUFramesPerSecond,             -- Current graphical frames per second
       nRAMUsePercentage,               -- Current ram usage percentage
+      nStageB, nStageH, nStageL,       -- Bottom, height, left stage bounds
+      nStageR, nStageT, nStageW,       -- Right, top and width stage bounds
       nStatusLinePos,                  -- Marquee text tip position
       nStatusLineSize,                 -- Marquee text tip width
       nTime,                           -- Current execution time
-      nTipId,                          -- Current tip id
+      iTipId,                          -- Current tip id
       sStatusLine1, sStatusLine2,      -- Current status title and subtitle
       sStatusLineSave,                 -- Saved status title
       sTitle;                          -- Current main title
@@ -140,12 +140,11 @@ local iReadmeIndexBegin = 1;           -- Current start line
 local iReadmeIndexEnd = 1;             -- Ending line
 local iReadmeRows<const> = 28;         -- Maximum readme on-screen rows
 local iReadmeCols<const> = 77;         -- Maximum readme on-screen columns
-local iReadmeSpacing<const> = 6;       -- Spacing between each line
-local iReadmePaddingX<const> = 8;      -- Starting X co-ordinate
-local iReadmePaddingY<const> = 27;     -- Starting Y co-ordinate
+local nReadmeSpacing<const> = 6.0;     -- Spacing between each line
+local nReadmePaddingX<const> = 8.0;    -- Starting X co-ordinate
+local nReadmePaddingY<const> = 27.0;   -- Starting Y co-ordinate
 local iReadmeColsM1<const> = iReadmeCols - 1; -- Readme columns minus one
 -- Configuration locals ---------------------------------------------------- --
-local iCatSize<const> = 15;            -- Category line height
 local iAudioDeviceId,                  -- Current audio device id
       iAudioDeviceIdOriginal,          -- Original audio device id
       iFullScreenMode,                 -- Current full-screen mode number
@@ -194,13 +193,13 @@ local function ColouriseText(sText)
 end
 -- ------------------------------------------------------------------------- --
 local function FlickerColour1()
-  fontLarge:SetCRGBA(1, 1, 1, 1);
-  fontTiny:SetCRGBA(0.75, 0.75, 0.5, 1);
+  fontLarge:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+  fontTiny:SetCRGBA(0.75, 0.75, 0.5, 1.0);
 end
 -- ------------------------------------------------------------------------- --
 local function FlickerColour2()
-  fontLarge:SetCRGBA(0.75, 0.75, 0.75, 1);
-  fontTiny:SetCRGBA(1, 1, 0.75, 1);
+  fontLarge:SetCRGBA(0.75, 0.75, 0.75, 1.0);
+  fontTiny:SetCRGBA(1.0, 1.0, 0.75, 1.0);
 end
 -- ------------------------------------------------------------------------- --
 local function FlickerColours(cbCol1, cbCol2)
@@ -211,48 +210,48 @@ local function RenderBackgroundStart(nId)
   -- Render game background
   fcbRender();
   -- Draw background animation
-  local iStageLP6<const> = iStageL + 6;
-  local nTimeM2<const> = nTime * 2;
-  texSpr:SetCRGB(0, 0, 0);
-  for iY = iStageT + 6, iStageB, 16 do
-    local nTimeM2SX<const> = nTimeM2 - iY;
-    for iX = iStageLP6, iStageR, 16 do
-      local nAngle = nTimeM2SX - iX;
+  local nStageLP6<const> = nStageL + 6.0;
+  local nTimeM2<const> = nTime * 2.0;
+  texSpr:SetCRGB(0.0, 0.0, 0.0);
+  for nY = nStageT + 6.0, nStageB, 16.0 do
+    local nTimeM2SX<const> = nTimeM2 - nY;
+    for nX = nStageLP6, nStageR, 16.0 do
+      local nAngle = nTimeM2SX - nX;
       nAngle = 0.5 + ((cos(nAngle) * sin(nAngle)));
       texSpr:SetCA(nAngle * 0.75);
       local nDim<const> = nAngle * 16;
-      BlitSLTWHA(texSpr, 444, iX, iY, nDim, nDim, nAngle);
+      BlitSLTWHA(texSpr, 444, nX, nY, nDim, nDim, nAngle);
     end
   end
   -- Draw background for text
   texSpr:SetCRGB(0.2, 0.1, 0.1);
-  RenderFade(0.75, 4, 28, 316, 212, 1022);
+  RenderFade(0.75, 4.0, 28.0, 316.0, 212.0, 1022);
   -- Draw title and status fades
   texSpr:SetCRGB(0.4, 0.2, 0.2);
-  RenderFade(0.75, 4, 212, 316, 236, 1022);
-  RenderFade(0.75, 4, 4, 316, 28, 1022);
+  RenderFade(0.75, 4.0, 212.0, 316.0, 236.0, 1022);
+  RenderFade(0.75, 4.0, 4.0, 316.0, 28.0, 1022);
   -- Draw shadow around window
-  RenderShadow(4, 4, 316, 236);
+  RenderShadow(4.0, 4.0, 316.0, 236.0);
   -- Print title
-  texSpr:SetCRGBA(1, 1, 1, 1);
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Set alternating colour for title
   FlickerColours(FlickerColour1, FlickerColour2);
-  PrintC(fontLarge, 160, 8, ColouriseText(sTitle));
+  PrintC(fontLarge, 160.0, 8.0, ColouriseText(sTitle));
   -- Print tip
   if nStatusLineSize and nStatusLineSize > 0 then
-    PrintM(fontTiny, 8 - nStatusLinePos, 226,
-      nStatusLinePos, 304 + nStatusLinePos, sStatusLine2);
+    PrintM(fontTiny, 8.0 - nStatusLinePos, 226.0,
+      nStatusLinePos, 304.0 + nStatusLinePos, sStatusLine2);
     nStatusLinePos = nStatusLinePos + 1;
-    if nStatusLinePos >= nStatusLineSize then nStatusLinePos = 0 end;
-  else PrintC(fontTiny, 160, 226, sStatusLine2) end;
+    if nStatusLinePos >= nStatusLineSize then nStatusLinePos = 0.0 end;
+  else PrintC(fontTiny, 160.0, 226.0, sStatusLine2) end;
   -- Print system information
   FlickerColours(FlickerColour2, FlickerColour1);
-  PrintC(fontTiny, 160, 217, sStatusLine1);
-  Print(fontTiny, 8, 9, format("RAM %.1f%%", nRAMUsePercentage));
-  PrintR(fontTiny, 312, 18, format("%.1f%% ENG", nCPUUsageProcess));
+  PrintC(fontTiny, 160.0, 217.0, sStatusLine1);
+  Print(fontTiny, 8.0, 9.0, format("RAM %.1f%%", nRAMUsePercentage));
+  PrintR(fontTiny, 312.0, 18.0, format("%.1f%% ENG", nCPUUsageProcess));
   FlickerColours(FlickerColour1, FlickerColour2);
-  PrintR(fontTiny, 312, 9, format("%.1f%% SYS", nCPUUsageSystem));
-  Print(fontTiny, 8, 18, format("%.1f FPS",   nGPUFramesPerSecond));
+  PrintR(fontTiny, 312.0, 9.0, format("%.1f%% SYS", nCPUUsageSystem));
+  Print(fontTiny, 8.0, 18.0, format("%u FPS", nGPUFramesPerSecond));
 end
 -- ------------------------------------------------------------------------- --
 local function Refresh()
@@ -322,9 +321,12 @@ local function Refresh()
   end
 end
 -- On frame buffer refresh callback ---------------------------------------- --
-local function OnStageUpdated(...)
-  -- Update stage bounds
-  iStageW, iStageH, iStageL, iStageT, iStageR, iStageB = ...;
+local function OnStageUpdated(iStageW, iStageH, iStageL, iStageT, iStageR,
+  iStageB)
+  -- Update stage bounds as numbers
+  nStageW, nStageH, nStageL, nStageT, nStageR, nStageB =
+    iStageW + 0.0, iStageH + 0.0, iStageL + 0.0,
+    iStageT + 0.0, iStageR + 0.0, iStageB + 0.0;
   -- Refresh settings
   Refresh();
 end
@@ -363,15 +365,13 @@ local function ApplySettings()
   Refresh();
 end
 -- ------------------------------------------------------------------------- --
-local nAlpha<const> = 1/60;
 local function ProcSysInfo()
   -- Get time
   nTime = CoreTime();
-  -- Get cpu info, ram info and nGPUFramesPerSecond
+  -- Get cpu info, ram info and fps
   nCPUUsageProcess, nCPUUsageSystem = CoreCPUUsage();
   nRAMUsePercentage = CoreRAM();
-  nGPUFramesPerSecond = (nAlpha * DisplayGPUFPS()) + (1.0 - nAlpha) *
-    (nGPUFramesPerSecond or 60);
+  nGPUFramesPerSecond = DisplayGPUFPS();
 end
 -- ------------------------------------------------------------------------- --
 local function ProcRenderReadme()
@@ -392,15 +392,15 @@ local function ProcRenderReadme()
     Print(fontTiny, aData[1], aData[2], aData[3]);
   end
   -- Set alternating title colour based on current time
-  if nTime % 0.43 < 0.215 then fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1);
-                          else fontTiny:SetCRGBA(0.75, 0.75, 0.75, 1) end;
+  if nTime % 0.43 < 0.215 then fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1.0);
+                          else fontTiny:SetCRGBA(0.75, 0.75, 0.75, 1.0) end;
 end
 -- ------------------------------------------------------------------------- --
 local function SetTip(nNewTipId, sTip)
   -- Ignore if tip set
-  if nNewTipId == nTipId then return end;
+  if nNewTipId == iTipId then return end;
   -- Set new tip
-  nTipId = nNewTipId;
+  iTipId = nNewTipId;
   -- No tip? Reset
   if not sTip then
     -- Save status line
@@ -411,9 +411,9 @@ local function SetTip(nNewTipId, sTip)
     return;
   end
   -- Get size of tip
-  local sTipPlusSep = sTip.." -+- "
-  local nTipSizePixels = PrintS(fontTiny, sTipPlusSep);
-  local nMaxLine = 304+nTipSizePixels;
+  local sTipPlusSep<const> = sTip.." -+- "
+  local nTipSizePixels<const> = PrintS(fontTiny, sTipPlusSep);
+  local nMaxLine<const> = 304.0 + nTipSizePixels;
   -- Fill the line until it is big enough to scroll seamlessly
   sStatusLine2, nStatusLineSize = "", nTipSizePixels;
   while nStatusLineSize < nMaxLine do
@@ -427,7 +427,7 @@ local function SetTip(nNewTipId, sTip)
   -- Add more text so we can have a seamless repeating
   sStatusLine2 = sStatusLine2..sTip;
   -- Reset position
-  nStatusLinePos = -304;
+  nStatusLinePos = -304.0;
 end
 -- ------------------------------------------------------------------------- --
 local function UpdateReadmeLines()
@@ -441,8 +441,8 @@ local function UpdateReadmeLines()
     if #sLine > iReadmeColsM1 then sLine = sLine:sub(1, iReadmeColsM1) end;
     -- Insert visible line
     aReadmeVisibleLines[1 + #aReadmeVisibleLines] =
-      { iReadmePaddingX, iReadmePaddingY + ((#aReadmeVisibleLines + 1) *
-        iReadmeSpacing), sLine };
+      { nReadmePaddingX, nReadmePaddingY + ((#aReadmeVisibleLines + 1) *
+        nReadmeSpacing), sLine };
   end
   -- Update statuses
   sStatusLine1 = "DISPLAYING LINE "..iReadmeIndexBegin.." TO "..
@@ -450,11 +450,11 @@ local function UpdateReadmeLines()
   -- Make sure marquee is showing
   SetTip(0, "MOVE THE CURSOR TO THE BOTTOM OR TOP OF THE SCREEN AND PRESS \z
     RMB, JB1 OR PRESS "..
-    aKeyBankCats.srmpu[9]..", "..aKeyBankCats.srmpd[9]..", "..
-    aKeyBankCats.srmh[9]..", "..aKeyBankCats.srme[9]..", "..
-    aKeyBankCats.srmu[9].." OR "..aKeyBankCats.srmd[9].." TO SCROLL THE \z
-    README. "..aKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
-    aKeyBankCats.sf[9].." TO LEAVE SETUP.");
+    tKeyBankCats.srmpu[9]..", "..tKeyBankCats.srmpd[9]..", "..
+    tKeyBankCats.srmh[9]..", "..tKeyBankCats.srme[9]..", "..
+    tKeyBankCats.srmu[9].." OR "..tKeyBankCats.srmd[9].." TO SCROLL THE \z
+    README. "..tKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
+    tKeyBankCats.sf[9].." TO LEAVE SETUP.");
 end
 -- ------------------------------------------------------------------------- --
 local function InitReadme()
@@ -463,7 +463,7 @@ local function InitReadme()
   -- Set readme lines
   aReadmeData = aCreditLines;
   -- This make sure the status tip is updated
-  nTipId = -1;
+  iTipId = -1;
   -- Initialise readme lines
   UpdateReadmeLines();
   -- Restore original keys
@@ -486,26 +486,26 @@ local function ProcRenderSetup()
     if iSelectedOption ~= iIndex then
       -- Set pulsating colour for category text
       nIntensity = 0.5 + (((iIndex/#aSetupOptionData) + nTime) % 0.5);
-      fontLittle:SetCRGB(0, 0, nIntensity);
+      fontLittle:SetCRGB(0.0, 0.0, nIntensity);
     -- Option is not selected?
     else
       -- Draw a pulsating background to show it is selected
-      texSpr:SetCRGB(0, 0, 0);
+      texSpr:SetCRGB(0.0, 0.0, 0.0);
       RenderFade(nButtonIntensity,
         aHotSpot[1], aHotSpot[2], aHotSpot[3], aHotSpot[4], 1022);
-      texSpr:SetCRGB(1, 1, 1);
-      fontLittle:SetCRGB(1, 1, 1);
+      texSpr:SetCRGB(1.0, 1.0, 1.0);
+      fontLittle:SetCRGB(1.0, 1.0, 1.0);
     end
     Print(fontLittle, aData[4], aData[3], aData[5]);
-    if iSelectedOption == iIndex then fontLittle:SetCRGB(1, 1, 1);
+    if iSelectedOption == iIndex then fontLittle:SetCRGB(1.0, 1.0, 1.0);
     else
-      nIntensity = 0.5 + (((iIndex/#aSetupOptionData) + -nTime) % 0.5);
-      fontLittle:SetCRGB(0, nIntensity, 0);
+      nIntensity = 0.5 + (((iIndex / #aSetupOptionData) + -nTime) % 0.5);
+      fontLittle:SetCRGB(0.0, nIntensity, 0.0);
     end
     PrintR(fontLittle, aData[6], aData[3], aData[7]);
   end
   -- For each button
-  texSpr:SetCRGB(0, 0, 0);
+  texSpr:SetCRGB(0.0, 0.0, 0.0);
   for iIndex, aData in pairs(aSetupButtonData) do
     -- Get bounds information
     local aHSData<const> = aData[1];
@@ -518,18 +518,18 @@ local function ProcRenderSetup()
       -- Set glowing colour
       texSpr:SetCRGB(nButtonIntensity, nButtonIntensity, nButtonIntensity);
       -- Draw background
-      RenderFade(1 - nButtonIntensity,
+      RenderFade(1.0 - nButtonIntensity,
         aHSData[1], aHSData[2], aHSData[3], aHSData[4], 1022);
     end
     -- Set button text colour and print the text
-    fontLittle:SetCRGB(1, 1, 1);
+    fontLittle:SetCRGB(1.0, 1.0, 1.0);
     PrintC(fontLittle, aData[3], aData[4], aData[5]);
   end
   -- Print generic info
-  if nTime % 0.43 < 0.215 then fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1);
-                          else fontTiny:SetCRGBA(0.75, 0.75, 0.75, 1) end;
+  if nTime % 0.43 < 0.215 then fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1.0);
+                          else fontTiny:SetCRGBA(0.75, 0.75, 0.75, 1.0) end;
   -- Reset sprites colour because we changed it
-  texSpr:SetCRGBA(1, 1, 1, 1);
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
 end
 -- ------------------------------------------------------------------------- --
 local function ProcLogicSetup()
@@ -553,17 +553,17 @@ local function InitConfig()
     sGameWebsite;
   sStatusLine2 = sAppVendor.." PROUDLY PRESENTS "..sGameName.."! A REMAKE \z
     FOR MODERN OPERATING SYSTEMS AND HARDWARE FROM THE CLASSIC CD32 AND DOS \z
-    DAYS. THIS IS THE CONFIGURATION SCREEN. PRESS "..aKeyBankCats.sf[9].." \z
+    DAYS. THIS IS THE CONFIGURATION SCREEN. PRESS "..tKeyBankCats.sf[9].." \z
     OR CLICK THE EDGE OF THE SCREEN TO RETURN TO THE GAME OR MOVE YOUR MOUSE \z
     OVER AN OPTION TO HAVE MORE EXPLAINED ABOUT IT HERE. USE YOUR MOUSE OR \z
     JOYSTICK TO MOVE THE CURSOR AND THE BUTTONS TO CHANGE OPTIONS. PRESS "..
-    aKeyBankCats.gksc[9].." AT ANY TIME TO SEE THIS SCREEN, "..
-    aKeyBankCats.gksb[9].." TO CHANGE KEYBINDINGS OR "..
-    aKeyBankCats.gksa[9].." TO SEE THE ACKNOWLEDGEMENTS. \z
+    tKeyBankCats.gksc[9].." AT ANY TIME TO SEE THIS SCREEN, "..
+    tKeyBankCats.gksb[9].." TO CHANGE KEYBINDINGS OR "..
+    tKeyBankCats.gksa[9].." TO SEE THE ACKNOWLEDGEMENTS. \z
     PRESS ALT+ENTER AT ANY TIME TO TOGGLE FULL-SCREEN AND WINDOW. PRESS "..
-    aKeyBankCats.gkcc[9].." TO FIX THE MOUSE CURSOR, PRESS "..
-    aKeyBankCats.gkwr[9].." TO RESTORE THE WINDOW POSITION OR PRESS "..
-    aKeyBankCats.gkss[9].." TO TAKE A SCREENSHOT.";
+    tKeyBankCats.gkcc[9].." TO FIX THE MOUSE CURSOR, PRESS "..
+    tKeyBankCats.gkwr[9].." TO RESTORE THE WINDOW POSITION OR PRESS "..
+    tKeyBankCats.gkss[9].." TO TAKE A SCREENSHOT.";
   sStatusLineSave = sStatusLine2;
   SetTip(0, sStatusLineSave);
   -- Refresh all settings
@@ -588,10 +588,10 @@ local function UpdateBindsLines()
     sLine = sLine.." "..rep(".", 74 - #sLine - #sBind).." "..sBind;
     if #sLine > iReadmeColsM1 then sLine = sLine:sub(1, iReadmeColsM1) end;
     -- Insert visible line
-    local iY<const> =
-      iReadmePaddingY + ((#aReadmeVisibleLines + 1) * iReadmeSpacing)
+    local nY<const> =
+      nReadmePaddingY + ((#aReadmeVisibleLines + 1.0) * nReadmeSpacing)
     aReadmeVisibleLines[1 + #aReadmeVisibleLines] =
-      { iReadmePaddingX, iY, sLine, iReadmePaddingX+304, iY+6, aBind };
+      { nReadmePaddingX, nY, sLine, nReadmePaddingX + 304.0, nY + 6.0, aBind };
   end
   -- Update statuses
   sStatusLine1 = "DISPLAYING INPUT BINDING "..iBindsIndexBegin.." TO "..
@@ -599,11 +599,11 @@ local function UpdateBindsLines()
   -- Make sure marquee is showing
   SetTip(0, "MOVE THE CURSOR TO A BIND YOU WANT TO CHANGE AND PRESS LMB OR \z
     JB1 ON IT TO CHANGE THE KEY BINDING FOR IT. PRESS "..
-    aKeyBankCats.sbpu[9]..", "..aKeyBankCats.sbpd[9]..", "..
-    aKeyBankCats.sbh[9]..", "..aKeyBankCats.sbe[9]..", "..
-    aKeyBankCats.sbu[9].." OR "..aKeyBankCats.sbd[9].." TO SCROLL THE \z
-    BINDS. "..aKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
-    aKeyBankCats.sf[9].." TO LEAVE SETUP.");
+    tKeyBankCats.sbpu[9]..", "..tKeyBankCats.sbpd[9]..", "..
+    tKeyBankCats.sbh[9]..", "..tKeyBankCats.sbe[9]..", "..
+    tKeyBankCats.sbu[9].." OR "..tKeyBankCats.sbd[9].." TO SCROLL THE \z
+    BINDS. "..tKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
+    tKeyBankCats.sf[9].." TO LEAVE SETUP.");
 end
 -- ------------------------------------------------------------------------- --
 local function RenderBinds()
@@ -619,9 +619,9 @@ local function RenderBinds()
     local nIntensity;
     if iSelectedOption == iIndex then
       -- Get currently selected line data and render a selection rectangle
-      texSpr:SetCRGB(0, 1, 0);
+      texSpr:SetCRGB(0.0, 1.0, 0.0);
       RenderFade(0.75, aData[1], aData[2], aData[4], aData[5], 1022);
-      texSpr:SetCRGB(1, 1, 1);
+      texSpr:SetCRGB(1.0, 1.0, 1.0);
       nIntensity = 1;
     else
       -- Calculate intensity
@@ -632,8 +632,8 @@ local function RenderBinds()
     Print(fontTiny, aData[1], aData[2], aData[3]);
   end
   -- Set alternating title colour based on current time
-  if nTime % 0.43 < 0.215 then fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1);
-                          else fontTiny:SetCRGBA(0.75, 0.75, 0.75, 1) end;
+  if nTime % 0.43 < 0.215 then fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1.0);
+                          else fontTiny:SetCRGBA(0.75, 0.75, 0.75, 1.0) end;
 end
 -- ------------------------------------------------------------------------- --
 local function InitBinds()
@@ -644,7 +644,7 @@ local function InitBinds()
   -- Clear status line
   sStatusLineSave = nil;
   -- This make sure the status tip is updated
-  nTipId = -1;
+  iTipId = -1;
   -- Update binds lines
   UpdateBindsLines();
   -- Set binding keys and hot spots
@@ -685,7 +685,7 @@ local function DoInitSetup(iMode)
     -- Play setup music
     PlayMusic(aResource[1], nil, 1);
     -- Initialise button intensity
-    nButtonIntensity, nButtonIntensityIncrement = 1, 0.01;
+    nButtonIntensity, nButtonIntensityIncrement = 1.0, 0.01;
     -- Backup old callbacks (Return to them later)
     fcbLogic, fcbRender = CBProc, CBRender;
     -- Get time
@@ -704,16 +704,16 @@ InitSetup = DoInitSetup;
 -- Script has been initialised --------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local PlayStaticSound, RegisterHotSpot, RegisterKeys, aAssetsData,
-    aCursorIdData, aSfxData;
+  local PlayStaticSound, RegisterHotSpot, RegisterKeys, oAssetsData,
+    oCursorIdData, oSfxData;
   -- Grab import functions and data
   BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
     GetMusic, IsMouseYLessThan, LoadResources, PlayMusic, PlayStaticSound,
     PrintC, PrintM, PrintR, PrintS, Print, RegisterFBUCallback,
     RegisterHotSpot, RegisterKeys, RenderFade, RenderShadow,
     RestoreKeyHandlers, SetCallbacks, SetHotSpot, SetKeys, StopMusic,
-    VideoPause, VideoResume, aAssetsData, aCursorIdData, aKeyBankCats,
-    aKeyToLiteral, aSetupButtonData, aSetupOptionData, aSfxData, fontLarge,
+    VideoPause, VideoResume, oAssetsData, oCursorIdData, tKeyBankCats,
+    oKeyToLiteral, aSetupButtonData, aSetupOptionData, oSfxData, fontLarge,
     fontLittle, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "DisableKeyHandlers", "GetCallbacks", "GetHotSpot",
         "GetKeyBank", "GetMusic", "IsMouseYLessThan", "LoadResources",
@@ -721,11 +721,11 @@ local function OnScriptLoaded(GetAPI)
         "Print", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderFade", "RenderShadow", "RestoreKeyHandlers", "SetCallbacks",
         "SetHotSpot", "SetKeys", "StopMusic", "VideoPause", "VideoResume",
-        "aAssetsData", "aCursorIdData", "aKeyBankCats", "aKeyToLiteral",
-        "aSetupButtonData", "aSetupOptionData", "aSfxData", "fontLarge",
+        "oAssetsData", "oCursorIdData", "tKeyBankCats", "oKeyToLiteral",
+        "aSetupButtonData", "aSetupOptionData", "oSfxData", "fontLarge",
         "fontLittle", "fontTiny", "texSpr");
   -- Set assetsData
-  aAssets = { aAssetsData.setupm };
+  aAssets = { oAssetsData.setupm };
   -- Callback to set all settings to default
   local function SetDefaults()
     -- Push defaults
@@ -735,6 +735,8 @@ local function OnScriptLoaded(GetAPI)
     iAudioDeviceId = -1;
     iWindowId = 1;
     -- Other options
+    vWinposx:Reset();
+    vWinposy:Reset();
     vAppdelay:Reset();
     vVidvsync:Reset();
     vTexfilter:Reset();
@@ -774,13 +776,13 @@ local function OnScriptLoaded(GetAPI)
   local aButtons<const> =
     { GoFinish, ApplySettings, SetDefaults, InitBinds, InitReadme };
   -- Get frequently used sound effect ids
-  local iSClick<const>, iSSelect<const> = aSfxData.CLICK, aSfxData.SELECT;
+  local iSClick<const>, iSSelect<const> = oSfxData.CLICK, oSfxData.SELECT;
   -- Start drawing buttons from the left and the size of each button. We set
   -- the shader to round off any sub-pixelling so fractions are handled safely.
-  local nX, nSize<const>, nYButton<const> = 4, 312 / #aButtons, 193;
-  local nYButtonText<const> = nYButton + 5;
+  local nX, nSize<const>, nYButton<const> = 4.0, 312.0 / #aButtons, 193.0;
+  local nYButtonText<const> = nYButton + 5.0;
   -- Text position
-  local nSizeD2<const> = nSize / 2;
+  local nSizeD2<const> = nSize / 2.0;
   -- Hot spots list
   local aHotSpots<const> = { };
   -- For each button
@@ -1067,8 +1069,8 @@ local function OnScriptLoaded(GetAPI)
   end;
   -- Get frequently used cursor ids
   local iCBottom<const>, iCExit<const>, iCSelect<const>, iCTop<const> =
-    aCursorIdData.BOTTOM, aCursorIdData.EXIT, aCursorIdData.SELECT,
-    aCursorIdData.TOP;
+    oCursorIdData.BOTTOM, oCursorIdData.EXIT, oCursorIdData.SELECT,
+    oCursorIdData.TOP;
   -- Default hot spot
   aHotSpots[1 + #aHotSpots] =
     { 4, 4, 312, 232, 0, 0,      OnSetupHover, false, false    };
@@ -1076,11 +1078,11 @@ local function OnScriptLoaded(GetAPI)
     { 0, 0,   0, 240, 3, iCExit, OnSetupHover, false, GoFinish };
   iHotSpotSetup = RegisterHotSpot(aHotSpots);
   -- Get frequently used keyboard keys
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
   local iPress<const>, iRepeat<const>, iControl<const>, iBackspace<const>,
-    iLetterC<const>, iEscape<const>, iLetterD<const> = aStates.PRESS,
-      aStates.REPEAT, aMods.CONTROL, aKeys.BACKSPACE, aKeys.C, aKeys.ESCAPE,
-      aKeys.D;
+    iLetterC<const>, iEscape<const>, iLetterD<const> = oStates.PRESS,
+      oStates.REPEAT, oMods.CONTROL, oKeys.BACKSPACE, oKeys.C, oKeys.ESCAPE,
+      oKeys.D;
   -- Setup key bank
   local aGenericEscape<const> = { iEscape, GoFinish, "sf", "CLOSE" };
   local aOnlyEscape<const> = { [iPress] = { aGenericEscape } };
@@ -1088,8 +1090,8 @@ local function OnScriptLoaded(GetAPI)
   iKeyBankSetup = RegisterKeys("SETUP", aOnlyEscape);
   -- Frequently used key ids
   local iPageUp<const>, iPageDown<const>, iHome<const>, iEnd<const>,
-    iUp<const>, iDown<const> = aKeys.PAGE_UP, aKeys.PAGE_DOWN, aKeys.HOME,
-      aKeys.END, aKeys.UP, aKeys.DOWN;
+    iUp<const>, iDown<const> = oKeys.PAGE_UP, oKeys.PAGE_DOWN, oKeys.HOME,
+      oKeys.END, oKeys.UP, oKeys.DOWN;
   -- Set readme position to specified line
   local function SetReadme(iLine)
     -- Get maximum lines
@@ -1264,13 +1266,13 @@ local function OnScriptLoaded(GetAPI)
       (iIndex / iReadmeRows) * 0.25 end;
   -- Truncate bottom empty lines
   while #aCreditLines > 0 and #aCreditLines[#aCreditLines] == 0 do
-    remove(aCreditLines, #aCreditLines) end;
+    remove(aCreditLines) end;
   -- Get flag for a unsigned integer saveable cvar type
   local iSS<const> = Variable.Flags.UINTEGERSAVE;
   -- Build bindings list
-  for iBind = 1, #aKeyBankCats do
+  for iBind = 1, #tKeyBankCats do
     -- Get bind data
-    local aBind<const> = aKeyBankCats[iBind];
+    local aBind<const> = tKeyBankCats[iBind];
     -- Create a cvar for key
     local function CVarModified(sV)
       -- Convert to number and check it
@@ -1278,7 +1280,7 @@ local function OnScriptLoaded(GetAPI)
       if sV < 0 and sV >= 1000 then return false end;
       -- Update actual keybind and literal value
       aBind[1] = sV;
-      local sValue<const> = aKeyToLiteral[sV] or aKeyToLiteral.UNKNOWN;
+      local sValue<const> = oKeyToLiteral[sV] or oKeyToLiteral.UNKNOWN;
       aBind[8] = sValue.." ["..format("%03d", sV).."]";
       aBind[9] = sValue;
       -- Accepted
@@ -1305,7 +1307,7 @@ local function OnScriptLoaded(GetAPI)
     -- Update readme lines
     UpdateBindsLines();
     -- Remove marquee settings
-    sStatusLineSave, nStatusLineSize, nStatusLinePos, nTipId =
+    sStatusLineSave, nStatusLineSize, nStatusLinePos, iTipId =
       nil, nil, nil, nil;
     -- Update tip at the bottom
     sStatusLine1 = "PRESS ANY KEY TO USE AS NEW KEY BINDING";

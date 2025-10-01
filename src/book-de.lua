@@ -185,7 +185,7 @@ local aBookData<const> = {
     Suchen\n\z
     \n\z
     Teleportieren",
-    I={ 1, 178, 54 }, L=-1.5
+    I={ 1, 178.0, 54.0 }, L=-1.5
   -- Page 14 --------------------------------------------------------------- --
   },{ T="Hochspringen\n\z
     \n\z
@@ -202,7 +202,7 @@ local aBookData<const> = {
     Zurück zum Hauptmenü\n\z
     \n\z
     Nach links gehen",
-    I={ 2, 168, 24 }, L=-1.5
+    I={ 2, 168.0, 24.0 }, L=-1.5
   -- Page 15 --------------------------------------------------------------- --
   },{ T="\n\z
     Grabungsrichtungen\n\z
@@ -218,7 +218,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Zwischen Teleport-Polen umschalten",
-    I={ 3, 170, 24 }, L=-0.75
+    I={ 3, 170.0, 24.0 }, L=-0.75
   -- Page 16 --------------------------------------------------------------- --
   },{ T="                                     STEUERFELD\n\z
         Kassenkonto                Gesammelte Edelsteine\n\z
@@ -238,7 +238,7 @@ local aBookData<const> = {
     \n\z
     Gewählter Schatzgräber      Auswahl der       Standorte\n\z
     ¶                                                   Maschine",
-    I={ 4, 96, 51 }, L=-0.75
+    I={ 4, 96.0, 51.0 }, L=-0.75
   -- Page 17 --------------------------------------------------------------- --
   },{ T="DER PLANET ZARG\n\z
     \n\z
@@ -276,17 +276,18 @@ local aBookData<const> = {
   -- Page 20 --------------------------------------------------------------- --
   },{ T="BESCHREIBUNG DER STÄMME\n\z
     \n\z
-    Habich: Ein geheimnisvoller Stamm,\n\z
-    dessen Mitglieder sehr intelligent\n\z
-    sein sollen und ein spezielles\n\z
-    Telepol-Transportmittel entwickelt\n\z
-    haben. Die in Kutten gekleideten Habich\n\z
-    sind der schwächste Stamm. Obschon\n\z
-    sie oft noch lange weitergraben könnten,\n\z
-    sind sie sehr ungeduldig, und es wird ihnen\n\z
+    DIE HABICH...\n\z
+    \n\z
+    Ein geheimnisvoller Stamm, dessen\n\z
+    Mitglieder sehr intelligent sein sollen und\n\z
+    ein spezielles Telepol-Transportmittel\n\z
+    entwickelt haben. Die in Kutten\n\z
+    gekleideten Habich sind der schwächste\n\z
+    Stamm. Obschon sie oft noch lange\n\z
+    weitergraben könnten, sind sie sehr ungeduldig, und es wird ihnen \z
     schnell langweilig beim Graben. Sie ziehen es vor, von anderen \z
     ausgegrabene Wertgegenstände zu klauen.",
-    I={ 6, 210, 41 }
+    I={ 6, 218.0, 41.0 }
   -- Page 21 --------------------------------------------------------------- --
   },{ T="Die Habich sind ein mystischer Orden, der an den Gott hoher Humbug \z
     glaubt. Dieser hochehrwürdige Vater hat erlassen, daß seine Gefolosleute \z
@@ -304,7 +305,7 @@ local aBookData<const> = {
     bitten ihren Gebieter kniend um Vergebung, wenn sie nicht regelmäßig \z
     Wertgegenstände ausgraben."
   -- Page 23 --------------------------------------------------------------- --
-  },{ T="DIE GRABLINGE:\n\z
+  },{ T="DIE GRABLINGE...\n\z
     \n\z
     Besitzen die idealen Qualitäten für\n\z
     den Bergbau. Sie graben sehr schnell\n\z
@@ -316,7 +317,7 @@ local aBookData<const> = {
     mit niedrigen Decken arbeiten. Obschon sie stark sind, ist ihre \z
     kämpferische Begabung gering. Die Stieger haben kaum Schwierigkeiten, \z
     sie zu besiegen.",
-    I={ 7, 200, 15 }
+    I={ 7, 200.0, 15.0 }
   -- Page 24 --------------------------------------------------------------- --
   },{ T="Die einzige Schwäche der Grablinge ist das teuflisch starke Getränk \z
     Grok. Obschon diese Flüssigkeit von manchen als \"ekelerregendes Gebräu, \z
@@ -334,7 +335,7 @@ local aBookData<const> = {
     entstehen, müssen Sie jedoch zuerst einen eigenen verlassenen Planeten \z
     kaufen, auf dem sie die Brauerei ansiedeln können."
   -- Page 26 --------------------------------------------------------------- --
-  },{ T="DIE STIEGER:\n\z
+  },{ T="DIE STIEGER...\n\z
     \n\z
     Dieser kriegerische Stamm setzt sich\n\z
     aus harten Kerlen zusammen. Wie ihr\n\z
@@ -347,14 +348,14 @@ local aBookData<const> = {
     zusammengepferchten unterirdischen Verhältnisse gewöhnt, sind daher sehr \z
     langsam beim Graben und werden schnell müde. Sie sind äußerst und \z
     geduldig, doch es mangelt ihnen an Eigeninitiative.",
-    I={ 8, 210, 20 }
+    I={ 8, 210.0, 20.0 }
   -- Page 27 --------------------------------------------------------------- --
   },{ T="Die Stieger sind total pleite, da sie vor kurzem von einem \z
     Gebrauchtwaffenhändler übers Ohr gehauen wurden. Ihr Traum ist es, ein \z
     befestigtes Lager zu errichten, in dem sie sicher und ungestört von \z
     ihren Feinden ihre Waffenfertigkeit und Grabfähigkeiten üben konnen."
   -- Page 28 --------------------------------------------------------------- --
-  },{ T="DIE F'TARGS:\n\z
+  },{ T="DIE F'TARGS...\n\z
     \n\z
     Die Mitglieder dieses widerstandsfähigen\n\z
     Schatzgräberstammes sind sehr neugierig\n\z
@@ -364,7 +365,7 @@ local aBookData<const> = {
     bauen. Als Ergebnis davon sehen ihre Bauten\n\z
     und Geräte aus, als ob sie aus allem möglichen\n\z
     Zeug zusammengezimmert wären.",
-    I={ 9, 220, 20 }
+    I={ 9, 220.0, 20.0 }
   -- Page 29 --------------------------------------------------------------- --
   },{ T="Die F'Targs sind die zweitschnellsten Schatzgräber. Sie sind etwas \z
     langsamer als die Grablinge, doch können sie viel länger graben als die \z
@@ -380,7 +381,7 @@ local aBookData<const> = {
     verlieh) zu bauen. Darin wollen sie zeitlosen Schrott und besonders \z
     interessante Blechskulpturen ausstellen."
   -- Page 31 --------------------------------------------------------------- --
-  },{ T="DIE FLIMMERER:\n\z
+  },{ T="DIE FLIMMERER...\n\z
     \n\z
     Von disem schüchternen und friedliebenden Stamm, dessen Mitglieder \z
     spurlos von der Planetenoberfläche verschwunden sind, ist nur wenig \z
@@ -417,7 +418,7 @@ local aBookData<const> = {
     Intelligenz                                     Doppelte\n\z
     ¶                                               Heilungsgeschwindigkeit\n\z
     ¶                                                      (nur f'Targs)",
-    I={ 5, 156, 44 }, L=-1.5
+    I={ 5, 156.0, 44.0 }, L=-1.5
   -- Page 34 --------------------------------------------------------------- --
   },{ T="ZONENBESCHREIBUNGEN\n\z
     \n\z
@@ -486,7 +487,7 @@ local aBookData<const> = {
     Lebensformen an Professor A. Mazonas, Kletterpflanzenturm, \z
     Grzimek-Institut für galaktisches Grünzeug."
   -- Page 39 --------------------------------------------------------------- --
-  },{ T="Triffidus Carnivorus\n\z
+  },{ T="Triffidus Carnivorus...\n\z
     \n\z
     In Dschungel- und Waldgebieten\n\z
     beheimatet, wo sie sich mit den\n\z
@@ -499,9 +500,9 @@ local aBookData<const> = {
     Im Magen eines eingefangenen Exemplars wurden nach \z
     Infrarot-Untersuchungen ein Führer zum Entdecken gefährlicher Pflanzen \z
     für Anfänger sowie eine Brille ähnlich der von Dr. Frinklin gefunden.",
-    I={ 10, 200, 40 }
+    I={ 10, 200.0, 40.0 }
   -- Page 40 --------------------------------------------------------------- --
-  },{ T="Fungus Kaleidoscopus\n\z
+  },{ T="Fungus Kaleidoscopus...\n\z
     \n\z
     Diese Pilze wachsen an vielen\n\z
     Stellen in großen Mengen. Sie\n\z
@@ -513,9 +514,9 @@ local aBookData<const> = {
     einfach, auf einige hatten die Pilze dieselbe Wirkung wie ein \z
     Stärketrank und andere wiederum schienen verwirrt und redeten \z
     unzusammenhängendes Zeug von rosafarbenen Giraffen.",
-    I={ 11, 200, 15 }
+    I={ 11, 200.0, 15.0 }
   -- Page 41 --------------------------------------------------------------- --
-  },{ T="Stegosaurus\n\z
+  },{ T="Stegosaurus...\n\z
     \n\z
     \n\z
     \n\z
@@ -528,9 +529,9 @@ local aBookData<const> = {
     Stegosaurus greift sofort an, wenn er provoziert oder bedroht wird. In \z
     engen Passagen und Schächten kann der Stegosaurus seine Feinde \z
     vernichtend schlagen.",
-    I={ 12, 96, 15 }
+    I={ 12, 96.0, 15.0 }
   -- Page 42 --------------------------------------------------------------- --
-  },{ T="Rotorysaurus\n\z
+  },{ T="Rotorysaurus...\n\z
     \n\z
     Ein eher seltamer Dinosaurier, der die unterirdischen Ebenen bewohnt, \z
     sich jedoch gelegentlich an die Oberfläche des Planeten verirrt. Der \z
@@ -538,7 +539,7 @@ local aBookData<const> = {
     und Angriff entsprechend und kann seinem Gegner schwere Verletzungen \z
     zufügwn."
   -- Page 43 --------------------------------------------------------------- --
-  },{ T="Velociraptor\n\z
+  },{ T="Velociraptor...\n\z
     \n\z
     Ein Dinosaurier von außergewöhnlicher Bösartigkeit. Braucht zum Angriff \z
     absolut keine Provokation schon der Anblick einer anderen Kreatur \z
@@ -547,7 +548,7 @@ local aBookData<const> = {
     Velociraptor trifft, sollte man entweder sofort das Weite suchen, oder \z
     aber ihn in die Minen der Gegner locken und dann weglaufen."
   -- Page 44 --------------------------------------------------------------- --
-  },{ T="Eius Horribilis\n\z
+  },{ T="Eius Horribilis...\n\z
     \n\z
     \n\z
     \n\z
@@ -561,7 +562,7 @@ local aBookData<const> = {
     \n\z
     \"Es war einfach schrecklich. Wir sollten diesen Felsbrocken \z
     durchbrechen. Also, ich sag's Ihnen ehrlich, ...",
-    I={ 13, 96, 15 }
+    I={ 13, 96.0, 15.0 }
   -- Page 45 --------------------------------------------------------------- --
   },{ T="...das hat mit überhaupt nicht gefallen. Irgendwas war da faul. \z
     Also, wir haben uns durch den Felsen geschlagen, und dahinter war eine \z
@@ -583,12 +584,12 @@ local aBookData<const> = {
     \n\z
     \n\z
     \n\z
-    Dickfellige Säugetiere\n\z
+    Dickfellige Säugetiere...\n\z
     \n\z
     Große Säugetiere, die angeblich vor einer Million Jahren auf Zarg \z
     lebten. Die gefrorenen Überreste dieser Tiere wurden vor einem Jahr \z
     entdeckt, und wahrscheinlich gibt es in den vereisten Gebieten noch mehr.",
-    I={ 14, 96, 15 }
+    I={ 14, 96.0, 15.0 }
   -- Page 47 --------------------------------------------------------------- --
   },{ T="Das Fleisch der dickfelligen Säugetiere wurde won verhungernden \z
     Polarforschern verspeist:\n\z
@@ -606,12 +607,12 @@ local aBookData<const> = {
     \n\z
     \n\z
     \n\z
-    Fisch\n\z
+    Fisch...\n\z
     \n\z
     Auf dem Planeten soll es eine große Vielfalt an Fischen geben. Die \z
     Erzählungen von Anglern haben sich jedoch als etwas unzuverlässig \z
     erwiesen.",
-    I={ 15, 96, 15 }
+    I={ 15, 96.0, 15.0 }
   -- Page 49 --------------------------------------------------------------- --
   },{ T="Nur wenige Exemplare wurden jemals zum Institut gebracht - \z
     \"er ist mir entwischt\" - und präzise Größenschätzungen scheinen \z
@@ -625,14 +626,14 @@ local aBookData<const> = {
     \n\z
     \n\z
     \n\z
-    Sandwürmer\n\z
+    Sandwürmer...\n\z
     \n\z
     Große Landtiere obskuren Geschlechts. Diese scheuen Wesen leben \z
     wahrscheinlich tief unter der Erdoberfläche und werden nur selten \z
     gesehen, so daß man kaum etwas über ihre Verhaltungsmuster weiß. Es \z
     folgt der Bericht eines Stiegers zu seinem Zusammentreffen mit einem \z
     Sandwurm.",
-    I={ 16, 96, 15 }
+    I={ 16, 96.0, 15.0 }
   -- Page 51 --------------------------------------------------------------- --
   },{ T="\"Wir haben ruhig vor uns hingegraben, d. h. so ruhig es geht, wenn \z
     man mit Dynamit arbeitet, als sich auf einmal der Boden unter meinen \z
@@ -645,7 +646,7 @@ local aBookData<const> = {
     schängelte sich durch den Schacht und verschwandt. Ein richtiger \z
     Hasenfuß, wenn Sie meine Meinung hören wollen.\"",
   -- Page 52 --------------------------------------------------------------- --
-  },{ T="Mysteriöse Erscheinungen\n\z
+  },{ T="Mysteriöse Erscheinungen...\n\z
     \n\z
     Über die Jahre hinweg gab es immer wieder Gerüchte über seltsame \z
     ätherische Wesen, die angeblich die Höhlen unterhalb der Zargoberfläche \z
@@ -723,13 +724,13 @@ local aBookData<const> = {
     nützlich in Gegenden, in denen die Gefahr von flutartigen \z
     Überschwemmungen besteht. Können zum Schutz von Grabungen vor \z
     rivalisierenden Schatzgräbern verwendet werden.",
-    I={ 17, 224, 29 }
+    I={ 17, 224.0, 29.0 }
   -- Page 59 --------------------------------------------------------------- --
   },{ T="Schleusentore sind extrem widerstandsfähig gegen Druck und halten \z
     den meisten Grabungsmaschinen stand. Sie können jedoch mit sehr viel \z
     Sprengstoff geöffnet werden."
   -- Page 60 --------------------------------------------------------------- --
-  },{ T="Telepol\n\z
+  },{ T="Telepol...\n\z
     \n\z
     \n\z
     \n\z
@@ -742,9 +743,9 @@ local aBookData<const> = {
     einen Teleport. Habich können die Telepole der anderen \z
     Schatzgräberstämme benutzen. Anderen Schatzgräbern stehen nur die \z
     eigenen Telepole zur Verfügung.",
-    I={ 18, 196, 29 }
+    I={ 18, 196.0, 29.0 }
   -- Page 61 --------------------------------------------------------------- --
-  },{ T="Schienen\n\z
+  },{ T="Schienen...\n\z
     \n\z
     \n\z
     \n\z
@@ -756,9 +757,9 @@ local aBookData<const> = {
     Gewicht auf alle fünf bezieht. Die Schienen müssen korrekt verlegt \z
     werden. Wenn sie erst einmal liegen, bilden sie eine feste Verbindung \z
     mit dem Boden und können nicht mehr bewegt oder durchbohrt werden.",
-    I={ 19, 196, 29 }
+    I={ 19, 196.0, 29.0 }
   -- Page 62 --------------------------------------------------------------- --
-  },{ T="Automatische Güterwagen\n\z
+  },{ T="Automatische Güterwagen...\n\z
     \n\z
     \n\z
     \n\z
@@ -768,7 +769,7 @@ local aBookData<const> = {
     Allgemeine Informationen: Ein genialer Güterwagen mit Selbstantrieb und \z
     Selbststeuerung. Kann große Mengen an Mineralien aufnehmen. Ideal für \z
     den schnellen Transport von Schatzgräbern oder Mineralien.",
-    I={ 20, 196, 29 }
+    I={ 20, 196.0, 29.0 }
   -- Page 63 --------------------------------------------------------------- --
   },{ T="Kleine Streckenvortriebsmaschine\n\z
     \n\z
@@ -780,9 +781,9 @@ local aBookData<const> = {
     Alloemeine Informationen: Kabellose Maschine. Spitzname: Maulwurf. \z
     Leicht und tragbar. Bohrt um vieles scheller als der schnellste \z
     schaufelschwingende Schatzgräber.",
-    I={ 21, 196, 29 }
+    I={ 21, 196.0, 29.0 }
   -- Page 64 --------------------------------------------------------------- --
-  },{ T="Brückenbauteil\n\z
+  },{ T="Brückenbauteil...\n\z
     \n\z
     \n\z
     \n\z
@@ -793,9 +794,9 @@ local aBookData<const> = {
     Flüssen. Extrem stark. Kann schwere Lasten tragen. Das Brückenteil \z
     muß sicher im festen Boden verankert werden. Brücken sind leichte Ziele \z
     beim Überqueren ist besondere Vorsicht geboten.",
-    I={ 22, 196, 29 }
+    I={ 22, 196.0, 29.0 }
   -- Page 65 --------------------------------------------------------------- --
-  },{ T="Aufblasbares Boot\n\z
+  },{ T="Aufblasbares Boot...\n\z
     \n\z
     \n\z
     \n\z
@@ -805,9 +806,9 @@ local aBookData<const> = {
     Alloemeine Informationen: Besonders widerstandsfähig. Tragekapazität: \z
     Ein Schatzgräber. Nicht geeignet bei hohem Seegang oder für längere \z
     Reisen.",
-    I={ 23, 196, 29 }
+    I={ 23, 196.0, 29.0 }
   -- Page 66 --------------------------------------------------------------- --
-  },{ T="Vertikaler Bagger\n\z
+  },{ T="Vertikaler Bagger...\n\z
     \n\z
     \n\z
     \n\z
@@ -820,9 +821,9 @@ local aBookData<const> = {
     gesetzt ist, gräbt er automatisch für eine zuvor festgelegte Zeit oder \z
     bis er auf ein Hindernis auftrifft. In feuchten Gebieten sollte mit dem \z
     Gerät vorsichtig umgegangen werden.",
-    I={ 24, 196, 29 }
+    I={ 24, 196.0, 29.0 }
   -- Page 67 --------------------------------------------------------------- --
-  },{ T="Große Streckenvortriebsmaschine\n\z
+  },{ T="Große Streckenvortriebsmaschine...\n\z
     \n\z
     \n\z
     \n\z
@@ -835,9 +836,9 @@ local aBookData<const> = {
     \"Monsters\" muß man extrem vorsichtig sein. Zeigen Sie auf den \z
     gewünschte Punkt und starten Sie die Maschine. Stellen Sie sich niemals \z
     vor das \"Monster\". Die Maschine kann nur vorwärts graben.",
-    I={ 25, 196, 29 }
+    I={ 25, 196.0, 29.0 }
   -- Page 68 --------------------------------------------------------------- --
-  },{ T="Sprengstoff\n\z
+  },{ T="Sprengstoff...\n\z
     \n\z
     \n\z
     \n\z
@@ -848,9 +849,9 @@ local aBookData<const> = {
     Ausrüstung zum Sprengen von Felsen oder zum Betreten der Minen des \z
     Gegners. Beim Sprengen sollte man möglichst keine Fehler machen, da \z
     diese tödlich enden können!",
-    I={ 26, 196, 29 }
+    I={ 26, 196.0, 29.0 }
   -- Page 69 --------------------------------------------------------------- --
-  },{ T="Aufzug\n\z
+  },{ T="Aufzug...\n\z
     \n\z
     Preis: 220 Einheiten.\n\z
     Gewicht: 12 Hechel.\n\z
@@ -862,9 +863,9 @@ local aBookData<const> = {
     korrekt installiert werden der obere Block und der untere Block MÜSSEN \z
     fest in der Erde verankert werden. Wenn diese Elemente sich nicht in der \z
     richtigen Position befinden, funktioniert der Aufzug nicht.",
-    I={ 27, 196, 24 }
+    I={ 27, 196.0, 24.0 }
   -- Page 70 --------------------------------------------------------------- --
-  },{ T="TNT-Karte\n\z
+  },{ T="TNT-Karte...\n\z
     \n\z
     \n\z
     \n\z
@@ -875,7 +876,7 @@ local aBookData<const> = {
     nützlichste Gegenstand (mit Ausnahme dieses Führers)! Unter Verwendung \z
     der besonderen Eigenschaften des TNT-Papiers zeigt die Karte die gesamte \z
     Zone mit allen Merkmalen. Wird ständig aktualisiert.",
-    I={ 28, 196, 29 }
+    I={ 28, 196.0, 29.0 }
   -- Page 71 --------------------------------------------------------------- --
   },{ T="Erste-Hilfe-Set\n\z
     \n\z
@@ -888,7 +889,7 @@ local aBookData<const> = {
     dessen Heilkräfte das Durchhaltevermögen seines Besitzers langsam wieder \z
     auf. Das Set kann einem anderen Goldgräber gegeben werden, damit dieser \z
     von den verbleibenden \"Medikamenten\" profiteren Kann.",
-    I={ 29, 196, 29 }
+    I={ 29, 196.0, 29.0 }
   -- Page 72 --------------------------------------------------------------- --
   },{ T="DIE ZARGONISCHE BANK\n\z
     \n\z
@@ -997,7 +998,7 @@ local aBookData<const> = {
     geschickt wurde, um die Sicherheitssysteme zu überprüfen. Er war so \z
     überzeugend, daß ihn die Bankangestellten durch die Bank führten, ihm \z
     die Alarmanlagen zeigten und die Codenummern gaben.",
-    I={ 30, 212, 28 }
+    I={ 30, 212.0, 28.0 }
   -- Page 82 --------------------------------------------------------------- --
   },{ T="In der Nacht kam der Bankräuber zurück, um die erlangten \z
     Informationen in der Praxis zu prüfen. Als die Bank am Morgen von den \z
