@@ -14,7 +14,7 @@ local unpack<const> = table.unpack;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitLT, Fade, InitBook, InitFile, InitLobby, InitMap, InitRace,
   LoadResources, PlayStaticSound, PrintC, RenderShadow, RenderTipShadow,
-  SetCallbacks, SetHotSpot, SetKeys, aGlobalData, fontSpeech;
+  SetCallbacks, SetHotSpot, SetKeys, oGlobalData, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       aFlashData,                      -- Active hot point
@@ -31,7 +31,7 @@ local aAssets,                         -- Assets required
       sMsg,                            -- Controller speech message
       texCon,                          -- Controller texture
       texZmtc;                         -- Zmtc background texture
--- Tile ids (see data.lua/aAssetsData.cntrl.P) ----------------------------- --
+-- Tile ids (see data.lua/oAssetsData.cntrl.P) ----------------------------- --
 local tileSpeech<const>  = 1;          local tileConAnim<const> = 1;
 local tileFish<const>    = 4;          local tileMap<const>     = 8;
 local tileRace<const>    = 9;          local tileBook<const>    = 10;
@@ -132,11 +132,11 @@ local function OnAssetsLoaded(aResources)
     iSpeechListLoop = iSpeechListCount - 120;
   end
   -- If we're not in a new game?
-  if not aGlobalData.gNewGame then
+  if not oGlobalData.gNewGame then
     -- Set continue hotspot and keybank
     iHotSpotId, iKeyBankId = iHotSpotIdCont, iKeyBankIdCont;
     -- If no zone is selected?
-    if not aGlobalData.gSelectedLevel then
+    if not oGlobalData.gSelectedLevel then
       -- Player returned from completing a zone
       AddSpeechItem("WELCOME BACK, MASTER MINER");
       AddSpeechItem("PLEASE PICK YOUR NEXT ZONE", tileMap);
@@ -150,9 +150,9 @@ local function OnAssetsLoaded(aResources)
     -- Set new hotspot and keybank
     iHotSpotId, iKeyBankId = iHotSpotIdNew, iKeyBankIdNew;
     -- Race not selected?
-    if not aGlobalData.gSelectedRace then
+    if not oGlobalData.gSelectedRace then
       -- Zone not selected?
-      if not aGlobalData.gSelectedLevel then
+      if not oGlobalData.gSelectedLevel then
         -- Tell player to pick diggers race and zone
         AddSpeechItem("WELCOME, MASTER MINER", tileFile);
         AddSpeechItem("YOU'LL NEED TO PICK DIGGERS", tileRace);
@@ -162,7 +162,7 @@ local function OnAssetsLoaded(aResources)
       -- Player can also load previous progress
       AddSpeechItem("PAST RECORDS ARE HERE", tileFile);
     -- Race selected but zone not selected? Tell player to pick a zone
-    elseif not aGlobalData.gSelectedLevel then
+    elseif not oGlobalData.gSelectedLevel then
       AddSpeechItem("YOU MUST ALSO PICK A ZONE", tileMap);
     -- Player has picked zone and race?
     else
@@ -186,24 +186,24 @@ end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitSLT, BlitLT, Fade, InitBook, InitFile, InitLobby, InitMap, InitRace,
     LoadResources, PlayStaticSound, PrintC, RegisterHotSpot, RegisterKeys,
     RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys,
-    aAssetsData, aCursorIdData, aGlobalData, aSfxData, fontSpeech =
+    oAssetsData, oCursorIdData, oGlobalData, oSfxData, fontSpeech =
       GetAPI("BlitSLT", "BlitLT", "Fade", "InitBook", "InitFile", "InitLobby",
         "InitMap", "InitRace", "LoadResources", "PlayStaticSound", "PrintC",
         "RegisterHotSpot", "RegisterKeys", "RenderShadow", "RenderTipShadow",
-        "SetCallbacks", "SetHotSpot", "SetKeys", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aSfxData", "fontSpeech");
+        "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "oSfxData", "fontSpeech");
   -- Set assets data
-  aAssets = { aAssetsData.zmtc, aAssetsData.cntrl };
+  aAssets = { oAssetsData.zmtc, oAssetsData.cntrl };
   -- Set sound effect ids
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Required cursor id
   local iCSelect<const>, iCExit<const> =
-    aCursorIdData.SELECT, aCursorIdData.EXIT;
+    oCursorIdData.SELECT, oCursorIdData.EXIT;
   -- Set up hotspots data
   local aHSMap<const>, aHSBook<const>, aHSFile<const>,
         aHSCntrl<const>, aHSExit<const> =
@@ -220,20 +220,20 @@ local function OnScriptLoaded(GetAPI)
   iHotSpotIdCont =
     RegisterHotSpot({ aHSMap, aHSBook, aHSFile, aHSCntrl, aHSExit });
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local iPress<const> = Input.States.PRESS;
   local sName<const> = "ZMTC CONTROLLER";
   local aKBLobby<const>, aKBBook<const>, aKBFile<const>, aKBZone<const> =
-    { aKeys.ESCAPE, GoLobby, "zmtccgtl", "GO TO LOBBY"   },
-    { aKeys.B,      GoBook,  "zmtcrtb",  "READ THE BOOK" },
-    { aKeys.F,      GoFile,  "zmtcfs",   "FILE STORAGE"  },
-    { aKeys.Z,      GoMap,   "zmtccsz",  "SELECT ZONE"   };
+    { oKeys.ESCAPE, GoLobby, "zmtccgtl", "GO TO LOBBY"   },
+    { oKeys.B,      GoBook,  "zmtcrtb",  "READ THE BOOK" },
+    { oKeys.F,      GoFile,  "zmtcfs",   "FILE STORAGE"  },
+    { oKeys.Z,      GoMap,   "zmtccsz",  "SELECT ZONE"   };
   -- Register keybank for continue game
   iKeyBankIdCont = RegisterKeys(sName,
     { [iPress] = { aKBLobby, aKBBook, aKBFile, aKBZone } });
   -- Register keybank for new game
   iKeyBankIdNew = RegisterKeys(sName, { [iPress] = { aKBLobby, aKBBook,
-    aKBFile, { aKeys.R, GoRace, "zmtccsrc", "SELECT RACE" }, aKBZone } });
+    aKBFile, { oKeys.R, GoRace, "zmtccsrc", "SELECT RACE" }, aKBZone } });
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitCon = InitCon }, F = OnScriptLoaded };

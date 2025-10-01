@@ -10,7 +10,7 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Assets metadata --------------------------------------------------------- --
-local aAssetsData<const> = {
+local oAssetsData<const> = {
   -- Explanation ----------------------------------------------------------- --
   -- T = Type value for LoadResources() from aTypes{} table in main.hpp.
   -- F = The base file name of the asset
@@ -77,8 +77,8 @@ local aAssetsData<const> = {
     --  Ô   ı   Ö   Î   Ï   ┘   ┌   █   Ü   ¦   Ì   ß   à   ?   Ô   Ò   ä   Õ
         5,  4,  5,  4,  4,  4,  4,  4,  5,  4,  4,  5,  4,  4,  4,  4,  4,  4,
     -- 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247
-    --  µ   ç   è   é   ê   Ù   ý   í   î   ï   ?  SHY  ±   ‗   ô   ¶   ö   ÷
-        4,  4,  4,  4,  4,  4,  4,  2,  4,  3,  4,  4,  4,  4,  4,  4,  4,  4,
+    --  µ   ç   è   é   ê   Ù   ý   í   î   ï   ?   ñ   ±   ‗   ô   ¶   ö   ÷
+        4,  4,  4,  4,  4,  4,  4,  2,  4,  3,  4,  5,  4,  4,  4,  4,  4,  4,
     -- 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265
     --  ¸   ù   ¨   û   ü   ³   ²   ■   ?   œ   ?   ?   ?   ?   ?   ?   ?   ?
         4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,
@@ -332,9 +332,9 @@ local aBaseScripts<const> = {
   { T=9, F="setup"   },
 };
 -- Base fonts that are to be loaded (and scaled) --------------------------- --
-local aBaseFonts<const> = { aAssetsData.font16, aAssetsData.font8,
-  aAssetsData.font5, aAssetsData.font10 };
-local aBaseTextures<const> = { aAssetsData.sprites };
+local aBaseFonts<const> = { oAssetsData.font16, oAssetsData.font8,
+  oAssetsData.font5, oAssetsData.font10 };
+local aBaseTextures<const> = { oAssetsData.sprites };
 -- Base masks that are to be loaded ---------------------------------------- --
 local aBaseMasks<const> = {
   { T=6, F="lmask", P={ 16, 16 } },
@@ -368,6 +368,6 @@ local iBaseTextures<const> = iBaseFonts + #aBaseFonts;
 local iBaseMasks<const> = iBaseTextures + #aBaseTextures;
 local iBaseSounds<const> = iBaseMasks + #aBaseMasks;
 -- Return all the assets data to main.lua ---------------------------------- --
-return aAssetsData, aBaseAssets, iBaseScripts, iBaseFonts,
+return oAssetsData, aBaseAssets, iBaseScripts, iBaseFonts,
        iBaseTextures, iBaseMasks, iBaseSounds, aBaseSounds;
 -- End-of-File ============================================================= --

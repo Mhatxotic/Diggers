@@ -14,7 +14,7 @@ local UtilFormatNumber<const> = Util.FormatNumber;
 -- M-Engine function aliases ----------------------------------------------- --
 -- Diggers function and data aliases --------------------------------------- --
 local Fade, InitScore, LoadResources, PlayMusic, PlayStaticSound, PrintC,
-  SetCallbacks, SetHotSpot, SetKeys, aGlobalData, fontLarge;
+  SetCallbacks, SetHotSpot, SetKeys, oGlobalData, fontLarge;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       iHotSpotId,                      -- Hot spot id
@@ -49,9 +49,9 @@ local function OnAssetsLoaded(aResources)
   -- Set game over message
   strMsg = "NO ZONES LEFT TO MINE!\n\z
             \n\z
-            "..UtilFormatNumber(aGlobalData.gBankBalance, 0).." IN BANK\n\z
-            "..UtilFormatNumber(aGlobalData.gZogsToWinGame -
-                aGlobalData.gBankBalance, 0).." SHORT\n\z
+            "..UtilFormatNumber(oGlobalData.gBankBalance, 0).." IN BANK\n\z
+            "..UtilFormatNumber(oGlobalData.gZogsToWinGame -
+                oGlobalData.gBankBalance, 0).." SHORT\n\z
             \n\z
             YOUR MISSION HAS FAILED!"
   -- Fade in to show failure message
@@ -62,27 +62,27 @@ local function InitFail() LoadResources("Fail", aAssets, OnAssetsLoaded) end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   Fade, InitScore, LoadResources, PlayMusic, PlayStaticSound, PrintC,
     RegisterHotSpot, RegisterKeys, SetCallbacks, SetHotSpot, SetKeys,
-    aAssetsData, aCursorIdData, aGlobalData, aSfxData, fontLarge =
+    oAssetsData, oCursorIdData, oGlobalData, oSfxData, fontLarge =
       GetAPI("Fade", "InitScore", "LoadResources", "PlayMusic",
         "PlayStaticSound", "PrintC", "RegisterHotSpot", "RegisterKeys",
-        "SetCallbacks", "SetHotSpot", "SetKeys", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aSfxData", "fontLarge");
+        "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "oSfxData", "fontLarge");
   -- Set assets required
-  aAssets = { aAssetsData.losem };
+  aAssets = { oAssetsData.losem };
   -- Register hot spot
   iHotSpotId = RegisterHotSpot({
-    { 0, 0, 0, 240, 3, aCursorIdData.EXIT, false, false, GoScore }
+    { 0, 0, 0, 240, 3, oCursorIdData.EXIT, false, false, GoScore }
   });
   -- Register key binds
   iKeyBankId = RegisterKeys("IN-GAME NO MORE ZONES", { [Input.States.PRESS] = {
     { Input.KeyCodes.ESCAPE, GoScore, "ignmzl", "LEAVE" }
   } });
   -- Get select sound effect id
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitFail = InitFail }, F = OnScriptLoaded };

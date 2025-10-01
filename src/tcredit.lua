@@ -109,23 +109,21 @@ end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterKeys, RegisterHotSpot, aAssetsData;
+  local RegisterKeys, RegisterHotSpot, oAssetsData;
   -- Get imports
   BlitLT, Fade, InitTitle, LoadResources, PlayMusic, PrintC, PrintWS,
     RegisterKeys, RegisterHotSpot, SetCallbacks, SetHotSpot, SetKeys,
-    aAssetsData, aCreditsData, fontLarge, fontLittle =
+    oAssetsData, aCreditsData, fontLarge, fontLittle =
       GetAPI("BlitLT", "Fade", "InitTitle", "LoadResources", "PlayMusic",
         "PrintC", "PrintWS", "RegisterKeys", "RegisterHotSpot", "SetCallbacks",
-        "SetHotSpot", "SetKeys", "aAssetsData", "aCreditsData", "fontLarge",
+        "SetHotSpot", "SetKeys", "oAssetsData", "aCreditsData", "fontLarge",
         "fontLittle");
   -- Get assets data
-  local aTexture<const> = aAssetsData.title;
-  aAssetsNoMusic = { aTexture };
-  aAssetsMusic = { aTexture, aAssetsData.titlem };
+  local oTexture<const> = oAssetsData.title;
+  aAssetsNoMusic = { oTexture };
+  aAssetsMusic = { oTexture, oAssetsData.titlem };
   -- Register hotspots
-  iHotSpotId = RegisterHotSpot({
-    { 0, 0, 0, 240, 3, 0, false, false, GoExit }
-  });
+  iHotSpotId = RegisterHotSpot({{ 0, 0, 0, 240, 3, 0, false, false, GoExit }});
   -- Register keybinds
   iKeyBankId = RegisterKeys("TITLE CREDITS", {
     [Input.States.PRESS] =

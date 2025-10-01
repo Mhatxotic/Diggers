@@ -210,11 +210,11 @@ local OFL<const> = {          -- Max 64-bits
 OFL.JUMPMASK = OFL.JUMPRISE|OFL.JUMPFALL;
 -- Jumping ----------------------------------------------------------------- --
 local aJumpRiseData<const> =
-  { -2, -2, -2, -1, -1, -1, -1,    -1, -1, -1,  0, -1,  0,  0, -1,  0,
-     0,  0, -1,  0,  0,  0,  0 };
+  { -2, -2, -2, -1,  -1, -1, -1, -1,  -1, -1,  0, -1,   0,  0, -1,  0,
+     0,  0, -1,  0,   0,  0,  0,  0 };
 local aJumpFallData<const> =
-  {  0,  0,  0,  0,  0,  0,  1,     0,  0,  1,  0,  1,  0,  1,  1,  1,
-     1,  1,  1,  1,  2,  2,  2 };
+  {  0,  0,  0,  0,   0,  0,  0,  1,   0,  0,  1,  0,   1,  0,  1,  1,
+     1,  1,  1,  1,   1,  2,  2,  2 };
 -- Directions -------------------------------------------------------------- --
 local DIR<const> = {
   UL       = 0x01, -- Move left and dig up-left diagonally
@@ -297,7 +297,7 @@ local aAIChoicesData<const> = {
             { ACT.WALK, JOB.DIGDOWN, DIR.TCTR } },
 };
 -- Timers and animation consts --------------------------------------------- --
-local aTimerData<const> = {
+local TD<const> = {
   ANIMTERRAIN   =     10, -- Game ticks to wait before animating next terrain
   ANIMNORMAL    =      8, -- Delay before anim next sprite for normal objects
   ANIMFAST      =      2, -- Delay before anim next sprite for fast objects
@@ -311,14 +311,14 @@ local aTimerData<const> = {
   ROAMDIRCHANGE = 0.0025, -- Chance of roaming AI switching direction
 };
 -- Sound id's array -------------------------------------------------------- --
-local aSfxData<const> = {
+local oSfxData<const> = {
   -- Click sound                       F'Targ death sound
   CLICK = 0x01,                        DIEFTAR = 0x02,
   -- Grablin death sound               Habbish death sound
   DIEGRAB = 0x03,                      DIEHABB = 0x04,
   -- Quarrior death sound              Digging sound
   DIEQUAR = 0x05,                      DIG = 0x06,
-  -- Mouse click command failed        TNT explosion sound
+  -- Warning (65hz sawtooth tone)      TNT explosion sound
   ERROR = 0x07,                        EXPLODE = 0x08,
   -- Treasure found                    Gate close
   FIND = 0x09,                         GCLOSE = 0x0A,
@@ -412,21 +412,21 @@ local aShroudCircle<const> = {
   { 1, 6,ixT },{ 2, 6,ixT },{ 3, 6,ixT },{ 4, 6,ixT },{ 5, 6,ixTL}
 };
 -- Level data types -------------------------------------------------------- --
-local aLevelTypeDesert<const>   =
-  -- Type  Filename    Name             Shroud colour (r[1],g[2],b[3])
-  { i=0, f="desert",   n="DESERTOUS",   s={ 170/0xFF, 102/0xFF,  81/0xFF } };
-local aLevelTypeGrass<const>    =
-  { i=1, f="grass",    n="TEMPERATE",   s={ 128/0xFF,  67/0xFF,  49/0xFF } };
-local aLevelTypeIslands<const>  =
-  { i=2, f="islands",  n="COASTAL",     s={ 188/0xFF,  87/0xFF,   0/0xFF } };
-local aLevelTypeJungle<const>   =
-  { i=3, f="jungle",   n="TROPICAL",    s={  41/0xFF,   6/0xFF,   0/0xFF } };
+local aLevelTypeDesert<const> =
+  -- Type  Filename    Name             Shroud colour (0xAARRGGBB)
+  { i=0, f="desert",   n="DESERTOUS",   s=0xF8AA6651 };
+local aLevelTypeGrass<const> =
+  { i=1, f="grass",    n="TEMPERATE",   s=0xF8804331 };
+local aLevelTypeIslands<const> =
+  { i=2, f="islands",  n="COASTAL",     s=0xF8BC5700 };
+local aLevelTypeJungle<const> =
+  { i=3, f="jungle",   n="TROPICAL",    s=0xF8290600 };
 local aLevelTypeMountain<const> =
-  { i=4, f="mountain", n="MOUNTAINOUS", s={ 204/0xFF, 102/0xFF, 102/0xFF } };
-local aLevelTypeRock<const>     =
-  { i=5, f="rock",     n="BARRENOUS",   s={ 116/0xFF,  52/0xFF,  35/0xFF } };
-local aLevelTypeWinter<const>   =
-  { i=6, f="snow",     n="WINTEROUS",   s={ 102/0xFF, 102/0xFF, 153/0xFF } };
+  { i=4, f="mountain", n="MOUNTAINOUS", s=0xF8CC6666 };
+local aLevelTypeRock<const> =
+  { i=5, f="rock",     n="BARRENOUS",   s=0xF8743423 };
+local aLevelTypeWinter<const> =
+  { i=6, f="snow",     n="WINTEROUS",   s=0xF8666699 };
 -- Level data types array -------------------------------------------------- --
 local aLevelTypesData<const> = {
   aLevelTypeDesert,   aLevelTypeGrass, aLevelTypeIslands, aLevelTypeJungle,
@@ -528,70 +528,70 @@ local aZoneData<const> = {
   { 564,  43, 589,  65, { 25                     } }, -- [34] Simtob
 };-- L -- T -- R -- B -- DEPENDENCY -------------------- ZONE -------------- --
 -- ------------------------------------------------------------------------- --
--- The following tables are used in the 'aObjectData' table below and specify
+-- The following tables are used in the 'oObjectData' table below and specify
 -- that these actions, jobs and directions are accepted for that particular
 -- object when pressing certain keyboard keys.
 -- Left and right direction key supported ---------------------------------- --
-local aObjectLeftRight<const> = { [DIR.L] = true, [DIR.R] = true };
+local oObjectLeftRight<const> = { [DIR.L] = true, [DIR.R] = true };
 -- No job but moving left and right key supported -------------------------- --
-local aObjectMove<const> = { [JOB.NONE] = aObjectLeftRight };
+local oObjectMove<const> = { [JOB.NONE] = oObjectLeftRight };
 -- No job an no direction key supported ------------------------------------ --
-local aObjectStop<const> = { [JOB.NONE] = { [DIR.NONE] = true } };
+local oObjectStop<const> = { [JOB.NONE] = { [DIR.NONE] = true } };
 -- Keep job and direction keys supported ----------------------------------- --
-local aObjectJobDirKeep<const> = { [JOB.KEEP] = { [DIR.KEEP] = true } };
+local oObjectJobDirKeep<const> = { [JOB.KEEP] = { [DIR.KEEP] = true } };
 -- Search for treasure keys supported -------------------------------------- --
-local aObjectSearch<const> = { [DIR.LR] = true };
+local oObjectSearch<const> = { [DIR.LR] = true };
 -- Generic death data ------------------------------------------------------ --
-local aGenericActDeathData<const> =
+local oGenericActDeathData<const> =
   { [DIR.NONE] = { 451, 454 }, FLAGS = OFL.BUSY };
 -- Find treasure phase data ------------------------------------------------ --
-local aTreasureActPhaseData<const> = {
+local oTreasureActPhaseData<const> = {
   [DIR.NONE] = { 106, 109, 0, 7 },
   FLAGS      = OFL.FALL|OFL.PICKUP,
-  SOUND      = aSfxData.FIND
+  SOUND      = oSfxData.FIND
 };
 -- Generic object hide data ------------------------------------------------ --
-local aGenericActHideData<const> = {
+local oGenericActHideData<const> = {
   [DIR.UL] = {  95,  95 }, [DIR.U]    = {  95,  95 }, [DIR.UR] = {  95,  95 },
   [DIR.L]  = {  95,  95 }, [DIR.NONE] = {  95,  95 }, [DIR.R]  = {  95,  95 },
   [DIR.DL] = {  95,  95 }, [DIR.D]    = {  95,  95 }, [DIR.DR] = {  95,  95 },
   FLAGS    = OFL.BUSY
 };
 -- Digger phase data ------------------------------------------------------- --
-local aDiggerActPhaseData<const> = {
+local oDiggerActPhaseData<const> = {
   [DIR.UL] = { 106, 109 }, [DIR.U]    = { 106, 109 }, [DIR.UR] = { 106, 109 },
   [DIR.L]  = { 106, 109 }, [DIR.NONE] = { 106, 109 }, [DIR.R]  = { 106, 109 },
   [DIR.DL] = { 106, 109 }, [DIR.D]    = { 106, 109 }, [DIR.DR] = { 106, 109 },
   FLAGS    = OFL.BUSY,
-  SOUND    = aSfxData.PHASE
+  SOUND    = oSfxData.PHASE
 }
 -- Digger walk or run movement keys supported ------------------------------ --
-local aDiggerMovement<const> = {
-  [JOB.NONE]    = aObjectLeftRight,
+local oDiggerMovement<const> = {
+  [JOB.NONE]    = oObjectLeftRight,
   [JOB.DIG]     = { [DIR.UL] = true, [DIR.UR] = true, [DIR.L] = true,
                     [DIR.R] = true, [DIR.DL] = true, [DIR.DR] = true },
   [JOB.HOME]    = { [DIR.HOME] = true },
-  [JOB.SEARCH]  = aObjectSearch,
+  [JOB.SEARCH]  = oObjectSearch,
   [JOB.DIGDOWN] = { [DIR.TCTR] = true }
 };
 -- Digger keep job and direction key operations supported ------------------ --
-local aKeysDigger<const> = {
-  [ACT.DROP]  = aObjectJobDirKeep,
-  [ACT.GRAB]  = aObjectJobDirKeep,
-  [ACT.JUMP]  = aObjectJobDirKeep,
+local oKeysDigger<const> = {
+  [ACT.DROP]  = oObjectJobDirKeep,
+  [ACT.GRAB]  = oObjectJobDirKeep,
+  [ACT.JUMP]  = oObjectJobDirKeep,
   [ACT.PHASE] = { [JOB.PHASE] = { [DIR.U] = true } },
-  [ACT.RUN]   = aDiggerMovement,
-  [ACT.STOP]  = aObjectStop,
-  [ACT.WALK]  = aDiggerMovement,
+  [ACT.RUN]   = oDiggerMovement,
+  [ACT.STOP]  = oObjectStop,
+  [ACT.WALK]  = oDiggerMovement,
 }
 -- Small and large tuneller accepted keys ---------------------------------- --
-local aKeysTunneller<const> = {
-  [ACT.STOP] = aObjectStop,
-  [ACT.WALK] = { [JOB.NONE] = aObjectLeftRight,
-                 [JOB.DIG] = aObjectLeftRight }
+local oKeysTunneller<const> = {
+  [ACT.STOP] = oObjectStop,
+  [ACT.WALK] = { [JOB.NONE] = oObjectLeftRight,
+                 [JOB.DIG] = oObjectLeftRight }
 };
 -- Deploy device ----------------------------------------------------------- --
-local aKeysDeployDevice<const> = { [ACT.DEPLOY] = aObjectStop };
+local oKeysDeployDevice<const> = { [ACT.DEPLOY] = oObjectStop };
 -- Function to make data for a digger race --------------------------------- --
 local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
   iRLB, iRLE, iRRB, iRRE,  iDLB, iDLE, iDRB, iDRE, iDDB, iDDE,
@@ -617,8 +617,8 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
   } end;
   -- Build and return the table
   return {
-    [ACT.PHASE] = aDiggerActPhaseData,
-    [ACT.HIDE] = aGenericActHideData,
+    [ACT.PHASE] = oDiggerActPhaseData,
+    [ACT.HIDE] = oGenericActHideData,
     [ACT.REST] = aRest,
     [ACT.DEATH] = {
       [DIR.NONE] = { 451, 454 },
@@ -644,7 +644,7 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
       [DIR.L]  = aDigLeft, [DIR.NONE] = aDigLeft,       [DIR.R]  = aDigRight,
       [DIR.DL] = aDigLeft, [DIR.D]    = { iDDB, iDDE }, [DIR.DR] = aDigRight,
       FLAGS    = OFL.FALL|OFL.SOUNDLOOP|OFL.PHASETARGET,
-      SOUNDRP  = aSfxData.DIG
+      SOUNDRP  = oSfxData.DIG
     }, [ACT.FIGHT] = {
       [DIR.UL] = aFightLeft, [DIR.U]    = aFightLeft, [DIR.UR] = aFightRight,
       [DIR.L]  = aFightLeft, [DIR.NONE] = aFightLeft, [DIR.R]  = aFightRight,
@@ -656,39 +656,39 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
       [DIR.DL] = aEatenLeft, [DIR.D]    = aEatenLeft, [DIR.DR] = aEatenRight,
       FLAGS    = OFL.FALL|OFL.NOANIMLOOP|OFL.BUSY|OFL.PHASETARGET
     },
-    ACTION       = ACT.STOP,              AITYPE       = AI.DIGGER,
-    ANIMTIMER    = aTimerData.ANIMNORMAL, DIGDELAY     = iDigDelay,
-    DIRECTION    = DIR.NONE,              FLAGS        = iFlags,
-    INTELLIGENCE = iIntelligence,         JOB          = JOB.NONE,
-    KEYS         = aKeysDigger,           LONGNAME     = sLongName,
-    LUNGS        = iLungs,                MENU         = MNU.MAIN,
-    NAME         = sName,                 PATIENCE     = iPatience,
-    STAMINA      = iStamina,              STRENGTH     = iStrength,
-    TELEDELAY    = iTeleDelay,            VALUE        = 1000,
+    ACTION       = ACT.STOP,           AITYPE       = AI.DIGGER,
+    ANIMTIMER    = TD.ANIMNORMAL,      DIGDELAY     = iDigDelay,
+    DIRECTION    = DIR.NONE,           FLAGS        = iFlags,
+    INTELLIGENCE = iIntelligence,      JOB          = JOB.NONE,
+    KEYS         = oKeysDigger,        LONGNAME     = sLongName,
+    LUNGS        = iLungs,             MENU         = MNU.MAIN,
+    NAME         = sName,              PATIENCE     = iPatience,
+    STAMINA      = iStamina,           STRENGTH     = iStrength,
+    TELEDELAY    = iTeleDelay,         VALUE        = 1000,
     WEIGHT       = 0
   };
 end
 -- Function to make data for a treasure object ----------------------------- --
 local function MakeTreasureObject(iAB, iAE, iHS, iValue, sName)
   return {
-    [ACT.DEATH] = aGenericActDeathData,
-    [ACT.PHASE] = aTreasureActPhaseData,
+    [ACT.DEATH] = oGenericActDeathData,
+    [ACT.PHASE] = oTreasureActPhaseData,
     [ACT.STOP] = {
       [DIR.NONE] = { iAB, iAE },
       FLAGS      = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
     },
-    ACTION    = ACT.PHASE,                AITYPE    = AI.NONE,
-    ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+    ACTION    = ACT.PHASE,             AITYPE    = AI.NONE,
+    ANIMTIMER = TD.ANIMNORMAL,         DIRECTION = DIR.NONE,
     FLAGS     = OFL.SELLABLE|OFL.TREASURE|OFL.AQUALUNG,
-    HUDSPRITE = iHS,                      JOB       = JOB.SPAWN,
-    LONGNAME  = sName,                    NAME      = sName,
-    STAMINA   = -1,                       STRENGTH  = 0,
-    TELEDELAY = 200,                      VALUE     = iValue,
+    HUDSPRITE = iHS,                   JOB       = JOB.SPAWN,
+    LONGNAME  = sName,                 NAME      = sName,
+    STAMINA   = -1,                    STRENGTH  = 0,
+    TELEDELAY = 200,                   VALUE     = iValue,
     WEIGHT    = 1,
   }
 end
 -- ------------------------------------------------------------------------- --
-local aObjectData<const> = {           -- Objects data
+local oObjectData<const> = {           -- Objects data
 -- ------------------------------------------------------------------------- --
 -- [TYP.*] = {                         Object ID (see above)
 --   [ACT.*] = {                       Action ID (see above)
@@ -699,12 +699,12 @@ local aObjectData<const> = {           -- Objects data
 --       OFY  = <integer> (optional)   Drawing offset Y position.
 --     },                              End of specific direction data.
 --     FLAGS   = OFL.*[|OFL.*],        Set obj flags on direction (see above).
---     SOUND   = aSfxData.*,           Play specified sound on first frame.
---     SOUNDRP = aSfxData.*            Repeat specified sound on first frame.
+--     SOUND   = oSfxData.*,           Play specified sound on first frame.
+--     SOUNDRP = oSfxData.*            Repeat specified sound on first frame.
 --   },                                End of specific action data.
 --   ACTION       = ACT.*,             Initial action ID (see above).
 --   AITYPE       = AI.*,              AI routine ID (see above).
---   ANIMTIMER    = aTimerData.*,      Animation delay in frames.
+--   ANIMTIMER    = TD.*,              Animation delay in frames.
 --   ATTACHMENT   = TYP.*,             Dummy object to attach to this one.
 --   DESC         = "<string>",        Description of object for shop.
 --   DIGDELAY     = <integer>,         Frame delay before completing dig.
@@ -733,19 +733,19 @@ local aObjectData<const> = {           -- Objects data
 -- Digger races (S2,W4,R4,D6,F4,E4,R2,DS,DD,INT,PAT,LUN,STA,STR,TLD,FL,N,LN) --
 [TYP.FTARG] = MakeDiggerObject(138, 140,  12, 15, 8, 11,
   20, 23, 16, 19,  63, 65, 60, 62, 86, 88,  245, 249, 240, 244,
-  77, 79, 74, 76,  nil, nil,  aSfxData.DIEFTAR,  60,  0.7,  9600,  4,
+  77, 79, 74, 76,  nil, nil,  oSfxData.DIEFTAR,  60,  0.6,  9600,  4,
   60,  3,  120,  OFL.DELICATE,  "FTARG",  "F'TARG"),
 [TYP.HABBISH] = MakeDiggerObject(135, 137,  120, 123, 116, 119,
   128, 131, 124, 127,  228, 230, 225, 227, 237, 239,  255, 259, 250, 254,
-  151, 153, 141, 143,  132, 132,  aSfxData.DIEHABB,  70,  0.9,  7500,  12,
+  151, 153, 141, 143,  132, 132,  oSfxData.DIEHABB,  70,  0.5,  7500,  12,
   120,  5,  60,  OFL.DELICATE|OFL.TPMASTER,  "HABBISH"),
 [TYP.GRABLIN] = MakeDiggerObject(222, 224,  204, 207, 200, 203,
   212, 215, 208, 211,  83, 85, 80, 82, 89, 91,  275, 279, 270, 274,
-  219, 221, 216, 218,  nil, nil,  aSfxData.DIEGRAB,  50,  0.8,  10500,  8,
+  219, 221, 216, 218,  nil, nil,  oSfxData.DIEGRAB,  50,  0.7,  10500,  8,
   120,  4,  120,  OFL.DELICATE,  "GRABLIN"),
 [TYP.QUARRIOR] = MakeDiggerObject(178, 180,  160, 163, 156, 159,
   168, 171, 164, 167,  234, 236, 231, 233, 92, 94,  265, 269, 260, 264,
-  175, 177, 172, 174,  nil, nil,  aSfxData.DIEQUAR, 80, 0.6, 15000, 16,
+  175, 177, 172, 174,  nil, nil,  oSfxData.DIEQUAR, 80, 0.8, 15000, 16,
   120,  6,  180,  OFL.NONE,  "QUARRIOR"),
 -- Treasure objects -------------------------------------------------------- --
 [TYP.JENNITE] = MakeTreasureObject(315, 318, 842, 280, "JENNITE"),
@@ -755,7 +755,7 @@ local aObjectData<const> = {           -- Objects data
 [TYP.RUBY]    = MakeTreasureObject(436, 439, 846,  40, "RUBY"),
 -- Residents --------------------------------------------------------------- --
 [TYP.PHANTOM] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
                           [DIR.U]    = { 442, 445 },
   [DIR.L] = { 442, 445 }, [DIR.NONE] = { 446, 449 }, [DIR.R] = { 446, 449 },
@@ -763,7 +763,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS   = OFL.HURTDIGGER
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.RANDOM,
- ANIMTIMER = aTimerData.ANIMFAST,      DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMFAST,              DIRECTION = DIR.NONE,
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "PHANTOM",                NAME      = "PHANTOM",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -771,7 +771,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.SKELETON] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.UL] = { 409, 412 }, [DIR.U]    = { 413, 416 }, [DIR.UR] = { 413, 416 },
   [DIR.L]  = { 409, 412 }, [DIR.NONE] = { 413, 416 }, [DIR.R]  = { 413, 416 },
@@ -779,7 +779,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS    = OFL.HURTDIGGER
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.FINDSLOW,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "SKELETON",               NAME      = "SKELETON",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -787,7 +787,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.ZOMBIE] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.UL] = { 147, 148 }, [DIR.U]    = { 149, 150 }, [DIR.UR] = { 149, 150 },
   [DIR.L]  = { 147, 148 }, [DIR.NONE] = { 149, 150 }, [DIR.R]  = { 149, 150 },
@@ -795,7 +795,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS    = OFL.HURTDIGGER
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.FIND,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "ZOMBIE",                 NAME      = "ZOMBIE",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -813,7 +813,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS      = OFL.BUSY
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.FINDSLOW,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "GHOST",                  NAME      = "GHOST",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -821,7 +821,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.ZIPPER] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.UL] = { 371, 374 }, [DIR.U]    = { 371, 374 }, [DIR.UR] = { 371, 374 },
   [DIR.L]  = { 371, 374 }, [DIR.NONE] = { 371, 374 }, [DIR.R]  = { 371, 374 },
@@ -829,7 +829,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS    = OFL.PHASEDIGGER
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.FINDSLOW,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "ZIPPER",                 NAME      = "ZIPPER",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -837,7 +837,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.SWRLYPRT] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.UL] = { 417, 427 }, [DIR.U]    = { 417, 427 }, [DIR.UR] = { 417, 427 },
   [DIR.L]  = { 417, 427 }, [DIR.NONE] = { 417, 427 }, [DIR.R]  = { 417, 427 },
@@ -845,7 +845,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS    = OFL.PHASEDIGGER
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.FIND,
- ANIMTIMER = aTimerData.ANIMFAST,      DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMFAST,              DIRECTION = DIR.NONE,
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "SWIRLYPORT",             NAME      = "SWRLYPRT",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -853,7 +853,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.PIRANA] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 388, 388 }, [DIR.NONE] = { 393, 393 }, [DIR.R] = { 393, 393 },
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
@@ -862,7 +862,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.STATIONARY|OFL.LIVING,JOB       = JOB.NONE,
  LONGNAME  = "PIRANA PLANT",           LUNGS     = 128,
  NAME      = "PIRANA",                 STAMINA   = -1,
@@ -870,7 +870,7 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.FUNGUS] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 398, 401 }, [DIR.NONE] = { 398, 401 }, [DIR.R] = { 398, 401 },
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
@@ -879,7 +879,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.STATIONARY|OFL.AQUALUNG|OFL.LIVING,
  JOB       = JOB.NONE,                 LONGNAME  = "FUNGUS",
  NAME      = "FUNGUS",                 STAMINA   = -1,
@@ -887,13 +887,13 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.ALIEN] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.RUN] = {
   [DIR.L] = { 102, 105 }, [DIR.NONE] = { 112, 115 }, [DIR.R] = { 112, 115 },
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
  },
  ACTION    = ACT.RUN,                  AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
  FLAGS     = OFL.ENEMY,                JOB       = JOB.BOUNCE,
  LONGNAME  = "ALIEN",                  LUNGS     = 32,
  NAME      = "ALIEN",                  STAMINA   = -1,
@@ -912,7 +912,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS      = OFL.FALL|OFL.NOANIMLOOP|OFL.BUSY
  },
  ACTION    = ACT.PHASE,                AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
  FLAGS     = OFL.ENEMY,                JOB       = JOB.SPAWN,
  LONGNAME  = "MYSTERIOUS EGG",         LUNGS     = 128,
  NAME      = "EGG",                    STAMINA   = -1,
@@ -920,10 +920,10 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.BIRD] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = { [DIR.L] = { 297, 301 }, [DIR.R] = { 302, 306 } },
  ACTION    = ACT.STOP,                 AITYPE    = AI.CRITTER,
- ANIMTIMER = aTimerData.ANIMNORMAL ,   DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL ,           DIRECTION = DIR.LR,
  FLAGS     = OFL.LIVING,               JOB       = JOB.BOUNCE,
  LONGNAME  = "BIRD",                   LUNGS     = 2,
  NAME      = "BIRD",                   STAMINA   = -1,
@@ -931,10 +931,10 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.FISH] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = { [DIR.L] = { 58, 59 }, [DIR.R] = { 56, 57 } },
  ACTION    = ACT.STOP,                 AITYPE    = AI.CRITTERSLOW,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
  FLAGS     = OFL.AQUALUNG|OFL.WATERBASED|OFL.LIVING,
  JOB       = JOB.BOUNCE,               LONGNAME  = "GOLDFISH",
  NAME      = "FISH",                   STAMINA   = -1,
@@ -942,13 +942,13 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.RAPTOR] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.RUN] = {
   [DIR.L] = { 362, 365 }, [DIR.R] = { 366, 369 },
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PURSUEDIGGER|OFL.PHASETARGET
  },
  ACTION    = ACT.RUN,                  AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
  FLAGS     = OFL.LIVING,               JOB       = JOB.BOUNCE,
  LONGNAME  = "VELOCIRAPTOR",           LUNGS     = 16,
  NAME      = "VRAPTOR",                STAMINA   = -1,
@@ -956,13 +956,13 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.ROTARY] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.WALK] = {
   [DIR.L] = { 380, 383 }, [DIR.R] = { 384, 387 },
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PURSUEDIGGER|OFL.PHASETARGET
  },
  ACTION    = ACT.WALK,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
  FLAGS     = OFL.LIVING,               JOB       = JOB.BOUNCE,
  LONGNAME  = "ROTARYSAURUS",           LUNGS     = 16,
  NAME      = "RTRYSRUS",               STAMINA   = -1,
@@ -970,13 +970,13 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.STEGO] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.CREEP] = {
   [DIR.L] = { 29, 32, 3, 0 }, [DIR.R] = { 39, 42, -3, 0 },
   FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PURSUEDIGGER|OFL.PHASETARGET
  },
  ACTION     = ACT.CREEP,               AITYPE     = AI.NONE,
- ANIMTIMER  = aTimerData.ANIMNORMAL,   ATTACHMENT = TYP.STEGOB,
+ ANIMTIMER  = TD.ANIMNORMAL,           ATTACHMENT = TYP.STEGOB,
  DIRECTION  = DIR.LR,                  FLAGS      = OFL.LIVING,
  JOB        = JOB.BOUNCE,              LONGNAME   = "STEGOSAURUS",
  LUNGS      = 16,                      NAME       = "STEGSAUR",
@@ -989,10 +989,10 @@ local aObjectData<const> = {           -- Objects data
  [ACT.DEATH] = { [DIR.NONE] = { 451, 454, -16, 0 }, FLAGS = OFL.BUSY }
 -- ------------------------------------------------------------------------- --
 }, [TYP.TURTLE] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP]  = { [DIR.L] = { 307, 310 }, [DIR.R] = { 311, 314 } },
  ACTION    = ACT.STOP,                 AITYPE    = AI.CRITTER,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
  FLAGS     = OFL.AQUALUNG|OFL.WATERBASED|OFL.LIVING,
  JOB       = JOB.BOUNCE,               LONGNAME  = "TURTLE",
  NAME      = "TURTLE",                 STAMINA   = -1,
@@ -1000,9 +1000,9 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.BIGFOOT] = {
- [ACT.DEATH] = aGenericActDeathData,
- [ACT.PHASE] = aDiggerActPhaseData,
- [ACT.HIDE] = aGenericActHideData,
+ [ACT.DEATH] = oGenericActDeathData,
+ [ACT.PHASE] = oDiggerActPhaseData,
+ [ACT.HIDE] = oGenericActHideData,
  [ACT.STOP] = {
   [DIR.UL] = { 329, 331 }, [DIR.U]    = { 329, 331 }, [DIR.UR] = { 329, 331 },
   [DIR.L]  = { 329, 331 }, [DIR.NONE] = { 329, 331 }, [DIR.R]  = { 329, 331 },
@@ -1015,7 +1015,7 @@ local aObjectData<const> = {           -- Objects data
   FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.BIGFOOT,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.LR,
+ ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
  FLAGS     = OFL.AQUALUNG|OFL.LIVING,  JOB       = JOB.BOUNCE,
  LONGNAME  = "SKINWALKER",             NAME      = "BIGFOOT",
  STAMINA   = -1,                       STRENGTH  = 100,
@@ -1023,7 +1023,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 100
 -- Devices ----------------------------------------------------------------- --
 }, [TYP.STUNNEL] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 284, 284 }, [DIR.NONE] = { 280, 280 }, [DIR.R] = { 280, 280 },
   FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
@@ -1033,14 +1033,14 @@ local aObjectData<const> = {           -- Objects data
  }, [ACT.DIG] = {
   [DIR.L] = { 284, 287 }, [DIR.NONE] = { 280, 283 }, [DIR.R] = { 280, 283 },
   FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET,
-  SOUNDRP = aSfxData.DIG
+  SOUNDRP = oSfxData.DIG
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.TUNNELER,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "A MECHANICAL DIGGER\nTHAT DIGS HORIZONTALLY",
  DIGDELAY  = 30,                       DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.EXPLODE,
- KEYS      = aKeysTunneller,           JOB       = JOB.NONE,
+ KEYS      = oKeysTunneller,           JOB       = JOB.NONE,
  LONGNAME  = "SMALL TUNNELER",         LUNGS     = 1,
  MENU      = MNU.TUNNEL,               NAME      = "SMALLTUN",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -1048,7 +1048,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 2,
 -- ------------------------------------------------------------------------- --
 }, [TYP.LTUNNEL] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 185, 185 }, [DIR.NONE] = { 189, 189 }, [DIR.R] = { 189, 189 },
   FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
@@ -1058,14 +1058,14 @@ local aObjectData<const> = {           -- Objects data
  }, [ACT.DIG] = {
   [DIR.L] = { 185, 188 }, [DIR.R] = { 189, 192 },
   FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET,
-  SOUNDRP = aSfxData.DIG
+  SOUNDRP = oSfxData.DIG
  },
  ACTION    = ACT.STOP,                 AITYPE     = AI.TUNNELER,
- ANIMTIMER = aTimerData.ANIMNORMAL,    ATTACHMENT = TYP.LTUNNELB,
+ ANIMTIMER = TD.ANIMNORMAL,            ATTACHMENT = TYP.LTUNNELB,
  DESC      = "A FAST MECHANICAL DIGGER\nTHAT DIGS HORIZONTALLY",
  DIGDELAY  = 10,                       DIRECTION  = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.EXPLODE,
- JOB       = JOB.NONE,                 KEYS       = aKeysTunneller,
+ JOB       = JOB.NONE,                 KEYS       = oKeysTunneller,
  LONGNAME  = "LARGE TUNNELER",         LUNGS      = 1,
  MENU      = MNU.TUNNEL,               NAME       = "LARGETUN",
  STAMINA   = -1,                       STRENGTH   = 0,
@@ -1086,7 +1086,7 @@ local aObjectData<const> = {           -- Objects data
  }
 -- ------------------------------------------------------------------------- --
 }, [TYP.CORK] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 288, 288 }, [DIR.NONE] = { 288, 288 }, [DIR.R] = { 288, 288 },
   [DIR.D] = { 288, 288 },
@@ -1097,17 +1097,17 @@ local aObjectData<const> = {           -- Objects data
  }, [ACT.DIG] = {
   [DIR.D] = { 288, 290 },
   FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET,
-  SOUNDRP = aSfxData.DIG
+  SOUNDRP = oSfxData.DIG
  },
  KEYS = {
-  [ACT.STOP] = aObjectStop,
+  [ACT.STOP] = oObjectStop,
   [ACT.CREEP] = {
-   [JOB.NONE]    = aObjectLeftRight,
+   [JOB.NONE]    = oObjectLeftRight,
    [JOB.DIGDOWN] = { [DIR.TCTR] = true }
   }
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.CORKSCREW,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "A MECHANICAL DIGGER\nTHAT DIGS VERTICALLY DOWN",
  DIGDELAY  = 20,                       DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.EXPLODE,
@@ -1118,13 +1118,13 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 170,                      WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.TELEPOLE] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 66, 67 },
   FLAGS      = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "SERVES AS A TELEPORT\nPOINT FOR YOUR DIGGERS",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.EXPLODE,
@@ -1144,28 +1144,28 @@ local aObjectData<const> = {           -- Objects data
  }, [ACT.DEATH] = {
   [DIR.NONE] = { 291, 296 },
   FLAGS      = OFL.BUSY,
-  SOUND      = aSfxData.EXPLODE,
+  SOUND      = oSfxData.EXPLODE,
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.EXPLODER,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "QUICK DESTRUCTION\nOF TERRAIN",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.AQUALUNG|OFL.EXPLODE,
  JOB       = JOB.NONE,
- KEYS      = { [ACT.DYING] = aObjectStop },
+ KEYS      = { [ACT.DYING] = oObjectStop },
  LONGNAME  = "EXPLOSIVES",             MENU      = MNU.TNT,
  NAME      = "TNT",                    STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 600,
  VALUE     = 20,                       WEIGHT    = 1
 -- ------------------------------------------------------------------------- --
 }, [TYP.FIRSTAID] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 450, 450 },
   FLAGS      = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "COMPULSORY ACCESSORY\nFOR ALL DIGGERS",
  DIRECTION = DIR.NONE,                 FLAGS     = OFL.SELLABLE|OFL.DEVICE,
  JOB       = JOB.NONE,                 LONGNAME  = "FIRST AID KIT",
@@ -1175,16 +1175,16 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 2,
 -- ------------------------------------------------------------------------- --
 }, [TYP.MAP] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 370, 370 },
   FLAGS      = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "VIEW THE ENTIRE ZONE\nLAYOUT WITH THIS MAP",
  DIRECTION = DIR.NONE,                 FLAGS     = OFL.SELLABLE|OFL.DEVICE,
- JOB       = JOB.NONE,                 KEYS      = { [ACT.MAP] = aObjectStop },
+ JOB       = JOB.NONE,                 KEYS      = { [ACT.MAP] = oObjectStop },
  LONGNAME  = "TNT MAP",                LUNGS     = 32,
  MENU      = MNU.MAP,                  NAME      = "MAP",
  STAMINA   = -1,                       STRENGTH  = 0,
@@ -1192,24 +1192,24 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT    = 3,
 -- ------------------------------------------------------------------------- --
 }, [TYP.TRACK] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 441, 441 },
   FLAGS      = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.DEPLOY,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "CARRYS A TRAIN\nWITH VALUABLE CARGO",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.AQUALUNG,
- JOB       = JOB.NONE,                 KEYS      = aKeysDeployDevice,
+ JOB       = JOB.NONE,                 KEYS      = oKeysDeployDevice,
  LONGNAME  = "TRACK FOR TRAIN",        MENU      = MNU.DEPLOY,
  NAME      = "TRACK",                  STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
  VALUE     = 10,                       WEIGHT    = 1,
 -- ------------------------------------------------------------------------- --
 }, [TYP.TRAIN] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 4, 4 }, [DIR.NONE] = { 4, 4 }, [DIR.R] = { 4, 4 },
   FLAGS   = OFL.PICKUP|OFL.FALL|OFL.PHASETARGET
@@ -1218,13 +1218,13 @@ local aObjectData<const> = {           -- Objects data
   FLAGS   = OFL.PICKUP|OFL.FALL|OFL.PHASETARGET
  },
  KEYS = {
-  [ACT.STOP] = aObjectStop,
-  [ACT.WALK] = { [JOB.SEARCH] = aObjectSearch, [JOB.NONE] = aObjectLeftRight },
-  [ACT.DROP] = aObjectJobDirKeep,
-  [ACT.GRAB] = aObjectJobDirKeep,
+  [ACT.STOP] = oObjectStop,
+  [ACT.WALK] = { [JOB.SEARCH] = oObjectSearch, [JOB.NONE] = oObjectLeftRight },
+  [ACT.DROP] = oObjectJobDirKeep,
+  [ACT.GRAB] = oObjectJobDirKeep,
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.TRAIN,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "CARRY OBJECTS ALONG A MINE\nNEEDS TRAIN TRACKS",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.TRACK|OFL.DEVICE|OFL.EXPLODE,
@@ -1235,13 +1235,13 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 100,                      WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.BRIDGE] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 146, 146 },
   FLAGS      = OFL.PICKUP|OFL.FALL|OFL.FLOAT|OFL.BLOCK|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "A PLATFORM FOR GAPS\nFOR HARD TO REACH PLACES",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.AQUALUNG,
@@ -1251,7 +1251,7 @@ local aObjectData<const> = {           -- Objects data
  VALUE     = 25,                       WEIGHT    = 1
 -- ------------------------------------------------------------------------- --
 }, [TYP.BOAT] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 154, 155 }, [DIR.NONE] = { 154, 155 }, [DIR.R] = { 154, 155 },
   FLAGS   = OFL.PICKUP|OFL.FALL|OFL.FLOAT|OFL.BLOCK|OFL.PHASETARGET
@@ -1260,62 +1260,62 @@ local aObjectData<const> = {           -- Objects data
   FLAGS   = OFL.PICKUP|OFL.FALL|OFL.FLOAT|OFL.BLOCK|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.BOAT,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "TRAVEL OVER WATERS\nTO DISTANT LOCATIONS",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.AQUALUNG,
  JOB       = JOB.NONE,
- KEYS      = { [ACT.STOP] = aObjectStop, [ACT.CREEP] = aObjectMove },
+ KEYS      = { [ACT.STOP] = oObjectStop, [ACT.CREEP] = oObjectMove },
  LONGNAME  = "INFLATABLE BOAT",        MENU      = MNU.FLOAT,
  NAME      = "BOAT",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
  VALUE     = 60,                       WEIGHT    = 2
 -- ------------------------------------------------------------------------- --
 }, [TYP.GATE] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 440, 440 },
   FLAGS      = OFL.PICKUP|OFL.FALL|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.DEPLOY,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "PROTECT FROM DANGERS\nAND FLOODING",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.AQUALUNG,
- JOB       = JOB.NONE,                 KEYS      = aKeysDeployDevice,
+ JOB       = JOB.NONE,                 KEYS      = oKeysDeployDevice,
  LONGNAME  = "FLOOD GATE",             MENU      = MNU.DEPLOY,
  NAME      = "GATE",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
  VALUE     = 80,                       WEIGHT    = 2
 -- ------------------------------------------------------------------------- --
 }, [TYP.GATEB] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = { [DIR.NONE] = { 475, 475 } },
  ACTION    = ACT.STOP,                 AITYPE    = AI.GATE,
- ANIMTIMER = aTimerData.ANIMNORMAL,    DIRECTION = DIR.NONE,
+ ANIMTIMER = TD.ANIMNORMAL,    DIRECTION = DIR.NONE,
  FLAGS     = OFL.DEVICE|OFL.AQUALUNG,  JOB       = JOB.NONE,
- KEYS = { [ACT.OPEN] = aObjectStop, [ACT.CLOSE] = aObjectStop },
+ KEYS = { [ACT.OPEN] = oObjectStop, [ACT.CLOSE] = oObjectStop },
  MENU      = MNU.GATE,                 LONGNAME  = "FLOOD GATE",
  NAME      = "GATE",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.LIFT] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = { [DIR.NONE] = { 320, 320 }, FLAGS = OFL.PICKUP|OFL.FALL },
  ACTION    = ACT.STOP,                 AITYPE    = AI.DEPLOY,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "A VERTICAL MOVING PLATFORM\nCARRIES YOUR DIGGERS",
  DIRECTION = DIR.NONE,
  FLAGS     = OFL.SELLABLE|OFL.DEVICE|OFL.EXPLODE|OFL.AQUALUNG,
- JOB       = JOB.NONE,                 KEYS      = aKeysDeployDevice,
+ JOB       = JOB.NONE,                 KEYS      = oKeysDeployDevice,
  LONGNAME  = "LIFT",                   MENU      = MNU.DEPLOY,
  NAME      = "LIFT",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
  VALUE     = 220,                      WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.LIFTB] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.U] = { 0, 0 }, [DIR.NONE] = { 0, 0 }, [DIR.D] = { 0, 0 },
   FLAGS   = OFL.BLOCK|OFL.PHASETARGET
@@ -1323,11 +1323,11 @@ local aObjectData<const> = {           -- Objects data
   [DIR.U] = { 0, 0 }, [DIR.NONE] = { 0, 0 }, [DIR.D] = { 0, 0 },
   FLAGS   = OFL.BLOCK|OFL.PHASETARGET
  }, KEYS = {
-   [ACT.STOP] = aObjectStop,
+   [ACT.STOP] = oObjectStop,
    [ACT.CREEP] = { [JOB.NONE] = { [DIR.U] = true, [DIR.D] = true } }
  },
  ACTION     = ACT.STOP,                AITYPE     = AI.LIFT,
- ANIMTIMER  = aTimerData.ANIMNORMAL,   ATTACHMENT = TYP.LIFTC,
+ ANIMTIMER  = TD.ANIMNORMAL,           ATTACHMENT = TYP.LIFTC,
  DIRECTION  = DIR.D,
  FLAGS      = OFL.DEVICE|OFL.EXPLODE|OFL.AQUALUNG,
  JOB        = JOB.NONE,                LONGNAME   = "ELEVATOR",
@@ -1337,7 +1337,7 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT     = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.LIFTC] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.U] = { 1, 1, 0, -16 }, [DIR.NONE] = { 1, 1, 0, -16 },
   [DIR.D] = { 1, 1, 0, -16 }
@@ -1345,7 +1345,7 @@ local aObjectData<const> = {           -- Objects data
   [DIR.U] = { 1, 1, 0, -16 }, [DIR.NONE] = { 1, 1, 0, -16 },
   [DIR.D] = { 1, 1, 0, -16 }
  },
- ACTION     = ACT.STOP,                ANIMTIMER  = aTimerData.ANIMNORMAL,
+ ACTION     = ACT.STOP,                ANIMTIMER  = TD.ANIMNORMAL,
  ATTACHMENT = TYP.LIFT,                DIRECTION  = DIR.NONE,
  FLAGS      = OFL.DEVICE|OFL.EXPLODE|OFL.AQUALUNG,
  JOB        = JOB.NONE,                LONGNAME   = "ELEVATOR",
@@ -1355,13 +1355,13 @@ local aObjectData<const> = {           -- Objects data
  WEIGHT     = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.CAMPFIRE] = {
- [ACT.DEATH] = aGenericActDeathData,
+ [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 133, 134 },
   FLAGS      = OFL.BUSY|OFL.HEALNEARBY|OFL.PHASETARGET
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
- ANIMTIMER = aTimerData.ANIMNORMAL,
+ ANIMTIMER = TD.ANIMNORMAL,
  DESC      = "HEALS YOUR DIGGERS FASTER WHEN NEARBY",
  DIRECTION = DIR.NONE,                 FLAGS     = OFL.DEVICE|OFL.EXPLODE,
  JOB       = JOB.NONE,                 LONGNAME  = "CAMPFIRE",
@@ -1372,228 +1372,219 @@ local aObjectData<const> = {           -- Objects data
 } };
 -- Digging tile flags ------------------------------------------------------ --
 local DF<const> = {
-  -- Match tile flags ------------------------------------------------------ --
-  MO = 0x0001, -- Match over tile or dig failed (aDigData)
-  MA = 0x0002, -- Match above tile or dig failed
-  MB = 0x0004, -- Match below tile or dig failed
-  MC = 0x0008, -- Match centre of over tile or dig failed
-  -- Set tile flags -------------------------------------------------------- --
-  SO = 0x0010, -- Set over tile if successful match
-  SA = 0x0020, -- Set above tile if successful match
-  SB = 0x0040, -- Set below tile if successful match
   -- On success flags ------------------------------------------------------ --
-  OB = 0x0080, -- Set object to busy if successful dig
-  OI = 0x0100, -- Remove busy flag if dig successful
-  OG = 0x0200, -- Spin the wheel of fortune if dig successful
-  OX = 0x0400  -- Bonus. Not in original game.
+  OB = 0x0001, -- Set object to busy if successful dig
+  OI = 0x0002, -- Remove busy flag if dig successful
+  OG = 0x0004, -- Check for treasure if dig successful
+  OX = 0x0008  -- Not in original game
   -- ----------------------------------------------------------------------- --
 };
 -- Digging tile data ------------------------------------------------------- --
-local aDigData<const> = {              -- Note that tile ids are 0-indexed here
+local oDigData<const> = {              -- Note that tile ids are 0-indexed here
+-- -- Any of these (except FO and FLAGS) can be 'nil' to disable check ----- --
+-- FO    (FromOver)    Tile to match from object's over tile
+-- FA    (FromAbove)   Tile to match from object's above tile
+-- FB    (FromBelow)   Tile to match from object's below tile
+-- FC    (FromCentre)  Tile to match from object's centre (over) tile
+-- TO    (ToOver)      Set over tile to this tile on successful match
+-- TA    (ToAbove)     Set above tile to this tile on successful match
+-- TB    (ToBelow)     Set below tile to this tile on successful match
+-- FLAGS (Flags)       Flags see above
 -- ------------------------------------------------------------------------- --
--- FO    (FromOver)    DF.MO*. Tile to match from object's over tile
--- FA    (FromAbove)   DF.MA*. Tile to match from object's above tile
--- FB    (FromBelow)   DF.MB*. Tile to match from object's below tile
--- FC    (FromCentre)  DF.MC*. Tile to match from object's centre (over) tile
--- TO    (ToOver)      DF.SO*. Set over tile to this tile on successful match
--- TA    (ToAbove)     DF.SA*. Set above tile to this tile on successful match
--- TB    (ToBelow)     DF.SB*. Set below tile to this tile on successful match
--- FLAGS (Flags)       Flags see DF.M*, DF.S* and DF.O* #defines
--- ------------------------------------------------------------------------- --
-[DIR.UL]={                           -- Digging upper-left tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  3,  0, 12,208,207,  0,DF.MO|DF.MA|DF.MC|DF.SO|DF.SA|DF.OB},
-{  3,  3,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,  7,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,  7,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3, 95,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3, 96,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,150,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,150,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,170,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,170,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,171,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,171,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,172,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,172,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{ 44,  3,  0,  0,203, 45,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 44,  0,  0,  0,203,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{203, 45,  0,  0, 12, 10,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{203,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{208,207,  0,  0, 11,209,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{208,  0,  0,  0, 11,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 11,  0,  0, 11,  0,  9,  0,DF.MO|DF.MC      |DF.SA      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,236,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
-{ 53,  0,  0,  0,236,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.UR]={                          -- Digging upper-right tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  3,  0,  6, 33, 32,  0,DF.MO|DF.MA|DF.MC|DF.SO|DF.SA|DF.OB},
-{  3,  3,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,  7,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,  7,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3, 95,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3, 96,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,150,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,150,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,170,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,170,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,171,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,171,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,172,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,172,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{ 26,  3,  0,  0, 28, 27,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 26,  0,  0,  0, 28,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 28, 27,  0,  0,  6,  4,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 28,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 33, 32,  0,  0,  8, 34,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 33,  0,  0,  0,  8,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  8,  0,  5,  0,DF.MO|DF.MC      |DF.SA      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,235,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
-{ 53,  0,  0,  0,235,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.L]={                           -- Digging left tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  0,  0,230,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{230,  0,  0,  0,231,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{231,  0,  0,  0,232,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{232,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{ 11,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{  9,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 49,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 50,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 53,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 55,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 56,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 61,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  6,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{173,  0,  0,  0,174,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{174,  0,  0,  0,175,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{175,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 13,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 14,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 15,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 16,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 46,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 51,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 54,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 57,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{235,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
+[DIR.UL]={                             -- Digging upper-left tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, {   3, nil,  12, 208, 207, nil, DF.OB },
+         {   3, nil, nil,  44, nil, nil, DF.OB },
+         {   7, nil,  12, 208, nil, nil, DF.OB },
+         {   7, nil, nil,  44, nil, nil, DF.OB },
+         {  95, nil,  12, 208, nil, nil, DF.OB },
+         {  96, nil, nil,  44, nil, nil, DF.OB },
+         { 150, nil,  12, 208, nil, nil, DF.OB },
+         { 150, nil, nil,  44, nil, nil, DF.OB },
+         { 170, nil,  12, 208, nil, nil, DF.OB },
+         { 170, nil, nil,  44, nil, nil, DF.OB },
+         { 171, nil,  12, 208, nil, nil, DF.OB },
+         { 171, nil, nil,  44, nil, nil, DF.OB },
+         { 172, nil,  12, 208, nil, nil, DF.OB },
+         { 172, nil, nil,  44, nil, nil, DF.OB } },
+  {  44, {   3, nil, nil, 203,  45, nil, DF.OB },
+         { nil, nil, nil, 203, nil, nil, DF.OB } },
+  { 203, {  45, nil, nil,  12,  10, nil, DF.OB },
+         { nil, nil, nil,  12, nil, nil, DF.OB } },
+  { 208, { 207, nil, nil,  11, 209, nil, DF.OB },
+         { nil, nil, nil,  11, nil, nil, DF.OI|DF.OG } },
+  {  11, { nil, nil,  11, nil,   9, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil, 236, nil, nil, DF.OI|DF.OX } },
+  {  53, { nil, nil, nil, 236, nil, nil, DF.OI|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.UR]={                          -- Digging upper-right tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, {   3, nil,   6,  33,  32, nil, DF.OB },
+         {   3, nil, nil,  26, nil, nil, DF.OB },
+         {   7, nil,   6,  33, nil, nil, DF.OB },
+         {   7, nil, nil,  26, nil, nil, DF.OB },
+         {  95, nil,   6,  33, nil, nil, DF.OB },
+         {  96, nil, nil,  26, nil, nil, DF.OB },
+         { 150, nil,   6,  33, nil, nil, DF.OB },
+         { 150, nil, nil,  26, nil, nil, DF.OB },
+         { 170, nil,   6,  33, nil, nil, DF.OB },
+         { 170, nil, nil,  26, nil, nil, DF.OB },
+         { 171, nil,   6,  33, nil, nil, DF.OB },
+         { 171, nil, nil,  26, nil, nil, DF.OB },
+         { 172, nil,   6,  33, nil, nil, DF.OB },
+         { 172, nil, nil,  26, nil, nil, DF.OB } },
+  {  26, {   3, nil, nil,  28,  27, nil, DF.OB },
+         { nil, nil, nil,  28, nil, nil, DF.OB } },
+  {  28, { 27, nil, nil,   6,   4, nil, DF.OB },
+         { nil, nil, nil,   6, nil, nil, DF.OB } },
+  {  33, {  32, nil, nil,   8,  34, nil, DF.OB },
+         { nil, nil, nil,   8, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil,   8, nil,   5, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil, 235, nil, nil, DF.OI|DF.OX } },
+  {  53, { nil, nil, nil, 235, nil, nil, DF.OI|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.L]={                          -- Digging left tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil, nil, nil, 230, nil, nil, DF.OB } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB } },
+  { 230, { nil, nil, nil, 231, nil, nil, DF.OB } },
+  { 231, { nil, nil, nil, 232, nil, nil, DF.OB } },
+  { 232, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil, nil,   6, nil, nil, DF.OB|DF.OG } },
+  {  11, { nil, nil, nil,  12, nil, nil, DF.OB|DF.OG } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB|DF.OG } },
+  {   9, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  49, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  50, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  53, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  55, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  56, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  61, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {   6, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  { 173, { nil, nil, nil, 174, nil, nil, DF.OB } },
+  { 174, { nil, nil, nil, 175, nil, nil, DF.OB } },
+  { 175, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {  13, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  14, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  15, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  16, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  46, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  51, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 235, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
 }, [DIR.R]={                           -- Digging right tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  0,  0,227,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{227,  0,  0,  0,228,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{228,  0,  0,  0,229,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{229,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{ 11,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{  5,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 49,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 50,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 53,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 55,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 56,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 58,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 12,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{173,  0,  0,  0,174,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{174,  0,  0,  0,175,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{175,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 13,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 14,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 15,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 16,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 46,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 51,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 54,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 57,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{236,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.DL]={                           -- Digging down-left tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  3,  5, 23,  0, 24,DF.MO|DF.MB|DF.MC|DF.SO|DF.SB|DF.OB},
-{  3,  0,  3,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,  7,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,  7,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,150,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,150,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,170,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,170,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,171,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,171,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,172,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,172,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{ 17,  0,  3,  0, 18,  0, 19,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 17,  0,  0,  0, 18,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 18,  0, 19,  0,  5,  0,  8,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 18,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 23,  0, 24,  0,  4,  0, 25,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 23,  0,  0,  0,  4,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  4,  0,  0,  0,  0,  0,  6,DF.MO            |DF.SB      |DF.OI|DF.OG},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.D]={                            -- Digging down?
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  0,  0,173,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{173,  0,  0,  0,174,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{174,  0,  0,  0,175,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{175,  0,  0,  0, -2,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 11,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  5,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  9,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 47,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 48,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 53,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 12,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  6,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 13,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 14,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 15,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 16,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 46,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 51,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 54,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 57,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{235,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{236,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.DR]={                           -- Digging down right?
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  3,  9, 41,  0, 42,DF.MO|DF.MB|DF.MC|DF.SO|DF.SB|DF.OB},
-{  3,  0,  3,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,  7,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,  7,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,150,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,150,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,170,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,170,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,171,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,171,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,172,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,172,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{ 35,  0,  3,  0, 36,  0, 37,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 35,  0,  0,  0, 36,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 36,  0, 37,  0,  9,  0, 11,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 36,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 41,  0, 42,  0, 10,  0, 43,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 41,  0,  0,  0, 10,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 10,  0,  0,  0,  0,  0, 12,DF.MO            |DF.SB      |DF.OI|DF.OG},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil, nil, nil, 227, nil, nil, DF.OB } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB } },
+  { 227, { nil, nil, nil, 228, nil, nil, DF.OB } },
+  { 228, { nil, nil, nil, 229, nil, nil, DF.OB } },
+  { 229, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil, nil,   6, nil, nil, DF.OB|DF.OG } },
+  {  11, { nil, nil, nil,  12, nil, nil, DF.OB|DF.OG } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB|DF.OG } },
+  {   5, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  49, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  50, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  53, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  55, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  56, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  58, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  12, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  { 173, { nil, nil, nil, 174, nil, nil, DF.OB } },
+  { 174, { nil, nil, nil, 175, nil, nil, DF.OB } },
+  { 175, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {  13, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  14, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  15, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  16, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  46, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  51, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 236, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.DL]={                          -- Digging down-left tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil,   3,   5,  23, nil,  24, DF.OB },
+         { nil,   3, nil,  17, nil, nil, DF.OB },
+         { nil,   7,   5,  23, nil, nil, DF.OB },
+         { nil,   7, nil,  17, nil, nil, DF.OB },
+         { nil, 150,   5,  23, nil, nil, DF.OB },
+         { nil, 150, nil,  17, nil, nil, DF.OB },
+         { nil, 170,   5,  23, nil, nil, DF.OB },
+         { nil, 170, nil,  17, nil, nil, DF.OB },
+         { nil, 171,   5,  23, nil, nil, DF.OB },
+         { nil, 171, nil,  17, nil, nil, DF.OB },
+         { nil, 172,   5,  23, nil, nil, DF.OB },
+         { nil, 172, nil,  17, nil, nil, DF.OB } },
+  {  17, { nil,   3, nil,  18, nil,  19, DF.OB },
+         { nil, nil, nil,  18, nil, nil, DF.OB } },
+  {  18, { nil,  19, nil,   5, nil,   8, DF.OB },
+         { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  23, { nil,  24, nil,   4, nil,  25, DF.OB },
+         { nil, nil, nil,   4, nil, nil, DF.OI|DF.OG } },
+  {   4, { nil, nil, nil, nil, nil,   6, DF.OI|DF.OG } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.D]={                           -- Digging down?
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil, nil, nil, 173, nil, nil, DF.OB } },
+  { 173, { nil, nil, nil, 174, nil, nil, DF.OB } },
+  { 174, { nil, nil, nil, 175, nil, nil, DF.OB } },
+  { 175, { nil, nil, nil,  -2, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil, nil,   6, nil, nil, DF.OB } },
+  {  11, { nil, nil, nil,  12, nil, nil, DF.OB } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB } },
+  {   5, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {   9, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  47, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  48, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  53, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  12, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {   6, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  13, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  14, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  15, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  16, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  46, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  51, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 235, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 236, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.DR]={                          -- Digging down right?
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil,   3,   9,  41, nil,  42, DF.OB },
+         { nil,   3, nil,  35, nil, nil, DF.OB },
+         { nil,   7,   9,  41, nil, nil, DF.OB },
+         { nil,   7, nil,  35, nil, nil, DF.OB },
+         { nil, 150,   9,  41, nil, nil, DF.OB },
+         { nil, 150, nil,  35, nil, nil, DF.OB },
+         { nil, 170,   9,  41, nil, nil, DF.OB },
+         { nil, 170, nil,  35, nil, nil, DF.OB },
+         { nil, 171,   9,  41, nil, nil, DF.OB },
+         { nil, 171, nil,  35, nil, nil, DF.OB },
+         { nil, 172,   9,  41, nil, nil, DF.OB },
+         { nil, 172, nil,  35, nil, nil, DF.OB } },
+  {  35, { nil,   3, nil,  36, nil,  37, DF.OB },
+         { nil, nil, nil,  36, nil, nil, DF.OB } },
+  {  36, { nil,  37, nil,   9, nil,  11, DF.OB },
+         { nil, nil, nil,   9, nil, nil, DF.OB } },
+  {  41, { nil,  42, nil,  10, nil,  43, DF.OB },
+         { nil, nil, nil,  10, nil, nil, DF.OI|DF.OG } },
+  {  10, { nil, nil, nil, nil, nil,  12, DF.OI|DF.OG } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
 } };
 -- Dug data ---------------------------------------------------------------- --
-local aDugRandShaftData<const> = {
+local oDugRandShaftData<const> = {
   [-1] = { 150, 170, 171 }, -- Horizontal (translated from TO=-1 above)
   [-2] = { 150, 172, 172 }  -- Vertical (translated from TO=-2 above)
 };
@@ -1680,8 +1671,8 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.ER,                          -- 0441201
   TF.F|TF.D|TF.EB,                     -- 0451301
   TF.F|TF.D|TF.ERB,                    -- 0461401
-  TF.F|TF.D|TF.ELRB,                   -- 0471501
-  TF.F|TF.D|TF.ELRB,                   -- 0481601
+  TF.F|TF.D|TF.ELRB,                   -- 0471501 Cave ceiling 1
+  TF.F|TF.D|TF.ELRB,                   -- 0481601 Cave ceiling 2
   TF.F|TF.D|TF.ETRB,                   -- 0491701
   TF.D|TF.ETRB,                        -- 0501801
   TF.D|TF.ETR,                         -- 0511901
@@ -1782,7 +1773,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1461804
   TF.W,                                -- 1471904
   TF.NONE,                             -- 1482004
-  TF.D|TF.AD|TF.P|TF.T|TF.EA,          -- 1492104 Dug tile track with light
+  TF.D|TF.P|TF.T|TF.EA,                -- 1492104 Dug tile track with light
   TF.D|TF.AD|TF.EA,                    -- 1502204 Dug tile with light
   TF.F,                                -- 1512304 Quad rock bottom left
   TF.F,                                -- 1522404 Quad rock bottom right
@@ -1802,7 +1793,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1660605 Outside decoration only
   TF.NONE,                             -- 1670705 Outside decoration only
   TF.NONE,                             -- 1680805 Outside decoration only
-  TF.D|TF.AD|TF.P|TF.T|TF.EA,          -- 1690905 Dug tile beam forward track
+  TF.D|TF.P|TF.T|TF.EA,                -- 1690905 Dug tile beam forward track
   TF.D|TF.AD|TF.EA,                    -- 1701005 Dug tile beam forward
   TF.D|TF.AD|TF.EA,                    -- 1711105 Dug tile beam backwards
   TF.D|TF.AD|TF.EA,                    -- 1721205 Dug tile beam horizontal
@@ -1843,7 +1834,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.F|TF.D|TF.ERB,                    -- 2071506
   TF.D|TF.ETR,                         -- 2081606
   TF.F|TF.D|TF.ERB,                    -- 2091706
-  TF.D|TF.AD|TF.P|TF.T|TF.EA,          -- 2101806 Clear tile with track
+  TF.D|TF.P|TF.T|TF.EA,                -- 2101806 Clear tile with track
   TF.F|TF.D|TF.ETR,                    -- 2111906
   TF.F|TF.D|TF.ETRB,                   -- 2122006
   TF.D|TF.ETR,                         -- 2132106
@@ -1949,15 +1940,15 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.F,                                -- 3132509 Corpse column 2 row 2
   TF.F,                                -- 3142609 Corpse column 3 row 2
   TF.F,                                -- 3152709 Corpse column 4 row 2
-  TF.D|TF.W|TF.P|TF.EA,                -- 3162809 Top of gold pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3172909 Vertical gold pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3183009 Bottom of gold pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3193109 Broken top pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3200010 Gold house bottom
-  TF.D|TF.W|TF.P|TF.EA,                -- 3210110 Gold house top
-  TF.D|TF.W|TF.P|TF.EA,                -- 3220210 Broken half top pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3230310 Broken horizontal top
-  TF.D|TF.W|TF.P|TF.EA,                -- 3240410 Broken horizontal bottom
+  TF.W|TF.P|TF.EA,                     -- 3162809 Top of gold pillar
+  TF.W|TF.P|TF.EA,                     -- 3172909 Vertical gold pillar
+  TF.W|TF.P|TF.EA,                     -- 3183009 Bottom of gold pillar
+  TF.W|TF.P|TF.EA,                     -- 3193109 Broken top pillar
+  TF.W|TF.P|TF.EA,                     -- 3200010 Gold house bottom
+  TF.W|TF.P|TF.EA,                     -- 3210110 Gold house top
+  TF.W|TF.P|TF.EA,                     -- 3220210 Broken half top pillar
+  TF.W|TF.P|TF.EA,                     -- 3230310 Broken horizontal top
+  TF.W|TF.P|TF.EA,                     -- 3240410 Broken horizontal bottom
   TF.D|TF.W,                           -- 3250510 Unused
   TF.NONE,                             -- 3260610 Oil rig col 1 row 2
   TF.NONE,                             -- 3270710 Oil rig col 2 row 2
@@ -2022,7 +2013,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 3860212 Outside decoration only
   TF.NONE,                             -- 3870312 Outside decoration only
   TF.NONE,                             -- 3880412 Outside decoration only
-  TF.D|TF.W|TF.AD|TF.T|TF.P|TF.EA,     -- 3890512 Water clear light track
+  TF.D|TF.W|TF.T|TF.P|TF.EA,           -- 3890512 Water clear light track
   TF.D|TF.W|TF.AD|TF.EA,               -- 3900612 Water clear light
   TF.NONE,                             -- 3910712 Outside decoration only
   TF.NONE,                             -- 3920812 Outside decoration only
@@ -2070,9 +2061,9 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4341813 Flood Gate (No water)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4351913 Flood Gate (Water left)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4362013 Flood Gate (Water right)
-  TF.D|TF.W|TF.D|TF.P|TF.EL|TF.ER|TF.G,-- 4372113 Flood Gate (All water)
+  TF.D|TF.W|TF.P|TF.EL|TF.ER|TF.G,     -- 4372113 Flood Gate (All water)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4382213 Flood Gate open (No water)
-  TF.D|TF.W|TF.D|TF.P|TF.EL|TF.ER|TF.G,-- 4392313 Flood Gate open (Water)
+  TF.D|TF.W|TF.P|TF.EL|TF.ER|TF.G,     -- 4392313 Flood Gate open (Water)
   TF.NONE,                             -- 4402413 Desert crystal 1
   TF.NONE,                             -- 4412513 Desert crystal 2
   TF.NONE,                             -- 4422613 Unused
@@ -2149,15 +2140,15 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
 assert(#aTileData == 512, "aTileData must only have 512 tiles!");
 -- Explode directions data ------------------------------------------------- --
 local aExplodeDirData<const> = {
-  -- X -- Y -- Flags -----
+  -- X -- Y -- Flags -----             -- Order is important!
   {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
-  {   0,   0, TF.W       },            -- [Centre] No flooding check needed
   {  -1,   0, TF.W|TF.ER },            -- [Left] Flood if left tile exposed
+  {   0,   0, TF.W       },            -- [Centre] No flooding check needed
   {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
   {   0,   1, TF.W|TF.ET },            -- [Down] Flood if below tile exposed
 };
 -- Explode directions data ------------------------------------------------- --
-local aExplodeAboveData<const> = {
+local oExplodeAboveData<const> = {
   [ 88] =   7, -- Remove left end of track and set clear tile
   [ 91] =   7, -- Remove right end of track and set clear tile
   [149] = 150, -- Remove track from dug tile with light
@@ -2170,7 +2161,7 @@ local aExplodeAboveData<const> = {
   [450] = 247, -- Remove watered clear track and set to clear
 };
 -- Train track data -------------------------------------------------------- --
-local aTrainTrackData<const> = {
+local oTrainTrackData<const> = {
   [  7] = 210, -- Dug tile to clear track tile
   [171] = 210, -- Dug tile beam backwards to clear track tile
   [172] = 210, -- Dug tile beam horizontal to clear track tile
@@ -2183,7 +2174,7 @@ local aTrainTrackData<const> = {
   [410] = 409, -- Dug tile with watered beam forward to tile with track
 };
 -- Flood gate data --------------------------------------------------------- --
-local aFloodGateData<const> = {
+local oFloodGateData<const> = {
   -- (TID=Tile Id, FFL=Flood from left, FFR=Flood right)
   -- TID  FFR  CON   FFL   CON         (CON=Continue flooding)
   [434]={{436,false},{435,false}}, -- Gate is closed and dry on both sides?
@@ -2195,7 +2186,7 @@ local aFloodGateData<const> = {
   -- TID  FFR  CON   FFL   CON
 };
 -- Menu data --------------------------------------------------------------- --
-local aMenuData<const> = {
+local oMenuData<const> = {
   --  ID         W H
   [MNU.MAIN]  = {8,1,{
   -- BID FLAGS     SUBMENU   ACTION    JOB        DIREC    TIP
@@ -2329,7 +2320,7 @@ local aMenuData<const> = {
   --  ID        W H
 };
 -- Endings data ------------------------------------------------------------ --
-local aEndingData<const> = {
+local oEndingData<const> = {
   [-1]           = {    "MINING OPERATIONS COMPLETED!",
                         "ZOGS HAVE BEEN RAISED!" },
   [TYP.FTARG]    = { 1, "THE F'TARGS CONSTRUCT THEIR OWN MUSEUM",
@@ -2540,98 +2531,98 @@ local aIntroSubTitles<const> = {
                   "are unthinkable!" } },
 };-- SHO - HID - LINES ----------------------------------------------------- --
 -- Convert key index to literal string ------------------------------------- --
-local aKeys<const> = Input.KeyCodes;
-local aKeyToLiteral<const> = {
-  [0]                   = "UNBOUND",   [aKeys.APOSTROPHE]    = "APOSTROPHE",
-  [aKeys.A]             = "A",         [aKeys.BACKSLASH]     = "BACKSLASH",
-  [aKeys.BACKSPACE]     = "BACKSPACE", [aKeys.B]             = "B",
-  [aKeys.CAPS_LOCK]     = "CAPS LOCK", [aKeys.COMMA]         = "COMMA",
-  [aKeys.C]             = "C",         [aKeys.DELETE]        = "DELETE",
-  [aKeys.DOWN]          = "DOWN",      [aKeys.D]             = "D",
-  [aKeys.END]           = "END",       [aKeys.ENTER]         = "ENTER",
-  [aKeys.EQUAL]         = "EQUALS",    [aKeys.ESCAPE]        = "ESCAPE",
-  [aKeys.E]             = "E",         [aKeys.F10]           = "F10",
-  [aKeys.F11]           = "F11",       [aKeys.F12]           = "F12",
-  [aKeys.F13]           = "F13",       [aKeys.F14]           = "F14",
-  [aKeys.F15]           = "F15",       [aKeys.F16]           = "F16",
-  [aKeys.F17]           = "F17",       [aKeys.F18]           = "F18",
-  [aKeys.F19]           = "F19",       [aKeys.F1]            = "F1",
-  [aKeys.F20]           = "F20",       [aKeys.F21]           = "F21",
-  [aKeys.F22]           = "F22",       [aKeys.F23]           = "F23",
-  [aKeys.F24]           = "F24",       [aKeys.F25]           = "F25",
-  [aKeys.F2]            = "F2",        [aKeys.F3]            = "F3",
-  [aKeys.F4]            = "F4",        [aKeys.F5]            = "F5",
-  [aKeys.F6]            = "F6",        [aKeys.F7]            = "F7",
-  [aKeys.F8]            = "F8",        [aKeys.F9]            = "F9",
-  [aKeys.F]             = "F",         [aKeys.GRAVE_ACCENT]  = "GRAVE ACCENT",
-  [aKeys.G]             = "G",         [aKeys.HOME]          = "HOME",
-  [aKeys.H]             = "H",         [aKeys.INSERT]        = "INSERT",
-  [aKeys.I]             = "I",         [aKeys.J]             = "J",
-  [aKeys.KP_0]          = "KEYPAD 0",  [aKeys.KP_1]          = "KEYPAD 1",
-  [aKeys.KP_2]          = "KEYPAD 2",  [aKeys.KP_3]          = "KEYPAD 3",
-  [aKeys.KP_4]          = "KEYPAD 4",  [aKeys.KP_5]          = "KEYPAD 5",
-  [aKeys.KP_6]          = "KEYPAD 6",  [aKeys.KP_7]          = "KEYPAD 7",
-  [aKeys.KP_8]          = "KEYPAD 8",  [aKeys.KP_9]          = "KEYPAD 9",
-  [aKeys.KP_ADD]        = "KEYPAD ADD",
-  [aKeys.KP_DECIMAL]    = "KEYPAD DECIMAL",
-  [aKeys.KP_DIVIDE]     = "KEYPAD DIVIDE",
-  [aKeys.KP_ENTER]      = "KEYPAD ENTER",
-  [aKeys.KP_EQUAL]      = "KEYPAD EQUAL",
-  [aKeys.KP_MULTIPLY]   = "KEYPAD MULTIPLY",
-  [aKeys.KP_SUBTRACT]   = "KEYPAD SUBTRACT",
-  [aKeys.K]             = "K",         [aKeys.LEFT]          = "LEFT",
-  [aKeys.LEFT_ALT]      = "LEFT ALT",  [aKeys.LEFT_BRACKET]  = "LEFT BRACKET",
-  [aKeys.LEFT_CONTROL]  = "LEFT CONTROL",
-  [aKeys.LEFT_SHIFT]    = "LEFT SHIFT",
-  [aKeys.LEFT_SUPER]    = "LEFT SUPER",
-  [aKeys.L]             = "L",         [aKeys.MENU]          = "MENU",
-  [aKeys.MINUS]         = "MINUS",     [aKeys.M]             = "M",
-  [aKeys.N0]            = "0",         [aKeys.N1]            = "1",
-  [aKeys.N2]            = "2",         [aKeys.N3]            = "3",
-  [aKeys.N4]            = "4",         [aKeys.N5]            = "5",
-  [aKeys.N6]            = "6",         [aKeys.N7]            = "7",
-  [aKeys.N8]            = "8",         [aKeys.N9]            = "9",
-  [aKeys.NUM_LOCK]      = "NUM LOCK",  [aKeys.N]             = "N",
-  [aKeys.O]             = "O",         [aKeys.PAGE_DOWN]     = "PAGE DOWN",
-  [aKeys.PAGE_UP]       = "PAGE UP",   [aKeys.PAUSE]         = "PAUSE",
-  [aKeys.PERIOD]        = "PERIOD",    [aKeys.PRINT_SCREEN]  = "PRINT SCREEN",
-  [aKeys.P]             = "P",         [aKeys.Q]             = "Q",
-  [aKeys.RIGHT]         = "RIGHT",     [aKeys.RIGHT_ALT]     = "RIGHT ALT",
-  [aKeys.RIGHT_BRACKET] = "RIGHT BRACKET",
-  [aKeys.RIGHT_CONTROL] = "RIGHT CONTROL",
-  [aKeys.RIGHT_SHIFT]   = "RIGHT SHIFT",
-  [aKeys.RIGHT_SUPER]   = "RIGHT SUPER",
-  [aKeys.R]             = "R",         [aKeys.SCROLL_LOCK]   = "SCROLL LOCK",
-  [aKeys.SEMICOLON]     = "SEMICOLON", [aKeys.SLASH]         = "SLASH",
-  [aKeys.SPACE]         = "SPACE",     [aKeys.S]             = "S",
-  [aKeys.TAB]           = "TAB",       [aKeys.T]             = "T",
-  [aKeys.UNKNOWN]       = "UNKNOWN",   [aKeys.UP]            = "UP",
-  [aKeys.U]             = "U",         [aKeys.V]             = "V",
-  [aKeys.WORLD_1]       = "WORLD 1",   [aKeys.WORLD_2]       = "WORLD 2",
-  [aKeys.W]             = "W",         [aKeys.X]             = "X",
-  [aKeys.Y]             = "Y",         [aKeys.Z]             = "Z"
+local oKeys<const> = Input.KeyCodes;
+local oKeyToLiteral<const> = {
+  [0]                   = "UNBOUND",   [oKeys.APOSTROPHE]    = "APOSTROPHE",
+  [oKeys.A]             = "A",         [oKeys.BACKSLASH]     = "BACKSLASH",
+  [oKeys.BACKSPACE]     = "BACKSPACE", [oKeys.B]             = "B",
+  [oKeys.CAPS_LOCK]     = "CAPS LOCK", [oKeys.COMMA]         = "COMMA",
+  [oKeys.C]             = "C",         [oKeys.DELETE]        = "DELETE",
+  [oKeys.DOWN]          = "DOWN",      [oKeys.D]             = "D",
+  [oKeys.END]           = "END",       [oKeys.ENTER]         = "ENTER",
+  [oKeys.EQUAL]         = "EQUALS",    [oKeys.ESCAPE]        = "ESCAPE",
+  [oKeys.E]             = "E",         [oKeys.F10]           = "F10",
+  [oKeys.F11]           = "F11",       [oKeys.F12]           = "F12",
+  [oKeys.F13]           = "F13",       [oKeys.F14]           = "F14",
+  [oKeys.F15]           = "F15",       [oKeys.F16]           = "F16",
+  [oKeys.F17]           = "F17",       [oKeys.F18]           = "F18",
+  [oKeys.F19]           = "F19",       [oKeys.F1]            = "F1",
+  [oKeys.F20]           = "F20",       [oKeys.F21]           = "F21",
+  [oKeys.F22]           = "F22",       [oKeys.F23]           = "F23",
+  [oKeys.F24]           = "F24",       [oKeys.F25]           = "F25",
+  [oKeys.F2]            = "F2",        [oKeys.F3]            = "F3",
+  [oKeys.F4]            = "F4",        [oKeys.F5]            = "F5",
+  [oKeys.F6]            = "F6",        [oKeys.F7]            = "F7",
+  [oKeys.F8]            = "F8",        [oKeys.F9]            = "F9",
+  [oKeys.F]             = "F",         [oKeys.GRAVE_ACCENT]  = "GRAVE ACCENT",
+  [oKeys.G]             = "G",         [oKeys.HOME]          = "HOME",
+  [oKeys.H]             = "H",         [oKeys.INSERT]        = "INSERT",
+  [oKeys.I]             = "I",         [oKeys.J]             = "J",
+  [oKeys.KP_0]          = "KEYPAD 0",  [oKeys.KP_1]          = "KEYPAD 1",
+  [oKeys.KP_2]          = "KEYPAD 2",  [oKeys.KP_3]          = "KEYPAD 3",
+  [oKeys.KP_4]          = "KEYPAD 4",  [oKeys.KP_5]          = "KEYPAD 5",
+  [oKeys.KP_6]          = "KEYPAD 6",  [oKeys.KP_7]          = "KEYPAD 7",
+  [oKeys.KP_8]          = "KEYPAD 8",  [oKeys.KP_9]          = "KEYPAD 9",
+  [oKeys.KP_ADD]        = "KEYPAD ADD",
+  [oKeys.KP_DECIMAL]    = "KEYPAD DECIMAL",
+  [oKeys.KP_DIVIDE]     = "KEYPAD DIVIDE",
+  [oKeys.KP_ENTER]      = "KEYPAD ENTER",
+  [oKeys.KP_EQUAL]      = "KEYPAD EQUAL",
+  [oKeys.KP_MULTIPLY]   = "KEYPAD MULTIPLY",
+  [oKeys.KP_SUBTRACT]   = "KEYPAD SUBTRACT",
+  [oKeys.K]             = "K",         [oKeys.LEFT]          = "LEFT",
+  [oKeys.LEFT_ALT]      = "LEFT ALT",  [oKeys.LEFT_BRACKET]  = "LEFT BRACKET",
+  [oKeys.LEFT_CONTROL]  = "LEFT CONTROL",
+  [oKeys.LEFT_SHIFT]    = "LEFT SHIFT",
+  [oKeys.LEFT_SUPER]    = "LEFT SUPER",
+  [oKeys.L]             = "L",         [oKeys.MENU]          = "MENU",
+  [oKeys.MINUS]         = "MINUS",     [oKeys.M]             = "M",
+  [oKeys.N0]            = "0",         [oKeys.N1]            = "1",
+  [oKeys.N2]            = "2",         [oKeys.N3]            = "3",
+  [oKeys.N4]            = "4",         [oKeys.N5]            = "5",
+  [oKeys.N6]            = "6",         [oKeys.N7]            = "7",
+  [oKeys.N8]            = "8",         [oKeys.N9]            = "9",
+  [oKeys.NUM_LOCK]      = "NUM LOCK",  [oKeys.N]             = "N",
+  [oKeys.O]             = "O",         [oKeys.PAGE_DOWN]     = "PAGE DOWN",
+  [oKeys.PAGE_UP]       = "PAGE UP",   [oKeys.PAUSE]         = "PAUSE",
+  [oKeys.PERIOD]        = "PERIOD",    [oKeys.PRINT_SCREEN]  = "PRINT SCREEN",
+  [oKeys.P]             = "P",         [oKeys.Q]             = "Q",
+  [oKeys.RIGHT]         = "RIGHT",     [oKeys.RIGHT_ALT]     = "RIGHT ALT",
+  [oKeys.RIGHT_BRACKET] = "RIGHT BRACKET",
+  [oKeys.RIGHT_CONTROL] = "RIGHT CONTROL",
+  [oKeys.RIGHT_SHIFT]   = "RIGHT SHIFT",
+  [oKeys.RIGHT_SUPER]   = "RIGHT SUPER",
+  [oKeys.R]             = "R",         [oKeys.SCROLL_LOCK]   = "SCROLL LOCK",
+  [oKeys.SEMICOLON]     = "SEMICOLON", [oKeys.SLASH]         = "SLASH",
+  [oKeys.SPACE]         = "SPACE",     [oKeys.S]             = "S",
+  [oKeys.TAB]           = "TAB",       [oKeys.T]             = "T",
+  [oKeys.UNKNOWN]       = "UNKNOWN",   [oKeys.UP]            = "UP",
+  [oKeys.U]             = "U",         [oKeys.V]             = "V",
+  [oKeys.WORLD_1]       = "WORLD 1",   [oKeys.WORLD_2]       = "WORLD 2",
+  [oKeys.W]             = "W",         [oKeys.X]             = "X",
+  [oKeys.Y]             = "Y",         [oKeys.Z]             = "Z"
 };
 -- Imports and exports ----------------------------------------------------- --
 return { F = Util.Blank, A = {         -- Sending API to main loader
   -- Exports --------------------------------------------------------------- --
   aAIChoicesData = aAIChoicesData, aAITypesData = AI,
   aCreditsData = aCreditsData, aCreditsXData = aCreditsXData,
-  aCursorData = aCursorData, aCursorIdData = CID,
-  aDigBlockData = aDigBlockData, aDigData = aDigData,
+  aCursorData = aCursorData, oCursorIdData = CID,
+  aDigBlockData = aDigBlockData, oDigData = oDigData,
   aDigTileData = aDigTileData, aDigTileFlags = DF,
-  aDugRandShaftData = aDugRandShaftData, aEndingData = aEndingData,
-  aExplodeAboveData = aExplodeAboveData, aExplodeDirData = aExplodeDirData,
-  aFloodGateData = aFloodGateData, aIntroSubTitles = aIntroSubTitles,
-  aKeyToLiteral = aKeyToLiteral, aJumpFallData = aJumpFallData,
+  oDugRandShaftData = oDugRandShaftData, oEndingData = oEndingData,
+  oExplodeAboveData = oExplodeAboveData, aExplodeDirData = aExplodeDirData,
+  oFloodGateData = oFloodGateData, aIntroSubTitles = aIntroSubTitles,
+  oKeyToLiteral = oKeyToLiteral, aJumpFallData = aJumpFallData,
   aJumpRiseData = aJumpRiseData, aLevelTypesData = aLevelTypesData,
-  aLevelsData = aLevelsData, aMenuData = aMenuData, aMenuFlags = MFL,
-  aMenuIds = MNU, aObjectActions = ACT, aObjectData = aObjectData,
-  aObjectDirections = DIR, aObjectFlags = OFL, aObjectJobs = JOB,
-  aObjectTypes = TYP, aRaceStatData = aRaceStatData, aRacesData = aRacesData,
+  aLevelsData = aLevelsData, oMenuData = oMenuData, oMenuFlags = MFL,
+  oMenuIds = MNU, oObjectActions = ACT, oObjectData = oObjectData,
+  oObjectDirections = DIR, aObjectFlags = OFL, oObjectJobs = JOB,
+  oObjectTypes = TYP, aRaceStatData = aRaceStatData, aRacesData = aRacesData,
   aSetupButtonData = aSetupButtonData, aSetupOptionData = aSetupOptionData,
-  aSfxData = aSfxData, aShopData = aShopData, aShroudCircle = aShroudCircle,
+  oSfxData = oSfxData, aShopData = aShopData, aShroudCircle = aShroudCircle,
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,
-  aTileFlags = TF, aTimerData = aTimerData, aTrainTrackData = aTrainTrackData,
+  oTileFlags = TF, oTimerData = TD, oTrainTrackData = oTrainTrackData,
   aZoneData = aZoneData
   -- ----------------------------------------------------------------------- --
 } };                                   -- End of definitions to send to loader

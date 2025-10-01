@@ -21,9 +21,9 @@ local BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, InitBank, InitCon,
   InitContinueGame, InitScene, InitShop, InitTitle, LoadResources, PlayMusic,
   PlayStaticSound, Print, RegisterFBUCallback, RenderAll, RenderShadow,
   RenderTip, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys, SetTip,
-  aGlobalData, fontSpeech;
+  oGlobalData, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
-local aActiveObject,                   -- Selected object when entering lobby
+local oObjActive,                   -- Selected object when entering lobby
       aClosedAssetsMusic,              -- Out of game lobby with music
       aClosedAssetsNoMusic,            -- Out of game lobby with no music
       aOpenAssetsMusic,                -- In-game lobby with music
@@ -123,22 +123,22 @@ local function NotReadyCallback() Print(fontSpeech, 157, 115, "!") end;
 -- Init lobby function ----------------------------------------------------- --
 local function InitLobby(bNoSetMusic, iSaveMusicPos)
   -- Active object must be specified or omitted
-  aActiveObject = GetActiveObject();
-  if aActiveObject ~= nil and not UtilIsTable(aActiveObject) then
-    error("Invalid object owner table! "..tostring(aActiveObject)) end;
+  oObjActive = GetActiveObject();
+  if oObjActive ~= nil and not UtilIsTable(oObjActive) then
+    error("Invalid object owner table! "..tostring(oObjActive)) end;
   -- No set music flag can be nil set to false as a result
   if bNoSetMusic == nil then bNoSetMusic = false;
   -- Else if it's specified and it's not a boolean then show error
   elseif not UtilIsBoolean(bNoSetMusic) then
     error("Invalid set music flag! "..tostring(bNoSetMusic));
   -- Must specify position if bNoSetMusic is false
-  elseif aActiveObject and not bNoSetMusic and
+  elseif oObjActive and not bNoSetMusic and
     not UtilIsInteger(iSaveMusicPos) then
       error("Invalid save pos id! "..tostring(iSaveMusicPos)); end;
   -- Resources to load
   local aAssets, fcbOnLoaded;
   -- In a game?
-  if aActiveObject then
+  if oObjActive then
     -- In-game onloaded event
     fcbOnLoaded = OnLoadedOpened;
     -- Set resources depending on music requested
@@ -154,8 +154,8 @@ local function InitLobby(bNoSetMusic, iSaveMusicPos)
     if bNoSetMusic then aAssets = aClosedAssetsNoMusic;
                    else aAssets = aClosedAssetsMusic end;
     -- If game is ready to play?
-    if aGlobalData.gSelectedLevel ~= nil and
-       aGlobalData.gSelectedRace ~= nil then
+    if oGlobalData.gSelectedLevel ~= nil and
+       oGlobalData.gSelectedRace ~= nil then
       -- Can exit to zone start hotspots
       iHotSpotClosedSelectedId = iHotSpotClosedReadyId;
       -- Player is allowed to begin the zone
@@ -163,7 +163,7 @@ local function InitLobby(bNoSetMusic, iSaveMusicPos)
       -- Set exclamation mark callback
       fcbRenderExtra = UtilBlank;
     -- If game has been saved?
-    elseif aGlobalData.gGameSaved then
+    elseif oGlobalData.gGameSaved then
       -- Can't exit hotspots
       iHotSpotClosedSelectedId = iHotSpotClosedExitId;
       -- Player is allowed to exit to the title screen
@@ -222,40 +222,40 @@ local function GoClose() ExitOpen(InitContinueGame, true) end;
 local function GoCntrl() ExitClose(false, InitCon) end;
 local function GoShop() ExitOpen(InitShop) end;
 local function GoStart()
-  ExitClose(true, InitScene, aGlobalData.gSelectedLevel) end;
+  ExitClose(true, InitScene, oGlobalData.gSelectedLevel) end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, InitBank, InitCon,
     InitContinueGame, InitScene, InitShop, InitTitle, LoadResources, PlayMusic,
     PlayStaticSound, Print, RegisterFBUCallback, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, RenderTipShadow, SetCallbacks,
-    SetHotSpot, SetKeys, SetTip, aAssetsData, aCursorIdData, aGlobalData,
-    aSfxData, fontSpeech =
+    SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData, oGlobalData,
+    oSfxData, fontSpeech =
       GetAPI("BlitLT", "BlitSLT", "Fade", "GameProc", "GetActiveObject",
         "InitBank", "InitCon", "InitContinueGame", "InitScene", "InitShop",
         "InitTitle", "LoadResources", "PlayMusic", "PlayStaticSound", "Print",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderAll", "RenderShadow", "RenderTip", "RenderTipShadow",
-        "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aSfxData", "fontSpeech");
+        "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "oSfxData", "fontSpeech");
   -- Prepare assets
-  local aMusicAsset<const> = aAssetsData.lobbym;
-  local aClosedTexture<const> = aAssetsData.lobbyc;
-  local aZmtcTexture<const> = aAssetsData.zmtc;
+  local aMusicAsset<const> = oAssetsData.lobbym;
+  local aClosedTexture<const> = oAssetsData.lobbyc;
+  local aZmtcTexture<const> = oAssetsData.zmtc;
   aClosedAssetsNoMusic = { aZmtcTexture, aClosedTexture };
   aClosedAssetsMusic = { aZmtcTexture, aClosedTexture, aMusicAsset };
-  local aOpenTexture<const> = aAssetsData.lobbyo;
+  local aOpenTexture<const> = oAssetsData.lobbyo;
   aOpenAssetsNoMusic = { aOpenTexture };
   aOpenAssetsMusic = { aOpenTexture, aMusicAsset };
   -- Set sound effect ids
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Set cursor ids
   local iCOK<const>, iCSelect<const>, iCExit<const>, iCArrow<const> =
-    aCursorIdData.OK, aCursorIdData.SELECT, aCursorIdData.EXIT,
-    aCursorIdData.ARROW;
+    oCursorIdData.OK, oCursorIdData.SELECT, oCursorIdData.EXIT,
+    oCursorIdData.ARROW;
   -- Frequently used hotspots
   local aControllerHotSpot<const>, aHotSpot<const> =
     { 151, 124,  13,  13, 0, iCSelect, "CONTROLLER", false, GoCntrl },
@@ -277,18 +277,18 @@ local function OnScriptLoaded(GetAPI)
     {   0,   0,   0, 240, 3, iCExit,   "CONTINUE", false, GoClose }
   });
   -- Prepare key bind registration
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
-  local iEscape<const> = aKeys.ESCAPE;
-  local iPress<const> = aStates.PRESS;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
+  local iEscape<const> = oKeys.ESCAPE;
+  local iPress<const> = oStates.PRESS;
   local sName<const> = "ZMTC LOBBY";
   -- Register open lobby keybanks
   iKeyBankOpenedId = RegisterKeys(sName, { [iPress] = {
-    { aKeys.B, GoBank,  "zmtclb",  "BANK"          },
-    { aKeys.S, GoShop,  "zmtcls",  "SHOP"          },
+    { oKeys.B, GoBank,  "zmtclb",  "BANK"          },
+    { oKeys.S, GoShop,  "zmtcls",  "SHOP"          },
     { iEscape, GoClose, "zmtclcg", "CONTINUE GAME" }
   } } );
   -- Controller bind
-  local aController<const> = { aKeys.ENTER, GoCntrl, "zmtclc", "CONTROLLER" };
+  local aController<const> = { oKeys.ENTER, GoCntrl, "zmtclc", "CONTROLLER" };
   -- Register closed lobby keybanks
   iKeyBankClosedExitId = RegisterKeys(sName, { [iPress] = { aController,
     { iEscape, GoAbort, "zmtclatg", "ABORT THE GAME" } } });

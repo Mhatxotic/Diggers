@@ -21,7 +21,7 @@ local UtilHex<const>, CoreCPUUsage<const>, CoreRAM<const>,
     Util.Hex, Core.CPUUsage, Core.RAM, Display.GPUFPS, Core.Uptime,
     Core.LUATime, Core.LUAUsage, Util.Duration;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTRB, Fade, GetGameTicks, GetMouseX, GetMouseY, aPlayers, aObjects,
+local BlitSLTRB, Fade, GetGameTicks, GetMouseX, GetMouseY, aPlayers, aObjs,
   RenderTerrain, RenderObjects, RenderShroud, BCBlit, texSpr, fontLarge,
   fontLittle, fontTiny, SelectObject, GameProc, GetActiveObject,
   GetActivePlayer, SetCallbacks, LoadLevel, PrintC, PrintCT, PrintT, PrintR,
@@ -39,53 +39,60 @@ local function InitDebugPlay(iId)
   RegisterFBUCallback("debug", OnStageUpdatedd);
   -- Player and digger ids for selection
   local iSelectedPlayerId, iSelectedDiggerId = 1, 1;
+  -- Select next digger
+  local function SelectNextDigger()
+    iSelectedDiggerId = iSelectedDiggerId + 1;
+    if iSelectedDiggerId > 5 then
+      iSelectedDiggerId = 1;
+      iSelectedPlayerId = iSelectedPlayerId + 1;
+      if iSelectedPlayerId > 2 then iSelectedPlayerId = 1 end;
+    end
+  end
   -- Infinite play tick callback
   local function OnTick()
     -- New object selected
-    local aObject;
+    local oObj;
     -- For each player
     for iPlayer = 1, #aPlayers do
       -- Get player diggers and enumerate them
       local aDiggers<const> = aPlayers[iPlayer].D;
       for iDigger = 1, #aDiggers do
         -- Get digger object and if it is in danger?
-        local aDigger<const> = aDiggers[iDigger];
-        if aDigger.J == JOB.INDANGER and
-           aDigger.A ~= ACT.DEATH and
-          (aDigger.A ~= ACT.FIGHT or
-           aDigger.P == aActivePlayer) then
+        local oDigger<const> = aDiggers[iDigger];
+        if oDigger and
+           oDigger.J == JOB.INDANGER and
+           oDigger.A ~= ACT.DEATH and
+          (oDigger.A ~= ACT.FIGHT or
+           oDigger.P == oPlrActive) then
           -- It is selected
           iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
-          aObject = aDigger;
+          oObj = oDigger;
           -- Do not check any more diggers
           break;
         end
       end
       -- Break if we got a digger
-      if aObject then break end;
+      if oObj then break end;
     end
     -- Switch object every 10 seconds
-    if not aObject and GetGameTicks() % 600 == 0 then
+    if not oObj and GetGameTicks() % 600 == 0 then
+      -- Try again point
+      ::tryagain::
       -- Select a player
-      local aPlayer = aPlayers[iSelectedPlayerId];
+      local oPlayer<const> = aPlayers[iSelectedPlayerId];
       -- Get player diggers
-      local aDiggers<const> = aPlayer.D;
+      local aDiggers<const> = oPlayer.D;
       -- Find a digger from the specified player.
-      aObject = aDiggers[iSelectedDiggerId];
-      -- Still not found? Select a random digger
-      if not aObject then aObject = aObjects[random(#aObjects)] end;
+      oObj = aDiggers[iSelectedDiggerId];
+      -- Loop if we don't find a digger
+      if not oObj then SelectNextDigger() goto tryagain end;
     end
     -- New object selected?
-    if aObject then
+    if oObj then
       -- Select the object and player if we got something!
-      SelectObject(aObject);
+      SelectObject(oObj);
       -- Next object
-      iSelectedDiggerId = iSelectedDiggerId + 1;
-      if iSelectedDiggerId > 5 then
-        iSelectedDiggerId = 1;
-        iSelectedPlayerId = iSelectedPlayerId + 1;
-        if iSelectedPlayerId > 2 then iSelectedPlayerId = 1 end;
-      end
+      SelectNextDigger();
     end
     -- Perform game procedure
     GameProc();
@@ -108,9 +115,9 @@ local function InitDebugPlay(iId)
     -- Render terrain
     RenderTerrain();
     -- Get active player object and opponent player
-    local aActivePlayer<const> = GetActivePlayer();
-    local aActiveObject<const> = GetActiveObject();
-    local aOpponentPlayer<const> = GetOpponentPlayer();
+    local oPlrActive<const> = GetActivePlayer();
+    local oObjActive<const> = GetActiveObject();
+    local oPlrOpponent<const> = GetOpponentPlayer();
     -- Get viewport information
     local iPixPosX<const>, iPixPosY<const>,
           iPixPosTargetX<const>, iPixPosTargetY<const>,
@@ -123,45 +130,44 @@ local function InitDebugPlay(iId)
     -- Calculate viewpoint position
     local nVPX<const>, nVPY<const> = iPixPosX - iStageL, iPixPosY - iStageT;
     -- For each object
-    for iObjId = 1, #aObjects do
+    for iObjId = 1, #aObjs do
       -- Get object data
-      local aObject<const> = aObjects[iObjId];
-      local iX<const>, iY<const> = aObject.X, aObject.Y;
+      local oObj<const> = aObjs[iObjId];
+      local iX<const>, iY<const> = oObj.X, oObj.Y;
       -- Holds objects render position on-screen
-      local iXX, iYY = iX - nVPX + aObject.OFX,
-                       iY - nVPY + aObject.OFY;
+      local iXX, iYY = iX - nVPX + oObj.OFX, iY - nVPY + oObj.OFY;
       -- If in bounds?
       if min(iXX + 16, iStageR) > max(iXX, iStageL) and
          min(iYY + 16, iStageB) > max(iYY, iStageT) then
         -- Draw the texture
-        BlitSLTRB(texSpr, aObject.S, iXX, iYY, iXX + 16, iYY + 16);
+        BlitSLTRB(texSpr, oObj.S, iXX, iYY, iXX + 16, iYY + 16);
         -- Get health
-        local iHealth<const> = aObject.H;
+        local iHealth<const> = oObj.H;
         -- Centre location of digger information
         local iXXC<const> = iXX + 8;
         -- Active object is a digger?
-        local iDiggerId = aObject.DI;
+        local iDiggerId<const> = oObj.DI;
         if iDiggerId then
           -- Is player one?
-          if aObject.P == aActivePlayer then
+          if oObj.P == oPlrActive then
             -- Active object? Set brighter
-            if aObject == aActiveObject then
+            if oObj == oObjActive then
               fontTiny:SetCRGBA(1, 0.7, 0.8, 1);
             -- Inactive object? Set dim
             else fontTiny:SetCRGBA(1, 0.6, 0.7, 0.75) end;
           -- Is player two?
-          elseif aObject == aActiveObject then
+          elseif oObj == oObjActive then
             -- Active object? Set brighter
             fontTiny:SetCRGBA(0.34, 0.9, 0.5, 1);
           -- Inactive object? Set dim
           else fontTiny:SetCRGBA(0.24, 0.8, 0.4, 0.75) end;
           -- Draw name and id of digger
-          PrintC(fontTiny, iXXC, iYY - 9, aObject.OD.NAME.." "..iDiggerId);
+          PrintC(fontTiny, iXXC, iYY - 9, oObj.OD.NAME.." "..iDiggerId);
           -- Get object inventory and if have any
-          local aObjInv<const> = aObject.I;
+          local aObjInv<const> = oObj.I;
           if #aObjInv > 0 then
             -- Draw them above head
-            local iX = iXX - ((#aObjInv - 1) * 8 / 2) + 4;
+            local iX = iXX - ((#aObjInv - 1) * 8 // 2) + 4;
             local iY<const> = iYY - 18;
             local iY2<const> = iY + 8;
             for iIIndex = 1, #aObjInv do
@@ -172,21 +178,21 @@ local function InitDebugPlay(iId)
         -- Not a digger?
         else
           -- Active object? Set brighter
-          if aObject == aActiveObject then fontTiny:SetCRGBA(1, 1, 1, 1);
+          if oObj == oObjActive then fontTiny:SetCRGBA(1, 1, 1, 1);
           -- Inactive object? Set dim
           else fontTiny:SetCRGBA(0.9, 0.9, 0.9, 0.75) end;
           -- Draw name of object
-          PrintC(fontTiny, iXXC, iYY - 9, aObject.OD.NAME.." "..aObject.U);
+          PrintC(fontTiny, iXXC, iYY - 9, oObj.OD.NAME.." "..oObj.U);
         end
         -- Set string for object target
-        local aTarget = aObject.T;
+        local aTarget = oObj.T;
         if aTarget then aTarget = format("\rt%08x%u", aTarget.S, aTarget.DI)
         -- No target?
         else
           -- Start of pursuer list
           aTarget = "\n";
           -- Add pursuers
-          for iUId, aPursuer in pairs(aObject.TL) do
+          for iUId, aPursuer in pairs(oObj.TL) do
             aTarget = aTarget..format("\rt%08x%u", aPursuer.S, aPursuer.U);
           end
           -- Remove text if no pursuers
@@ -194,8 +200,8 @@ local function InitDebugPlay(iId)
         end
         -- Draw object status under object
         PrintCT(fontTiny, iXXC, iYY + 17, iX.."x"..iY.."\n"..
-          aObject.A..":"..aObject.J..":"..aObject.D.." "..aObject.AT.."\n"..
-          UtilHex(aObject.F)..aTarget, texSpr);
+          oObj.A..":"..oObj.J..":"..oObj.D.." "..oObj.AT.."\n"..
+          UtilHex(oObj.F)..aTarget, texSpr);
         -- Draw health bar background
         local iYHealth<const> = iYY - 1;
         local iYHealth2<const> = iYHealth - 1;
@@ -210,9 +216,9 @@ local function InitDebugPlay(iId)
           iXX, iYHealth, iXX + iHealth / 6.25, iYHealth2);
         texSpr:SetCRGB(1, 1 ,1);
         -- Got an attachment? Draw it too!
-        if aObject.STA then
-          iXX, iYY = iXX + aObject.OFXA, iYY + aObject.OFYA;
-          BCBlit(aObject.SA, iXX, iYY, iXX + 16, iYY + 16);
+        if oObj.STA then
+          iXX, iYY = iXX + oObj.OFXA, iYY + oObj.OFYA;
+          BCBlit(oObj.SA, iXX, iYY, iXX + 16, iYY + 16);
         end
       end
     end
@@ -224,15 +230,15 @@ local function InitDebugPlay(iId)
         (nGPUFramesPerSecond or 60);
     local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- Get player one data
-    local iMoney1<const> = aActivePlayer.M;
-    local iDiggers1<const> = aActivePlayer.DC;
-    local iGems1<const> = aActivePlayer.GEM;
-    local iDug1<const> = aActivePlayer.DUG;
+    local iMoney1<const> = oPlrActive.M;
+    local iDiggers1<const> = oPlrActive.DC;
+    local iGems1<const> = oPlrActive.GEM;
+    local iDug1<const> = oPlrActive.DUG;
     -- Get player two data
-    local iMoney2<const> = aOpponentPlayer.M;
-    local iDiggers2<const> = aOpponentPlayer.DC;
-    local iGems2<const> = aOpponentPlayer.GEM;
-    local iDug2<const> = aOpponentPlayer.DUG;
+    local iMoney2<const> = oPlrOpponent.M;
+    local iDiggers2<const> = oPlrOpponent.DC;
+    local iGems2<const> = oPlrOpponent.GEM;
+    local iDug2<const> = oPlrOpponent.DUG;
     -- Draw HUD text
     local nFade1, nFade2, nR, nG, nB;
     if iMoney1 > iMoney2 then
@@ -260,9 +266,9 @@ local function InitDebugPlay(iId)
     BlitSLTRB(texSpr, 1022, 160, 6, 161, 40);
     texSpr:SetCRGB(1, 1, 1);
     fontTiny:SetCRGBA(1, 0.6, 0.7, nFade1);
-    PrintR(fontTiny, 155, 34, aActivePlayer.RD.LONGNAME);
+    PrintR(fontTiny, 155, 34, oPlrActive.RD.LONGNAME);
     fontTiny:SetCRGBA(0.24, 0.8, 0.4, nFade2);
-    Print(fontTiny, 165, 34, aOpponentPlayer.RD.LONGNAME);
+    Print(fontTiny, 165, 34, oPlrOpponent.RD.LONGNAME);
     fontTiny:SetCRGBA(1, 1, 1, 1);
     -- Draw engine info
     Print(fontTiny, iStageL + 5, 5, format(
@@ -290,11 +296,12 @@ local function InitDebugPlay(iId)
          %4d/%4d VCPX\n\z
          %4d/%4d APOS\n\z
          %4d/%4d ACPS\n\z
-         %4d/%4d AMAX",
+         %4d/%4d AMAX\n\z
+         %4d/%4d MPOS",
         sLevelName, iLevelId,
         sLevelType,
         iWinLimit,
-        #aObjects,
+        #aObjs,
         GetGameTicks(),
         UtilDuration(GetGameTicks() / 60, 2),
         UtilDuration(CoreLUATime(), 2),
@@ -304,7 +311,8 @@ local function InitDebugPlay(iId)
         iPixCenPosX, iPixCenPosY,
         iPosX, iPosY,
         iAbsCenPosX, iAbsCenPosY,
-        iViewportW, iViewportH));
+        iViewportW, iViewportH,
+        GetMouseX(), GetMouseY()));
     -- Draw gems and dug count
     fontLittle:SetCRGBA(1, 1, 1, nFade1);
     PrintR(fontLittle, 155, 23, iDug1.." ("..iGems1..")");
@@ -404,17 +412,17 @@ local function InitDebugPlay(iId)
     -- For each player...
     for iPlayerId = 1, #aPlayers do
       -- Get player
-      local aPlayer<const> = aPlayers[iPlayerId];
+      local oPlayer<const> = aPlayers[iPlayerId];
       -- Set remove shroud mode
-      aPlayer.US = true;
+      oPlayer.US = true;
       -- Get and enumerate player diggers
-      local aDiggers<const> = aPlayer.D;
+      local aDiggers<const> = oPlayer.D;
       for iDiggerId = 1, #aDiggers do
         -- Get digger
-        local aDigger<const> = aDiggers[iDiggerId];
+        local oDigger<const> = aDiggers[iDiggerId];
         -- Set remove shroud mode
-        aDigger.US = true;
-        UpdateShroud(aDigger.AX, aDigger.AY);
+        oDigger.US = true;
+        UpdateShroud(oDigger.AX, oDigger.AY);
       end
     end
     -- Store mouse position
@@ -428,10 +436,11 @@ local function InitDebugPlay(iId)
         -- ...or someone wins? Check each player
         for iPlayerId = 1, #aPlayers do
           -- Get player data and load a new level if this player...
-          local aPlayer<const> = aPlayers[iPlayerId];
-          if (aPlayer.M <= 100 and        -- ...(Is stuck on 100 Zogs
+          local oPlayer<const> = aPlayers[iPlayerId];
+          if (oPlayer.M <= 100 and        -- ...(Is stuck on 100 Zogs
               GetGameTicks() >= 36840) or -- ...*and* it's been 10 minutes?)
-             HaveZogsToWin(aPlayer) then  -- ...*or* player has won?
+             HaveZogsToWin(oPlayer) or    -- ...*or* player has won?
+             oPlayer.DC <= 0 then         -- ...*or* all diggers are dead?
             return Finish() end;
         end
       end
@@ -472,7 +481,7 @@ local function OnScriptLoaded(GetAPI)
     GetViewportData, HaveZogsToWin, LoadLevel, PrintC, PrintCT, PrintR,
     Print, RegisterFBUCallback, RenderObjects, RenderShroud, RenderTerrain,
     SelectObject, SetCallbacks, SetPlaySounds, UpdateShroud, aLevelsData,
-    aObjects, aPlayers, fontLarge, fontLittle, fontTiny, texSpr,
+    aObjs, aPlayers, fontLarge, fontLittle, fontTiny, texSpr,
     RenderInterface, JOB, ACT =
       GetAPI("BlitSLTRB", "BCBlit", "Fade", "GameProc", "GetActiveObject",
         "GetActivePlayer", "GetGameTicks", "GetLevelInfo", "GetMouseX",
@@ -480,9 +489,9 @@ local function OnScriptLoaded(GetAPI)
         "LoadLevel", "PrintC", "PrintCT", "PrintR", "Print",
         "RegisterFBUCallback", "RenderObjects", "RenderShroud",
         "RenderTerrain", "SelectObject", "SetCallbacks", "SetPlaySounds",
-        "UpdateShroud", "aLevelsData", "aObjects", "aPlayers",
+        "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
         "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
-        "aObjectJobs", "aObjectActions");
+        "oObjectJobs", "oObjectActions");
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitDebugPlay = InitDebugPlay } };

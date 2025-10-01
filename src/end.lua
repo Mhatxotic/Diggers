@@ -19,7 +19,7 @@ local UtilFormatNumber<const>, UtilIsBoolean<const>, UtilIsInteger<const>,
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTWHA, Fade, GetGameTicks, InitPost, InitScore, LoadResources,
   PlayMusic, PlayStaticSound, PrintC, RenderFade, RenderObjects, RenderTerrain,
-  SetCallbacks, SetHotSpot, SetKeys, aGemsAvailable, aGlobalData, aObjects,
+  SetCallbacks, SetHotSpot, SetKeys, aGemsAvailable, oGlobalData, aObjs,
   aShroudData, fontLarge;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
@@ -152,15 +152,15 @@ local function GoWinGameStatus()
   PlayStaticSound(iSSelect);
   -- Build data for centre lines
   MakeLine(aLinesCentre,
-    Colourise(aGlobalData.gBankBalance).." IN BANK");
+    Colourise(oGlobalData.gBankBalance).." IN BANK");
   MakeLine(aLinesCentre,
-    Colourise(aGlobalData.gPercentCompleted).."% COMPLETED");
+    Colourise(oGlobalData.gPercentCompleted).."% COMPLETED");
   MakeLine(aLinesCentre, "RAISE "..
-    Colourise(aGlobalData.gZogsToWinGame - aGlobalData.gBankBalance)..
+    Colourise(oGlobalData.gZogsToWinGame - oGlobalData.gBankBalance)..
     " MORE");
   MakeLine(aLinesCentre, "ZOGS TO WIN THE GAME");
   MakeLine(aLinesCentre,
-    "(REQUIRED: "..Colourise(aGlobalData.gZogsToWinGame)..")");
+    "(REQUIRED: "..Colourise(oGlobalData.gZogsToWinGame)..")");
   -- We're going to reuse this value just as an input blocking timer
   nFade = 0;
   -- Dereference the ending texture
@@ -211,24 +211,24 @@ local function GetCapitalCarried()
   -- Capital value
   local nCapitalValue = 0;
   -- Check object and sell it if it's a device
-  local function SellDevice(aObj, nDivisor)
+  local function SellDevice(oObj, nDivisor)
     -- Failed if not a device
-    if aObj.F & iDeviceId == 0 then return end;
+    if oObj.F & iDeviceId == 0 then return end;
     -- Add capital value (25% value minus current quality)
     nCapitalValue = nCapitalValue +
-      (aObj.OD.VALUE / nDivisor) * (aObj.H / 100);
+      (oObj.OD.VALUE / nDivisor) * (oObj.H / 100);
   end
   -- Enumerate all game objects
-  for iObjIndex = 1, #aObjects do
+  for iObjIndex = 1, #aObjs do
     -- Get object and if it is owned by the active player?
-    local aObj<const> = aObjects[iObjIndex];
-    if aActivePlayer == aObj.P then
+    local oObj<const> = aObjs[iObjIndex];
+    if oPlrActive == oObj.P then
       -- If object is a device? Add 25% of it's value minus quality because
       -- it cost's money to recover the device. :-)
-      SellDevice(aObj, 4);
+      SellDevice(oObj, 4);
       -- Get object's inventory and sell it all 50% of it's value since the
       -- object or digger is already carrying the item.
-      local aObjInv<const> = aObj.I;
+      local aObjInv<const> = oObj.I;
       for iInvIndex = 1, #aObjInv do SellDevice(aObjInv[iInvIndex], 2) end;
     end
   end
@@ -263,7 +263,7 @@ local function OnFadedInLose()
   SetCallbacks(nil, RenderEnd);
 end
 -- On loaded event function ------------------------------------------------ --
-local function OnAssetsLoaded(aResources, aActivePlayer, aOpponentPlayer, sMsg)
+local function OnAssetsLoaded(aResources, oPlrActive, oPlrOpponent, sMsg)
   -- Keep waiting cursor for animation
   SetHotSpot();
   -- Play End music
@@ -271,53 +271,53 @@ local function OnAssetsLoaded(aResources, aActivePlayer, aOpponentPlayer, sMsg)
   -- Load texture
   texEnd = aResources[1];
   -- Get capital carried
-  aGlobalData.gCapitalCarried = GetCapitalCarried();
+  oGlobalData.gCapitalCarried = GetCapitalCarried();
   -- Get cost of digger deaths
-  local iPRemain<const> = aActivePlayer.DC;
-  local iPDeaths<const> = #aActivePlayer.D - iPRemain;
-  aGlobalData.gTotalDeaths = aGlobalData.gTotalDeaths + iPDeaths
+  local iPRemain<const> = oPlrActive.DC;
+  local iPDeaths<const> = #oPlrActive.D - iPRemain;
+  oGlobalData.gTotalDeaths = oGlobalData.gTotalDeaths + iPDeaths
   iDeadCost, iSalary = iPDeaths * 65, iPRemain * 30;
   -- Add enemy kills
-  local iPKills<const> = aActivePlayer.EK;
-  aGlobalData.gTotalEnemyKills = aGlobalData.gTotalEnemyKills + iPKills;
+  local iPKills<const> = oPlrActive.EK;
+  oGlobalData.gTotalEnemyKills = oGlobalData.gTotalEnemyKills + iPKills;
   -- Add homicides of opponent playerss
-  aGlobalData.gTotalHomicides = aGlobalData.gTotalHomicides + aActivePlayer.LK;
+  oGlobalData.gTotalHomicides = oGlobalData.gTotalHomicides + oPlrActive.LK;
   -- Calculate exploration amount
-  aGlobalData.gTotalExploration =
-    aGlobalData.gTotalExploration + GetExploration();
+  oGlobalData.gTotalExploration =
+    oGlobalData.gTotalExploration + GetExploration();
   -- Get game ticks and time
   iGameTicks = GetGameTicks();
   iGameTime = iGameTicks // 3600;
   -- Add data
-  aGlobalData.gTotalGemsFound =
-    aGlobalData.gTotalGemsFound + aActivePlayer.GEM;
-  aGlobalData.gTotalGemsSold =
-    aGlobalData.gTotalGemsSold + aActivePlayer.GS;
-  aGlobalData.gTotalCapital =
-    aGlobalData.gTotalCapital + aGlobalData.gCapitalCarried;
-  aGlobalData.gTotalTimeTaken =
-    aGlobalData.gTotalTimeTaken + iGameTicks // 60;
-  aGlobalData.gTotalIncome =
-    aGlobalData.gTotalIncome + aActivePlayer.GI;
-  aGlobalData.gTotalDug =
-    aGlobalData.gTotalDug + aActivePlayer.DUG;
-  aGlobalData.gTotalPurchases =
-    aGlobalData.gTotalPurchases + aActivePlayer.PUR;
-  aGlobalData.gBankBalance =
-    aGlobalData.gBankBalance + (aActivePlayer.M - iDeadCost - iSalary);
-  aGlobalData.gPercentCompleted =
-    floor(aGlobalData.gBankBalance / aGlobalData.gZogsToWinGame * 100);
+  oGlobalData.gTotalGemsFound =
+    oGlobalData.gTotalGemsFound + oPlrActive.GEM;
+  oGlobalData.gTotalGemsSold =
+    oGlobalData.gTotalGemsSold + oPlrActive.GS;
+  oGlobalData.gTotalCapital =
+    oGlobalData.gTotalCapital + oGlobalData.gCapitalCarried;
+  oGlobalData.gTotalTimeTaken =
+    oGlobalData.gTotalTimeTaken + iGameTicks // 60;
+  oGlobalData.gTotalIncome =
+    oGlobalData.gTotalIncome + oPlrActive.GI;
+  oGlobalData.gTotalDug =
+    oGlobalData.gTotalDug + oPlrActive.DUG;
+  oGlobalData.gTotalPurchases =
+    oGlobalData.gTotalPurchases + oPlrActive.PUR;
+  oGlobalData.gBankBalance =
+    oGlobalData.gBankBalance + (oPlrActive.M - iDeadCost - iSalary);
+  oGlobalData.gPercentCompleted =
+    floor(oGlobalData.gBankBalance / oGlobalData.gZogsToWinGame * 100);
   -- Make lines data with initial Y position
   aLinesTop, aLinesBottom, aLinesCentre = { Y=12 }, { Y=180 }, { Y=80 };
   -- Array holding top and bottom datas which are drawn together
   aCollections = { aLinesTop, aLinesBottom };
   -- Build data for top three lines
   MakeLine(aLinesTop, sMsg);
-  MakeLine(aLinesTop, "OPPONENT HAD "..Green(aOpponentPlayer.M).." ZOGS");
+  MakeLine(aLinesTop, "OPPONENT HAD "..Green(oPlrOpponent.M).." ZOGS");
   MakeLine(aLinesTop, "GAME TIME WAS "..Green(iGameTime).." MINS");
   -- Build data for bottom three lines
   MakeLine(aLinesBottom,
-    Green(aGlobalData.gCapitalCarried).." CAPITAL CARRIED");
+    Green(oGlobalData.gCapitalCarried).." CAPITAL CARRIED");
   MakeLine(aLinesBottom, Red(iSalary).." SALARY PAID");
   MakeLine(aLinesBottom, Red(iDeadCost).." DEATH DUTIES");
   -- Fade amount
@@ -362,31 +362,31 @@ local function InitLose(iLId, aP, aOP)
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData,
-    aObjectFlags, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData,
+    aObjectFlags, oSfxData;
   -- Grab imports
   BlitSLTWHA, Fade, GetGameTicks, InitPost, InitScore, LoadResources,
     PlayMusic, PlayStaticSound, PrintC, RegisterHotSpot, RegisterKeys,
     RenderFade, RenderObjects, RenderTerrain, SetCallbacks, SetHotSpot,
-    SetKeys, aAssetsData, aCursorIdData, aGemsAvailable, aGlobalData,
-    aObjectFlags, aObjects, aSfxData, aShroudData, fontLarge =
+    SetKeys, oAssetsData, oCursorIdData, aGemsAvailable, oGlobalData,
+    aObjectFlags, aObjs, oSfxData, aShroudData, fontLarge =
       GetAPI("BlitSLTWHA", "Fade", "GetGameTicks", "InitPost", "InitScore",
         "LoadResources", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterHotSpot", "RegisterKeys", "RenderFade", "RenderObjects",
         "RenderTerrain", "SetCallbacks", "SetHotSpot", "SetKeys",
-        "aAssetsData", "aCursorIdData", "aGemsAvailable", "aGlobalData",
-        "aObjectFlags", "aObjects", "aSfxData", "aShroudData", "fontLarge");
+        "oAssetsData", "oCursorIdData", "aGemsAvailable", "oGlobalData",
+        "aObjectFlags", "aObjs", "oSfxData", "aShroudData", "fontLarge");
   -- Setup assets required
-  local aEndAssets<const> = aAssetsData.post;
-  aWinAssets = { true, { aEndAssets, aAssetsData.scenem } };
-  aLoseAssets = { false, { aEndAssets, aAssetsData.losem } };
+  local aEndAssets<const> = oAssetsData.post;
+  aWinAssets = { true, { aEndAssets, oAssetsData.scenem } };
+  aLoseAssets = { false, { aEndAssets, oAssetsData.losem } };
   -- Register keybinds
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
-  local iPress<const> = aStates.PRESS;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
+  local iPress<const> = oStates.PRESS;
   iKeyBankLoseId = RegisterKeys("IN-GAME LOSE", {
-    [iPress] = { { aKeys.ESCAPE, GoLoseScore, "iglets", "EXIT TO SCORES" } }
+    [iPress] = { { oKeys.ESCAPE, GoLoseScore, "iglets", "EXIT TO SCORES" } }
   });
-  local iEnter<const> = aKeys.ENTER;
+  local iEnter<const> = oKeys.ENTER;
   local sName<const> = "IN-GAME WIN";
   iKeyBankWinResultId = RegisterKeys(sName, {
     [iPress] = { { iEnter, GoWinGameStatus, "igwc", "CONTINUE" } }
@@ -397,9 +397,9 @@ local function OnScriptLoaded(GetAPI)
   -- Get object flag device id for calculating capital carried
   iDeviceId = aObjectFlags.DEVICE;
   -- Set sound effect ids
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Set cursor ids
-  local iCOK<const>, iCExit<const> = aCursorIdData.OK, aCursorIdData.EXIT;
+  local iCOK<const>, iCExit<const> = oCursorIdData.OK, oCursorIdData.EXIT;
   -- Register hot spots
   iHotSpotLoseId = RegisterHotSpot({
     { 0, 0, 0, 240, 3, iCExit, false, false, GoLoseScore }

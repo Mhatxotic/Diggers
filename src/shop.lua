@@ -19,13 +19,10 @@ local CoreTicks<const>, UtilIsInteger<const>, UtilIsTable<const> =
 local BlitSLT, BuyItem, Fade, GameProc, GetActiveObject, InitCon, InitLobby,
   LoadResources, LoopStaticSound, PlayMusic, PlayStaticSound, PrintC,
   RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot, SetKeys,
-  SetTip, StopSound, aObjectActions, aObjectData, aObjectDirections,
-  aObjectJobs, aShopData, fontLittle, fontSpeech, fontTiny;
+  SetTip, StopSound, oObjectActions, oObjectData, oObjectDirections,
+  oObjectJobs, aShopData, fontLittle, fontSpeech, fontTiny;
 -- Locals ------------------------------------------------------------------ --
-local aActiveObject,                   -- Currently selected digger
-      aAssets,                         -- Assets required
-      aBuyObject,                      -- Currently selected object data
-      aDiggerInfo,                     -- Digger properties
+local aAssets,                         -- Assets required
       iAnimDoor,                       -- Current door animation id
       iAnimDoorMod,                    -- Door visibility
       iBuyHoloId,                      -- Current holo emitter id
@@ -45,18 +42,21 @@ local aActiveObject,                   -- Currently selected digger
       iSError, iSFind, iSHoloHum,      -- Sound effect ids
       iSOpen, iSSelect, iSTrade,       -- More sound effect ids
       iSpeechTicks,                    -- Speech ticks left and shop open
+      oObjActive,                   -- Currently selected digger
+      oBuyObject,                      -- Currently selected object data
+      oDiggerInfo,                     -- Digger properties
       sLongName, sPrice, sDesc,        -- Long name and info of product
       sMsg,                            -- Speech text
       texShop;                         -- shop texture
--- Tile ids (see data.lua/aAssetsData.shop.P) ------------------------------ --
+-- Tile ids (see data.lua/oAssetsData.shop.P) ------------------------------ --
 local iTileDoor<const> = 31;           local iTileFork<const> = 46;
 local iTileDoorMax     = iTileDoor + 14;   -- Maximum door tile id
 local iTileAnimMax     = iTileFork + 11;   -- Maximum forklift tile id
 -- Update price and carryable display -------------------------------------- --
 local function UpdateCarryable()
   sPrice = format("%03uz (%u)",
-    aBuyObject.VALUE,
-    (aDiggerInfo.STRENGTH - aActiveObject.IW) // aBuyObject.WEIGHT)
+    oBuyObject.VALUE,
+    (oDiggerInfo.STRENGTH - oObjActive.IW) // oBuyObject.WEIGHT)
 end
 -- Set actual new object --------------------------------------------------- --
 local function SetProduct(iId)
@@ -67,12 +67,12 @@ local function SetProduct(iId)
   if not UtilIsInteger(iObjType) then
     error("No shop data for item '"..iId.."'!") end;
   -- Set object information and make sure the object data is valid
-  iBuyId, iBuyObjTypeId, aBuyObject, iBuyHoloId =
-    iId, iObjType, aObjectData[iObjType], iId - 1;
-  if not UtilIsTable(aBuyObject) then
+  iBuyId, iBuyObjTypeId, oBuyObject, iBuyHoloId =
+    iId, iObjType, oObjectData[iObjType], iId - 1;
+  if not UtilIsTable(oBuyObject) then
     error("No object data for object type '"..iObjType.."'!") end;
-  sLongName = aBuyObject.LONGNAME;
-  sDesc = aBuyObject.DESC;
+  sLongName = oBuyObject.LONGNAME;
+  sDesc = oBuyObject.DESC;
   -- Animate the holographic emitter
   iHoloAnimTileId, iHoloAnimTileIdMod = 13, 1;
   -- Update Digger carrying weight
@@ -218,10 +218,10 @@ local function GoLast() AdjustProduct(-1) end;
 local function GoNext() AdjustProduct(1) end;
 local function GoBuy()
   -- Check weight and if can't carry this?
-  if aActiveObject.IW + aBuyObject.WEIGHT > aDiggerInfo.STRENGTH then
+  if oObjActive.IW + oBuyObject.WEIGHT > oDiggerInfo.STRENGTH then
     SetSpeechSound("TOO HEAVY FOR YOU", iSError);
   -- Try to buy it and if failed?
-  elseif BuyItem(aActiveObject, iBuyObjTypeId) then
+  elseif BuyItem(oObjActive, iBuyObjTypeId) then
     SetSpeechSound("SOLD TO YOU NOW!", iSTrade);
     PlayStaticSound(iSTrade);
     UpdateCarryable();
@@ -257,38 +257,38 @@ end
 -- Initialise the shop screen ---------------------------------------------- --
 local function InitShop()
   -- Get selected digger
-  aActiveObject = GetActiveObject();
-  if not UtilIsTable(aActiveObject) then
-    error("Invalid customer object specified! "..tostring(aActiveObject)) end;
+  oObjActive = GetActiveObject();
+  if not UtilIsTable(oObjActive) then
+    error("Invalid customer object specified! "..tostring(oObjActive)) end;
   -- Get object data
-  aDiggerInfo = aActiveObject.OD;
+  oDiggerInfo = oObjActive.OD;
   -- Load shop resources
   LoadResources("Shop", aAssets, OnAssetsLoaded);
 end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitSLT, BuyItem, Fade, GameProc, GetActiveObject, InitCon, InitLobby,
     LoadResources, LoopStaticSound, PlayMusic, PlayStaticSound, PrintC,
     RegisterHotSpot, RegisterKeys, RenderAll, RenderShadow, RenderTip,
-    SetCallbacks, SetHotSpot, SetKeys, SetTip, StopSound, aAssetsData,
-    aCursorIdData, aObjectActions, aObjectData, aObjectDirections, aObjectJobs,
-    aSfxData, aShopData, fontLittle, fontSpeech, fontTiny =
+    SetCallbacks, SetHotSpot, SetKeys, SetTip, StopSound, oAssetsData,
+    oCursorIdData, oObjectActions, oObjectData, oObjectDirections, oObjectJobs,
+    oSfxData, aShopData, fontLittle, fontSpeech, fontTiny =
       GetAPI("BlitSLT", "BuyItem", "Fade", "GameProc", "GetActiveObject",
         "InitCon", "InitLobby", "LoadResources", "LoopStaticSound",
         "PlayMusic", "PlayStaticSound", "PrintC", "RegisterHotSpot",
         "RegisterKeys", "RenderAll", "RenderShadow", "RenderTip",
         "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip", "StopSound",
-        "aAssetsData", "aCursorIdData", "aObjectActions", "aObjectData",
-        "aObjectDirections", "aObjectJobs", "aSfxData", "aShopData",
+        "oAssetsData", "oCursorIdData", "oObjectActions", "oObjectData",
+        "oObjectDirections", "oObjectJobs", "oSfxData", "aShopData",
         "fontLittle", "fontSpeech", "fontTiny");
   -- Setup assets required
-  aAssets = { aAssetsData.shop, aAssetsData.shopm };
+  aAssets = { oAssetsData.shop, oAssetsData.shopm };
   -- Register hotspots
   local iCSelect<const>, iCExit<const> =
-    aCursorIdData.SELECT, aCursorIdData.EXIT;
+    oCursorIdData.SELECT, oCursorIdData.EXIT;
   iHotSpotClosedId = RegisterHotSpot({
     {  94, 130,  59,  76, 0, iCSelect, "OPEN SHOP",   false, GoOpen },
     {   8,   8, 304, 200, 0, 0,        "SHOP IDLE",   false, false  },
@@ -302,22 +302,22 @@ local function OnScriptLoaded(GetAPI)
     {   0,   0,   0, 240, 3, iCExit,   "GO TO LOBBY", Scroll, GoExit }
   });
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local iPress<const> = Input.States.PRESS;
-  local aEscape<const> = { aKeys.ESCAPE, GoExit, "zmtcsl", "LEAVE" };
+  local aEscape<const> = { oKeys.ESCAPE, GoExit, "zmtcsl", "LEAVE" };
   local sName<const> = "ZMTC SHOP";
   iKeyBankClosedId = RegisterKeys(sName, { [iPress] = { aEscape,
-    { aKeys.ENTER, GoOpen, "zmtcso", "OPEN" },
+    { oKeys.ENTER, GoOpen, "zmtcso", "OPEN" },
   } });
   iKeyBankOpenId = RegisterKeys(sName, { [iPress] = { aEscape,
-    { aKeys.LEFT,  GoLast, "zmtcspp", "PREVIOUS PRODUCT" },
-    { aKeys.RIGHT, GoNext, "zmtcsnp", "NEXT PRODUCT"     },
-    { aKeys.SPACE, GoBuy,  "zmtcsbp", "PURCHASE PRODUCT" },
+    { oKeys.LEFT,  GoLast, "zmtcspp", "PREVIOUS PRODUCT" },
+    { oKeys.RIGHT, GoNext, "zmtcsnp", "NEXT PRODUCT"     },
+    { oKeys.SPACE, GoBuy,  "zmtcsbp", "PURCHASE PRODUCT" },
   } });
   -- Set sound effect ids
   iSError, iSFind, iSHolo, iSHoloHum, iSOpen, iSSelect, iSTrade =
-    aSfxData.ERROR, aSfxData.FIND, aSfxData.SSELECT, aSfxData.HOLOHUM,
-    aSfxData.SOPEN, aSfxData.SELECT, aSfxData.TRADE;
+    oSfxData.ERROR, oSfxData.FIND, oSfxData.SSELECT, oSfxData.HOLOHUM,
+    oSfxData.SOPEN, oSfxData.SELECT, oSfxData.TRADE;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitShop = InitShop }, F = OnScriptLoaded };

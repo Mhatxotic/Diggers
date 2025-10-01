@@ -10,20 +10,73 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Italian Book data ------------------------------------------------------- --
-local _aBookData<const> = {
+local aBookData<const> = {
   -- Parameters ------------------------------------------------------------ --
   -- T = The text to display on that page. It is word-wrapped on the fly.
   -- I = The optional illustration to display on that page { iTileId, iX, iY }.
   -- L = The optional line-spacing to use.
   -- H = The optional hotspots to use { { iX, iY, iW, iH, iGotoPage }, ... }
   -- Page 1 ---------------------------------------------------------------- --
-  { T=""
+  { T="IL LIBRO DI ZARG\n\z
+    \n\z
+    Tale libro contiene informazioni riguardo a molti aspetti del pianeta \z
+    Zarg e fornisce dettagli indispensabili per chiunque desideri \z
+    intraprendervi operazioni di scavo. Tali informazioni si trovano nei \z
+    capitoli corrispondenti. Per ottenere le informazioni necessarie, fare \z
+    clic sul titolo del capitolo corrispondente e la pagina scelta apparirà \z
+    sullo schermo. Nel margine sinistro del libro vi sono alcuni pulsanti \z
+    che consentono di andare alla pagina desiderata."
   -- Page 2 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="TITOLI DEI CAPITOLI\n\z
+    \n\z
+    INFORMAZIONI SUL LIBRO\n\z
+    COME AVVIARE DIGGERS (OPZIONI DI GIOCO)\n\z
+    IL PIANETA ZARG e IL MITICO 412\n\z
+    DESCRIZIONE DELLE RAZZE DI SCAVATORI\n\z
+    DESCRIZIONE DELLE ZONE\n\z
+    FLORA E FAUNA\n\z
+    IL NEGOZIO DEGLI SCAVATORI\n\z
+    L'EQUIPAGGIAMENTO DEGLI SCAVATORI\n\z
+    LA BANCA DI ZARG\n\z
+    LA BORSA DI ZARG\n\z
+    STORIA DELLE ATTIVITA' DI SCAVO SU ZARG",
+    H={ { 77,  51, 224, 7,  3 },     -- Chapter 01/11: About this book
+        { 77,  62, 224, 7,  8 },     -- Chapter 02/11: How to start Diggers
+        { 77,  73, 224, 7, 20 },     -- Chapter 03/11: The Planet Zarg
+        { 77,  84, 224, 7, 23 },     -- Chapter 04/11: Race descriptions
+        { 77,  95, 224, 7, 31 },     -- Chapter 05/11: Zone descriptions
+        { 77, 106, 224, 7, 36 },     -- Chapter 06/11: Flora and fauna
+        { 77, 117, 224, 7, 53 },     -- Chapter 07/11: The mining store
+        { 77, 128, 224, 7, 55 },     -- Chapter 08/11: Mining apparatus
+        { 77, 139, 224, 7, 68 },     -- Chapter 09/11: Zargon bank
+        { 77, 150, 224, 7, 72 },     -- Chapter 10/11: Zargon stock market
+        { 77, 161, 224, 7, 74 } }    -- Chapter 11/11: Zargon mining history
   -- Page 3 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="INFORMAZIONI SUL LIBRO\n\z
+    \n\z
+    Il Libro di Zarg è molto facile da usare. E' fatto di una sostanza \z
+    rivoluzionaria chiamata TNT che consente di visualizzare le pagine \z
+    (vedere TNT). Di conseguenza, è sufficiente che il Libro contenga solo \z
+    la copertina, un foglio di TNT e il meccanismo di controllo della TNT \z
+    che consiste in 3 smeraldi tagliati e incassati nel dorso del Libro.\n\z
+    \n\z
+    Il primo smeraldo consente al lettore di consultare l'indice.\n\z
+    Il secondo smeraldo consente al lettore di andare alla pagina \z
+    successiva.\n\z
+    Il terzo smeraldo consente al lettore di tornare alla pagina \z
+    precedente."
   -- Page 4 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Il lettore potrà andare direttamente alla pagina desiderata \z
+    premendo i pulsanti corrispondenti.\n\z
+    \n\z
+    Per selezionare il capitolo che si vuole leggere basta posizionarsi sul \z
+    rispettivo titolo. Cin consente di accedere alla prima pagina del \z
+    capitolo scelto.\n\z
+    \n\z
+    TNT\n\z
+    \n\z
+    Il Libro di Zaro è fatto di una sostanza simile alla carta detta TNT \z
+    (Transistor Neurali Testurizzati). Il"
   -- Page 5 ---------------------------------------------------------------- --
   },{ T=""
   -- Page 6 ---------------------------------------------------------------- --
@@ -195,5 +248,5 @@ local _aBookData<const> = {
   }
 };
 -- Imports and exports ----------------------------------------------------- --
-return { F = Util.Blank, A = { aBookData_it_ = aBookData } };
+return { F = Util.Blank, A = { aBookData_it = aBookData } };
 -- End-of-File ============================================================= --

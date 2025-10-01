@@ -21,7 +21,7 @@ local BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
   GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
   LoadResources, LoadSaveData, PlayStaticSound, PrintC, ProcessViewPort,
   RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject, SetHotSpot,
-  aKeyBankCats, aLevelsData, aObjectTypes, aObjects, fontTiny;
+  tKeyBankCats, aLevelsData, oObjectTypes, aObjs, fontTiny;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets to load
       fcbEnterAnimProc,                -- Enter animation procedure
@@ -137,14 +137,14 @@ local function ProcLogic()
     -- Set next RAM update time
     iNextUpdate = GetGameTicks() + 60;
     -- Find a digger from the opposing player
-    local aPlayer;
-    if random() >= 0.5 then aPlayer = GetOpponentPlayer();
-                       else aPlayer = GetActivePlayer() end;
-    local aObject = aPlayer.D[random(#aPlayer.D)];
+    local oPlayer;
+    if random() >= 0.5 then oPlayer = GetOpponentPlayer();
+                       else oPlayer = GetActivePlayer() end;
+    local oObj = oPlayer.D[random(#oPlayer.D)];
     -- Still not found? Find a random object
-    if not aObject then aObject = aObjects[random(#aObjects)] end;
+    if not oObj then oObj = aObjs[random(#aObjs)] end;
     -- Select the object if we got something!
-    if aObject then SelectObject(aObject) end;
+    if oObj then SelectObject(oObj) end;
   end
   -- Return if it is not time to show the credits
   if GetGameTicks() % 1500 < 1499 then return end;
@@ -232,8 +232,8 @@ local function GoLoadLevel(strTitle)
   if #aZones <= 1 then aZones[1], aZones[2] = 1, 2 end;
   -- Load AI vs AI and use random zone
   LoadLevel(aZones[random(#aZones)], strTitle, iKeyBankId,
-    aObjectTypes.DIGRANDOM, true, aObjectTypes.DIGRANDOM, true,
-    ProcLogic, ProcRender, iHotSpotId);
+    oObjectTypes.DIGRANDOM, true, oObjectTypes.DIGRANDOM, true,
+    ProcLogic, ProcRender, iHotSpotId, nil, nil, true);
 end
 -- When faded out to quit -------------------------------------------------- --
 local function OnFadeOutToQuit() Core.Quit(0) end;
@@ -274,9 +274,9 @@ local function OnAssetsLoaded(aResources, bNoMusic)
     (C) 1994 MILLENNIUM INTERACTIVE LTD. ALL RIGHTS RESERVED\n\rcffffff4f\z
     POWERED BY "..sAppTitle.." (C) 2025 "..sAppVendor..". \z
       ALL RIGHTS RESERVED\n\z
-    PRESS "..aKeyBankCats.gksc[9].." TO SETUP, "..
-      aKeyBankCats.gksb[9].." TO SET KEYS OR "..
-      aKeyBankCats.gksa[9].." TO SEE ACKNOWLEDGEMENTS AT ANY TIME";
+    PRESS "..tKeyBankCats.gksc[9].." TO SETUP, "..
+      tKeyBankCats.gksb[9].." TO SET KEYS OR "..
+      tKeyBankCats.gksa[9].." TO SEE ACKNOWLEDGEMENTS AT ANY TIME";
   -- Load demonstration level without or with title music
   if bNoMusic then GoLoadLevel() else GoLoadLevel("title") end;
 end
@@ -287,36 +287,36 @@ end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Get imports
   BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
     GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
     LoadResources, LoadSaveData, PlayStaticSound, PrintC, ProcessViewPort,
     RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderObjects,
-    RenderTerrain, SelectObject, SetHotSpot, aAssetsData, aCursorIdData,
-    aKeyBankCats, aLevelsData, aObjectTypes, aObjects, aSfxData, fontTiny =
+    RenderTerrain, SelectObject, SetHotSpot, oAssetsData, oCursorIdData,
+    tKeyBankCats, aLevelsData, oObjectTypes, aObjs, oSfxData, fontTiny =
       GetAPI("BlitSLT", "DeInitLevel", "Fade", "GameProc", "GetActivePlayer",
         "GetGameTicks", "GetOpponentPlayer", "InitLobby", "InitNewGame",
         "InitTitleCredits", "LoadLevel", "LoadResources", "LoadSaveData",
         "PlayStaticSound", "PrintC", "ProcessViewPort", "RegisterFBUCallback",
         "RegisterHotSpot", "RegisterKeys", "RenderObjects", "RenderTerrain",
-        "SelectObject", "SetHotSpot", "aAssetsData", "aCursorIdData",
-        "aKeyBankCats", "aLevelsData", "aObjectTypes", "aObjects", "aSfxData",
+        "SelectObject", "SetHotSpot", "oAssetsData", "oCursorIdData",
+        "tKeyBankCats", "aLevelsData", "oObjectTypes", "aObjs", "oSfxData",
         "fontTiny");
   -- Build assets data
-  aAssets = { aAssetsData.title };
+  aAssets = { oAssetsData.title };
   -- Get sound id
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   iKeyBankId = RegisterKeys("TITLE SCREEN", { [Input.States.PRESS] = {
-    { aKeys.ENTER,  GoLobby, "tsst", "START GAME" },
-    { aKeys.ESCAPE, GoQuit,  "tsqg", "QUIT GAME" }
+    { oKeys.ENTER,  GoLobby, "tsst", "START GAME" },
+    { oKeys.ESCAPE, GoQuit,  "tsqg", "QUIT GAME" }
   } });
   -- Register hot spots
   iHotSpotId = RegisterHotSpot({
-    {  54, 152,  69,  29, 1, aCursorIdData.EXIT, false, false, GoQuit  },
-    {  38, 137,  86,  46, 2, aCursorIdData.OK,   false, false, GoLobby }
+    {  54, 152,  69,  29, 1, oCursorIdData.EXIT, false, false, GoQuit  },
+    {  38, 137,  86,  46, 2, oCursorIdData.OK,   false, false, GoLobby }
   });
 end
 -- Return imports and exports ---------------------------------------------- --
