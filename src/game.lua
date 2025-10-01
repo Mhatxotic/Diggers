@@ -2062,8 +2062,8 @@ local function AdjustObjectHealth(aVictimObj, iAmount, aCauseObj)
           if aTarget ~= aVictimObj then
             -- Get action and if target object...
             local iAction<const> = aTarget.A;
-            if iAction ~= ACT.DEATH and        -- ...is not dying?
-               iAction ~= ACT.PHASE and        -- *and* not phasing?
+            if iAction ~= ACT.DEATH and           -- ...is not dying?
+               iAction ~= ACT.PHASE and           -- *and* not phasing?
                IsSpriteCollide(476, iPosX, iPosY, -- *and* in explosion?
                  aTarget.S, aTarget.X+aTarget.OFX, aTarget.Y+aTarget.OFY) then
               AdjustObjectHealth(aTarget, -100, aCauseObj);
@@ -2071,69 +2071,77 @@ local function AdjustObjectHealth(aVictimObj, iAmount, aCauseObj)
           end
         end
         -- Get tile flags and if tile is destructible and not been cleared?
-        local iTFlags = aTileData[1 + iId];
+        local iTFlags<const> = aTileData[1 + iId];
         if iTFlags & aTileFlags.D ~= 0 and iTFlags & aTileFlags.AD == 0 then
-          -- Increase dug count
-          SetObjectAndParentCounter(aVictimObj, "DUG");
-          -- Roll the dice and spawn treasure and increase objects gem find
-          -- count if found
-          if RollTheDice(iX * 16, iY * 16) then
-            SetObjectAndParentCounter(aVictimObj, "GEM") end;
-          -- Tile blown does not contain water?
-          if iTFlags & aTileFlags.W == 0 then
-            -- Set cleared dug tile
-            UpdateLevel(iLoc, 7);
-            -- Test for flooding around the cleared tile
-            for iFloodIndex = 1, #aExplodeDirData do
-              -- Get flood test data and calculate location to test
-              local aFloodTestItem<const> = aExplodeDirData[iFloodIndex];
-              local iTLoc<const> = (iLoc + (aFloodTestItem[2] *
-                iLLAbsW)) + aFloodTestItem[1];
-              -- Get tile id and if valid
-              iId = GetLevelDataFromLevelOffset(iTLoc);
-              if iId then
-                -- Get flags to test for and insert a new flood if found
-                local iTFFlags<const> = aFloodTestItem[3];
-                if aTileData[1 + iId] & iTFFlags == iTFFlags then
-                  aFloodData[1 + #aFloodData] = { iTLoc, iTFFlags };
+          -- If get tile above flags and if below this tile is a protected
+          -- platform?
+          local iAId<const> = GetLevelDataFromAbsCoordinates(iX, iY - 1);
+          if not iAId or aTileData[1 + iAId] & aTileFlags.P == 0 then
+            -- Increase dug count
+            SetObjectAndParentCounter(aVictimObj, "DUG");
+            -- Roll the dice and spawn treasure and increase objects gem find
+            -- count if found and not protected ground.
+            if RollTheDice(iX * 16, iY * 16) then
+              SetObjectAndParentCounter(aVictimObj, "GEM") end;
+            -- Tile blown does not contain water?
+            if iTFlags & aTileFlags.W == 0 then
+              -- Set cleared dug tile
+              UpdateLevel(iLoc, 7);
+              -- Test for flooding around the cleared tile
+              for iFloodIndex = 1, #aExplodeDirData do
+                -- Get flood test data and calculate location to test
+                local aFloodTestItem<const> = aExplodeDirData[iFloodIndex];
+                local iTLoc<const> = (iLoc + (aFloodTestItem[2] *
+                  iLLAbsW)) + aFloodTestItem[1];
+                -- Get tile id and if valid
+                iId = GetLevelDataFromLevelOffset(iTLoc);
+                if iId then
+                  -- Get flags to test for and insert a new flood if found
+                  local iTFFlags<const> = aFloodTestItem[3];
+                  if aTileData[1 + iId] & iTFFlags == iTFFlags then
+                    aFloodData[1 + #aFloodData] = { iTLoc, iTFFlags };
+                  end
                 end
               end
+            -- Tile is in water
+            else
+              -- Set cleared water tile
+              UpdateLevel(iLoc, 247);
+              -- Test for flood here with all edges exposed
+              aFloodData[1 + #aFloodData] = { iLoc, aTileFlags.W|aTileFlags.EA };
             end
-          else
-            -- Set cleared water tile
-            UpdateLevel(iLoc, 247);
-            -- Test for flood here with all edges exposed
-            aFloodData[1 + #aFloodData] = { iLoc, aTileFlags.W|aTileFlags.EA };
-          end
-          -- Tile blown was firm ground?
-          if iTFlags & aTileFlags.F ~= 0 then
-            -- Get tile location above
-            local iTLoc<const> = iLoc - iLLAbsW;
-            -- Get tile id and if valid?
-            iId = GetLevelDataFromLevelOffset(iTLoc);
-            if iId then
-              -- Get above tile flags and if is a gate?
-              local iATFlags<const> = aTileData[1 + iId];
-              if iATFlags & aTileFlags.G ~= 0 then
-                -- Find gate at that position
-                for iObjId = 1, #aObjects do
-                  -- Get object and if it's a deployed gate? Get its absolute
-                  -- location and if it's the same? Destroy the deployed gate.
-                  local aVictimObj<const> = aObjects[iObjId];
-                  if aVictimObj.ID == TYP.GATEB and
-                    GetLevelOffsetFromObject(aVictimObj, 0, 0) == iTLoc then
-                      AdjustObjectHealth(aVictimObj, -100, aCauseObj) end;
+            -- Tile blown was firm ground?
+            if iTFlags & aTileFlags.F ~= 0 then
+              -- Get tile location above
+              local iTLoc<const> = iLoc - iLLAbsW;
+              -- Get tile id and if valid?
+              iId = GetLevelDataFromLevelOffset(iTLoc);
+              if iId then
+                -- Get above tile flags and if is a gate?
+                local iATFlags<const> = aTileData[1 + iId];
+                if iATFlags & aTileFlags.G ~= 0 then
+                  -- Find gate at that position
+                  for iObjId = 1, #aObjects do
+                    -- Get object and if it's a deployed gate? Get its absolute
+                    -- location and if it's the same? Destroy the deployed
+                    -- gate.
+                    local aVictimObj<const> = aObjects[iObjId];
+                    if aVictimObj.ID == TYP.GATEB and
+                      GetLevelOffsetFromObject(aVictimObj, 0, 0) == iTLoc then
+                        AdjustObjectHealth(aVictimObj, -100, aCauseObj) end;
+                  end
+                  -- Is watered gate? Set watered cleared tile else normal
+                  -- clear
+                  if iATFlags & aTileFlags.W ~= 0 then
+                    UpdateLevel(iTLoc, 247) else UpdateLevel(iTLoc, 7) end;
+                  -- Check if removed gate would cause a flood
+                  aFloodData[1 + #aFloodData] = { iTLoc, aTileFlags.EA };
+                -- Not a gate?
+                else
+                  -- Is a supported tile that we should clear
+                  local iToTile<const> = aExplodeAboveData[iId];
+                  if iToTile then UpdateLevel(iTLoc, iToTile) end;
                 end
-                -- Is watered gate? Set watered cleared tile else normal clear
-                if iATFlags & aTileFlags.W ~= 0 then UpdateLevel(iTLoc, 247);
-                                                else UpdateLevel(iTLoc, 7) end;
-                -- Check if removed gate would cause a flood
-                aFloodData[1 + #aFloodData] = { iTLoc, aTileFlags.EA };
-              -- Not a gate?
-              else
-                -- Is a supported tile that we should clear
-                local iToTile<const> = aExplodeAboveData[iId];
-                if iToTile then UpdateLevel(iTLoc, iToTile) end;
               end
             end
           end

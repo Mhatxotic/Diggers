@@ -1680,8 +1680,8 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.ER,                          -- 0441201
   TF.F|TF.D|TF.EB,                     -- 0451301
   TF.F|TF.D|TF.ERB,                    -- 0461401
-  TF.F|TF.D|TF.ELRB,                   -- 0471501
-  TF.F|TF.D|TF.ELRB,                   -- 0481601
+  TF.F|TF.D|TF.ELRB,                   -- 0471501 Cave ceiling 1
+  TF.F|TF.D|TF.ELRB,                   -- 0481601 Cave ceiling 2
   TF.F|TF.D|TF.ETRB,                   -- 0491701
   TF.D|TF.ETRB,                        -- 0501801
   TF.D|TF.ETR,                         -- 0511901
@@ -1949,15 +1949,15 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.F,                                -- 3132509 Corpse column 2 row 2
   TF.F,                                -- 3142609 Corpse column 3 row 2
   TF.F,                                -- 3152709 Corpse column 4 row 2
-  TF.D|TF.W|TF.P|TF.EA,                -- 3162809 Top of gold pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3172909 Vertical gold pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3183009 Bottom of gold pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3193109 Broken top pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3200010 Gold house bottom
-  TF.D|TF.W|TF.P|TF.EA,                -- 3210110 Gold house top
-  TF.D|TF.W|TF.P|TF.EA,                -- 3220210 Broken half top pillar
-  TF.D|TF.W|TF.P|TF.EA,                -- 3230310 Broken horizontal top
-  TF.D|TF.W|TF.P|TF.EA,                -- 3240410 Broken horizontal bottom
+  TF.W|TF.P|TF.EA,                     -- 3162809 Top of gold pillar
+  TF.W|TF.P|TF.EA,                     -- 3172909 Vertical gold pillar
+  TF.W|TF.P|TF.EA,                     -- 3183009 Bottom of gold pillar
+  TF.W|TF.P|TF.EA,                     -- 3193109 Broken top pillar
+  TF.W|TF.P|TF.EA,                     -- 3200010 Gold house bottom
+  TF.W|TF.P|TF.EA,                     -- 3210110 Gold house top
+  TF.W|TF.P|TF.EA,                     -- 3220210 Broken half top pillar
+  TF.W|TF.P|TF.EA,                     -- 3230310 Broken horizontal top
+  TF.W|TF.P|TF.EA,                     -- 3240410 Broken horizontal bottom
   TF.D|TF.W,                           -- 3250510 Unused
   TF.NONE,                             -- 3260610 Oil rig col 1 row 2
   TF.NONE,                             -- 3270710 Oil rig col 2 row 2
@@ -2149,12 +2149,12 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
 assert(#aTileData == 512, "aTileData must only have 512 tiles!");
 -- Explode directions data ------------------------------------------------- --
 local aExplodeDirData<const> = {
-  -- X -- Y -- Flags -----
-  {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
-  {   0,   0, TF.W       },            -- [Centre] No flooding check needed
-  {  -1,   0, TF.W|TF.ER },            -- [Left] Flood if left tile exposed
-  {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
+  -- X -- Y -- Flags -----             -- Order is important!
   {   0,   1, TF.W|TF.ET },            -- [Down] Flood if below tile exposed
+  {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
+  {  -1,   0, TF.W|TF.ER },            -- [Left] Flood if left tile exposed
+  {   0,   0, TF.W       },            -- [Centre] No flooding check needed
+  {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
 };
 -- Explode directions data ------------------------------------------------- --
 local aExplodeAboveData<const> = {
