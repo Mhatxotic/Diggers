@@ -2901,7 +2901,7 @@ local function InitCreateObject()
     -- Return if digger is digging or digger has fall damage and wins a 50%
     -- chance to jump and the jump is successful
     return aObject.J ~= JOB.DIG and aObject.FD == 0 and
-      random() < 0.5 and aJumpCheckFunctions[aObject.D](aObject);
+      random() >= aObject.IN and aJumpCheckFunctions[aObject.D](aObject);
   end
   -- Digger AI choices (Chances to change action per tick) ----------------- --
   local aAIData<const> = {
