@@ -1372,225 +1372,216 @@ local aObjectData<const> = {           -- Objects data
 } };
 -- Digging tile flags ------------------------------------------------------ --
 local DF<const> = {
-  -- Match tile flags ------------------------------------------------------ --
-  MO = 0x0001, -- Match over tile or dig failed (aDigData)
-  MA = 0x0002, -- Match above tile or dig failed
-  MB = 0x0004, -- Match below tile or dig failed
-  MC = 0x0008, -- Match centre of over tile or dig failed
-  -- Set tile flags -------------------------------------------------------- --
-  SO = 0x0010, -- Set over tile if successful match
-  SA = 0x0020, -- Set above tile if successful match
-  SB = 0x0040, -- Set below tile if successful match
   -- On success flags ------------------------------------------------------ --
-  OB = 0x0080, -- Set object to busy if successful dig
-  OI = 0x0100, -- Remove busy flag if dig successful
-  OG = 0x0200, -- Spin the wheel of fortune if dig successful
-  OX = 0x0400  -- Bonus. Not in original game.
+  OB = 0x0001, -- Set object to busy if successful dig
+  OI = 0x0002, -- Remove busy flag if dig successful
+  OG = 0x0004, -- Check for treasure if dig successful
+  OX = 0x0008  -- Not in original game
   -- ----------------------------------------------------------------------- --
 };
 -- Digging tile data ------------------------------------------------------- --
 local aDigData<const> = {              -- Note that tile ids are 0-indexed here
+-- -- Any of these (except FO and FLAGS) can be 'nil' to disable check ----- --
+-- FO    (FromOver)    Tile to match from object's over tile
+-- FA    (FromAbove)   Tile to match from object's above tile
+-- FB    (FromBelow)   Tile to match from object's below tile
+-- FC    (FromCentre)  Tile to match from object's centre (over) tile
+-- TO    (ToOver)      Set over tile to this tile on successful match
+-- TA    (ToAbove)     Set above tile to this tile on successful match
+-- TB    (ToBelow)     Set below tile to this tile on successful match
+-- FLAGS (Flags)       Flags see above
 -- ------------------------------------------------------------------------- --
--- FO    (FromOver)    DF.MO*. Tile to match from object's over tile
--- FA    (FromAbove)   DF.MA*. Tile to match from object's above tile
--- FB    (FromBelow)   DF.MB*. Tile to match from object's below tile
--- FC    (FromCentre)  DF.MC*. Tile to match from object's centre (over) tile
--- TO    (ToOver)      DF.SO*. Set over tile to this tile on successful match
--- TA    (ToAbove)     DF.SA*. Set above tile to this tile on successful match
--- TB    (ToBelow)     DF.SB*. Set below tile to this tile on successful match
--- FLAGS (Flags)       Flags see DF.M*, DF.S* and DF.O* #defines
--- ------------------------------------------------------------------------- --
-[DIR.UL]={                           -- Digging upper-left tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  3,  0, 12,208,207,  0,DF.MO|DF.MA|DF.MC|DF.SO|DF.SA|DF.OB},
-{  3,  3,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,  7,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,  7,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3, 95,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3, 96,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,150,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,150,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,170,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,170,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,171,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,171,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,172,  0, 12,208,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,172,  0,  0, 44,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{ 44,  3,  0,  0,203, 45,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 44,  0,  0,  0,203,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{203, 45,  0,  0, 12, 10,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{203,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{208,207,  0,  0, 11,209,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{208,  0,  0,  0, 11,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 11,  0,  0, 11,  0,  9,  0,DF.MO|DF.MC      |DF.SA      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,236,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
-{ 53,  0,  0,  0,236,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.UR]={                          -- Digging upper-right tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  3,  0,  6, 33, 32,  0,DF.MO|DF.MA|DF.MC|DF.SO|DF.SA|DF.OB},
-{  3,  3,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,  7,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,  7,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3, 95,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3, 96,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,150,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,150,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,170,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,170,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,171,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,171,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{  3,172,  0,  6, 33,  0,  0,DF.MO|DF.MA|DF.MC|DF.SO      |DF.OB},
-{  3,172,  0,  0, 26,  0,  0,DF.MO|DF.MA      |DF.SO      |DF.OB},
-{ 26,  3,  0,  0, 28, 27,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 26,  0,  0,  0, 28,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 28, 27,  0,  0,  6,  4,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 28,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 33, 32,  0,  0,  8, 34,  0,DF.MO|DF.MA      |DF.SO|DF.SA|DF.OB},
-{ 33,  0,  0,  0,  8,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  8,  0,  5,  0,DF.MO|DF.MC      |DF.SA      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,235,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
-{ 53,  0,  0,  0,235,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.L]={                           -- Digging left tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  0,  0,230,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{230,  0,  0,  0,231,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{231,  0,  0,  0,232,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{232,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{ 11,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{  9,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 49,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 50,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 53,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 55,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 56,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 61,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  6,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{173,  0,  0,  0,174,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{174,  0,  0,  0,175,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{175,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 13,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 14,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 15,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 16,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 46,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 51,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 54,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 57,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{235,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
+[DIR.UL]={                             -- Digging upper-left tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, {   3, nil,  12, 208, 207, nil, DF.OB },
+         {   3, nil, nil,  44, nil, nil, DF.OB },
+         {   7, nil,  12, 208, nil, nil, DF.OB },
+         {   7, nil, nil,  44, nil, nil, DF.OB },
+         {  95, nil,  12, 208, nil, nil, DF.OB },
+         {  96, nil, nil,  44, nil, nil, DF.OB },
+         { 150, nil,  12, 208, nil, nil, DF.OB },
+         { 150, nil, nil,  44, nil, nil, DF.OB },
+         { 170, nil,  12, 208, nil, nil, DF.OB },
+         { 170, nil, nil,  44, nil, nil, DF.OB },
+         { 171, nil,  12, 208, nil, nil, DF.OB },
+         { 171, nil, nil,  44, nil, nil, DF.OB },
+         { 172, nil,  12, 208, nil, nil, DF.OB },
+         { 172, nil, nil,  44, nil, nil, DF.OB } },
+  {  44, {   3, nil, nil, 203,  45, nil, DF.OB },
+         { nil, nil, nil, 203, nil, nil, DF.OB } },
+  { 203, {  45, nil, nil,  12,  10, nil, DF.OB },
+         { nil, nil, nil,  12, nil, nil, DF.OB } },
+  { 208, { 207, nil, nil,  11, 209, nil, DF.OB },
+         { nil, nil, nil,  11, nil, nil, DF.OI|DF.OG } },
+  {  11, { nil, nil,  11, nil,   9, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil, 236, nil, nil, DF.OI|DF.OX } },
+  {  53, { nil, nil, nil, 236, nil, nil, DF.OI|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.UR]={                          -- Digging upper-right tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, {   3, nil,   6,  33,  32, nil, DF.OB },
+         {   3, nil, nil,  26, nil, nil, DF.OB },
+         {   7, nil,   6,  33, nil, nil, DF.OB },
+         {   7, nil, nil,  26, nil, nil, DF.OB },
+         {  95, nil,   6,  33, nil, nil, DF.OB },
+         {  96, nil, nil,  26, nil, nil, DF.OB },
+         { 150, nil,   6,  33, nil, nil, DF.OB },
+         { 150, nil, nil,  26, nil, nil, DF.OB },
+         { 170, nil,   6,  33, nil, nil, DF.OB },
+         { 170, nil, nil,  26, nil, nil, DF.OB },
+         { 171, nil,   6,  33, nil, nil, DF.OB },
+         { 171, nil, nil,  26, nil, nil, DF.OB },
+         { 172, nil,   6,  33, nil, nil, DF.OB },
+         { 172, nil, nil,  26, nil, nil, DF.OB } },
+  {  26, {   3, nil, nil,  28,  27, nil, DF.OB },
+         { nil, nil, nil,  28, nil, nil, DF.OB } },
+  {  28, { 27, nil, nil,   6,   4, nil, DF.OB },
+         { nil, nil, nil,   6, nil, nil, DF.OB } },
+  {  33, {  32, nil, nil,   8,  34, nil, DF.OB },
+         { nil, nil, nil,   8, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil,   8, nil,   5, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil, 235, nil, nil, DF.OI|DF.OX } },
+  {  53, { nil, nil, nil, 235, nil, nil, DF.OI|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.L]={                          -- Digging left tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil, nil, nil, 230, nil, nil, DF.OB } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB } },
+  { 230, { nil, nil, nil, 231, nil, nil, DF.OB } },
+  { 231, { nil, nil, nil, 232, nil, nil, DF.OB } },
+  { 232, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil, nil,   6, nil, nil, DF.OB|DF.OG } },
+  {  11, { nil, nil, nil,  12, nil, nil, DF.OB|DF.OG } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB|DF.OG } },
+  {   9, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  49, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  50, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  53, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  55, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  56, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  61, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {   6, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  { 173, { nil, nil, nil, 174, nil, nil, DF.OB } },
+  { 174, { nil, nil, nil, 175, nil, nil, DF.OB } },
+  { 175, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {  13, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  14, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  15, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  16, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  46, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  51, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 235, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
 }, [DIR.R]={                           -- Digging right tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  0,  0,227,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{227,  0,  0,  0,228,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{228,  0,  0,  0,229,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{229,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{ 11,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB|DF.OG},
-{  5,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 49,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 50,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 53,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 55,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 56,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 58,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 12,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{173,  0,  0,  0,174,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{174,  0,  0,  0,175,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{175,  0,  0,  0, -1,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 13,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 14,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 15,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 16,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 46,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 51,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 54,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 57,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{236,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.DL]={                           -- Digging down-left tile data
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  3,  5, 23,  0, 24,DF.MO|DF.MB|DF.MC|DF.SO|DF.SB|DF.OB},
-{  3,  0,  3,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,  7,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,  7,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,150,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,150,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,170,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,170,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,171,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,171,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,172,  5, 23,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,172,  0, 17,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{ 17,  0,  3,  0, 18,  0, 19,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 17,  0,  0,  0, 18,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 18,  0, 19,  0,  5,  0,  8,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 18,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 23,  0, 24,  0,  4,  0, 25,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 23,  0,  0,  0,  4,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  4,  0,  0,  0,  0,  0,  6,DF.MO            |DF.SB      |DF.OI|DF.OG},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.D]={                            -- Digging down?
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  0,  0,173,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{173,  0,  0,  0,174,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{174,  0,  0,  0,175,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{175,  0,  0,  0, -2,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  8,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 11,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  4,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 10,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{  5,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  9,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 47,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 48,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 52,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 53,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 12,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{  6,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 13,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 14,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 15,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 16,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 46,  0,  0,  0,  5,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 51,  0,  0,  0, 12,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 54,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{ 57,  0,  0,  0,  6,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{235,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
-{236,  0,  0,  0,  7,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG|DF.OX},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-},[DIR.DR]={                           -- Digging down right?
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
-{  3,  0,  3,  9, 41,  0, 42,DF.MO|DF.MB|DF.MC|DF.SO|DF.SB|DF.OB},
-{  3,  0,  3,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,  7,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,  7,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,150,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,150,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,170,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,170,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,171,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,171,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{  3,  0,172,  9, 41,  0,  0,DF.MO|DF.MB|DF.MC|DF.SO      |DF.OB},
-{  3,  0,172,  0, 35,  0,  0,DF.MO|DF.MB      |DF.SO      |DF.OB},
-{ 35,  0,  3,  0, 36,  0, 37,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 35,  0,  0,  0, 36,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 36,  0, 37,  0,  9,  0, 11,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 36,  0,  0,  0,  9,  0,  0,DF.MO            |DF.SO      |DF.OB},
-{ 41,  0, 42,  0, 10,  0, 43,DF.MO|DF.MB      |DF.SO|DF.SB|DF.OB},
-{ 41,  0,  0,  0, 10,  0,  0,DF.MO            |DF.SO      |DF.OI|DF.OG},
-{ 10,  0,  0,  0,  0,  0, 12,DF.MO            |DF.SB      |DF.OI|DF.OG},
--- FO FA  FB  FC  TO  TA  TB FLAGS ----------------------------------------- --
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil, nil, nil, 227, nil, nil, DF.OB } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB } },
+  { 227, { nil, nil, nil, 228, nil, nil, DF.OB } },
+  { 228, { nil, nil, nil, 229, nil, nil, DF.OB } },
+  { 229, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil, nil,   6, nil, nil, DF.OB|DF.OG } },
+  {  11, { nil, nil, nil,  12, nil, nil, DF.OB|DF.OG } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB|DF.OG } },
+  {   5, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  49, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  50, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  53, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  55, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  56, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  58, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  12, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  { 173, { nil, nil, nil, 174, nil, nil, DF.OB } },
+  { 174, { nil, nil, nil, 175, nil, nil, DF.OB } },
+  { 175, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG } },
+  {  13, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  14, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  15, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  16, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  46, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  51, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 236, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.DL]={                          -- Digging down-left tile data
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil,   3,   5,  23, nil,  24, DF.OB },
+         { nil,   3, nil,  17, nil, nil, DF.OB },
+         { nil,   7,   5,  23, nil, nil, DF.OB },
+         { nil,   7, nil,  17, nil, nil, DF.OB },
+         { nil, 150,   5,  23, nil, nil, DF.OB },
+         { nil, 150, nil,  17, nil, nil, DF.OB },
+         { nil, 170,   5,  23, nil, nil, DF.OB },
+         { nil, 170, nil,  17, nil, nil, DF.OB },
+         { nil, 171,   5,  23, nil, nil, DF.OB },
+         { nil, 171, nil,  17, nil, nil, DF.OB },
+         { nil, 172,   5,  23, nil, nil, DF.OB },
+         { nil, 172, nil,  17, nil, nil, DF.OB } },
+  {  17, { nil,   3, nil,  18, nil,  19, DF.OB },
+         { nil, nil, nil,  18, nil, nil, DF.OB } },
+  {  18, { nil,  19, nil,   5, nil,   8, DF.OB },
+         { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  23, { nil,  24, nil,   4, nil,  25, DF.OB },
+         { nil, nil, nil,   4, nil, nil, DF.OI|DF.OG } },
+  {   4, { nil, nil, nil, nil, nil,   6, DF.OI|DF.OG } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.D]={                           -- Digging down?
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil, nil, nil, 173, nil, nil, DF.OB } },
+  { 173, { nil, nil, nil, 174, nil, nil, DF.OB } },
+  { 174, { nil, nil, nil, 175, nil, nil, DF.OB } },
+  { 175, { nil, nil, nil,  -2, nil, nil, DF.OI|DF.OG } },
+  {   8, { nil, nil, nil,   6, nil, nil, DF.OB } },
+  {  11, { nil, nil, nil,  12, nil, nil, DF.OB } },
+  {   4, { nil, nil, nil,   5, nil, nil, DF.OB } },
+  {  10, { nil, nil, nil,   9, nil, nil, DF.OB } },
+  {   5, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {   9, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  47, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  48, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  52, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  53, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  12, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {   6, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG } },
+  {  13, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  14, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  15, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  16, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  46, { nil, nil, nil,   5, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  51, { nil, nil, nil,  12, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
+  {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 235, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 236, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+}, [DIR.DR]={                          -- Digging down right?
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
+  {   3, { nil,   3,   9,  41, nil,  42, DF.OB },
+         { nil,   3, nil,  35, nil, nil, DF.OB },
+         { nil,   7,   9,  41, nil, nil, DF.OB },
+         { nil,   7, nil,  35, nil, nil, DF.OB },
+         { nil, 150,   9,  41, nil, nil, DF.OB },
+         { nil, 150, nil,  35, nil, nil, DF.OB },
+         { nil, 170,   9,  41, nil, nil, DF.OB },
+         { nil, 170, nil,  35, nil, nil, DF.OB },
+         { nil, 171,   9,  41, nil, nil, DF.OB },
+         { nil, 171, nil,  35, nil, nil, DF.OB },
+         { nil, 172,   9,  41, nil, nil, DF.OB },
+         { nil, 172, nil,  35, nil, nil, DF.OB } },
+  {  35, { nil,   3, nil,  36, nil,  37, DF.OB },
+         { nil, nil, nil,  36, nil, nil, DF.OB } },
+  {  36, { nil,  37, nil,   9, nil,  11, DF.OB },
+         { nil, nil, nil,   9, nil, nil, DF.OB } },
+  {  41, { nil,  42, nil,  10, nil,  43, DF.OB },
+         { nil, nil, nil,  10, nil, nil, DF.OI|DF.OG } },
+  {  10, { nil, nil, nil, nil, nil,  12, DF.OI|DF.OG } },
+  -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
 } };
 -- Dug data ---------------------------------------------------------------- --
 local aDugRandShaftData<const> = {

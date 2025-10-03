@@ -1866,135 +1866,214 @@ local function SetObjectAndParentCounter(aObject, sWhat)
   if aPlayer then aPlayer[sWhat] = aPlayer[sWhat] + 1 end;
 end
 -- Dig tile at specified position ------------------------------------------ --
-local function DigTile(aObject)
-  -- Initialise centre location of tile
-  local DP, CP, CId, TId, BId, AId, LId, RId;
+local function DigTile(...)
+  -- Storage for certain positions and tile ids relative to the object
+  local iDP,   -- Vertical position at objects feet
+        iCP,   -- Vertical position at objects waist height
+        iTId,  -- Tile id the object is on now
+        iTIdA, -- Tile id above the object is on now
+        iTIdC, -- Tile id the object is on now (centre pixel position)
+        iTIdB, -- Tile id below the object is on now
+        iTIdL, -- Tile id left of the object is on now
+        iTIdR; -- Tile id right of the object is on now
+  -- Current object direction
+  local iDirection;
+  -- Frequently used flags
+  local iTFW<const>, iTFP<const>, iTFEL<const>, iTFER<const>, iTFEB<const>,
+    iTFET<const> = aTileFlags.W, aTileFlags.P, aTileFlags.EL,
+      aTileFlags.ER, aTileFlags.EB, aTileFlags.ET;
   -- Get dig tile data
   local function GetDigTileData()
     -- Get the tile id that the object is on now
-    CId = aLevelData[1 + CP];
+    iTIdC = aLevelData[1 + iCP];
     -- Get the tile above and adjacent the object
-    if DP >= iLLAbsW then
-      TId = aLevelData[1 + (DP - iLLAbsW)] else TId = 0 end
+    if iDP >= iLLAbsW then
+      iTIdA = aLevelData[1 + (iDP - iLLAbsW)] else iTIdA = 0 end
     -- Get the tile below and adjacent to the object
-    if DP < iLLAbs - iLLAbsW then
-      BId = aLevelData[1 + (DP + iLLAbsW)] else BId = 0 end;
+    if iDP < iLLAbs - iLLAbsW then
+      iTIdB = aLevelData[1 + (iDP + iLLAbsW)] else iTIdB = 0 end;
     -- Get the tile adjacent to the object
-    AId = aLevelData[1 + DP];
+    iTId = aLevelData[1 + iDP];
     -- Get the tile left of the object
-    if DP - 1 >= 0 then LId = aLevelData[1 + (DP - 1)] else LId = 0 end;
+    if iDP - 1 >= 0 then iTIdL = aLevelData[1 + (iDP - 1)] else iTIdL = 0 end;
     -- Get the tile right of the object
-    if DP + 1 < iLLAbs then RId = aLevelData[1 + DP + 1] else RId = 0 end;
+    if iDP + 1 < iLLAbs then
+      iTIdR = aLevelData[1 + iDP + 1] else iTIdR = 0 end;
   end
-  -- Cache digging direction of object and if going left or up-left?
-  local iDirection<const> = aObject.D;
-  if iDirection == DIR.L or iDirection == DIR.UL then
-    if iDirection == DIR.UL then
-      CP = GetLevelOffsetFromObject(aObject, 8, 15) or 0;
-    else CP = 0 end;
-    DP = GetLevelOffsetFromObject(aObject, 5, 15) or 0;
+  -- Moving left or up-left?
+  local function DirectionLeftOrUpleft(aObject)
+    -- Get tile at objects feet
+    iDP = GetLevelOffsetFromObject(aObject, 5, 15) or 0;
     GetDigTileData();
-    local TDLId<const>, TDTId<const> = aTileData[1 + LId], aTileData[1 + TId];
-    if TDTId & aTileFlags.P ~= 0 or
-      (TDLId & aTileFlags.W ~= 0 and TDLId & aTileFlags.ER ~= 0) or
-      (TDTId & aTileFlags.W ~= 0 and TDTId & aTileFlags.EB ~= 0) then
+    local iFDL<const>, iFDT<const> =
+      aTileData[1 + iTIdL], aTileData[1 + iTIdA];
+    if iFDT & iTFP ~= 0 or
+      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
       return false end;
-  -- Going downright?
-  elseif iDirection == DIR.DL then
-    CP, DP = GetLevelOffsetFromObject(aObject, 8, 1) or 0,
-             GetLevelOffsetFromObject(aObject, 5, 1) or 0;
+    return true;
+  end
+  -- Moving left or up-left?
+  local function DirectionUpLeft(aObject)
+    -- Get tile at objects waist
+    iCP = GetLevelOffsetFromObject(aObject, 8, 15) or 0;
+    return DirectionLeftOrUpleft(aObject);
+  end
+  -- Digging left?
+  local function DirectionLeft(aObject)
+    -- Tile at objects waist not required
+    iCP = 0;
+    return DirectionLeftOrUpleft(aObject);
+  end
+  -- Digging down-left?
+  local function DirectionDownLeft(aObject)
+    -- Get tile at objects hands and feet
+    iCP, iDP = GetLevelOffsetFromObject(aObject, 8, 1) or 0,
+               GetLevelOffsetFromObject(aObject, 5, 1) or 0;
     GetDigTileData();
-    local TDBId<const>, TDLId<const>, TDTId<const> =
-      aTileData[1 + BId], aTileData[1 + LId], aTileData[1 + TId];
-    if TDTId & aTileFlags.P ~= 0 or
-      (TDBId & aTileFlags.W ~= 0 and TDBId & aTileFlags.ET ~= 0) or
-      (TDLId & aTileFlags.W ~= 0 and TDLId & aTileFlags.ER ~= 0) or
-      (TDTId & aTileFlags.W ~= 0 and TDTId & aTileFlags.EB ~= 0) then
+    local iFDB<const>, iFDL<const>, iFDT<const> =
+      aTileData[1 + iTIdB], aTileData[1 + iTIdL], aTileData[1 + iTIdA];
+    if iFDT & iTFP ~= 0 or
+      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
+      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
       return false end;
-  -- Going right or upright?
-  elseif iDirection == DIR.R or iDirection == DIR.UR then
-    if iDirection == DIR.UR then
-      CP = GetLevelOffsetFromObject(aObject, 8, 15) or 0;
-    else CP = 0 end;
-    DP = GetLevelOffsetFromObject(aObject, 10, 15) or 0;
+    return true;
+  end
+  -- Digging right or up-right?
+  local function DirectionRightOrUpright(aObject)
+    -- Get tile at objects feet
+    iDP = GetLevelOffsetFromObject(aObject, 10, 15) or 0;
     GetDigTileData();
-    local TDTId<const>, TDRId<const> = aTileData[1 + TId], aTileData[1 + RId];
-    if TDTId & aTileFlags.P ~= 0 or
-      (TDRId & aTileFlags.W ~= 0 and TDRId & aTileFlags.EL ~= 0) or
-      (TDTId & aTileFlags.W ~= 0 and TDTId & aTileFlags.EB ~= 0) then
+    local iFDT<const>, iFDR<const> =
+      aTileData[1 + iTIdA], aTileData[1 + iTIdR];
+    if iFDT & iTFP ~= 0 or
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
       return false end;
-  -- Going downright?
-  elseif iDirection == DIR.DR then
-    CP, DP = GetLevelOffsetFromObject(aObject, 8, 1) or 0,
-             GetLevelOffsetFromObject(aObject, 10, 1) or 0;
+    return true;
+  end
+  -- Digging up-right
+  local function DirectionUpRight(aObject)
+    -- Get tile at objects waist
+    iCP = GetLevelOffsetFromObject(aObject, 8, 15) or 0;
+    return DirectionRightOrUpright(aObject);
+  end
+  -- Digging right or up-right?
+  local function DirectionRight(aObject)
+    -- Tile at objects waist not required
+    iCP = 0;
+    return DirectionRightOrUpright(aObject);
+  end
+  -- Digging down-right?
+  local function DirectionDownRight(aObject)
+    -- Get tile at objects waist and feet
+    iCP, iDP = GetLevelOffsetFromObject(aObject, 8, 1) or 0,
+               GetLevelOffsetFromObject(aObject, 10, 1) or 0;
     GetDigTileData();
-    local TDBId<const>, TDRId<const>, TDTId<const> =
-      aTileData[1 + BId], aTileData[1 + RId], aTileData[1 + TId];
-    if TDTId & aTileFlags.P ~= 0 or
-      (TDBId & aTileFlags.W ~= 0 and TDBId & aTileFlags.ET ~= 0) or
-      (TDRId & aTileFlags.W ~= 0 and TDRId & aTileFlags.EL ~= 0) or
-      (TDTId & aTileFlags.W ~= 0 and TDTId & aTileFlags.EB ~= 0) then
+    local iFDB<const>, iFDR<const>, iFDT<const> =
+      aTileData[1 + iTIdB], aTileData[1 + iTIdR], aTileData[1 + iTIdA];
+    if iFDT & iTFP ~= 0 or
+      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
       return false end;
-  -- Going down?
-  elseif iDirection == DIR.D then
-    CP, DP = 0, GetLevelOffsetFromObject(aObject, 8, 16) or 0;
+    return true;
+  end
+  -- Digging down?
+  local function DirectionDown(aObject)
+    -- Get tile at objects waist and feet
+    iCP, iDP = 0, GetLevelOffsetFromObject(aObject, 8, 16) or 0;
     GetDigTileData();
-    local TDLId<const>, TDTId<const>, TDRId<const>, TDBId<const> =
-      aTileData[1 + LId], aTileData[1 + TId], aTileData[1 + RId],
-      aTileData[1 + BId];
-    if TDTId & aTileFlags.P ~= 0 or
-      (TDBId & aTileFlags.W ~= 0 and TDBId & aTileFlags.ET ~= 0) or
-      (TDLId & aTileFlags.W ~= 0 and TDLId & aTileFlags.ER ~= 0) or
-      (TDRId & aTileFlags.W ~= 0 and TDRId & aTileFlags.EL ~= 0) then
+    local iFDL<const>, iFDT<const>, iFDR<const>, iFDB<const> =
+      aTileData[1 + iTIdL], aTileData[1 + iTIdA], aTileData[1 + iTIdR],
+      aTileData[1 + iTIdB];
+    if iFDT & iTFP ~= 0 or
+      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
+      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) then
       return false end;
-  else return false end;
-  -- Get digging data table
-  local aDigDataItem<const> = aDigData[iDirection];
-  if not aDigDataItem then return false end;
-  -- Walk through all the digger data structs to find info about current tile
-  for iI = 1, #aDigDataItem do
-    -- Get dig data and data about the specific tile to check for
-    local aDigItem<const> = aDigDataItem[iI];
-    local FL<const>,   FO<const>,   FA<const>,   FB<const>,
-          FC<const>,   TO<const>,   TA<const>,   TB<const> =
-          aDigItem[8], aDigItem[1], aDigItem[2], aDigItem[3],
-          aDigItem[4], aDigItem[5], aDigItem[6], aDigItem[7];
-    -- Perform the checks
-    if (FL & DF.MO == 0 or (FL & DF.MO ~= 0 and AId == FO)) and
-       (FL & DF.MA == 0 or (FL & DF.MA ~= 0 and TId == FA)) and
-       (FL & DF.MB == 0 or (FL & DF.MB ~= 0 and BId == FB)) and
-       (FL & DF.MC == 0 or (FL & DF.MC ~= 0 and CId == FC)) then
-      -- Terrain should change?
-      if FL & DF.SO ~= 0 then
-        -- Check ToOver and convert random shaft tiles
-        local aDugData<const> = aDugRandShaftData[TO];
-        if aDugData then AId = aDugData[random(#aDugData)];
-        else AId = TO end;
-        -- Successful dig should search for treasure and if successful? Then
-        -- Increment the gem found counter for object and it's parent
-        if FL & DF.OG ~= 0 and RollTheDice(aObject.X, aObject.Y) then
-          SetObjectAndParentCounter(aObject, "GEM") end;
-      end
-      -- Set tiles if needed
-      if FL & DF.SA ~= 0 then TId = TA end;
-      if FL & DF.SB ~= 0 then BId = TB end;
-      -- Set digger flags if needed
-      if FL & DF.OB ~= 0 then aObject.F = aObject.F | OFL.BUSY end;
-      if FL & DF.OI ~= 0 then aObject.F = aObject.F & ~OFL.BUSY end;
-      -- If tile location is not at the top of the level. Update above tile
-      if DP >= iLLAbsW then
-        UpdateLevel(DP-iLLAbsW, TId) end;
-      -- Update level
-      UpdateLevel(DP, AId);
-      -- If tile location is not at the bottom of the level. Update below tile
-      if DP < iLLAbs-iLLAbsW then
-        UpdateLevel(DP+iLLAbsW, BId) end;
-      -- Dig was successful
-      return true;
+    return true;
+  end
+  -- Do the dig
+  local function DoDig(aObject, aSubDigItem)
+    -- Terrain should change?
+    local iTOS<const>, iFlags<const> = aSubDigItem[4], aSubDigItem[7];
+    if iTOS then
+      -- Check ToOver and convert random shaft tiles
+      local aDugData<const> = aDugRandShaftData[iTOS];
+      if aDugData then iTId = aDugData[random(#aDugData)];
+      else iTId = iTOS end;
+      -- Successful dig should search for treasure and if successful?
+      -- Then increment the gem found counter for object and parent.
+      if iFlags & DF.OG ~= 0 and RollTheDice(aObject.X, aObject.Y) then
+        SetObjectAndParentCounter(aObject, "GEM") end;
     end
+    -- Set tiles if needed
+    local iTAS<const> = aSubDigItem[5];
+    if iTAS then iTIdA = iTAS end;
+    local iTBS<const> = aSubDigItem[6];
+    if iTBS then iTIdB = iTBS end;
+    -- Set digger flags if needed
+    if iFlags & DF.OB ~= 0 then aObject.F = aObject.F | OFL.BUSY end;
+    if iFlags & DF.OI ~= 0 then aObject.F = aObject.F & ~OFL.BUSY end;
+    -- Update above tile if tile location if we can
+    if iDP >= iLLAbsW then UpdateLevel(iDP - iLLAbsW, iTIdA) end;
+    -- Update level
+    UpdateLevel(iDP, iTId);
+    -- Update below tile if tile location if we can
+    if iDP < iLLAbs - iLLAbsW then UpdateLevel(iDP + iLLAbsW, iTIdB) end;
+    -- Dig was successful
+    return true;
   end
-  -- Dig failed
-  return false;
+  -- Direction possibilities
+  local aDirectionRequirements<const> = {
+    [DIR.UL] = DirectionUpLeft,        [DIR.L]  = DirectionLeft,
+    [DIR.DL] = DirectionDownLeft,      [DIR.UR] = DirectionUpRight,
+    [DIR.R]  = DirectionRight,         [DIR.DR] = DirectionDownRight,
+    [DIR.D]  = DirectionDown
+  };
+  -- Actual dig tile function
+  local function DoDigTile(aObject)
+    -- Cache digging direction of object and if going left or up-left?
+    iDirection = aObject.D;
+    -- Return if no dig data for direction
+    local fcbDirection<const> = aDirectionRequirements[iDirection];
+    if not fcbDirection or not fcbDirection(aObject) then return false end;
+    -- Get digging data table
+    local aDigDataItem<const> = aDigData[iDirection];
+    if not aDigDataItem then return false end;
+    -- Walk through all the digger data structs to find info about current tile
+    for iDigDataIndex = 1, #aDigDataItem do
+      -- Get dig data and data about the specific tile to check for and if the
+      -- adjacent tile id the object is at matches?
+      local aDigItem<const> = aDigDataItem[iDigDataIndex];
+      if iTId == aDigItem[1] then
+        -- Go through all the sub-possibilities
+        for iDigDataSubIndex = 2, #aDigItem do
+          -- Get sub-data, always assumed to be a table
+          local aSubDigItem<const> = aDigItem[iDigDataSubIndex];
+          -- If the tile above doesn't matter or above the object?
+          local iMTIdA<const> = aSubDigItem[1];
+          if not iMTIdA or iTIdA == iMTIdA then
+            -- If the tile below doesn't matter or below the object?
+            local iMTIdB<const> = aSubDigItem[2];
+            if not iMTIdB or iTIdB == iMTIdB then
+              -- If the tile the object is on doesn't matter or matches?
+              local iMTIdC<const> = aSubDigItem[3];
+              if (not iMTIdC or iTIdC == iMTIdC) and
+                DoDig(aObject, aSubDigItem) then return true end;
+            end
+          end
+        end
+      end
+    end
+    -- Dig failed
+    return false;
+  end
+  -- Set actual function and call it
+  DigTile = DoDigTile;
+  return DoDigTile(...);
 end
 -- Set object health ------------------------------------------------------- --
 local function AdjustObjectHealth(aVictimObj, iAmount, aCauseObj)
