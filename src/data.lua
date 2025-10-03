@@ -1782,7 +1782,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1461804
   TF.W,                                -- 1471904
   TF.NONE,                             -- 1482004
-  TF.D|TF.AD|TF.P|TF.T|TF.EA,          -- 1492104 Dug tile track with light
+  TF.D|TF.P|TF.T|TF.EA,                -- 1492104 Dug tile track with light
   TF.D|TF.AD|TF.EA,                    -- 1502204 Dug tile with light
   TF.F,                                -- 1512304 Quad rock bottom left
   TF.F,                                -- 1522404 Quad rock bottom right
@@ -1802,7 +1802,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1660605 Outside decoration only
   TF.NONE,                             -- 1670705 Outside decoration only
   TF.NONE,                             -- 1680805 Outside decoration only
-  TF.D|TF.AD|TF.P|TF.T|TF.EA,          -- 1690905 Dug tile beam forward track
+  TF.D|TF.P|TF.T|TF.EA,                -- 1690905 Dug tile beam forward track
   TF.D|TF.AD|TF.EA,                    -- 1701005 Dug tile beam forward
   TF.D|TF.AD|TF.EA,                    -- 1711105 Dug tile beam backwards
   TF.D|TF.AD|TF.EA,                    -- 1721205 Dug tile beam horizontal
@@ -1843,7 +1843,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.F|TF.D|TF.ERB,                    -- 2071506
   TF.D|TF.ETR,                         -- 2081606
   TF.F|TF.D|TF.ERB,                    -- 2091706
-  TF.D|TF.AD|TF.P|TF.T|TF.EA,          -- 2101806 Clear tile with track
+  TF.D|TF.P|TF.T|TF.EA,                -- 2101806 Clear tile with track
   TF.F|TF.D|TF.ETR,                    -- 2111906
   TF.F|TF.D|TF.ETRB,                   -- 2122006
   TF.D|TF.ETR,                         -- 2132106
@@ -2022,7 +2022,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 3860212 Outside decoration only
   TF.NONE,                             -- 3870312 Outside decoration only
   TF.NONE,                             -- 3880412 Outside decoration only
-  TF.D|TF.W|TF.AD|TF.T|TF.P|TF.EA,     -- 3890512 Water clear light track
+  TF.D|TF.W|TF.T|TF.P|TF.EA,           -- 3890512 Water clear light track
   TF.D|TF.W|TF.AD|TF.EA,               -- 3900612 Water clear light
   TF.NONE,                             -- 3910712 Outside decoration only
   TF.NONE,                             -- 3920812 Outside decoration only
@@ -2150,11 +2150,11 @@ assert(#aTileData == 512, "aTileData must only have 512 tiles!");
 -- Explode directions data ------------------------------------------------- --
 local aExplodeDirData<const> = {
   -- X -- Y -- Flags -----             -- Order is important!
-  {   0,   1, TF.W|TF.ET },            -- [Down] Flood if below tile exposed
-  {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
+  {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
   {  -1,   0, TF.W|TF.ER },            -- [Left] Flood if left tile exposed
   {   0,   0, TF.W       },            -- [Centre] No flooding check needed
-  {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
+  {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
+  {   0,   1, TF.W|TF.ET },            -- [Down] Flood if below tile exposed
 };
 -- Explode directions data ------------------------------------------------- --
 local aExplodeAboveData<const> = {
