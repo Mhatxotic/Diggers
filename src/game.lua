@@ -2860,36 +2860,48 @@ local function InitCreateObject()
     -- Nothing to sell
     return false;
   end
+  -- Test different object heights ----------------------------------------- --
+  local function ObjectTryJump(aObject, iX)
+    -- If we are blocked and there is no ceiling above?
+    if IsCollide(aObject, iX, -2) and not IsCollide(aObject, 0, -2) then
+      -- Test each pixel height and test if we can jump
+      for iY = -16, -3, 1 do
+        -- If we can jump there?
+        if not IsCollide(aObject, iX, iY) then
+          -- Do the jump
+          SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP)
+          -- Object fits so success
+          return true;
+        end
+      end
+    end
+    -- No vertical space to fit object
+    return false;
+  end
   -- If object can jump left then jump left -------------------------------- --
   local function ObjectTryJumpLeft(aObject)
-    if IsCollide(aObject, -1, -2) and not IsCollide(aObject, -1, -16) then
-      SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP) return true end;
-    return false;
+    return ObjectTryJump(aObject, -1);
   end
   -- If object can jump right then jump right------------------------------- --
   local function ObjectTryJumpRight(aObject)
-    if IsCollide(aObject, 1, -2) and not IsCollide(aObject, 1, -16) then
-      SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP) return true end;
-    return false;
+    return ObjectTryJump(aObject, 1);
   end
-  -- Lookup table for jumping ---------------------------------------------- --
+  -- Function that returns false ------------------------------------------- --
+  local function ReturnFalse() return false end;
+  -- Lookup table for jump testing ----------------------------------------- --
   local aJumpCheckFunctions<const> = {
-    [DIR.UL] = ObjectTryJumpLeft, [DIR.UR] = ObjectTryJumpRight,
-    [DIR.L]  = ObjectTryJumpLeft, [DIR.R]  = ObjectTryJumpRight,
-    [DIR.DL] = ObjectTryJumpLeft, [DIR.DR] = ObjectTryJumpRight
+    [DIR.UL]   = ObjectTryJumpLeft,  [DIR.U] = ReturnFalse,
+    [DIR.UR]   = ObjectTryJumpRight, [DIR.L] = ObjectTryJumpLeft,
+    [DIR.NONE] = ReturnFalse,        [DIR.R] = ObjectTryJumpRight,
+    [DIR.DL]   = ObjectTryJumpLeft,  [DIR.D] = ReturnFalse,
+    [DIR.DR]   = ObjectTryJumpRight
   };
   -- Try to jump the object and return if we did --------------------------- --
   local function ObjectJumped(aObject)
-    -- Return if digger is digging or digger has fall damage
-    if aObject.J == JOB.DIG or aObject.FD > 0 then return false end;
-    -- 50% chance to check to jump
-    if random() < 0.5 then
-      -- Check if direction is important and call the associated function
-      local fcbJumpCheck<const> = aJumpCheckFunctions[aObject.D];
-      if fcbJumpCheck then return fcbJumpCheck(aObject) end;
-    end
-    -- Object didn't jump
-    return false;
+    -- Return if digger is digging or digger has fall damage and wins a 50%
+    -- chance to jump and the jump is successful
+    return aObject.J ~= JOB.DIG and aObject.FD == 0 and
+      random() < 0.5 and aJumpCheckFunctions[aObject.D](aObject);
   end
   -- Digger AI choices (Chances to change action per tick) ----------------- --
   local aAIData<const> = {
