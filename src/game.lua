@@ -2028,10 +2028,10 @@ local function DigTile(...)
   end
   -- Direction possibilities
   local aDirectionRequirements<const> = {
-    [DIR.UL] = DirectionUpLeft,        [DIR.L]  = DirectionLeft,
-    [DIR.DL] = DirectionDownLeft,      [DIR.UR] = DirectionUpRight,
-    [DIR.R]  = DirectionRight,         [DIR.DR] = DirectionDownRight,
-    [DIR.D]  = DirectionDown
+    [DIR.UL] = DirectionUpLeft,        [DIR.UR] = DirectionUpRight,
+    [DIR.L]  = DirectionLeft,          [DIR.R]  = DirectionRight,
+    [DIR.DL] = DirectionDownLeft,      [DIR.D]  = DirectionDown,
+    [DIR.DR] = DirectionDownRight
   };
   -- Actual dig tile function
   local function DoDigTile(aObject)
@@ -2048,25 +2048,27 @@ local function DigTile(...)
       -- Get dig data and data about the specific tile to check for and if the
       -- adjacent tile id the object is at matches?
       local aDigItem<const> = aDigDataItem[iDigDataIndex];
-      if iTId == aDigItem[1] then
-        -- Go through all the sub-possibilities
-        for iDigDataSubIndex = 2, #aDigItem do
-          -- Get sub-data, always assumed to be a table
-          local aSubDigItem<const> = aDigItem[iDigDataSubIndex];
-          -- If the tile above doesn't matter or above the object?
-          local iMTIdA<const> = aSubDigItem[1];
-          if not iMTIdA or iTIdA == iMTIdA then
-            -- If the tile below doesn't matter or below the object?
-            local iMTIdB<const> = aSubDigItem[2];
-            if not iMTIdB or iTIdB == iMTIdB then
-              -- If the tile the object is on doesn't matter or matches?
-              local iMTIdC<const> = aSubDigItem[3];
-              if (not iMTIdC or iTIdC == iMTIdC) and
-                DoDig(aObject, aSubDigItem) then return true end;
-            end
-          end
-        end
+      if iTId ~= aDigItem[1] then goto nextdditem end;
+      -- Go through all the sub-possibilities
+      for iDigDataSubIndex = 2, #aDigItem do
+        -- Get sub-data, always assumed to be a table
+        local aSubDigItem<const> = aDigItem[iDigDataSubIndex];
+        -- Skip if the tile above the object isn't matched
+        local iMTIdA<const> = aSubDigItem[1];
+        if iMTIdA and iTIdA ~= iMTIdA then goto nextsdditem end;
+        -- Skip if the tile below the object isn't matched
+        local iMTIdB<const> = aSubDigItem[2];
+        if iMTIdB and iTIdB ~= iMTIdB then goto nextsdditem end;
+        -- Skip if the tile the object is on isn't matched
+        local iMTIdC<const> = aSubDigItem[3];
+        if iMTIdC and iTIdC ~= iMTIdC then goto nextsdditem end;
+        -- We can dig now and return if successful.
+        if DoDig(aObject, aSubDigItem) then return true end;
+        -- Continue mark
+        ::nextsdditem::
       end
+      -- Continue mark
+      ::nextdditem::
     end
     -- Dig failed
     return false;
@@ -4832,86 +4834,91 @@ local function OnScriptLoaded(GetAPI)
     -- Drag menu if open
     if aContextMenu then UpdateMenuPosition(iX, iY) end;
   end
-  -- Object released on screen
-  local function SelectObjectOnScreenPress(iButton)
-    -- If pause key or button pressed? Deselect the info screen and pause
-    if iButton == 9 then return SelectPauseScreen() end;
-    -- Left mouse button clicked?
-    if iButton == 0 then
-      -- We have context menu open and in bounds?
-      if aContextMenuData and
-         IsMouseInBounds(iMenuLeft, iMenuTop, iMenuRight, iMenuBottom) then
-        -- Walk through it and test position
-        for iMIndex = 1, #aContextMenuData do
-          -- Get context menu item and if mouse is in bounds?
-          local aMItem<const> = aContextMenuData[iMIndex];
-          if IsMouseInBounds(aMItem[4], aMItem[5], aMItem[6], aMItem[7]) then
-            -- If this item cannot be activate when busy? Play error sound
-            if aMItem[3] and aActiveObject.F & OFL.BUSY ~= 0 then
-              PlayStaticSound(iSError);
-            -- Not busy?
-            else
-              -- Get menu data
-              local aMData<const> = aMItem[1];
-              -- New menu specified? Set new menu and play sound
-              if aMData[3] ~= MNU.NONE then
-                PlayStaticSound(iSSelect);
-                SetContextMenu(aMData[3], false);
-              -- New action specified?
-              elseif aMData[4] ~= 0 and aMData[5] ~= 0 and aMData[6] ~= 0 then
-                -- Play the click sound
-                PlayStaticSound(iSSelect);
-                -- Set the action and if failed? Play the error sound
-                if not SetAction(aActiveObject,
-                   aMData[4], aMData[5], aMData[6], true)
-                  then PlayStaticSound(iSError) end;
-              end
+  -- Left mouse button / Joystick button 1 pressed function
+  local function OnButton0Pressed()
+    -- We have context menu open and in bounds?
+    if aContextMenuData and
+       IsMouseInBounds(iMenuLeft, iMenuTop, iMenuRight, iMenuBottom) then
+      -- Walk through it and test position
+      for iMIndex = 1, #aContextMenuData do
+        -- Get context menu item and if mouse is in bounds?
+        local aMItem<const> = aContextMenuData[iMIndex];
+        if IsMouseInBounds(aMItem[4], aMItem[5], aMItem[6], aMItem[7]) then
+          -- If this item cannot be activate when busy? Play error sound
+          if aMItem[3] and aActiveObject.F & OFL.BUSY ~= 0 then
+            PlayStaticSound(iSError);
+          -- Not busy?
+          else
+            -- Get menu data and if new menu specified?
+            local aMData<const> = aMItem[1];
+            if aMData[3] ~= MNU.NONE then
+              -- Set new menu and play sound
+              PlayStaticSound(iSSelect);
+              SetContextMenu(aMData[3], false);
+            -- New action specified?
+            elseif aMData[4] ~= 0 and aMData[5] ~= 0 and aMData[6] ~= 0 then
+              -- Play the click sound
+              PlayStaticSound(iSSelect);
+              -- Set the action and if failed? Play the error sound
+              if not SetAction(aActiveObject,
+                 aMData[4], aMData[5], aMData[6], true)
+                then PlayStaticSound(iSError) end;
             end
-            -- Blocked from doing anything else
-            return;
           end
+          -- Blocked from doing anything else.
+          return;
         end
       end
-      -- Translate current mouse position to absolute level position
-      local nMouseX<const>, nMouseY<const> = GetAbsMousePos();
-      -- Walk through objects in backwards order. This is because objects are
-      -- drawn from oldest to newest.
-      for iIndex = #aObjects, 1, -1 do
-        -- Get object, select object and return if mouse cursor touching it
-        local aObject<const> = aObjects[iIndex];
-        if IsSpriteCollide(479, nMouseX, nMouseY,
-             aObject.S, aObject.X, aObject.Y) then
-          SelectObject(aObject);
-          return PlayStaticSound(iSSelect);
-        end
-      end
-      -- Nothing found so deselect current object
-      return SelectObject();
-    end
-    -- Right mouse button button or Joystick button 1 is held?
-    if iButton == 1 then
-      -- Right mouse button held down and menu open?
-      if aContextMenu then UpdateMenuPositionAtMouseCursor();
-      -- Is the right mouse button pressed? (Don't release the click).
-      elseif aActiveObject then
-        -- Get active objectmenu data
-        local aObjContextMenu<const> = aActiveObject.OD.MENU;
-        -- Object has menu and object belongs to active player and object isn't
-        -- dead or eaten?
-        if aObjContextMenu and
-           aActiveObject.P == aActivePlayer and
-           aActiveObject.A ~= ACT.DEATH and
-           aActiveObject.A ~= ACT.EATEN then
-          -- Object does belong to active player so play context menu sound and
-          -- set the appropriate default menu for the object.
-          PlayStaticSound(iSClick);
-          SetContextMenu(aObjContextMenu, true);
-        -- Object does not belong to active player? Play error sound
-        else PlayStaticSound(iSError) end
-      end
-      -- Done
+      -- The mouse cursor was in the bounds of the context menu so we don't
+      -- need to check anything else.
       return;
     end
+    -- Translate current mouse position to absolute level position
+    local nMouseX<const>, nMouseY<const> = GetAbsMousePos();
+    -- Walk through objects in backwards order. This is because objects are
+    -- drawn from oldest to newest.
+    for iIndex = #aObjects, 1, -1 do
+      -- Get object, select object and return if mouse cursor touching it
+      local aObject<const> = aObjects[iIndex];
+      if IsSpriteCollide(479, nMouseX, nMouseY,
+           aObject.S, aObject.X, aObject.Y) then
+        SelectObject(aObject);
+        return PlayStaticSound(iSSelect);
+      end
+    end
+    -- Nothing found so deselect current object
+    SelectObject();
+  end
+  -- Right mouse button / Joystick button 2 pressed function
+  local function OnButton1Pressed()
+    -- Right mouse button held down and menu open?
+    if aContextMenu then return UpdateMenuPositionAtMouseCursor() end;
+    -- Return if there is no active object or we can't open its menu
+    if not aActiveObject then return end;
+    -- Get active objectmenu data
+    local aObjContextMenu<const> = aActiveObject.OD.MENU;
+    -- Object has menu and object belongs to active player and object isn't
+    -- dead or eaten?
+    if aObjContextMenu and
+       aActiveObject.P == aActivePlayer and
+       aActiveObject.A ~= ACT.DEATH and
+       aActiveObject.A ~= ACT.EATEN then
+      -- Object does belong to active player so play context menu sound and
+      -- set the appropriate default menu for the object.
+      PlayStaticSound(iSClick);
+      SetContextMenu(aObjContextMenu, true);
+    -- Object does not belong to active player? Play error sound
+    else PlayStaticSound(iSError) end
+  end
+  -- Button callbacks
+  local aButtonCallbacks<const> = {
+    [0] = OnButton0Pressed, [1] = OnButton1Pressed, [9] = SelectPauseScreen,
+  };
+  -- Object released on screen
+  local function SelectObjectOnScreenPress(iButton)
+    -- Find callback function
+    local fcbFunc<const> = aButtonCallbacks[iButton];
+    if fcbFunc then fcbFunc() end;
   end
   -- Mouse hovering
   local function OnHover()
