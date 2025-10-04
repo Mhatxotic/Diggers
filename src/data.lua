@@ -412,21 +412,21 @@ local aShroudCircle<const> = {
   { 1, 6,ixT },{ 2, 6,ixT },{ 3, 6,ixT },{ 4, 6,ixT },{ 5, 6,ixTL}
 };
 -- Level data types -------------------------------------------------------- --
-local aLevelTypeDesert<const>   =
-  -- Type  Filename    Name             Shroud colour (r[1],g[2],b[3])
-  { i=0, f="desert",   n="DESERTOUS",   s={ 170/0xFF, 102/0xFF,  81/0xFF } };
-local aLevelTypeGrass<const>    =
-  { i=1, f="grass",    n="TEMPERATE",   s={ 128/0xFF,  67/0xFF,  49/0xFF } };
-local aLevelTypeIslands<const>  =
-  { i=2, f="islands",  n="COASTAL",     s={ 188/0xFF,  87/0xFF,   0/0xFF } };
-local aLevelTypeJungle<const>   =
-  { i=3, f="jungle",   n="TROPICAL",    s={  41/0xFF,   6/0xFF,   0/0xFF } };
+local aLevelTypeDesert<const> =
+  -- Type  Filename    Name             Shroud colour (0xAARRGGBB)
+  { i=0, f="desert",   n="DESERTOUS",   s=0xF8AA6651 };
+local aLevelTypeGrass<const> =
+  { i=1, f="grass",    n="TEMPERATE",   s=0xF8804331 };
+local aLevelTypeIslands<const> =
+  { i=2, f="islands",  n="COASTAL",     s=0xF8BC5700 };
+local aLevelTypeJungle<const> =
+  { i=3, f="jungle",   n="TROPICAL",    s=0xF8290600 };
 local aLevelTypeMountain<const> =
-  { i=4, f="mountain", n="MOUNTAINOUS", s={ 204/0xFF, 102/0xFF, 102/0xFF } };
-local aLevelTypeRock<const>     =
-  { i=5, f="rock",     n="BARRENOUS",   s={ 116/0xFF,  52/0xFF,  35/0xFF } };
-local aLevelTypeWinter<const>   =
-  { i=6, f="snow",     n="WINTEROUS",   s={ 102/0xFF, 102/0xFF, 153/0xFF } };
+  { i=4, f="mountain", n="MOUNTAINOUS", s=0xF8CC6666 };
+local aLevelTypeRock<const> =
+  { i=5, f="rock",     n="BARRENOUS",   s=0xF8743423 };
+local aLevelTypeWinter<const> =
+  { i=6, f="snow",     n="WINTEROUS",   s=0xF8666699 };
 -- Level data types array -------------------------------------------------- --
 local aLevelTypesData<const> = {
   aLevelTypeDesert,   aLevelTypeGrass, aLevelTypeIslands, aLevelTypeJungle,

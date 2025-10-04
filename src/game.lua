@@ -46,23 +46,56 @@ local function HighPriorityVars()
 local CreateObject, MoveOtherObjects, PlayInterfaceSound, PlaySoundAtObject,
   SetAction;
 -- Locals ------------------------------------------------------------------ --
-local aActiveObject, aActivePlayer, aContextMenu, aContextMenuData, aFloodData,
-  aGemsAvailable, aLevelData, aObjects, aOpponentPlayer, aPlayers, aRacesData,
-  aRacesAvailable, aShroudColour, aShroudData, bAIvsAI, fcbInfoScreenCallback,
-  fcbLogic, fcbRender, iAbsCenPosX, iAbsCenPosY, iAnimMoney, iGameTicks,
-  iHotSpotId, iKeyBankId, iLevelId, iLLAbsHmVP, iLLAbsWmVP, iLLPixHmVP,
-  iLLPixWmVP, iMenuLeft, iMenuTop, iMenuRight, iMenuBottom, iPixCenPosX,
-  iPixCenPosY, iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iScrTilesH,
-  iScrTilesHd2, iScrTilesHd2p1, iScrTilesHm1, iScrTilesHmVPS, iScrTilesW,
-  iScrTilesWd2, iScrTilesWd2p1, iScrTilesWm1, iScrTilesWmVPS, iScrollRate,
-  iStageB, iStageH, iStageL, iStageR, iStageT, iStageW, iTilesHeight,
-  iTilesWidth, iUniqueId, iViewportH, iViewportW, iWinLimit, maskLev, maskSpr,
-  maskZone, sLevelName, sLevelType, sMoney, texBg, texLev =
-    nil, nil, nil, nil, { }, { }, { }, { }, nil, { }, { }, { }, nil, { }, nil,
-    nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-    nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-    nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
-    nil, nil, nil, nil, nil, nil, nil, nil, nil, nil;
+local aActiveObject;                   -- Currently selected object
+local aActivePlayer;                   -- Reference to main player data
+local aContextMenu;                    -- Currently open context menu
+local aContextMenuData;                -- Cached context menu positions data
+local aFloodData = { };                -- Active tile flooding data
+local aGemsAvailable = { };            -- Gems available to be sold
+local aLevelData = { };                -- Current level data
+local aObjects = { };                  -- Game objects list
+local aOpponentPlayer;                 -- Reference to opposing player data
+local aPlayers = { };                  -- All the players in the game
+local aRacesAvailable = { };           -- Races available for selection
+local aRacesData;                      -- Races data (data.lua)
+local aShroudData = { };               -- Current level shroud data
+local bAIvsAI;                         -- Is currently an AI vs AI game?
+local fcbInfoScreenCallback;           -- Current info screen callback
+local fcbLogic;                        -- Current logic callback
+local fcbRender;                       -- Current render callback
+local iAbsCenPosX, iAbsCenPosY;        -- Current viewport absolute centre pos
+local iAnimMoney;                      -- Current animated money
+local iGameTicks;                      -- Frames rendered for this level
+local iHotSpotId;                      -- Current mouse hot spots id
+local iKeyBankId;                      -- Current key bank activated
+local iLLAbsHmVP, iLLAbsWmVP;          -- Maximum viewport tile position
+local iLLPixHmVP, iLLPixWmVP;          -- Maximum viewport pixel position
+local iLevelId;                        -- Current level id selected
+local iMenuBottom, iMenuLeft;          -- Menu position bottom/left bounds
+local iMenuRight, iMenuTop;            -- Menu position top/right bounds
+local iPixCenPosX, iPixCenPosY;        -- Current viewport pixel centre pos
+local iPixPosTargetX, iPixPosTargetY;  -- Current viewport animated pixel pos
+local iPixPosX, iPixPosY;              -- Current viewport pixel position
+local iScrTilesH;                      -- Max vertical tiles on screen
+local iScrTilesHd2;                    -- " as above but divided by two
+local iScrTilesHd2p1;                  -- " as above but div by two plus one
+local iScrTilesHm1;                    -- " as above but minus one
+local iScrTilesW;                      -- Max horizontal tiles on screen
+local iScrTilesWd2;                    -- " as above but divided by two
+local iScrTilesWd2p1;                  -- " as above but div by two plus one
+local iScrTilesWm1;                    -- " as above but minus one
+local iScrollRate;                     -- Viewport scrolling speed
+local iShroudColour;                   -- Current selected shroud colour
+local iStageB, iStageH, iStageL;       -- Fbo bottom/height/left bounds
+local iStageR, iStageT, iStageW;       -- Fbo right/top/width bounds
+local iTilesHeight, iTilesWidth;       -- Total tiles on screen
+local iUniqueId;                       -- Current unique object id
+local iViewportH, iViewportW;          -- Current viewport width and height
+local iWinLimit;                       -- Zogs needed to win this level
+local maskLev, maskSpr, maskZone;      -- Level/sprite/zone bitmask handles
+local sLevelName, sLevelType;          -- Level name and type strings
+local sMoney;                          -- Currently displayed money value
+local texBg, texLev;                   -- Background tex id and lv tex handle
 -- Level limits ------------------------------------------------------------ --
 local iLLAbsW<const>   = 128;                -- Total # of horizontal tiles
 local iLLAbsH<const>   = 128;                -- Total # of vertical tiles
@@ -2261,7 +2294,7 @@ local function RenderShroud()
   -- Calculate the X pixel position to draw at
   local iXdraw<const> = iStageL + iPixCenPosX;
   -- Set shroud colour
-  texSpr:SetCRGBA(aShroudColour[1], aShroudColour[2], aShroudColour[3], 0.975);
+  texSpr:SetCRGBAI(iShroudColour);
   -- For each screen row to draw tile at
   for iY = 0, iTilesHeight do
     -- Calculate the Y position to grab from the level data
@@ -4302,7 +4335,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
   -- Set level name and level type name
   sLevelName, sLevelType = aLevelInfo.n, aLevelTypeData.n;
   -- Set shroud colour
-  aShroudColour = aLevelTypeData.s;
+  iShroudColour = aLevelTypeData.s;
   -- Holds required assets to set template to music or no music
   local aAssets;
   if sMusic then aAssets, aAssetsMusic[4].F = aAssetsMusic, sMusic;
