@@ -16,15 +16,13 @@ local abs<const>, ceil<const>, error<const>, floor<const>, format<const>,
     math.abs, math.ceil, error, math.floor, string.format, math.max,
     math.maxinteger, math.min, pairs, math.random, table.remove, tostring;
 -- M-Engine function aliases ----------------------------------------------- --
-local CoreLog<const>, CoreQuit<const>, CoreWrite<const>, CoreTicks<const>,
-  CoreTime<const>, MaskCreateZero<const>, UtilClamp<const>,
-  UtilClampInt<const>, UtilFormatNumber<const>, UtilIsBoolean<const>,
-  UtilIsFunction<const>, UtilIsInteger<const>, UtilIsString<const>,
-  UtilIsTable<const>, UtilRound<const> =
-    Core.Log, Core.Quit, Core.WriteEx, Core.Ticks, Core.Time,
-    Mask.CreateZero, Util.Clamp, Util.ClampInt, Util.FormatNumber,
-    Util.IsBoolean, Util.IsFunction, Util.IsInteger, Util.IsString,
-    Util.IsTable, Util.Round;
+local CoreLog<const>, CoreWrite<const>, MaskCreateZero<const>,
+  UtilClamp<const>, UtilClampInt<const>, UtilFormatNumber<const>,
+  UtilIsBoolean<const>, UtilIsFunction<const>, UtilIsInteger<const>,
+  UtilIsString<const>, UtilIsTable<const> =
+    Core.Log, Core.WriteEx, Mask.CreateZero, Util.Clamp, Util.ClampInt,
+    Util.FormatNumber, Util.IsBoolean, Util.IsFunction, Util.IsInteger,
+    Util.IsString, Util.IsTable;
 -- Assets required --------------------------------------------------------- --
 local aAssetsMusic, aAssetsNoMusic, aAssetsContinue;
 -- Diggers shared functions and data --------------------------------------- --
