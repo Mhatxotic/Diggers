@@ -318,7 +318,7 @@ local aSfxData<const> = {
   DIEGRAB = 0x03,                      DIEHABB = 0x04,
   -- Quarrior death sound              Digging sound
   DIEQUAR = 0x05,                      DIG = 0x06,
-  -- Mouse click command failed        TNT explosion sound
+  -- Warning (65hz sawtooth tone)      TNT explosion sound
   ERROR = 0x07,                        EXPLODE = 0x08,
   -- Treasure found                    Gate close
   FIND = 0x09,                         GCLOSE = 0x0A,
