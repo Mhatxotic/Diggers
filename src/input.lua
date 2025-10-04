@@ -188,11 +188,8 @@ local function SetCursor(iIdentifier)
   -- Set cursor id
   iCId = iIdentifier;
 end
--- Execute command if mouse is overing ------------------------------------- --
-local function CheckHotSpotHover(aHotSpot)
-  -- Return if mouse not in bounds
-  if not IsMouseInBounds(aHotSpot[1], aHotSpot[2],
-                         aHotSpot[3], aHotSpot[4]) then return end;
+-- Do execute command if mouse is overing ---------------------------------- --
+local function DoHotSpotHover(aHotSpot)
   -- Set the cursor
   SetCursor(aHotSpot[6]);
   -- Call the function if it is available?
@@ -203,6 +200,14 @@ local function CheckHotSpotHover(aHotSpot)
       xpcall(fcbCb, CoreStack, iCursorX, iCursorY);
     if not bResult then SetErrorMessage(sReason) end;
   end
+end
+-- Execute command if mouse is overing ------------------------------------- --
+local function CheckHotSpotHover(aHotSpot)
+  -- Return if mouse not in bounds
+  if not IsMouseInBounds(aHotSpot[1], aHotSpot[2],
+                         aHotSpot[3], aHotSpot[4]) then return end;
+  -- Do the hover
+  DoHotSpotHover(aHotSpot);
   -- Success
   return true;
 end
@@ -244,9 +249,11 @@ local function OnMouseClick(iButton, iState)
         local fcbCb<const> = aHotSpot[9][1 + iState];
         if fcbCb then
           -- Protected call so we can handle errors
-          local bResult<const>, sReason<const> =
+          local bResult<const>, vResult<const> =
             xpcall(fcbCb, CoreStack, iButton, iCursorX, iCursorY);
-          if not bResult then SetErrorMessage(sReason) end;
+          if not bResult then SetErrorMessage(vResult);
+          -- If click was processed then run hover func to refresh position
+          elseif vResult then DoHotSpotHover(aHotSpot) end;
         end
         -- Done
         return;

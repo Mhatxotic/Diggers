@@ -95,17 +95,17 @@ local sLevelName, sLevelType;          -- Level name and type strings
 local sMoney;                          -- Currently displayed money value
 local texBg, texLev;                   -- Background tex id and lv tex handle
 -- Level limits ------------------------------------------------------------ --
-local iLLAbsW<const>   = 128;                -- Total # of horizontal tiles
-local iLLAbsH<const>   = 128;                -- Total # of vertical tiles
-local iLLAbsWm1<const> = iLLAbsW - 1;        -- Horizontal tiles minus one
-local iLLAbsHm1<const> = iLLAbsH - 1;        -- Vertical tiles minus one
-local iLLAbs<const>    = iLLAbsW * iLLAbsH;  -- Total # of tiles in level
-local iLLAbsM1<const>  = iLLAbs - 1;         -- Total tiles minus one
-local iLLAbsMLW<const> = iLLAbs - iLLAbsW;   -- Total tiles minus one row
-local iLLPixW<const>   = iLLAbsW * 16;       -- Total # of horizontal pixels
-local iLLPixH<const>   = iLLAbsH * 16;       -- Total # of vertical pixels
-local iLLPixWm1<const> = iLLPixW - 1;        -- Total H pixels minus one
-local iLLPixHm1<const> = iLLPixH - 1;        -- Total V pixels minus one
+local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
+local iLLAbsH<const>   = 128;               -- Total # of vertical tiles
+local iLLAbsWm1<const> = iLLAbsW - 1;       -- Horizontal tiles minus one
+local iLLAbsHm1<const> = iLLAbsH - 1;       -- Vertical tiles minus one
+local iLLAbs<const>    = iLLAbsW * iLLAbsH; -- Total # of tiles in level
+local iLLAbsM1<const>  = iLLAbs - 1;        -- Total tiles minus one
+local iLLAbsMLW<const> = iLLAbs - iLLAbsW;  -- Total tiles minus one row
+local iLLPixW<const>   = iLLAbsW * 16;      -- Total # of horizontal pixels
+local iLLPixH<const>   = iLLAbsH * 16;      -- Total # of vertical pixels
+local iLLPixWm1<const> = iLLPixW - 1;       -- Total H pixels minus one
+local iLLPixHm1<const> = iLLPixH - 1;       -- Total V pixels minus one
 -- Other consts ------------------------------------------------------------ --
 local iVPScrollThreshold<const> = 4;         -- Limit before centring viewport
 -- Bounds checking sprite blitter ------------------------------------------ --
@@ -4961,8 +4961,7 @@ local function OnScriptLoaded(GetAPI)
       for iMIndex = 1, #aContextMenuData do
         -- Get context menu item set tip if mouse is in bounds
         local aMItem<const> = aContextMenuData[iMIndex];
-        if IsMouseInBounds(aMItem[4], aMItem[5],
-                           aMItem[6], aMItem[7]) then
+        if IsMouseInBounds(aMItem[4], aMItem[5], aMItem[6], aMItem[7]) then
           return SetTip(aMItem[1][7]) end;
       end
     end
@@ -4975,9 +4974,12 @@ local function OnScriptLoaded(GetAPI)
     if not aActiveObject or aActiveObject.P ~= aActivePlayer then return end;
     -- Get id
     local iIId<const> = 1 + ((iCursorX - 61) // 8);
-    -- Drop it and play sound if successful
+    -- Drop it and if successful?
     if DropObject(aActiveObject, aActiveObject.I[iIId]) then
+      -- Play sound if successful
       PlayStaticSound(iSSelect);
+      -- Tell hotspot manager to reexecute the focus function
+      return true;
     -- Impossible but just incase
     else PlayStaticSound(iSError) end;
   end
