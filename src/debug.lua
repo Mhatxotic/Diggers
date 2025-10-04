@@ -290,7 +290,8 @@ local function InitDebugPlay(iId)
          %4d/%4d VCPX\n\z
          %4d/%4d APOS\n\z
          %4d/%4d ACPS\n\z
-         %4d/%4d AMAX",
+         %4d/%4d AMAX\n\z
+         %4d/%4d MPOS",
         sLevelName, iLevelId,
         sLevelType,
         iWinLimit,
@@ -304,7 +305,8 @@ local function InitDebugPlay(iId)
         iPixCenPosX, iPixCenPosY,
         iPosX, iPosY,
         iAbsCenPosX, iAbsCenPosY,
-        iViewportW, iViewportH));
+        iViewportW, iViewportH,
+        GetMouseX(), GetMouseY()));
     -- Draw gems and dug count
     fontLittle:SetCRGBA(1, 1, 1, nFade1);
     PrintR(fontLittle, 155, 23, iDug1.." ("..iGems1..")");

@@ -33,13 +33,13 @@ local ACT, AI, BlitSLTRB, BlitSLT, DF, DIR, Fade, GetMouseX, GetMouseY,
   InitTNTMap, InitWin, InitWinDead, IsMouseInBounds, JOB, LoadResources, MFL,
   MNU, OFL, PlayMusic, PlaySound, PlayStaticSound, Print, PrintC, PrintR,
   RegisterFBUCallback, RenderFade, RenderShadow, RenderTip, SetCallbacks,
-  SetCursor, SetCursorPos, SetHotSpot, SetKeys, SetTip, TileA, TYP,
-  aAIChoicesData, aDigBlockData, aDigData, aDigTileData, aDugRandShaftData,
-  aExplodeAboveData, aExplodeDirData, aFloodGateData, aGlobalData,
-  aJumpFallData, aJumpRiseData, aLevelsData, aMenuData, aObjectData, aSfxData,
-  aShopData, aShroudCircle, aShroudTileLookup, aTileData, aTileFlags,
-  aTimerData, aTrainTrackData, iSlowDown, iSavedSlowDown, fontLarge,
-  fontLittle, fontTiny, iPosX, iPosY, texSpr;
+  SetCursorPos, SetHotSpot, SetKeys, SetTip, TileA, TYP, aAIChoicesData,
+  aDigBlockData, aDigData, aDigTileData, aDugRandShaftData, aExplodeAboveData,
+  aExplodeDirData, aFloodGateData, aGlobalData, aJumpFallData, aJumpRiseData,
+  aLevelsData, aMenuData, aObjectData, aSfxData, aShopData, aShroudCircle,
+  aShroudTileLookup, aTileData, aTileFlags, aTimerData, aTrainTrackData,
+  iSlowDown, iSavedSlowDown, fontLarge, fontLittle, fontTiny, iPosX, iPosY,
+  texSpr;
 -- High priority variables (because of MAXVARS limit) ---------------------- --
 local function HighPriorityVars()
 -- Prototype functions (assigned later) ------------------------------------ --
@@ -4525,7 +4525,8 @@ end
 -- When scripts have loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData;
+  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData,
+    SetCursor;
   -- Get imports
   TYP, aLevelsData, LoadResources, aObjectData, ACT, JOB, DIR, aTimerData, AI,
     OFL, aDigTileData, PlayMusic, aTileData, aTileFlags, Fade, BCBlit,
@@ -4937,8 +4938,39 @@ local function OnScriptLoaded(GetAPI)
     -- Mouse isn't over anything interesting
     SetTip();
   end
+  -- Mouse pressed over inventory?
+  local function DropItem(iButton, iCursorX)
+    -- Ignore if no active object select or object is not ours
+    if not aActiveObject or aActiveObject.P ~= aActivePlayer then return end;
+    -- Get id
+    local iIId<const> = 1 + ((iCursorX - 61) // 8);
+    -- Drop it and play sound if successful
+    if DropObject(aActiveObject, aActiveObject.I[iIId]) then
+      PlayStaticSound(iSSelect);
+    -- Impossible but just incase
+    else PlayStaticSound(iSError) end;
+  end
+  -- Mouse hovering over inventory?
+  local function OnItemHover(iCursorX)
+    -- If we have an active object and player owns it
+    if aActiveObject and aActiveObject.P == aActivePlayer then
+      -- Get id and if we have that inventory item?
+      local iIId<const> = 1 + ((iCursorX - 61) // 8);
+      local aInvObj<const> = aActiveObject.I[iIId];
+      if aInvObj then
+        -- Item is droppable so show that this is clickable
+        SetCursor(iCSelect);
+        -- Show item id to drop
+        return SetTip("DROP ITEM "..iIId);
+      end
+    end
+    -- Nothing interesting so just report inventory
+    SetTip("INVENTORY");
+  end
   -- Setup hot spot data
   iHotSpotId = RegisterHotSpot({
+    -- Digger quick inventory drop area
+    {  61, 218, 56, 8, 0, 0, OnItemHover, OnScroll, DropItem },
     -- Digger money
     {   8, 216, 39, 16, 0, 0, "MONEY",       false, false },
     {  40, 216, 80, 16, 0, 0, "OBJECT INFO", false, false },
@@ -4950,16 +4982,14 @@ local function OnScriptLoaded(GetAPI)
     { 192, 216, 16, 16, 0, iCSelect, "GO DIGGER 4", OnScroll, SetDiggerFour  },
     { 208, 216, 16, 16, 0, iCSelect, "GO DIGGER 5", OnScroll, SetDiggerFive  },
     -- Utility buttons
-    { 232, 216, 16, 16, 0, iCSelect, "NEXT DEVICE", OnScroll,
-      SelectDevice },
+    { 232, 216, 16, 16, 0, iCSelect, "NEXT DEVICE", OnScroll, SelectDevice },
     { 248, 216, 16, 16, 0, iCSelect, "INVENTORIES", OnScroll,
       SelectInventoryScreen },
     { 264, 216, 16, 16, 0, iCSelect, "LOCATIONS",   OnScroll,
       SelectLocationScreen },
     { 280, 216, 16, 16, 0, iCSelect, "GAME STATUS", OnScroll,
       SelectStatusScreen },
-    { 296, 216, 16, 16, 0, iCSelect, "THE BOOK",    OnScroll,
-      SelectBook },
+    { 296, 216, 16, 16, 0, iCSelect, "THE BOOK",    OnScroll, SelectBook },
     -- Anything else on the screen (too complecated to put here)
     { 0, 0, 0, 240, 3, 0, OnHover, OnScroll,
       { false, SelectObjectOnScreenPress, SelectObjectOnScreenDrag } },
