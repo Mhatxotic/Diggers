@@ -2061,9 +2061,9 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4341813 Flood Gate (No water)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4351913 Flood Gate (Water left)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4362013 Flood Gate (Water right)
-  TF.D|TF.W|TF.D|TF.P|TF.EL|TF.ER|TF.G,-- 4372113 Flood Gate (All water)
+  TF.D|TF.W|TF.P|TF.EL|TF.ER|TF.G,     -- 4372113 Flood Gate (All water)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4382213 Flood Gate open (No water)
-  TF.D|TF.W|TF.D|TF.P|TF.EL|TF.ER|TF.G,-- 4392313 Flood Gate open (Water)
+  TF.D|TF.W|TF.P|TF.EL|TF.ER|TF.G,     -- 4392313 Flood Gate open (Water)
   TF.NONE,                             -- 4402413 Desert crystal 1
   TF.NONE,                             -- 4412513 Desert crystal 2
   TF.NONE,                             -- 4422613 Unused
