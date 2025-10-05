@@ -5018,11 +5018,9 @@ local function OnScriptLoaded(GetAPI)
     SetTip();
   end
   -- Mouse pressed over inventory?
-  local function DropItem(iButton, iCursorX)
+  local function DropItem(iIId)
     -- Ignore if no active object select or object is not ours
     if not aActiveObject or aActiveObject.P ~= aActivePlayer then return end;
-    -- Get id
-    local iIId<const> = 1 + ((iCursorX - 61) // 8);
     -- Drop it and if successful?
     if DropObject(aActiveObject, aActiveObject.I[iIId]) then
       -- Play sound if successful
@@ -5033,11 +5031,10 @@ local function OnScriptLoaded(GetAPI)
     else PlayStaticSound(iSError) end;
   end
   -- Mouse hovering over inventory?
-  local function OnItemHover(iCursorX)
+  local function OnItemHover(iIId)
     -- If we have an active object and player owns it
     if aActiveObject and aActiveObject.P == aActivePlayer then
       -- Get id and if we have that inventory item?
-      local iIId<const> = 1 + ((iCursorX - 61) // 8);
       local aInvObj<const> = aActiveObject.I[iIId];
       if aInvObj then
         -- Item is droppable so show that this is clickable
@@ -5049,10 +5046,31 @@ local function OnScriptLoaded(GetAPI)
     -- Nothing interesting so just report inventory
     SetTip("INVENTORY");
   end
+  -- On inventory mouse hover and click drop functions
+  local function OnItemHover1() OnItemHover(1) end;
+  local function DropItem1() return DropItem(1) end;
+  local function OnItemHover2() OnItemHover(2) end;
+  local function DropItem2() return DropItem(2) end;
+  local function OnItemHover3() OnItemHover(3) end;
+  local function DropItem3() return DropItem(3) end;
+  local function OnItemHover4() OnItemHover(4) end;
+  local function DropItem4() return DropItem(4) end;
+  local function OnItemHover5() OnItemHover(5) end;
+  local function DropItem5() return DropItem(5) end;
+  local function OnItemHover6() OnItemHover(6) end;
+  local function DropItem6() return DropItem(6) end;
+  local function OnItemHover7() OnItemHover(7) end;
+  local function DropItem7() return DropItem(7) end;
   -- Setup hot spot data
   iHotSpotId = RegisterHotSpot({
     -- Digger quick inventory drop area
-    {  61, 218, 56, 8, 0, 0, OnItemHover, OnScroll, DropItem },
+    {  61, 218, 8, 8, 0, 0, OnItemHover1, OnScroll, DropItem1 },
+    {  69, 218, 8, 8, 0, 0, OnItemHover2, OnScroll, DropItem2 },
+    {  77, 218, 8, 8, 0, 0, OnItemHover3, OnScroll, DropItem3 },
+    {  85, 218, 8, 8, 0, 0, OnItemHover4, OnScroll, DropItem4 },
+    {  93, 218, 8, 8, 0, 0, OnItemHover5, OnScroll, DropItem5 },
+    { 101, 218, 8, 8, 0, 0, OnItemHover6, OnScroll, DropItem6 },
+    { 109, 218, 8, 8, 0, 0, OnItemHover7, OnScroll, DropItem7 },
     -- Digger money
     {   8, 216, 39, 16, 0, 0, "MONEY",       false, false },
     {  40, 216, 80, 16, 0, 0, "OBJECT INFO", false, false },
