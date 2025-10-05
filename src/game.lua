@@ -1492,7 +1492,7 @@ local function InitSetAction()
       O.F = (O.F | OFL.BUSY | OFL.JUMPRISE) & ~OFL.FALL;
       -- Play jump sound
       PlaySoundAtObject(O, aSfxData.JUMP);
-      -- Reset action timer
+      -- Reset action timer as jump lookup tables use this
       O.AT = 0;
       -- Jump succeeded
       return true, true;
@@ -2817,12 +2817,18 @@ local function MoveX(aObj, iX)
     -- Done
     return;
   end
-  -- Try walking up to walking down a steep slope
-  for iY = 2, -2, -1 do
-    if not IsCollide(aObj, iX, iY) then AdjustPos(aObj, iX, iY) return end;
-  end
   -- Ignore if falling
   if aObj.FD > 0 then return end;
+  -- Try walking down a slope
+  if not IsCollide(aObj, iX, 2) and
+         IsCollide(aObj, iX, 3) then AdjustPos(aObj, iX, 2) return end;
+  if not IsCollide(aObj, iX, 1) and
+         IsCollide(aObj, iX, 2) then AdjustPos(aObj, iX, 1) return end;
+  -- Try just walking
+  if not IsCollideX(aObj, iX) then AdjustPosX(aObj, iX) return end;
+  -- Try walking up a slope
+  if not IsCollide(aObj, iX, -1) then AdjustPos(aObj, iX, -1) return end;
+  if not IsCollide(aObj, iX, -2) then AdjustPos(aObj, iX, -2) return end;
   -- Get action to perform when object blocked
   local aBlockData<const> = aDigBlockData[aObj.J];
   -- Set action requested
@@ -2831,7 +2837,7 @@ end
 -- Check for colliding objects and move them ------------------------------- --
 local function InitMoveOtherObjects()
   -- Actual function
-  local function MoveOtherObjects(aObject, nX, nY)
+  local function MoveOtherObjects(aObject, iX, iY)
     -- If i'm not a platform then return
     if aObject.F & OFL.BLOCK == 0 then return end;
     -- For each object
@@ -2845,14 +2851,14 @@ local function InitMoveOtherObjects()
          maskSpr:IsCollideEx(aObject.S,   -- *and* doesn't collide with object?
            aObject.X, aObject.Y, maskSpr, 478, aTarget.X, aTarget.Y) then
         -- Test for crushing damage. If...
-        if nY >= 1 and                     -- ...falling from above?
+        if iY >= 1 and                     -- ...falling from above?
            aObject.FD >= 1 and             -- *and* object isnt falling?
            aTarget.F & OFL.DEVICE == 0 and -- *and* target isn't a device?
            aTarget.FS == 1 then            -- *and* target isn't falling?
           AdjustObjectHealth(aTarget, -aObject.FD, aObject) end;
         -- Move that object too
-        MoveX(aTarget, nX);
-        MoveY(aTarget, nY);
+        MoveX(aTarget, iX);
+        MoveY(aTarget, iY);
         -- Prevent object from taking fall damage
         aTarget.FD, aTarget.FS = 0, 1;
       end
@@ -3071,10 +3077,9 @@ local function InitCreateObject()
     [DIR.UR] =  1, [DIR.R]  =  1, [DIR.DR] =  1
   }
   -- Jump left check logic ------------------------------------------------- --
-  local aAIWalkJumpGapLeftData<const>  = { 2, -1 };
-  local aAIWalkJumpGapRightData<const> = { 2,  1 };
-  local aAIRunJumpGapLeftData<const>   = { 1, -1 };
-  local aAIRunJumpGapRightData<const>  = { 1,  1 };
+  local aAIWalkJumpGapLeftData<const>, aAIWalkJumpGapRightData<const>,
+        aAIRunJumpGapLeftData<const>, aAIRunJumpGapRightData<const> =
+          2, 2, 1, 1;
   -- Jump logic ------------------------------------------------------------ --
   local aAIJumpGapLogic<const> = {
     [ACT.WALK] = {
@@ -3089,16 +3094,14 @@ local function InitCreateObject()
     }
   };
   -- AI jumping gap logic -------------------------------------------------- --
-  local function CheckForJump(aObject, iYGap, nFallDamageInc)
-    -- Ignore if depth is below 16 or not intelligent enough to jump
+  local function CheckForJump(aObject, iAdjX, iYGap)
+    -- Ignore if depth is below 8 or not intelligent enough to jump
     if iYGap < 16 or random() < aObject.IN then return end
     -- Get jump gap movement data and return if action/dir not applicable
     local aActionData<const> = aAIJumpGapLogic[aObject.A];
     if not aActionData then return end;
-    local aDirData<const> = aActionData[aObject.D];
-    if not aDirData then return end;
-    -- Get anim timer and direction move amounts
-    local iAnimAmount<const>, iDirAmount<const> = aDirData[1], aDirData[2];
+    local iAnimAmount<const> = aActionData[aObject.D];
+    if not iAnimAmount then return end;
     -- Save position, action timer and flags
     local iOldTimer<const>, iOldX<const>, iOldY<const>, iOldFlags<const> =
       aObject.AT, aObject.X, aObject.Y, aObject.F;
@@ -3111,8 +3114,7 @@ local function InitCreateObject()
         -- Get action timer and move if it is time to move
         local iActionTimer<const> = aObject.AT;
         if iActionTimer % iAnimAmount == 0 and
-           not IsCollideX(aObject, iDirAmount) then
-             AdjustPosX(aObject, iDirAmount) end;
+           not IsCollideX(aObject, iAdjX) then AdjustPosX(aObject, iAdjX) end;
         -- Incrememnt action timer
         aObject.AT = iActionTimer + 1;
       end
@@ -3120,38 +3122,35 @@ local function InitCreateObject()
     -- Simulate rising and falling
     SimulateJumpLogic(aJumpRiseData, -1,  1);
     SimulateJumpLogic(aJumpFallData,  1, -1);
-    -- Fall speed, damage, furthest Y and object health
-    local iFallDamage, iYFar, iHealth = 0, 1, aObject.H;
+    -- Create object virtual health and double it if not delicate
+    local iAdjXW<const>, iAdjY, nHealth = iAdjX + 7, 0;
+    if aObject.F & OFL.DELICATE == 0 then nHealth = aObject.H * 2;
+                                     else nHealth = aObject.H end;
     -- Start from fall speed pixels and count down to 1
     repeat
+      -- If Digger is not in water?
+      if aObject.F & OFL.INWATER == 0 then
+        -- Go in opposite direction if we would fall into water, get tile data
+        -- return and if it is water as not a good jump.
+        local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, iAdjY);
+        if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
+      end
       -- No collision found with terrain?
-      if IsCollideY(aObject, iYFar) then
+      if IsCollideY(aObject, iAdjY) then
         -- Restore original properties as if nothing happened
         aObject.AT, aObject.F = iOldTimer, iOldFlags;
         SetPosition(aObject, iOldX, iOldY);
-        -- Jump ends up being at higher than the gap?
-        if iYFar < iYGap then
-          -- The jump succeeded!
-          SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP);
-          return true;
-        end
-        -- Jump is lower than gap so bad jump
-        return;
-      end
-      -- If Digger is not in water?
-      if aObject.F & OFL.INWATER == 0 then
-        -- Go in opposite direction if we would fall into water
-        local iId<const> = GetLevelDataFromObject(aObject, 0, iYFar);
-        if iId then
-          -- Get tile data and if its water then not a good jump
-          local iTD<const> = aTileData[1 + iId];
-          if iTD & aTileFlags.W ~= 0 then break end;
+        -- Jump successful if jumped and landed higher or landing higher than
+        -- the gap else the gap is lower so not jumping.
+        if aObject.Y < iOldY or iAdjY < iYGap then
+          AdjustPosX(aObject, iAdjX);
+          return SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP);
         end
       end
       -- Increase Y position and fall damage
-      iYFar, iFallDamage = iYFar + 5, iFallDamage + nFallDamageInc;
+      iAdjY, nHealth = iAdjY + 4, nHealth - 0.25;
       -- Collision not detected, make sure health is still good
-    until iFallDamage < iHealth;
+    until nHealth <= 10.0;
     -- Restore original properties as if nothing happened
     aObject.AT, aObject.F = iOldTimer, iOldFlags;
     SetPosition(aObject, iOldX, iOldY);
@@ -3165,149 +3164,132 @@ local function InitCreateObject()
   end
   -- AI digger logic ------------------------------------------------------- --
   local function AIDiggerLogic(aObject)
-    -- Return if busy or not falling
-    if aObject.F & OFL.BUSY ~= 0 or aObject.F & OFL.FALL == 0 then return end;
+    -- Return if...
+    if aObject.F & OFL.BUSY ~= 0 or    --- ...busy
+       aObject.F & OFL.FALL == 0 or    --- ...or not allowed to fall
+       aObject.FD > 0 then return end; --- ...already falling
     -- Create object virtual health and double it if not delicate
-    local iHealth;
-    if aObject.F & OFL.DELICATE == 0 then iHealth = aObject.H * 2;
-                                     else iHealth = aObject.H end;
-    -- Object is not falling yet?
-    if aObject.FD == 0 then
-      -- Grab fall check coord adjust
-      local iAdjX<const> = aAIFallCoordsCheck[aObject.D];
-      if iAdjX then
-        -- For water checking as we have to adjust to X centre for it
-        local iAdjXW<const>, iAdjY = iAdjX + 8, 1;
-        -- Get health reduction amount
-        local nFallDamageInc;
-        if aObject.F & OFL.DELICATE ~= 0 then nFallDamageInc = 1;
-                                         else nFallDamageInc = 0.5 end;
-        -- Repeat virtual falling...
-        repeat
-          -- If Digger is not in water?
-          if aObject.F & OFL.INWATER == 0 then
-            -- Go in opposite direction if we would fall into water
-            local iId<const> =
-              GetLevelDataFromObject(aObject, iAdjXW, iAdjY);
-            if iId then
-              -- Get tile data and if its water or firm ground?
-              local iTD<const> = aTileData[1 + iId];
-              if iTD & aTileFlags.W ~= 0 then break end;
-            end
-          end
-          -- If we collide with the background
-          if IsCollide(aObject, iAdjX, iAdjY) then
-            -- Check if intelligent enough to jump the gap
-            if CheckForJump(aObject, iAdjY, nFallDamageInc) then return end;
-            -- Falling is safe
-            goto FallingIsSafe;
-          end
-          -- Go down 5 pixels (which removes 1 health)
-          iAdjY, iHealth = iAdjY + 5, iHealth - nFallDamageInc;
-        -- ...until Digger virtually dies while virtually falling
-        until iHealth <= 0;
-        -- Do we have intelligence to check the gap?
-        if CheckForJump(aObject, iAdjY, nFallDamageInc) then return end;
-        -- Get last anti-wriggle timeout value and if we're under reset limit?
-        local iAntiWriggleTime<const> = aObject.AW;
-        if iGameTicks < iAntiWriggleTime then
-          -- Get current wriggle count and if we've wriggled too much?
-          local iAntiWriggleRemain<const> = aObject.AWR + 1;
-          if iAntiWriggleRemain >= 10 then
-            -- Reset anti-wriggle timeframe to another 5 seconds
-            aObject.AW, aObject.AWR = iGameTicks + 300, 0;
-            -- Phase home
-            return PhaseHome(aObject);
-          -- Set new wriggle count
-          else aObject.AWR = iAntiWriggleRemain end;
-        -- Still in the timeframe? Reset anti-wriggle timeframe to another 5 seconds
-        else aObject.AW, aObject.AWR = iGameTicks + 300, 0 end;
-        -- This fall would kill cause the digger harm so evade the fall.
-        do return SetAction(aObject, ACT.KEEP, JOB.KEEP, DIR.OPPOSITE) end;
-        -- Fall is 'safe'
-        ::FallingIsSafe::
-      end
-      -- Teleport home to rest and sell items if these conditions are met...
-      if ObjectIsAtHome(aObject) and -- Object is at their home point? *and*
-        (aObject.IW > 0 or           -- (Digger is carrying something? *or*
-         aObject.H < 75) and         --  Health is under 75%) *and*
-         aObject.A == ACT.STOP and   -- Digger has stopped?
-         aObject.D ~= DIR.R then     -- Digger hasn't teleported yet?
-        return SetAction(aObject, ACT.PHASE, JOB.PHASE, DIR.R);
-      end
-      -- Stop the Digger if needed so it can heal a bit if...
-      if random() < 0.001 and           -- Intelligent enough? (0.1%)
-         aObject.H <= 25 and            -- Below quarter health?
-         aObject.A ~= ACT.STOP and      -- Not stopped?
-         aObject.J ~= JOB.INDANGER then -- Not in danger?
-        return SetAction(aObject, ACT.STOP, JOB.NONE, DIR.NONE);
-      end
-      -- If object...
-      if (((random() <= 0.01 and               -- *and* (1% chance?
-            aObject.H < 50) or                 -- *and* Health under 50%)
-           (random() <= 0.001 and              -- *or* (0.1% chance?
-            aObject.H >= 50)) and              -- *and* Health over 50%)
-          aObject.J == JOB.INDANGER and        -- Object is in danger?
-          aObject.A ~= ACT.STOP) or            -- *and* moving?
-         (random() <= 0.001 and                -- *or* (0.1% chance?)
-          aObject.IW >= aObject.MI and         -- *and* Digger has full inv?
-          ObjectHasValuables(aObject)) or      -- *and* has sellable items?)
-         (random() <= 0.01 and                 -- *or* (1% chance?)
-          iGameTicks - aObject.LDT >= 7200 and -- *and* Not dug for 2 mins?
-          aObject.A == ACT.STOP) then          -- *and* not moving?)
-        PhaseHome(aObject);                    -- Phase home
-      end
-      -- Wait longer if health is needed
-      if aObject.H < 50 and        -- Below half health?
-         aObject.A == ACT.STOP and -- Stopped?
-         random() > 0.001 then     -- Very big chance? (0.1%)
-        return;                    -- Do nothing else
-      end
-      -- Digger is walking?
-      if aObject.A == ACT.WALK then
-        -- Every 1/2 sec and digger isn't searching? Pick up any treasure!
-        if iGameTicks % 30 == 0 and aObject.J ~= JOB.SEARCH then
-          PickupObjects(aObject, true);
-        -- Check for jump and return if we did
-        elseif ObjectJumped(aObject) then return end;
-      -- Return if running and we can jump
-      elseif aObject.A == ACT.RUN and ObjectJumped(aObject) then return end;
-      -- A 0.01% chance occurred each frame?
-      if random() < 0.0001 then
-        -- Get digger inventory and if we have inventory?
-        local aInventory<const> = aObject.I;
-        if #aInventory > 0 then
-          -- Walk Digger inventory
-          for iInvIndex = 1, #aInventory do
-            -- Get inventory object and if it is not treasure?
-            local aInvObj<const> = aInventory[iInvIndex];
-            if aInvObj.F & OFL.TREASURE == 0 then
-              -- Drop it and do not drop anything else
-              DropObject(aObject, aInvObj);
-              break;
-            end
-          end
+    local nHealth;
+    if aObject.F & OFL.DELICATE == 0 then nHealth = aObject.H * 2;
+                                     else nHealth = aObject.H end;
+    -- Grab fall check coord adjust
+    local iAdjX<const> = aAIFallCoordsCheck[aObject.D];
+    if iAdjX then
+      -- For water checking as we have to adjust to X centre for it
+      local iAdjXW<const>, iAdjY = iAdjX + 7, 0;
+      -- Repeat virtual falling...
+      repeat
+        -- If Digger is not in water?
+        if aObject.F & OFL.INWATER == 0 then
+          -- Go in opposite direction if we would fall into water then return
+          -- if tile data and is water
+          local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, iAdjY);
+          if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
         end
-      end
-      -- Get AI data for action and if we have it
-      local aAIDataAction<const> = aAIData[aObject.A];
-      if aAIDataAction then
-        -- Get AI data for job and if we have it
-        local aAIDataJob<const> = aAIDataAction[aObject.J];
-        if aAIDataJob then
-          -- Get chance to change job and if that chance is triggered?
-          local nAIDataDirection<const> = aAIDataJob[aObject.D];
-          if nAIDataDirection and random() <= nAIDataDirection then
-            -- Set a random job
-            return SetRandomJob(aObject);
-          end
+        -- If we collide with the background
+        if IsCollide(aObject, iAdjX, iAdjY) then
+          -- Check if intelligent enough to jump the gap
+          if CheckForJump(aObject, iAdjX, iAdjY) then return end;
+          -- Falling is safe
+          goto FallingIsSafe;
         end
-      end
-    -- Teleport home to safely regain health if falling would kill digger
-    elseif aObject.FD >= iHealth and   -- Falling damage would kill? *and*
-           random() >= aObject.IN then -- Intelligent enough to teleport?
-      PhaseHome(aObject);
+        -- Go down 5 pixels (which removes 1 health)
+        iAdjY, nHealth = iAdjY + 4, nHealth - 0.25;
+      -- ...until Digger virtually dies while virtually falling
+      until nHealth <= 10.0;
+      -- Do we have intelligence to check the gap?
+      if CheckForJump(aObject, iAdjX, iAdjY) then return end;
+      -- Get last anti-wriggle timeout value and if we're under reset limit?
+      local iAntiWriggleTime<const> = aObject.AW;
+      if iGameTicks < iAntiWriggleTime then
+        -- Get current wriggle count and if we've wriggled too much?
+        local iAntiWriggleRemain<const> = aObject.AWR + 1;
+        if iAntiWriggleRemain >= 10 then
+          -- Reset anti-wriggle timeframe to another 5 seconds
+          aObject.AW, aObject.AWR = iGameTicks + 300, 0;
+          -- Phase home
+          return PhaseHome(aObject);
+        -- Set new wriggle count
+        else aObject.AWR = iAntiWriggleRemain end;
+      -- Still in the timeframe? Reset anti-wriggle timeframe to another 5 sec
+      else aObject.AW, aObject.AWR = iGameTicks + 300, 0 end;
+      -- This fall would kill cause the digger harm so evade the fall.
+      do return SetAction(aObject, ACT.KEEP, JOB.KEEP, DIR.OPPOSITE) end;
+      -- Falling is 'safe'
+      ::FallingIsSafe::
     end
+    -- Teleport home to rest and sell items if these conditions are met...
+    if ObjectIsAtHome(aObject) and -- Object is at their home point? *and*
+      (aObject.IW > 0 or           -- (Digger is carrying something? *or*
+       aObject.H < 75) and         --  Health is under 75%) *and*
+       aObject.A == ACT.STOP and   -- Digger has stopped?
+       aObject.D ~= DIR.R then     -- Digger hasn't teleported yet?
+      return SetAction(aObject, ACT.PHASE, JOB.PHASE, DIR.R);
+    end
+    -- Stop the Digger if needed so it can heal a bit if...
+    if random() < 0.001 and           -- Intelligent enough? (0.1%)
+       aObject.H <= 25 and            -- Below quarter health?
+       aObject.A ~= ACT.STOP and      -- Not stopped?
+       aObject.J ~= JOB.INDANGER then -- Not in danger?
+      return SetAction(aObject, ACT.STOP, JOB.NONE, DIR.NONE);
+    end
+    -- If object...
+    if (((random() <= 0.01 and               -- *and* (1% chance?
+          aObject.H < 50) or                 -- *and* Health under 50%)
+         (random() <= 0.001 and              -- *or* (0.1% chance?
+          aObject.H >= 50)) and              -- *and* Health over 50%)
+        aObject.J == JOB.INDANGER and        -- Object is in danger?
+        aObject.A ~= ACT.STOP) or            -- *and* moving?
+       (random() <= 0.001 and                -- *or* (0.1% chance?)
+        aObject.IW >= aObject.MI and         -- *and* Digger has full inv?
+        ObjectHasValuables(aObject)) or      -- *and* has sellable items?)
+       (random() <= 0.01 and                 -- *or* (1% chance?)
+        iGameTicks - aObject.LDT >= 7200 and -- *and* Not dug for 2 mins?
+        aObject.A == ACT.STOP) then          -- *and* not moving?)
+      PhaseHome(aObject);                    -- Phase home
+    end
+    -- Wait longer if health is needed
+    if aObject.H < 50 and        -- Below half health?
+       aObject.A == ACT.STOP and -- Stopped?
+       random() > 0.001 then     -- Very big chance? (0.1%)
+      return;                    -- Do nothing else
+    end
+    -- Digger is walking?
+    if aObject.A == ACT.WALK then
+      -- Every 1/2 sec and digger isn't searching? Pick up any treasure!
+      if iGameTicks % 30 == 0 and aObject.J ~= JOB.SEARCH then
+        PickupObjects(aObject, true);
+      -- Check for jump and return if we did
+      elseif ObjectJumped(aObject) then return end;
+    -- Return if running and we can jump
+    elseif aObject.A == ACT.RUN and ObjectJumped(aObject) then return end;
+    -- A 0.01% chance occurred each frame?
+    if random() < 0.0001 then
+      -- Get digger inventory and if we have inventory?
+      local aInventory<const> = aObject.I;
+      if #aInventory > 0 then
+        -- Walk Digger inventory
+        for iInvIndex = 1, #aInventory do
+          -- Get inventory object and if it is not treasure?
+          local aInvObj<const> = aInventory[iInvIndex];
+          if aInvObj.F & OFL.TREASURE == 0 then
+            -- Drop it and do not drop anything else
+            DropObject(aObject, aInvObj);
+            break;
+          end
+        end
+      end
+    end
+    -- Return if no data for current action
+    local aAIDataAction<const> = aAIData[aObject.A];
+    if not aAIDataAction then return end;
+    -- Return if no data for specified job
+    local aAIDataJob<const> = aAIDataAction[aObject.J];
+    if not aAIDataJob then return end;
+    -- Return false if no chance to change job
+    local nAIDataDirection<const> = aAIDataJob[aObject.D];
+    return nAIDataDirection and random() <= nAIDataDirection and
+           SetRandomJob(aObject);
   end
   -- AI random direction logic initialisation data ------------------------- --
   local aAIRandomLogicInitData<const> = { DIR.U, DIR.D, DIR.L, DIR.R };
