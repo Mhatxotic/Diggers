@@ -2861,6 +2861,23 @@ local function InitMoveOtherObjects()
   -- Return actual function
   return MoveOtherObjects;
 end
+-- Process object jump logic ----------------------------------------------- --
+local function ProcessJumpLogic(aObj, aData, iLimit, iStep)
+  -- More pixels to jump?
+  local iActionTimer<const> = aObj.AT;
+  if iActionTimer < #aData then
+    -- Get amount to move by and ignore if not moving this frame
+    local iYMove<const> = aData[1 + iActionTimer];
+    if iYMove == 0 then return end;
+    -- Check each pixel whilst jumping
+    for iY = iYMove, iLimit, iStep do
+      -- No collision? Move and return to continue to next frame
+      if not IsCollideY(aObj, iY) then return AdjustPosY(aObj, iY) end;
+    end
+  end
+  -- Can't move anymore so tell caller that
+  return true;
+end
 -- Create object function initialiser -------------------------------------- --
 local function InitCreateObject()
   -- Direction table for AIFindTarget -------------------------------------- --
@@ -3054,10 +3071,10 @@ local function InitCreateObject()
     [DIR.UR] =  1, [DIR.R]  =  1, [DIR.DR] =  1
   }
   -- Jump left check logic ------------------------------------------------- --
-  local aAIWalkJumpGapLeftData<const>  = { -24, -12 };
-  local aAIWalkJumpGapRightData<const> = {  24,  12 };
-  local aAIRunJumpGapLeftData<const>   = { -48, -24 };
-  local aAIRunJumpGapRightData<const>  = {  48,  24 };
+  local aAIWalkJumpGapLeftData<const>  = { 2, -1 };
+  local aAIWalkJumpGapRightData<const> = { 2,  1 };
+  local aAIRunJumpGapLeftData<const>   = { 1, -1 };
+  local aAIRunJumpGapRightData<const>  = { 1,  1 };
   -- Jump logic ------------------------------------------------------------ --
   local aAIJumpGapLogic<const> = {
     [ACT.WALK] = {
@@ -3071,33 +3088,80 @@ local function InitCreateObject()
       [DIR.R]  = aAIRunJumpGapRightData, [DIR.DR] = aAIRunJumpGapRightData
     }
   };
+  -- AI jumping gap logic -------------------------------------------------- --
+  local function CheckForJump(aObject, iYGap, nFallDamageInc)
+    -- Ignore if depth is below 16 or not intelligent enough to jump
+    if iYGap < 16 or random() < aObject.IN then return end
+    -- Get jump gap movement data and return if action/dir not applicable
+    local aActionData<const> = aAIJumpGapLogic[aObject.A];
+    if not aActionData then return end;
+    local aDirData<const> = aActionData[aObject.D];
+    if not aDirData then return end;
+    -- Get anim timer and direction move amounts
+    local iAnimAmount<const>, iDirAmount<const> = aDirData[1], aDirData[2];
+    -- Save position, action timer and flags
+    local iOldTimer<const>, iOldX<const>, iOldY<const>, iOldFlags<const> =
+      aObject.AT, aObject.X, aObject.Y, aObject.F;
+    -- Simulate jumping function
+    local function SimulateJumpLogic(aJumpData, iLimit, iStep)
+      -- Reset action timer for ProcessJumpLogic();
+      aObject.AT = 0;
+      -- Repeat until there is more vertical movement chances...
+      while not ProcessJumpLogic(aObject, aJumpData, iLimit, iStep) do
+        -- Get action timer and move if it is time to move
+        local iActionTimer<const> = aObject.AT;
+        if iActionTimer % iAnimAmount == 0 and
+           not IsCollideX(aObject, iDirAmount) then
+             AdjustPosX(aObject, iDirAmount) end;
+        -- Incrememnt action timer
+        aObject.AT = iActionTimer + 1;
+      end
+    end
+    -- Simulate rising and falling
+    SimulateJumpLogic(aJumpRiseData, -1,  1);
+    SimulateJumpLogic(aJumpFallData,  1, -1);
+    -- Fall speed, damage, furthest Y and object health
+    local iFallDamage, iYFar, iHealth = 0, 1, aObject.H;
+    -- Start from fall speed pixels and count down to 1
+    repeat
+      -- No collision found with terrain?
+      if IsCollideY(aObject, iYFar) then
+        -- Restore original properties as if nothing happened
+        aObject.AT, aObject.F = iOldTimer, iOldFlags;
+        SetPosition(aObject, iOldX, iOldY);
+        -- Jump ends up being at higher than the gap?
+        if iYFar < iYGap then
+          -- The jump succeeded!
+          SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP);
+          return true;
+        end
+        -- Jump is lower than gap so bad jump
+        return;
+      end
+      -- If Digger is not in water?
+      if aObject.F & OFL.INWATER == 0 then
+        -- Go in opposite direction if we would fall into water
+        local iId<const> = GetLevelDataFromObject(aObject, 0, iYFar);
+        if iId then
+          -- Get tile data and if its water then not a good jump
+          local iTD<const> = aTileData[1 + iId];
+          if iTD & aTileFlags.W ~= 0 then break end;
+        end
+      end
+      -- Increase Y position and fall damage
+      iYFar, iFallDamage = iYFar + 5, iFallDamage + nFallDamageInc;
+      -- Collision not detected, make sure health is still good
+    until iFallDamage < iHealth;
+    -- Restore original properties as if nothing happened
+    aObject.AT, aObject.F = iOldTimer, iOldFlags;
+    SetPosition(aObject, iOldX, iOldY);
+  end
   -- AI Digger phasing out ------------------------------------------------- --
   local function PhaseHome(aObject)
     -- Reset last dig time
     aObject.LDT = iGameTicks;
     -- Teleport home
     return SetAction(aObject, ACT.PHASE, JOB.PHASE, DIR.U);
-  end
-  -- AI jumping gap logic -------------------------------------------------- --
-  local function CheckForJump(aObject)
-    -- Get jump data depending on action and if we got any?
-    local aDirData<const> = aAIJumpGapLogic[aObject.A];
-    if aDirData then
-      -- Get X check coords depending on direction and if we have them?
-      local aXCheck<const> = aDirData[aObject.D];
-      if aXCheck then
-        -- This is the furthest point of the jump and if object...
-        local iXFar<const> = aXCheck[1];
-        if not IsCollide(aObject, iXFar, -2) and       -- Can go furthest
-           not IsCollide(aObject, aXCheck[2], -14) and -- Highest point?
-               IsCollide(aObject, iXFar, 13) then      -- Stable ground?
-          -- Jump the gap!
-          SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP);
-          -- Success!
-          return true;
-        end
-      end
-    end
   end
   -- AI digger logic ------------------------------------------------------- --
   local function AIDiggerLogic(aObject)
@@ -3114,6 +3178,10 @@ local function InitCreateObject()
       if iAdjX then
         -- For water checking as we have to adjust to X centre for it
         local iAdjXW<const>, iAdjY = iAdjX + 8, 1;
+        -- Get health reduction amount
+        local nFallDamageInc;
+        if aObject.F & OFL.DELICATE ~= 0 then nFallDamageInc = 1;
+                                         else nFallDamageInc = 0.5 end;
         -- Repeat virtual falling...
         repeat
           -- If Digger is not in water?
@@ -3130,18 +3198,16 @@ local function InitCreateObject()
           -- If we collide with the background
           if IsCollide(aObject, iAdjX, iAdjY) then
             -- Check if intelligent enough to jump the gap
-            if iAdjY >= 16 and
-               random() >= aObject.IN and
-               CheckForJump(aObject) then return end;
+            if CheckForJump(aObject, iAdjY, nFallDamageInc) then return end;
             -- Falling is safe
             goto FallingIsSafe;
           end
           -- Go down 5 pixels (which removes 1 health)
-          iAdjY, iHealth = iAdjY + 5, iHealth - 1;
+          iAdjY, iHealth = iAdjY + 5, iHealth - nFallDamageInc;
         -- ...until Digger virtually dies while virtually falling
         until iHealth <= 0;
         -- Do we have intelligence to check the gap?
-        if random() >= aObject.IN and CheckForJump(aObject) then return end;
+        if CheckForJump(aObject, iAdjY, nFallDamageInc) then return end;
         -- Get last anti-wriggle timeout value and if we're under reset limit?
         local iAntiWriggleTime<const> = aObject.AW;
         if iGameTicks < iAntiWriggleTime then
@@ -3940,23 +4006,6 @@ local function ProcessObjectMovement()
   end
   -- Return new function
   return ProcessObjectMovement;
-end
--- Process object jump logic ----------------------------------------------- --
-local function ProcessJumpLogic(aObj, aData, iLimit, iStep)
-  -- More pixels to jump?
-  local iActionTimer<const> = aObj.AT;
-  if iActionTimer < #aData then
-    -- Get amount to move by and ignore if not moving this frame
-    local iYMove<const> = aData[1 + iActionTimer];
-    if iYMove == 0 then return end;
-    -- Check each pixel whilst jumping
-    for iY = iYMove, iLimit, iStep do
-      -- No collision? Move and return to continue to next frame
-      if not IsCollideY(aObj, iY) then return AdjustPosY(aObj, iY) end;
-    end
-  end
-  -- Can't move anymore so tell caller that
-  return true;
 end
 -- Process object logic ---------------------------------------------------- --
 local function ProcessObjects()
