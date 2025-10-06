@@ -3005,23 +3005,38 @@ local function InitCreateObject()
   -- Simulate jumping function --------------------------------------------- --
   local function SimulateJumpLogic(aObject, iAdjX, iAnimAmount, aJumpData,
     iLimit, iStep)
-    -- Reset action timer for ProcessJumpLogic();
-    aObject.AT = 0;
-    -- Repeat until there is more vertical movement chances...
-    while not ProcessJumpLogic(aObject, aJumpData, iLimit, iStep) do
+    -- Action timer for horizontal movement timing
+    local iActionTimer = 0;
+    -- Repeat...
+    repeat
+      -- Get amount to move by and test every pixel up to this one
+      local iY = aJumpData[1 + iActionTimer];
+      if iY ~= 0 then repeat
+        -- This jump process is abandoned if we're blocked by the ceiling
+        if not IsCollideY(aObject, iY) then
+          -- Move Y position but do not move Y again for now
+          aObject.Y = aObject.Y + iY;
+          break;
+        -- Collision so do not move at all anymore
+        else return end;
+        -- Try a different pixel
+        iY = iY + iStep;
+      -- Until we've tried all the pixels
+      until iY > iLimit end
       -- Get action timer and move if it is time to move
-      local iActionTimer<const> = aObject.AT;
       if iActionTimer % iAnimAmount == 0 and
-         not IsCollideX(aObject, iAdjX) then AdjustPosX(aObject, iAdjX) end;
-      -- Incrememnt action timer
-      aObject.AT = iActionTimer + 1;
-    end
+         not IsCollideX(aObject, iAdjX) then
+        aObject.X = aObject.X + iAdjX end;
+      -- Increment and set action timer for movement timing
+      iActionTimer = iActionTimer + 1;
+    -- ...until we've run out of data
+    until iActionTimer >= #aJumpData;
   end
   -- Jump left check logic ------------------------------------------------- --
   --                              Move Timer/XAdj/Centre position for water
-  local aAIWalkJumpGapLeftData<const>  = { 2, -1, -7 }; -- ACT.WALK+DIR.L/DL/UL
+  local aAIWalkJumpGapLeftData<const>  = { 2, -1, -8 }; -- ACT.WALK+DIR.L/DL/UL
   local aAIWalkJumpGapRightData<const> = { 2,  1,  8 }; -- ACT.WALK+DIR.R/DR/UR
-  local aAIRunJumpGapLeftData<const>   = { 1, -1, -7 }; -- ACT.RUN+DIR.L/DL/UL
+  local aAIRunJumpGapLeftData<const>   = { 1, -1, -8 }; -- ACT.RUN+DIR.L/DL/UL
   local aAIRunJumpGapRightData<const>  = { 1,  1,  8 }; -- ACT.RUN+DIR.R/DR/UR
   -- Jump logic ------------------------------------------------------------ --
   local aAIJumpLogic<const> = {
@@ -3037,55 +3052,41 @@ local function InitCreateObject()
     }
   };
   -- AI jumping gap logic -------------------------------------------------- --
-  local function CheckForJump(aObject, iAdjX, iYGap, iAdjXW, iAnimAmount)
-    -- Ignore if depth is below 16 (1 tile) or not intelligent enough.
-    if iYGap < 16 or random() < aObject.IN then return end
-    -- Save position, action timer and flags
-    local iOldTimer<const>, iOldX<const>, iOldY<const>, iOldFlags<const> =
-      aObject.AT, aObject.X, aObject.Y, aObject.F;
+  local function TryJumpGap(aObject, iAdjX, iYGap, iAdjXW, iAnimAmount,
+    nHealthLimit, iOldX, iOldY)
+    -- Ignore if depth is below 14 or not intelligent enough.
+    if iYGap < 14 or random() < aObject.IN then return end
     -- Simulate rising and falling
     SimulateJumpLogic(aObject, iAdjX, iAnimAmount, aJumpRiseData, -1,  1);
     SimulateJumpLogic(aObject, iAdjX, iAnimAmount, aJumpFallData,  1, -1);
-    -- Starting point and current object health
-    local iAdjY, nHealth = 0;
-    if aObject.F & OFL.DELICATE == 0 then nHealth = aObject.H * 2;
-                                     else nHealth = aObject.H end;
-    -- Start from fall speed pixels and count down to 1
+    -- Repeat...
     repeat
-      -- If Digger is not in water?
-      if aObject.F & OFL.INWATER == 0 then
-        -- Go in opposite direction if we would fall into water, get tile data
-        -- return and if it is water as not a good jump.
-        local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, iAdjY);
-        if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
-      end
-      -- No collision found with terrain?
-      if IsCollideY(aObject, iAdjY) then
-        -- Restore original action timer and flags
-        aObject.AT, aObject.F = iOldTimer, iOldFlags;
-        -- Jump successful if jumped and landed higher or landing higher than
-        -- the gap else the gap is lower so not jumping.
-        if aObject.Y < iOldY or iAdjY < iYGap then
+      -- Bad jump if we encountered water
+      local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, 14);
+      if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
+      -- If we collide with the background if we go down more?
+      if IsCollideY(aObject, 14) then
+        -- Find absolute stable ground
+        while not IsCollideY(aObject, 1) do aObject.Y = aObject.Y + 1 end;
+        -- If object landed equal or higher up level or the object would land
+        -- higher than gap bottom?
+        if aObject.Y <= iOldY or aObject.Y < iOldY + iYGap then
           -- Restore original position adjusted and return if action was set
-          SetPosition(aObject, iOldX + iAdjX, iOldY);
+          aObject.X, aObject.Y = iOldX, iOldY;
           return SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP);
         end
-        -- Restore original position and return failure
-        SetPosition(aObject, iOldX, iOldY);
-        return;
+        -- Not a valid jump
+        break;
       end
-      -- Increase Y position and fall damage
-      iAdjY, nHealth = iAdjY + 4, nHealth - 0.25;
-      -- Collision not detected, make sure health is still good
-    until nHealth <= 10.0;
+      -- Move object down
+      aObject.Y = aObject.Y + 14;
+    -- ...until too much health would be lost for this jump to work
+    until (aObject.Y - iOldY) // 8 >= nHealthLimit
     -- Restore original properties as if nothing happened
-    aObject.AT, aObject.F = iOldTimer, iOldFlags;
-    SetPosition(aObject, iOldX, iOldY);
+    aObject.X, aObject.Y = iOldX, iOldY;
   end
   -- Search for obstacles or gaps and try to jump them --------------------- --
   local function ObjectJumped(aObject)
-    -- Return if falling
-    if aObject.FD > 0 then return end;
     -- Get jump gap data for action and if return if no action data
     local aActionData<const> = aAIJumpLogic[aObject.A];
     if not aActionData then return end;
@@ -3095,81 +3096,118 @@ local function InitCreateObject()
     -- Cache some variables
     local iAnimAmount<const>,          -- Move at this action timer
           iAdjX<const>,                -- X adjustment
-          iAdjXW<const>,               -- X centre tile adjustment
-          iAdjY,                       -- Current Y testing position
-          nHealth                      -- Current object health
-       = aDirData[1], aDirData[2], aDirData[3], 0, nil;
-    -- Create object virtual health and double it if not delicate
-    if aObject.F & OFL.DELICATE == 0 then nHealth = aObject.H * 2;
-                                     else nHealth = aObject.H end;
-    -- If object cannot move anymore?
-    if     IsCollide(aObject, iAdjX, -2) and
-       not IsCollide(aObject,     0, -2) and
+          iAdjXW<const>,               -- Water X tile adjustment
+          nHealthLimit                 -- Maximum amount of HP reduction
+       = aDirData[1], aDirData[2], aDirData[3], aObject.H - 10;
+    -- Double health limit if the object has more strength
+    if aObject.F & OFL.DELICATE == 0 then
+      nHealthLimit = nHealthLimit * 2.0 end;
+    -- Save position, action timer and flags
+    local iOldX<const>, iOldY<const> = aObject.X, aObject.Y;
+    -- If object cannot move to the adjacent pixel anymore but could jump?
+    if IsCollide(aObject, iAdjX, -2) and
+       not IsCollide(aObject, 0, -2) and
       (not IsCollide(aObject, iAdjX, -16) or
        not IsCollide(aObject, iAdjX, -12) or
        not IsCollide(aObject, iAdjX, -8) or
        not IsCollide(aObject, iAdjX, -4)) then
-      -- Return if not intelligent enough to jump this obsticle
-      if random() < aObject.IN then return end;
-      -- Save position, action timer and flags
-      local iOldTimer<const>, iOldX<const>, iOldY<const>, iOldFlags<const> =
-        aObject.AT, aObject.X, aObject.Y, aObject.F;
+      -- Return if...
+      if aObject.H < 10.0 or                   -- ...health too low or...
+         random() < aObject.IN or              -- ...not intelligent enough...
+         aObject.J == JOB.DIG then return end; -- ...or about to dig.
       -- Simulate rising and falling
       SimulateJumpLogic(aObject, iAdjX, iAnimAmount, aJumpRiseData, -1,  1);
       SimulateJumpLogic(aObject, iAdjX, iAnimAmount, aJumpFallData,  1, -1);
       -- Start from fall speed pixels and count down to 1
       repeat
-        -- If object is not in water?
-        if aObject.F & OFL.INWATER == 0 then
-          -- Go in opposite direction if we would fall into water, get tile data
-          -- return and if it is water as not a good jump.
-          local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, iAdjY);
-          if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
-        end
-        -- No collision found with terrain?
-        if IsCollideY(aObject, iAdjY) then
+        -- Bad jump if we got a water block
+        local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, 14);
+        if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
+        -- If we collide with the background if we go down more?
+        if IsCollideY(aObject, 14) then
+          -- Find a stable ground
+          while not IsCollideY(aObject, 1) do aObject.Y = aObject.Y + 1 end;
           -- Jump successful if jumped and landed higher or landing higher than
           -- the gap else the gap is lower so not jumping.
           if aObject.X ~= iOldX or aObject.Y ~= iOldY then
-            -- Restore original properties as if nothing happened
-            aObject.AT, aObject.F = iOldTimer, iOldFlags;
-            SetPosition(aObject, iOldX, iOldY);
-            -- Do the jump and return result
+            -- Restore original position adjusted and return if action was set
+            aObject.X, aObject.Y = iOldX, iOldY;
             return SetAction(aObject, ACT.JUMP, JOB.KEEP, DIR.KEEP);
           end
-          -- Not appropriate position
+          -- Landed at inappropriate position
           break;
         end
-        -- Increase Y position and fall damage
-        iAdjY, nHealth = iAdjY + 4, nHealth - 0.25;
-        -- Collision not detected, make sure health is still good
-      until nHealth <= 10.0;
+        -- Increase Y position and fall damage. We go at 14 pixels each time as
+        -- the bitmask sprite is 14 pixels high.
+        aObject.Y = aObject.Y + 14;
+      -- ...until too much health would be lost for this jump to work
+      until (aObject.Y - iOldY) // 8 >= nHealthLimit;
       -- Restore original properties as if nothing happened
-      aObject.AT, aObject.F = iOldTimer, iOldFlags;
-      SetPosition(aObject, iOldX, iOldY);
+      aObject.X, aObject.Y = iOldX, iOldY;
       -- Do not execute any more AI code this frame.
       return true;
     end
-    -- Repeat virtual falling...
-    repeat
-      -- If object is not in water?
-      if aObject.F & OFL.INWATER == 0 then
-        -- Go in opposite direction if we would fall into water then return
-        -- if tile data and is water
-        local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, iAdjY);
-        if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then break end;
-      end
-      -- We found the depth of the gap so now see if object can jump the gap.
-      if IsCollide(aObject, iAdjX, iAdjY) then
-        return CheckForJump(aObject, iAdjX, iAdjY, iAdjXW, iAnimAmount) end;
-      -- Go down 5 pixels (which removes 1 health)
-      iAdjY, nHealth = iAdjY + 4, nHealth - 0.25;
-    -- ...until object virtually dies while virtually falling
-    until nHealth <= 10.0;
-    -- Try to jump the gap and return success if we did
-    if CheckForJump(aObject, iAdjX, iAdjY, iAdjXW, iAnimAmount) then
-      return true end;
-    -- Get last anti-wriggle timeout value and if we're under reset limit?
+    -- If not in water?
+    if aObject.F & OFL.INWATER == 0 then
+      -- Repeat virtual falling...
+      repeat
+        -- Bad fall if water block encountered
+        local iId<const> = GetLevelDataFromObject(aObject, iAdjXW, 14);
+        if iId and aTileData[1 + iId] & aTileFlags.W ~= 0 then
+          -- Calculate bottom pixel position of gap
+          local iYGap<const> = aObject.Y - iOldY;
+          -- Reset position
+          aObject.X, aObject.Y = iOldX, iOldY;
+          -- Try to see if we can jump the gap
+          if TryJumpGap(aObject, iAdjX, iYGap, iAdjXW, iAnimAmount,
+            nHealthLimit, iOldX, iOldY) then return true end;
+          -- Avoid the gap and turn around
+          break;
+        end
+        -- If we found the bottom of the gap?
+        if IsCollide(aObject, iAdjX, 14) then
+          -- Check for absolute pixel of the bottom of ground
+          while not IsCollide(aObject, iAdjX, 1) do
+            aObject.Y = aObject.Y + 1 end;
+          -- Calculate gap
+          local iYGap<const> = aObject.Y - iOldY;
+          -- Restore position
+          aObject.X, aObject.Y = iOldX, iOldY;
+          -- Try to see if we can jump the gap
+          return TryJumpGap(aObject, iAdjX, iYGap, iAdjXW, iAnimAmount,
+            nHealthLimit, iOldX, iOldY);
+        end
+        -- Increase Y position and fall damage. We go at 14 pixels each time as
+        -- the bitmask sprite is 14 pixels high.
+        aObject.Y = aObject.Y + 14;
+      -- ...until too much health would be lost for this jump to work
+      until (aObject.Y - iOldY) // 8 >= nHealthLimit
+    -- In water?
+    else
+      -- Repeat virtual falling...
+      repeat
+        -- If we found the bottom of the gap?
+        if IsCollide(aObject, iAdjX, 14) then
+          -- Check for absolute pixel of the bottom of ground
+          while not IsCollide(aObject, iAdjX, 1) do
+            aObject.Y = aObject.Y + 1 end;
+          -- Calculate gap
+          local iYGap<const> = aObject.Y - iOldY;
+          -- Restore position
+          aObject.X, aObject.Y = iOldX, iOldY;
+          -- Try to see if we can jump the gap
+          return TryJumpGap(aObject, iAdjX, iYGap, iAdjXW, iAnimAmount,
+            nHealthLimit);
+        end
+        -- Increase Y position and fall damage. We go at 14 pixels each time as
+        -- the bitmask sprite is 14 pixels high.
+        aObject.Y = aObject.Y + 14;
+      -- ...until too much health would be lost for this jump to work
+      until (aObject.Y - iOldY) // 8 >= nHealthLimit
+    end
+    -- Restore original position
+    aObject.X, aObject.Y = iOldX, iOldY;
+    -- Get last anti-wriggle timeout value and if under reset limit?
     local iAntiWriggleTime<const> = aObject.AW;
     if iGameTicks < iAntiWriggleTime then
       -- Get current wriggle count and if we've wriggled too much?
@@ -3381,8 +3419,8 @@ local function InitCreateObject()
   local function AIBigfoot(aObject)
     -- Return if object is busy
     if aObject.F & OFL.BUSY ~= 0 then return end;
-    -- Jump if we can
-    if ObjectJumped(aObject) then return end;
+    -- Jump if we can if we're not falling
+    if aObject.FD <= 0 and ObjectJumped(aObject) then return end;
     -- Every 1/2 sec. Try to pick up anything
     if iGameTicks % 30 == 0 then return PickupObjects(aObject, false) end;
     -- If ADHD hasn't set in yet? Just return
