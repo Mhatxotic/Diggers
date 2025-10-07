@@ -154,7 +154,7 @@ local function SetErrorMessage(sReason)
   end
   -- Prune too many lines
   if #aLines > 15 then
-    while #aLines > 15 do remove(aLines, #aLines) end;
+    while #aLines > 15 do remove(aLines) end;
     aLines[1 + #aLines] = "...more";
   end
   -- Build short reason
@@ -373,7 +373,7 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
     -- Set stage 1 time
     aResource.ST1 = CoreTime();
     -- Reset info for progress update
-    while #aInfo > 0 do remove(aInfo, #aInfo) end;
+    while #aInfo > 0 do remove(aInfo) end;
     -- Send cached handle if it exists
     local vCached<const> = aCache[sDst];
     if vCached then

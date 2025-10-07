@@ -1264,7 +1264,7 @@ local function OnScriptLoaded(GetAPI)
       (iIndex / iReadmeRows) * 0.25 end;
   -- Truncate bottom empty lines
   while #aCreditLines > 0 and #aCreditLines[#aCreditLines] == 0 do
-    remove(aCreditLines, #aCreditLines) end;
+    remove(aCreditLines) end;
   -- Get flag for a unsigned integer saveable cvar type
   local iSS<const> = Variable.Flags.UINTEGERSAVE;
   -- Build bindings list
