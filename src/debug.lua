@@ -72,9 +72,8 @@ local function InitDebugPlay(iId)
       -- Get player diggers
       local aDiggers<const> = oPlayer.D;
       -- Find a digger from the specified player.
-      oObj = aDiggers[iSelectedDiggerId];
-      -- Still not found? Select a random digger
-      if not oObj then oObj = aObjs[random(#aObjs)] end;
+      local aNewObj<const> = aDiggers[iSelectedDiggerId];
+      if aNewObj then oObj = aNewObj end;
     end
     -- New object selected?
     if oObj then
