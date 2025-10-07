@@ -4319,7 +4319,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     -- Set new stage bounds
     iStageW, iStageH, iStageL, iStageT, iStageR, iStageB = ...;
     -- Set new limits based on frame buffer size
-    iScrTilesW, iScrTilesH = ceil(iStageW / 16), ceil(iStageH / 16);
+    iScrTilesW, iScrTilesH = ceil(iStageW // 16), ceil(iStageH // 16);
     -- Used in game so calculate them now to prevent unnecessary math
     iScrTilesWd2, iScrTilesHd2 = iScrTilesW // 2, iScrTilesH // 2;
     iScrTilesWd2p1, iScrTilesHd2p1 = iScrTilesWd2 + 1, iScrTilesHd2 + 1;
@@ -4373,7 +4373,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     -- Get minimum and maximum object id
     local iMinObjId<const>, iMaxObjId<const> = TYP.JENNITE, TYP.MAX;
     -- Player starting point data found
-    local aPlayersFound<const> = { };
+    local aPlayersFound = { };
     -- For each row in the data file
     local binLevel<const> = aResources[1];
     for iY = 0, iLLAbsHm1 do
@@ -4452,7 +4452,18 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     -- Reset races available
     for iI = 1, #aRacesData do
       aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
-    -- Create player for each starting position found
+    -- If both players are AI?
+    if bAI1 and bAI2 then
+      -- Randomise the players table
+      local aNewPlayers<const> = { };
+      while #aPlayersFound > 0 do
+        local iId<const> = random(#aPlayersFound);
+        aNewPlayers[1 + #aNewPlayers] = aPlayersFound[iId];
+        remove(aPlayersFound, iId);
+      end
+      aPlayersFound = aNewPlayers;
+    end
+    -- Create players for players found
     for iPlayerId = 1, #aPlayersFound do
       local aPlayerData<const> = aPlayersFound[iPlayerId];
       CreatePlayer(aPlayerData[1], aPlayerData[2], iPlayerId,
