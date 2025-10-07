@@ -2734,7 +2734,7 @@ local function CheckObjectCollision(aObject)
       end
       -- Make object run in opposite direction if object is...
       if aObject.H < 10 and            -- ...low on health?
-         random() < aObject.IN then    -- *and* intelligent enough to run?
+         random() > aObject.IN then    -- *and* intelligent enough to run?
         SetAction(aObject, ACT.RUN, JOB.INDANGER, DIR.OPPOSITE) end;
     end
     -- Clear fight target
