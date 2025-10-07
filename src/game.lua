@@ -3696,15 +3696,21 @@ local function PhaseLogic()
       -- Conditions fail so try next inventory item.
       else iObj = iObj + 1 end;
     end
-    -- Get opponent player
-    local iOpponentID;
-    if aParent.ID == 1 then iOpponentID = 2 else iOpponentID = 1 end;
-    local aOpponent<const> = aPlayers[iOpponentID];
-    -- If object...
-    if random() > aObj.IN and             -- Isn't intelligent?
-       aParent.M > aOpponent.M + 400 then -- *or* Way more cash?
-      -- Try to purchase something random to keep the scores fair
-      BuyItem(aObj, aShopData[random(#aShopData)])
+    -- If object is intelligent?
+    if random() > aObj.IN then
+      -- Get the lowest amount of money a player has
+      local iLowest, aOpponent = maxinteger;
+      for iIndex = 1, #aPlayers do
+        local aPlayer<const> = aPlayers[iIndex];
+        if aPlayer ~= aParent then
+          local iMoney<const> = aPlayer.M;
+          if iMoney < iLowest then aOpponent, iLowest = aPlayer, iMoney end;
+        end
+      end
+      -- Try to purchase something random to keep the scores fair if objects
+      -- owner has more money than the lowest player?
+      if aParent.M > aOpponent.M + 400 then
+        BuyItem(aObj, aShopData[random(#aShopData)]) end;
     end
     -- If items were sold? Check if any player won
     if iItemsSold > 0 then EndConditionsCheck() end;
