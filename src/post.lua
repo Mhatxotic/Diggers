@@ -20,7 +20,7 @@ local BlitSLT, AdjustViewPortX, AdjustViewPortY, DeInitLevel, Fade,
   IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
   RegisterFBUCallback, RenderFade, RenderObjects, RenderTerrain, SelectObject,
   SetCallbacks, SetCursor, SetHotSpot, SetKeys, oGlobalData, aLevelsData,
-  aObjectFlags, aObjects, fontSpeech;
+  aObjectFlags, aObjs, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       iCLeft, iCRight, iCTop, iCExit,  -- Cursor ids
@@ -83,16 +83,16 @@ end
 -- Set specific object ----------------------------------------------------- --
 local function SetObject(iNewObj)
   -- Don't do anything if no objects
-  if #aObjects == 0 then return end;
+  if #aObjs == 0 then return end;
   -- Play click sound
   PlayStaticSound(iSClick);
   -- Set new object value
   iObject = iNewObj;
   -- Modulo it if it's out of range
-  if iObject < 1 or iObject > #aObjects then
-    iObject = 1 + ((iObject - 1) % #aObjects) end;
+  if iObject < 1 or iObject > #aObjs then
+    iObject = 1 + ((iObject - 1) % #aObjs) end;
   -- Focus on the object even with the mouse cursor
-  local oObj<const> = aObjects[iObject];
+  local oObj<const> = aObjs[iObject];
   SelectObject(oObj, true, true);
 end
 -- Cycle between objects --------------------------------------------------- --
@@ -120,9 +120,9 @@ local function OnHover()
     -- Get absolute mouse position on level
     local iAMX<const>, iAMY<const> = GetAbsMousePos();
     -- Walk through objects
-    for iIndex = 1, #aObjects do
+    for iIndex = 1, #aObjs do
       -- Get object data and if cursor overlapping it ?
-      local oObj<const> = aObjects[iIndex];
+      local oObj<const> = aObjs[iIndex];
       if IsSpriteCollide(479, iAMX, iAMY, oObj.S, oObj.X, oObj.Y) then
         -- Set tip with name and health of object
         sObject = (oObj.OD.LONGNAME or oObj.OD.NAME)..
@@ -228,7 +228,7 @@ local function OnScriptLoaded(GetAPI)
     RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderFade,
     RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
     SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData, aLevelsData,
-    aObjectFlags, aObjects, oSfxData, fontSpeech =
+    aObjectFlags, aObjs, oSfxData, fontSpeech =
       GetAPI("AdjustViewPortX", "AdjustViewPortY", "BlitSLT", "DeInitLevel",
         "Fade", "GetAbsMousePos", "InitEnding", "InitFail", "InitLobby",
         "IsMouseXGreaterEqualThan", "IsMouseXLessThan",
@@ -237,7 +237,7 @@ local function OnScriptLoaded(GetAPI)
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderObjects", "RenderTerrain", "SelectObject", "SetCallbacks",
         "SetCursor", "SetHotSpot", "SetKeys", "oAssetsData", "oCursorIdData",
-        "oGlobalData", "aLevelsData", "aObjectFlags", "aObjects", "oSfxData",
+        "oGlobalData", "aLevelsData", "aObjectFlags", "aObjs", "oSfxData",
         "fontSpeech");
   -- Setup required assets
   aAssets = { oAssetsData.post, oAssetsData.postm };

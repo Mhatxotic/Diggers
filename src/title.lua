@@ -21,7 +21,7 @@ local BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
   GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
   LoadResources, LoadSaveData, PlayStaticSound, PrintC, ProcessViewPort,
   RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject, SetHotSpot,
-  tKeyBankCats, aLevelsData, oObjectTypes, aObjects, fontTiny;
+  tKeyBankCats, aLevelsData, oObjectTypes, aObjs, fontTiny;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets to load
       fcbEnterAnimProc,                -- Enter animation procedure
@@ -142,7 +142,7 @@ local function ProcLogic()
                        else oPlayer = GetActivePlayer() end;
     local oObj = oPlayer.D[random(#oPlayer.D)];
     -- Still not found? Find a random object
-    if not oObj then oObj = aObjects[random(#aObjects)] end;
+    if not oObj then oObj = aObjs[random(#aObjs)] end;
     -- Select the object if we got something!
     if oObj then SelectObject(oObj) end;
   end
@@ -294,14 +294,14 @@ local function OnScriptLoaded(GetAPI)
     LoadResources, LoadSaveData, PlayStaticSound, PrintC, ProcessViewPort,
     RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderObjects,
     RenderTerrain, SelectObject, SetHotSpot, oAssetsData, oCursorIdData,
-    tKeyBankCats, aLevelsData, oObjectTypes, aObjects, oSfxData, fontTiny =
+    tKeyBankCats, aLevelsData, oObjectTypes, aObjs, oSfxData, fontTiny =
       GetAPI("BlitSLT", "DeInitLevel", "Fade", "GameProc", "GetActivePlayer",
         "GetGameTicks", "GetOpponentPlayer", "InitLobby", "InitNewGame",
         "InitTitleCredits", "LoadLevel", "LoadResources", "LoadSaveData",
         "PlayStaticSound", "PrintC", "ProcessViewPort", "RegisterFBUCallback",
         "RegisterHotSpot", "RegisterKeys", "RenderObjects", "RenderTerrain",
         "SelectObject", "SetHotSpot", "oAssetsData", "oCursorIdData",
-        "tKeyBankCats", "aLevelsData", "oObjectTypes", "aObjects", "oSfxData",
+        "tKeyBankCats", "aLevelsData", "oObjectTypes", "aObjs", "oSfxData",
         "fontTiny");
   -- Build assets data
   aAssets = { oAssetsData.title };

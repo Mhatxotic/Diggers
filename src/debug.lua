@@ -21,7 +21,7 @@ local UtilHex<const>, CoreCPUUsage<const>, CoreRAM<const>,
     Util.Hex, Core.CPUUsage, Core.RAM, Display.GPUFPS, Core.Uptime,
     Core.LUATime, Core.LUAUsage, Util.Duration;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTRB, Fade, GetGameTicks, GetMouseX, GetMouseY, aPlayers, aObjects,
+local BlitSLTRB, Fade, GetGameTicks, GetMouseX, GetMouseY, aPlayers, aObjs,
   RenderTerrain, RenderObjects, RenderShroud, BCBlit, texSpr, fontLarge,
   fontLittle, fontTiny, SelectObject, GameProc, GetActiveObject,
   GetActivePlayer, SetCallbacks, LoadLevel, PrintC, PrintCT, PrintT, PrintR,
@@ -53,7 +53,7 @@ local function InitDebugPlay(iId)
         if oDigger.J == JOB.INDANGER and
            oDigger.A ~= ACT.DEATH and
           (oDigger.A ~= ACT.FIGHT or
-           oDigger.P == oActivePlayer) then
+           oDigger.P == oPlrActive) then
           -- It is selected
           iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
           oObj = oDigger;
@@ -73,7 +73,7 @@ local function InitDebugPlay(iId)
       -- Find a digger from the specified player.
       oObj = aDiggers[iSelectedDiggerId];
       -- Still not found? Select a random digger
-      if not oObj then oObj = aObjects[random(#aObjects)] end;
+      if not oObj then oObj = aObjs[random(#aObjs)] end;
     end
     -- New object selected?
     if oObj then
@@ -108,9 +108,9 @@ local function InitDebugPlay(iId)
     -- Render terrain
     RenderTerrain();
     -- Get active player object and opponent player
-    local oActivePlayer<const> = GetActivePlayer();
+    local oPlrActive<const> = GetActivePlayer();
     local oObjActive<const> = GetActiveObject();
-    local oOpponentPlayer<const> = GetOpponentPlayer();
+    local oPlrOpponent<const> = GetOpponentPlayer();
     -- Get viewport information
     local iPixPosX<const>, iPixPosY<const>,
           iPixPosTargetX<const>, iPixPosTargetY<const>,
@@ -123,9 +123,9 @@ local function InitDebugPlay(iId)
     -- Calculate viewpoint position
     local nVPX<const>, nVPY<const> = iPixPosX - iStageL, iPixPosY - iStageT;
     -- For each object
-    for iObjId = 1, #aObjects do
+    for iObjId = 1, #aObjs do
       -- Get object data
-      local oObj<const> = aObjects[iObjId];
+      local oObj<const> = aObjs[iObjId];
       local iX<const>, iY<const> = oObj.X, oObj.Y;
       -- Holds objects render position on-screen
       local iXX, iYY = iX - nVPX + oObj.OFX, iY - nVPY + oObj.OFY;
@@ -142,7 +142,7 @@ local function InitDebugPlay(iId)
         local iDiggerId<const> = oObj.DI;
         if iDiggerId then
           -- Is player one?
-          if oObj.P == oActivePlayer then
+          if oObj.P == oPlrActive then
             -- Active object? Set brighter
             if oObj == oObjActive then
               fontTiny:SetCRGBA(1, 0.7, 0.8, 1);
@@ -223,15 +223,15 @@ local function InitDebugPlay(iId)
         (nGPUFramesPerSecond or 60);
     local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- Get player one data
-    local iMoney1<const> = oActivePlayer.M;
-    local iDiggers1<const> = oActivePlayer.DC;
-    local iGems1<const> = oActivePlayer.GEM;
-    local iDug1<const> = oActivePlayer.DUG;
+    local iMoney1<const> = oPlrActive.M;
+    local iDiggers1<const> = oPlrActive.DC;
+    local iGems1<const> = oPlrActive.GEM;
+    local iDug1<const> = oPlrActive.DUG;
     -- Get player two data
-    local iMoney2<const> = oOpponentPlayer.M;
-    local iDiggers2<const> = oOpponentPlayer.DC;
-    local iGems2<const> = oOpponentPlayer.GEM;
-    local iDug2<const> = oOpponentPlayer.DUG;
+    local iMoney2<const> = oPlrOpponent.M;
+    local iDiggers2<const> = oPlrOpponent.DC;
+    local iGems2<const> = oPlrOpponent.GEM;
+    local iDug2<const> = oPlrOpponent.DUG;
     -- Draw HUD text
     local nFade1, nFade2, nR, nG, nB;
     if iMoney1 > iMoney2 then
@@ -259,9 +259,9 @@ local function InitDebugPlay(iId)
     BlitSLTRB(texSpr, 1022, 160, 6, 161, 40);
     texSpr:SetCRGB(1, 1, 1);
     fontTiny:SetCRGBA(1, 0.6, 0.7, nFade1);
-    PrintR(fontTiny, 155, 34, oActivePlayer.RD.LONGNAME);
+    PrintR(fontTiny, 155, 34, oPlrActive.RD.LONGNAME);
     fontTiny:SetCRGBA(0.24, 0.8, 0.4, nFade2);
-    Print(fontTiny, 165, 34, oOpponentPlayer.RD.LONGNAME);
+    Print(fontTiny, 165, 34, oPlrOpponent.RD.LONGNAME);
     fontTiny:SetCRGBA(1, 1, 1, 1);
     -- Draw engine info
     Print(fontTiny, iStageL + 5, 5, format(
@@ -294,7 +294,7 @@ local function InitDebugPlay(iId)
         sLevelName, iLevelId,
         sLevelType,
         iWinLimit,
-        #aObjects,
+        #aObjs,
         GetGameTicks(),
         UtilDuration(GetGameTicks() / 60, 2),
         UtilDuration(CoreLUATime(), 2),
@@ -473,7 +473,7 @@ local function OnScriptLoaded(GetAPI)
     GetViewportData, HaveZogsToWin, LoadLevel, PrintC, PrintCT, PrintR,
     Print, RegisterFBUCallback, RenderObjects, RenderShroud, RenderTerrain,
     SelectObject, SetCallbacks, SetPlaySounds, UpdateShroud, aLevelsData,
-    aObjects, aPlayers, fontLarge, fontLittle, fontTiny, texSpr,
+    aObjs, aPlayers, fontLarge, fontLittle, fontTiny, texSpr,
     RenderInterface, JOB, ACT =
       GetAPI("BlitSLTRB", "BCBlit", "Fade", "GameProc", "GetActiveObject",
         "GetActivePlayer", "GetGameTicks", "GetLevelInfo", "GetMouseX",
@@ -481,7 +481,7 @@ local function OnScriptLoaded(GetAPI)
         "LoadLevel", "PrintC", "PrintCT", "PrintR", "Print",
         "RegisterFBUCallback", "RenderObjects", "RenderShroud",
         "RenderTerrain", "SelectObject", "SetCallbacks", "SetPlaySounds",
-        "UpdateShroud", "aLevelsData", "aObjects", "aPlayers",
+        "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
         "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
         "oObjectJobs", "oObjectActions");
 end

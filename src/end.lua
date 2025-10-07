@@ -19,7 +19,7 @@ local UtilFormatNumber<const>, UtilIsBoolean<const>, UtilIsInteger<const>,
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTWHA, Fade, GetGameTicks, InitPost, InitScore, LoadResources,
   PlayMusic, PlayStaticSound, PrintC, RenderFade, RenderObjects, RenderTerrain,
-  SetCallbacks, SetHotSpot, SetKeys, aGemsAvailable, oGlobalData, aObjects,
+  SetCallbacks, SetHotSpot, SetKeys, aGemsAvailable, oGlobalData, aObjs,
   aShroudData, fontLarge;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
@@ -219,10 +219,10 @@ local function GetCapitalCarried()
       (oObj.OD.VALUE / nDivisor) * (oObj.H / 100);
   end
   -- Enumerate all game objects
-  for iObjIndex = 1, #aObjects do
+  for iObjIndex = 1, #aObjs do
     -- Get object and if it is owned by the active player?
-    local oObj<const> = aObjects[iObjIndex];
-    if oActivePlayer == oObj.P then
+    local oObj<const> = aObjs[iObjIndex];
+    if oPlrActive == oObj.P then
       -- If object is a device? Add 25% of it's value minus quality because
       -- it cost's money to recover the device. :-)
       SellDevice(oObj, 4);
@@ -263,7 +263,7 @@ local function OnFadedInLose()
   SetCallbacks(nil, RenderEnd);
 end
 -- On loaded event function ------------------------------------------------ --
-local function OnAssetsLoaded(aResources, oActivePlayer, oOpponentPlayer, sMsg)
+local function OnAssetsLoaded(aResources, oPlrActive, oPlrOpponent, sMsg)
   -- Keep waiting cursor for animation
   SetHotSpot();
   -- Play End music
@@ -273,15 +273,15 @@ local function OnAssetsLoaded(aResources, oActivePlayer, oOpponentPlayer, sMsg)
   -- Get capital carried
   oGlobalData.gCapitalCarried = GetCapitalCarried();
   -- Get cost of digger deaths
-  local iPRemain<const> = oActivePlayer.DC;
-  local iPDeaths<const> = #oActivePlayer.D - iPRemain;
+  local iPRemain<const> = oPlrActive.DC;
+  local iPDeaths<const> = #oPlrActive.D - iPRemain;
   oGlobalData.gTotalDeaths = oGlobalData.gTotalDeaths + iPDeaths
   iDeadCost, iSalary = iPDeaths * 65, iPRemain * 30;
   -- Add enemy kills
-  local iPKills<const> = oActivePlayer.EK;
+  local iPKills<const> = oPlrActive.EK;
   oGlobalData.gTotalEnemyKills = oGlobalData.gTotalEnemyKills + iPKills;
   -- Add homicides of opponent playerss
-  oGlobalData.gTotalHomicides = oGlobalData.gTotalHomicides + oActivePlayer.LK;
+  oGlobalData.gTotalHomicides = oGlobalData.gTotalHomicides + oPlrActive.LK;
   -- Calculate exploration amount
   oGlobalData.gTotalExploration =
     oGlobalData.gTotalExploration + GetExploration();
@@ -290,21 +290,21 @@ local function OnAssetsLoaded(aResources, oActivePlayer, oOpponentPlayer, sMsg)
   iGameTime = iGameTicks // 3600;
   -- Add data
   oGlobalData.gTotalGemsFound =
-    oGlobalData.gTotalGemsFound + oActivePlayer.GEM;
+    oGlobalData.gTotalGemsFound + oPlrActive.GEM;
   oGlobalData.gTotalGemsSold =
-    oGlobalData.gTotalGemsSold + oActivePlayer.GS;
+    oGlobalData.gTotalGemsSold + oPlrActive.GS;
   oGlobalData.gTotalCapital =
     oGlobalData.gTotalCapital + oGlobalData.gCapitalCarried;
   oGlobalData.gTotalTimeTaken =
     oGlobalData.gTotalTimeTaken + iGameTicks // 60;
   oGlobalData.gTotalIncome =
-    oGlobalData.gTotalIncome + oActivePlayer.GI;
+    oGlobalData.gTotalIncome + oPlrActive.GI;
   oGlobalData.gTotalDug =
-    oGlobalData.gTotalDug + oActivePlayer.DUG;
+    oGlobalData.gTotalDug + oPlrActive.DUG;
   oGlobalData.gTotalPurchases =
-    oGlobalData.gTotalPurchases + oActivePlayer.PUR;
+    oGlobalData.gTotalPurchases + oPlrActive.PUR;
   oGlobalData.gBankBalance =
-    oGlobalData.gBankBalance + (oActivePlayer.M - iDeadCost - iSalary);
+    oGlobalData.gBankBalance + (oPlrActive.M - iDeadCost - iSalary);
   oGlobalData.gPercentCompleted =
     floor(oGlobalData.gBankBalance / oGlobalData.gZogsToWinGame * 100);
   -- Make lines data with initial Y position
@@ -313,7 +313,7 @@ local function OnAssetsLoaded(aResources, oActivePlayer, oOpponentPlayer, sMsg)
   aCollections = { aLinesTop, aLinesBottom };
   -- Build data for top three lines
   MakeLine(aLinesTop, sMsg);
-  MakeLine(aLinesTop, "OPPONENT HAD "..Green(oOpponentPlayer.M).." ZOGS");
+  MakeLine(aLinesTop, "OPPONENT HAD "..Green(oPlrOpponent.M).." ZOGS");
   MakeLine(aLinesTop, "GAME TIME WAS "..Green(iGameTime).." MINS");
   -- Build data for bottom three lines
   MakeLine(aLinesBottom,
@@ -369,13 +369,13 @@ local function OnScriptLoaded(GetAPI)
     PlayMusic, PlayStaticSound, PrintC, RegisterHotSpot, RegisterKeys,
     RenderFade, RenderObjects, RenderTerrain, SetCallbacks, SetHotSpot,
     SetKeys, oAssetsData, oCursorIdData, aGemsAvailable, oGlobalData,
-    aObjectFlags, aObjects, oSfxData, aShroudData, fontLarge =
+    aObjectFlags, aObjs, oSfxData, aShroudData, fontLarge =
       GetAPI("BlitSLTWHA", "Fade", "GetGameTicks", "InitPost", "InitScore",
         "LoadResources", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterHotSpot", "RegisterKeys", "RenderFade", "RenderObjects",
         "RenderTerrain", "SetCallbacks", "SetHotSpot", "SetKeys",
         "oAssetsData", "oCursorIdData", "aGemsAvailable", "oGlobalData",
-        "aObjectFlags", "aObjects", "oSfxData", "aShroudData", "fontLarge");
+        "aObjectFlags", "aObjs", "oSfxData", "aShroudData", "fontLarge");
   -- Setup assets required
   local aEndAssets<const> = oAssetsData.post;
   aWinAssets = { true, { aEndAssets, oAssetsData.scenem } };

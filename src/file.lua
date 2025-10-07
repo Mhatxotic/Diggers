@@ -224,7 +224,7 @@ local function GoLoad()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Get data and if no data then ignore
-  local Data<const> = aFileData[iSelected];
+  local aData<const> = aFileData[iSelected];
   -- Set variables
   oGlobalData.gTotalTimeTaken, oGlobalData.gSelectedRace,
   oGlobalData.gSelectedLevel,  oGlobalData.gZogsToWinGame,
@@ -236,17 +236,17 @@ local function GoLoad()
   oGlobalData.gTotalGemsFound, oGlobalData.gTotalIncome,
   oGlobalData.gTotalDug,       oGlobalData.gTotalEnemyKills,
   oGlobalData.gTotalPurchases, oGlobalData.gLevelsCompleted =
-    Data[2],                     Data[3],
-    nil,                         17500,
-    Data[4],                     floor(oGlobalData.gBankBalance/
-                                       oGlobalData.gZogsToWinGame*100),
-    Data[5],                     false,
-    true,                        Data[6],
-    Data[7],                     Data[8],
-    Data[9],                     Data[10],
-    Data[11],                    Data[12],
-    Data[13],                    Data[14],
-    Data[15],                    Data[16];
+    aData[2],                     aData[3],
+    nil,                          17500,
+    aData[4],                     floor(oGlobalData.gBankBalance/
+                                  oGlobalData.gZogsToWinGame * 100),
+    aData[5],                     false,
+    true,                         aData[6],
+    aData[7],                     aData[8],
+    aData[9],                     aData[10],
+    aData[11],                    aData[12],
+    aData[13],                    aData[14],
+    aData[15],                    aData[16];
   -- Set success message
   sMsg = "FILE LOADED SUCCESSFULLY!";
   -- Can save now

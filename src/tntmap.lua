@@ -16,8 +16,8 @@ local TextureCreateTS<const>, ImageRaw<const>, AssetCreate<const>
       Texture.CreateTS, Image.Raw, Asset.Create;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
-  aLevelData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
-  RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjects, aTileData,
+  aLvlData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
+  RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjs, aTileData,
   oTileFlags, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets;                         -- Assets required
@@ -101,7 +101,7 @@ local function ProcLogic()
     -- For each pixel column
     for iX = 0, 127 do
       -- Get tile at level position and tile flags at it
-      local iTId<const> = aLevelData[iLYPos + iX];
+      local iTId<const> = aLvlData[iLYPos + iX];
       local iTFlags<const> = aTileData[1 + iTId];
       -- Get bitmap position and then the locations of the components
       local iBPos<const> = iBYPos + (iX * 3);
@@ -125,9 +125,9 @@ local function ProcLogic()
     end
   end
   -- For each object, treat as POI
-  for iObjectId = 1, #aObjects do
+  for iObjectId = 1, #aObjs do
     -- Get object
-    local oObj<const> = aObjects[iObjectId];
+    local oObj<const> = aObjs[iObjectId];
     -- Get position in pixel in bitmap for object
     local iPos<const> = (iBSize - ((oObj.AY + 1) * 384)) + (oObj.AX * 3) + 3;
     -- Make a white RGB dot
@@ -161,13 +161,13 @@ local function OnScriptLoaded(GetAPI)
   BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
     LoadResources, PlayStaticSound, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot,
-    SetKeys, oAssetsData, oCursorIdData, aLevelData, aObjects, oSfxData,
+    SetKeys, oAssetsData, oCursorIdData, aLvlData, aObjs, oSfxData,
     aTileData, oTileFlags, texSpr =
       GetAPI("BlitSLTRB", "BlitLT", "Fade", "GameProc", "GetGameTicks",
         "InitContinueGame", "LoadResources", "PlayStaticSound",
         "RegisterHotSpot", "RegisterKeys", "RenderAll", "RenderShadow",
         "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
-        "oCursorIdData", "aLevelData", "aObjects", "oSfxData", "aTileData",
+        "oCursorIdData", "aLvlData", "aObjs", "oSfxData", "aTileData",
         "oTileFlags", "texSpr");
   -- Setup required assets
   aAssets = { oAssetsData.tntmap };

@@ -48,14 +48,13 @@ local aContextMenu;                    -- Currently open context menu
 local aContextMenuData;                -- Cached context menu positions data
 local aFloodData = { };                -- Active tile flooding data
 local aGemsAvailable = { };            -- Gems available to be sold
-local aLevelData = { };                -- Current level data
-local aObjects = { };                  -- Game objects list
+local aLvlData = { };                  -- Current level data
+local aObjs = { };                     -- Game objects list
 local aPlayers = { };                  -- All the players in the game
-local aRacesAvailable = { };           -- Races available for selection
 local aRacesData;                      -- Races data (data.lua)
 local aShroudData = { };               -- Current level shroud data
 local bAIvsAI;                         -- Is currently an AI vs AI game?
-local fcbInfoScreenCallback;           -- Current info screen callback
+local fcbInfoScreen;                   -- Current info screen callback
 local fcbLogic;                        -- Current logic callback
 local fcbRender;                       -- Current render callback
 local iAbsCenPosX, iAbsCenPosY;        -- Current viewport absolute centre pos
@@ -65,7 +64,7 @@ local iHotSpotId;                      -- Current mouse hot spots id
 local iKeyBankId;                      -- Current key bank activated
 local iLLAbsHmVP, iLLAbsWmVP;          -- Maximum viewport tile position
 local iLLPixHmVP, iLLPixWmVP;          -- Maximum viewport pixel position
-local iLevelId;                        -- Current level id selected
+local iLvlId;                          -- Current level id selected
 local iMenuBottom, iMenuLeft;          -- Menu position bottom/left bounds
 local iMenuRight, iMenuTop;            -- Menu position top/right bounds
 local iPixCenPosX, iPixCenPosY;        -- Current viewport pixel centre pos
@@ -90,9 +89,9 @@ local iViewportH, iViewportW;          -- Current viewport width and height
 local iWinLimit;                       -- Zogs needed to win this level
 local maskLev, maskSpr, maskZone;      -- Level/sprite/zone bitmask handles
 local oObjActive;                      -- Currently selected object
-local oActivePlayer;                   -- Reference to main player data
-local oOpponentPlayer;                 -- Reference to opposing player data
-local sLevelName, sLevelType;          -- Level name and type strings
+local oPlrActive;                      -- Reference to main player data
+local oPlrOpponent;                    -- Reference to opposing player data
+local sLvlName, sLvlType;              -- Level name and type strings
 local sMoney;                          -- Currently displayed money value
 -- Level limits ------------------------------------------------------------ --
 local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
@@ -341,7 +340,7 @@ local function SelectInfoScreen()
     fontTiny:SetLSpacing(2);
     fontTiny:SetCRGB(0, 0.75, 1);
     -- For each digger
-    for iDiggerId = 1, #oActivePlayer.D do
+    for iDiggerId = 1, #oPlrActive.D do
       -- Calculate Y position
       local iY<const> = iDiggerId * 33;
       -- Print id number of digger
@@ -349,7 +348,7 @@ local function SelectInfoScreen()
       -- Draw health bar background
       BlitSLTRB(texSpr, 1023, 24, iY + 31, 291, iY + 33);
       -- Get Digger data and if it exists?
-      local oDigger<const> = oActivePlayer.D[iDiggerId];
+      local oDigger<const> = oPlrActive.D[iDiggerId];
       if oDigger then
         -- Draw digger health bar
         DrawHealthBar(oDigger.H, 0.375, 24, iY + 31, 24, iY + 33);
@@ -401,7 +400,7 @@ local function SelectInfoScreen()
       BlitSLT(texSpr, 864, X, Y);
     end end
     -- For each digger
-    for iDiggerId = 1, #oActivePlayer.D do
+    for iDiggerId = 1, #oPlrActive.D do
       -- Calculate Y position
       local iY<const> = iDiggerId * 31;
       -- Print id number of digger
@@ -414,7 +413,7 @@ local function SelectInfoScreen()
       -- Draw health bar background
       BlitSLTRB(texSpr, 1023, 24, iY + 30, 124, iY + 32);
       -- Get digger and if it exists?
-      local oDigger<const> = oActivePlayer.D[iDiggerId];
+      local oDigger<const> = oPlrActive.D[iDiggerId];
       if oDigger then
         -- Draw digger health bar
         DrawHealthBar(oDigger.H, 1, 24, iY + 30, 24, iY + 32);
@@ -443,13 +442,13 @@ local function SelectInfoScreen()
     -- Score for who is winning
     local iScoreAP, iScoreOP = 0, 0;
     -- Draw little labels first for rendering performance. Print level info
-    Print(fontLittle, 16, 56, sLevelType.." TERRAIN");
+    Print(fontLittle, 16, 56, sLvlType.." TERRAIN");
     PrintR(fontLittle, 304, 56, "OPERATIONS TIME");
-    local iPDiggers<const> = oActivePlayer.DC;
+    local iPDiggers<const> = oPlrActive.DC;
     PrintC(fontLittle, 160, 88, "YOU HAVE "..iPDiggers.." OF "..
-      oActivePlayer.DT.." DIGGERS REMAINING");
+      oPlrActive.DT.." DIGGERS REMAINING");
     -- Draw who has the most diggers
-    local iODiggers<const>, sDiggers = oOpponentPlayer.DC;
+    local iODiggers<const>, sDiggers = oPlrOpponent.DC;
     if iPDiggers > iODiggers then
       iScoreAP, sDiggers = iScoreAP + 1,
         "YOU HAVE MORE DIGGERS THEN YOUR OPPONENT";
@@ -458,9 +457,9 @@ local function SelectInfoScreen()
     else sDiggers = "YOU AND YOUR OPPONENT HAVE EQUAL DIGGERS" end;
     PrintC(fontLittle, 160, 96, sDiggers);
     -- Show who has mined the most terrain
-    local iPDug, iODug<const> = oActivePlayer.DUG, oOpponentPlayer.DUG;
+    local iPDug, iODug<const> = oPlrActive.DUG, oPlrOpponent.DUG;
     PrintC(fontLittle, 160, 112, "YOU MINED "..
-      UtilFormatNumber(oActivePlayer.GEM, 0)..
+      UtilFormatNumber(oPlrActive.GEM, 0)..
       " GEMS AND "..UtilFormatNumber(iPDug, 0).." GROADS OF TERRAIN");
     local sMined;
     if iPDug > iODug then sMined = "YOU HAVE MINED THE MOST TERRAIN";
@@ -470,19 +469,19 @@ local function SelectInfoScreen()
     PrintC(fontLittle, 160, 120, sMined);
     -- Draw who has found the most gems
     local iPGems<const>, iOGems<const>, sGems =
-      oActivePlayer.GEM, oOpponentPlayer.GEM;
+      oPlrActive.GEM, oPlrOpponent.GEM;
     if iPGems > iOGems then sGems = "YOU HAVE FOUND THE MOST GEMS";
     elseif iPGems < iOGems then
       sGems = "YOUR OPPONENT HAS FOUND THE MOST GEMS";
     else sGems = "YOU AND YOUR OPPONENT HAVE FOUND EQUAL GEMS" end;
     PrintC(fontLittle, 160, 128, sGems);
     -- Draw who has the most zogs
-    local iPlayerMoney<const> = oActivePlayer.M;
+    local iPlayerMoney<const> = oPlrActive.M;
     PrintC(fontLittle, 160,  146, "YOU HAVE RAISED "..
       UtilFormatNumber(iPlayerMoney, 0)..
       " OF "..iWinLimit.." ZOGS ("..
       UtilFormatNumber(iPlayerMoney/iWinLimit*100, 0).."%)");
-    local iOpponentMoney<const> = oOpponentPlayer.M;
+    local iOpponentMoney<const> = oPlrOpponent.M;
     local sZogs;
     if iPlayerMoney > iOpponentMoney then
       iScoreAP, sZogs = iScoreAP + 1, "YOU HAVE THE MOST ZOGS";
@@ -494,13 +493,13 @@ local function SelectInfoScreen()
       UtilFormatNumber(iWinLimit-iPlayerMoney, 0).." MORE ZOGS TO WIN");
     -- Draw prediction
     local sPName<const>, sOName<const>, sWinning =
-      oActivePlayer.RD.NAME, oOpponentPlayer.RD.NAME;
+      oPlrActive.RD.NAME, oPlrOpponent.RD.NAME;
     if iScoreAP > iScoreOP then sWinning = sPName;
     elseif iScoreAP < iScoreOP then sWinning = sOName;
     else sWinning = "NOBODY" end;
     PrintC(fontLittle, 160, 178, "THE TRADE CENTRE HAS PREDICTED");
     -- Draw large labels now
-    Print(fontLarge, 16, 40, sLevelName);
+    Print(fontLarge, 16, 40, sLvlName);
     PrintR(fontLarge, 304, 40, format("%02u:%02u:%02u",
       iGameTicks // 216000 % 24,
       iGameTicks // 3600 % 60,
@@ -555,7 +554,7 @@ local function SelectInfoScreen()
     if iScreen == nil then
       -- Disable it
       aInfoScreenActiveItem = nil;
-      fcbInfoScreenCallback = InfoScreenDisabled;
+      fcbInfoScreen = InfoScreenDisabled;
       -- Done
       return;
     end
@@ -571,16 +570,16 @@ local function SelectInfoScreen()
     if aInfoScreenActiveItem == aInfoScreenItem then
       -- Disable it
       aInfoScreenActiveItem = nil;
-      fcbInfoScreenCallback = InfoScreenDisabled;
+      fcbInfoScreen = InfoScreenDisabled;
     -- We're not showing this one
     else
       -- Enable it
       aInfoScreenActiveItem = aInfoScreenItem;
-      fcbInfoScreenCallback = InfoScreenEnabled;
+      fcbInfoScreen = InfoScreenEnabled;
     end
   end
   -- Set disabled callback
-  fcbInfoScreenCallback = InfoScreenDisabled;
+  fcbInfoScreen = InfoScreenDisabled;
   -- Return actual function
   return SelectInfoScreen;
 end
@@ -593,18 +592,18 @@ local function DeInitLevel()
   -- Dereference loaded assets for garbage collector
   iTileBg, texLev, maskZone = nil, nil, nil;
   -- Flush specified tables whilst keeping the actual table
-  local aTables<const> = { aObjects, aPlayers, aFloodData, aRacesAvailable,
-    aGemsAvailable, aLevelData, aShroudData };
+  local aTables<const> =
+    { aObjs, aPlayers, aFloodData, aGemsAvailable, aLvlData, aShroudData };
   for iIndex = 1, #aTables do
     local aTable<const> = aTables[iIndex];
     while #aTable > 0 do remove(aTable) end;
   end
   -- Reset positions and other variables
   iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iGameTicks, iAnimMoney,
-    iLevelId, iWinLimit, sMoney, iUniqueId, fcbLogic, fcbRender =
+    iLvlId, iWinLimit, sMoney, iUniqueId, fcbLogic, fcbRender =
       0, 0, 0, 0, 0, 0, nil, nil, nil, 0, nil, nil;
   -- Reset active objects, menus and players
-  oActivePlayer, oOpponentPlayer = nil, nil;
+  oPlrActive, oPlrOpponent = nil, nil;
   -- Remove active object and menu data
   SelectObject();
   -- We don't want to hear sounds
@@ -626,12 +625,12 @@ end
 local function GetLevelDataFromAbsCoordinates(iAbsX, iAbsY)
   -- Get tile at specified location and return tile id if valid
   local iLoc<const> = GetLevelOffsetFromAbsCoordinates(iAbsX, iAbsY);
-  if iLoc then return aLevelData[1 + iLoc], iLoc end;
+  if iLoc then return aLvlData[1 + iLoc], iLoc end;
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromLevelOffset(iLoc)
   -- Get tile at specified location
-  if iLoc >= 0 and iLoc < iLLAbs then return aLevelData[1 + iLoc] end;
+  if iLoc >= 0 and iLoc < iLLAbs then return aLvlData[1 + iLoc] end;
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromTileOffset(iLoc)
@@ -654,7 +653,7 @@ end
 local function GetLevelDataFromCoordinates(iPixX, iPixY)
   -- Return tile at specified location
   local iLoc<const> = GetLevelOffsetFromCoordinates(iPixX, iPixY);
-  if iLoc then return aLevelData[1 + iLoc], iLoc end;
+  if iLoc then return aLvlData[1 + iLoc], iLoc end;
 end
 -- Get zero based tile id at specified object ------------------------------ --
 local function GetLevelDataFromObject(oObj, iPixX, iPixY)
@@ -680,7 +679,7 @@ local function UpdateLevel(iPos, iId)
   if not UtilIsInteger(iId) then
      error("Invalid level tile index!"..tostring(iId)) end;
   -- Update level data with specified tile
-  aLevelData[1 + iPos] = iId;
+  aLvlData[1 + iPos] = iId;
   -- Calculate absolute X and Y position from location
   local iX<const>, iY<const> = iPos % iLLAbsW * 16, iPos // iLLAbsW * 16;
   -- Update zone collision bit-mask
@@ -791,22 +790,22 @@ end
 -- Trigger end condition --------------------------------------------------- --
 local function TriggerEnd(fcbFunc)
   -- Call the function
-  fcbFunc(iLevelId, oActivePlayer, oOpponentPlayer);
+  fcbFunc(iLvlId, oPlrActive, oPlrOpponent);
 end
 -- Get win limit ----------------------------------------------------------- --
-local function HaveZogsToWin(oPlayer) return oPlayer.M >= iWinLimit end;
+local function HaveZogsToWin(oPlr) return oPlr.M >= iWinLimit end;
 -- Level end conditions check ---------------------------------------------- --
 local function EndConditionsCheck()
   -- No active player? (Playing a demo?) Just ignore
   if bAIvsAI or PlaySoundAtObject == BlankFunction then return end;
   -- Player has enough Zogs?
-  if HaveZogsToWin(oActivePlayer) then return TriggerEnd(InitWin) end;
+  if HaveZogsToWin(oPlrActive) then return TriggerEnd(InitWin) end;
   -- All the opponents Diggers have died?
-  if oOpponentPlayer.DC <= 0 then return TriggerEnd(InitWinDead) end;
+  if oPlrOpponent.DC <= 0 then return TriggerEnd(InitWinDead) end;
   -- The opponent has enough Zogs?
-  if HaveZogsToWin(oOpponentPlayer) then return TriggerEnd(InitLose) end;
+  if HaveZogsToWin(oPlrOpponent) then return TriggerEnd(InitLose) end;
   -- All the players Diggers have died?
-  if oActivePlayer.DC <= 0 then return TriggerEnd(InitLoseDead) end;
+  if oPlrActive.DC <= 0 then return TriggerEnd(InitLoseDead) end;
 end
 -- Destroy object ---------------------------------------------------------- --
 local function DestroyObject(iObj, oObj)
@@ -842,7 +841,7 @@ local function DestroyObject(iObj, oObj)
     end
   end
   -- Remove object from the global objects list
-  remove(aObjects, iObj);
+  remove(aObjs, iObj);
   -- Get objects Telepole destinations and remove them all
   local aObjTPD<const> = oObj.TD;
   for iTPIndex = #aObjTPD, 1, -1 do remove(aObjTPD, iTPIndex) end;
@@ -866,8 +865,8 @@ local function DestroyObject(iObj, oObj)
     return true;
   end
   -- Get player owner and mark it as dead and reduce players' digger count
-  local oPlayer<const> = oObj.P;
-  oPlayer.D[iDiggerId], oPlayer.DC = false, oPlayer.DC - 1;
+  local oPlr<const> = oObj.P;
+  oPlr.D[iDiggerId], oPlr.DC = false, oPlr.DC - 1;
   -- Remove pursuers and reset pursuer targets
   local oPursuers<const> = oObj.TL;
   for iUId, aPursuer in pairs(oPursuers) do
@@ -887,8 +886,8 @@ local function DestroyObjectUnknown(oObj)
     error("Invalid object specified! "..tostring(oObj)) end;
   -- Enumerate through each global object and find the specified object and
   -- destroy it if we find it.
-  for iIndex = 1, #aObjects do
-    if aObjects[iIndex] == oObj then return DestroyObject(iIndex, oObj) end;
+  for iIndex = 1, #aObjs do
+    if aObjs[iIndex] == oObj then return DestroyObject(iIndex, oObj) end;
   end
   -- Failed to find object
   return false;
@@ -909,10 +908,10 @@ local function AddToInventory(oObjOwner, oObjTake, bOnlyTreasure)
     return false;
   end
   -- Find object in objects array and when we find it?
-  for iObj = 1, #aObjects do
-    if aObjects[iObj] == oObjTake then
+  for iObj = 1, #aObjs do
+    if aObjs[iObj] == oObjTake then
       -- Remove object and add requested object to owners inventory
-      remove(aObjects, iObj);
+      remove(aObjs, iObj);
       local oObjOwnInv<const> = oObjOwner.I;
       oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
       -- Add weight and set active inventory object to this object
@@ -971,7 +970,7 @@ local function DropObject(oObjOwner, oObjDrop)
       -- Set new position of object
       SetPosition(oObjDrop, oObjOwner.X, oObjOwner.Y);
       -- Add back to playfield
-      aObjects[1 + #aObjects] = oObjDrop;
+      aObjs[1 + #aObjs] = oObjDrop;
       -- Reduce carrying weight
       oObjOwner.IW = oObjOwner.IW - oObjDrop.W;
       -- Select next object
@@ -1068,9 +1067,9 @@ end
 -- Pickup Objects ---------------------------------------------------------- --
 local function PickupObjects(oObj, bOnlyTreasure)
   -- Look for objects that can be picked up
-  local iObj = 1 while iObj <= #aObjects do
+  local iObj = 1 while iObj <= #aObjs do
     -- Try to pickup specified object and return success if succeeded
-    if PickupObject(oObj, aObjects[iObj], bOnlyTreasure) then return true end;
+    if PickupObject(oObj, aObjs[iObj], bOnlyTreasure) then return true end;
     -- Try next object
     iObj = iObj + 1;
   end
@@ -1102,175 +1101,17 @@ local function AIPatienceLogic(oObj)
   -- Do something casual
   SetRandomJob(oObj, true);
 end
--- Add player -------------------------------------------------------------- --
-local function CreatePlayer(iX, iY, iPlayerId, iRaceId, bIsAI)
-  -- Check parameters
-  if not UtilIsInteger(iX) then
-    error("X coord not an integer! "..tostring(iX)) end;
-  if iX < 0 then
-    error("X coord "..iX.." must be positive!") end;
-  if iX >= iLLAbsW then
-    error("X coord "..iX.." limit is "..iLLAbsW.."!") end;
-  if not UtilIsInteger(iY) then
-    error("X coord not an integer! "..tostring(iY)) end;
-  if iY < 0 then
-    error("Y coord "..iY.." must be positive!") end;
-  if iY >= iLLAbsW then
-    error("Y coord "..iY.." limit is "..iLLAbsH.."!") end;
-  if not UtilIsInteger(iPlayerId) then
-    error("Player id is invalid! "..tostring(iPlayerId)) end;
-  if aPlayers[iPlayerId] then
-    error("Player "..iPlayerId.." already initialised!") end;
-  if not UtilIsInteger(iRaceId) then
-    error("Race id is invalid! "..tostring(iRaceId)) end;
-  if not UtilIsBoolean(bIsAI) then
-    error("AI boolean is invalid! "..tostring(bIsAI)) end;
-  if #aRacesAvailable == 0 then
-    error("No races are available!") end;
-  -- Digger in races list picked
-  local iRacesId;
-  -- If random digger requested?
-  if iRaceId == TYP.DIGRANDOM then
-    -- Pick a random race from the races array
-    iRacesId = random(#aRacesAvailable);
-    -- Override the random race type with an actual race type
-    iRaceId = aRacesAvailable[iRacesId];
-  -- Actually specified specific race
-  else
-    -- For each available race
-    iRacesId = 1;
-    while iRacesId <= #aRacesAvailable do
-      -- Get race type id and if we matched requested race then break
-      if aRacesAvailable[iRacesId] == iRaceId then break end;
-      -- Try next races id
-      iRacesId = iRacesId + 1;
-    end
-    -- Wasn't able to remove anything? Show error
-    if iRacesId > #aRacesAvailable then
-      error("Race "..iRaceId.." not available!") end;
-  end
-  -- Remove the race from the table so it can't be duplicated
-  remove(aRacesAvailable, iRacesId);
-  -- Players diggers and number of diggers to create
-  local aDiggers<const>, iNumDiggers<const> = { }, 5;
-  -- Calculate home point
-  local iHomeX, iHomeY<const> = iX * 16 - 2, iY * 16 + 32;
-  -- Get object data for race
-  local aRaceData<const> = oObjectData[iRaceId];
-  if not UtilIsTable(aRaceData) then
-    error("Invalid race data for "..iRaceId.."! "..tostring(aRaceData)) end;
-  -- Build player data object
-  local oPlayer<const> = {
-    AI  = bIsAI,                       -- Set AI status
-    D   = aDiggers,                    -- List of diggers
-    DT  = iNumDiggers,                 -- Diggers total
-    DC  = iNumDiggers,                 -- Diggers count
-    DUG = 0,                           -- Dirt dug
-    EK  = 0,                           -- Enemies killed (OFL.ENEMY)
-    GEM = 0,                           -- Gems found
-    GS  = 0,                           -- Gems sold
-    PUR = 0,                           -- Purchases made
-    GI  = 0,                           -- Total income
-    M   = 100,                         -- Money
-    R   = iRaceId,                     -- Race type (TYP.*)
-    I   = iPlayerId,                   -- Player index
-    LK  = 0,                           -- Lifeforms killedV (OFL.LIVING)
-    HX  = iHomeX,                      -- Home point X position
-    HY  = iHomeY,                      -- Home point Y position
-    SX  = (iX - 1) * 16,               -- Adjust home point X
-    SY  = (iY + 2) * 16,               -- Adjust home point Y
-    RD  = aRaceData                    -- Race data
-  };
-  -- If this is player one?
-  if iPlayerId == 1 then
-    -- Set active player
-    oActivePlayer = oPlayer;
-    -- Is not AI?
-    if not bIsAI then
-      -- Set to un-shroud the players' objects
-      oPlayer.US = true;
-      -- Add capital carried and reset its value
-      oActivePlayer.M = oActivePlayer.M + oGlobalData.gCapitalCarried;
-      oGlobalData.gCapitalCarried = 0;
-      -- Not demo mode
-      bAIvsAI = false;
-      -- Fast scrolling
-      iScrollRate = 16;
-    -- Not AI vs AI
-    else
-      -- Slow scrolling
-      iScrollRate = 32;
-      -- Demo mode
-      bAIvsAI = true;
-    end
-    -- Set viewpoint on this player and synchronise
-    ScrollViewPortTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
-    ForceViewport();
-  -- Set opponent player
-  else oOpponentPlayer = oPlayer end;
-  -- Adjust starting X co-ordinate for first Digger at the trade centre
-  iHomeX = iHomeX - 16;
-  -- Get weight of treasure
-  local iMaxInventory<const> = aRaceData.STRENGTH;
-  -- For each digger of the player
-  for iDiggerId = 1, iNumDiggers do
-    -- Create a new digger
-    local oDigger<const> = CreateObject(iRaceId, iHomeX, iHomeY, oPlayer);
-    if oDigger then
-      -- Digger is not AI?
-      if not bIsAI then
-        -- Set patience AI for player controlled digger
-        oDigger.AI, oDigger.AIF = AI.PATIENCE, AIPatienceLogic;
-        -- Set and verify patience warning value
-        local iPatience = oDigger.OD.PATIENCE;
-        if not UtilIsInteger(iPatience) then
-          error("Digger "..iDiggerId.." of player "..oPlayer.I..
-            "has no patience warning value!") end;
-        -- Randomise patience by +/- 25%
-        local iOffset = random(floor(iPatience * 0.25));
-        if random() < 0.5 then iOffset = -iOffset end;
-        iPatience = iPatience + iOffset;
-        oDigger.PW = iPatience;
-        -- Digger will stray between 30-60 seconds of indicated impatience
-        oDigger.PL = iPatience + 1800 + random(1800);
-      -- Is AI?
-      else
-        -- Set maximum treasure items to carry (for AI)
-        oDigger.MI = iMaxInventory;
-        -- Initialise Digger AI anti-wriggle system
-        oDigger.AW, oDigger.AWR = 0, 0;
-        -- Infinite patience
-        oDigger.PW, oDigger.PL = maxinteger, maxinteger;
-      end;
-      -- Set Digger id
-      oDigger.DI = iDiggerId;
-      -- Insert into Digger list
-      aDiggers[1 + #aDiggers] = oDigger;
-    -- Failed so show map maker in console that the object id is invalid
-    else CoreWrite("Warning! Digger "..iDiggerId..
-      " not created for player "..iPlayerId.."! Id="..iRaceId..", X="..iX..
-      ", Y="..iY..".", 9) end;
-    -- Increment home point X position
-    iHomeX = iHomeX + 5;
-  end
-  -- Add player data to players array
-  aPlayers[1 + #aPlayers] = oPlayer;
-  -- Log creation of item
-  CoreLog("Created player "..iPlayerId.." as '"..oObjectData[iRaceId].NAME..
-    "'["..iRaceId.."] at AX:"..iX..",AY:"..iY.." in position #"..
-    #aPlayers.."!");
-end
 -- Object is at home ------------------------------------------------------- --
 local function ObjectIsAtHome(oObj)
   -- Check parameter is valid
   if not UtilIsTable(oObj) then
     error("Invalid object specified! "..tostring(oObj)) end;
   -- Make sure object has an owner
-  local oPlayer<const> = oObj.P;
-  if not UtilIsTable(oPlayer) then
-    error("Object has invalid parent! "..tostring(oPlayer)) end;
+  local oPlr<const> = oObj.P;
+  if not UtilIsTable(oPlr) then
+    error("Object has invalid parent! "..tostring(oPlr)) end;
   -- Return if object is at the home point
-  return oObj.X == oPlayer.HX and oObj.Y == oPlayer.HY;
+  return oObj.X == oPlr.HX and oObj.Y == oPlr.HY;
 end
 -- Cycle object inventory -------------------------------------------------- --
 local function CycleObjInventory(oObj, iDirection)
@@ -1315,7 +1156,7 @@ local function InitSetAction()
       iId = oTrainTrackData[iId];
       if not iId then break end;
       -- Get terrain tile id blow this tile and if we can deploy on this?
-      if aTileData[1 + aLevelData[1 + iLoc + iLLAbsW]] &
+      if aTileData[1 + aLvlData[1 + iLoc + iLLAbsW]] &
         oTileFlags.F ~= 0 then
         -- Update level data
         UpdateLevel(iLoc, iId);
@@ -1351,7 +1192,7 @@ local function InitSetAction()
     -- Search for a buildable ground surface
     for iBottom = iLoc, iLLAbsMLW, iLLAbsW do
       -- Get tile
-      local iId<const> = aLevelData[1 + iBottom];
+      local iId<const> = aLvlData[1 + iBottom];
       local iTileId<const> = aTileData[1 + iId];
       -- Tile has not been dug
       if iTileId & oTileFlags.AD == 0 then
@@ -1360,7 +1201,7 @@ local function InitSetAction()
           -- Search for a buildable above ground surface
           for iTop = iLoc, iLLAbsW, -iLLAbsW do
             -- Get tile
-            local iId<const> = aLevelData[1 + iTop];
+            local iId<const> = aLvlData[1 + iTop];
             local iTileId<const> = aTileData[1 + iId];
             -- Tile has not been dug
             if iTileId & oTileFlags.AD == 0 then
@@ -1822,8 +1663,8 @@ local function SetObjectAndParentCounter(oObj, sWhat)
   -- Increase objects gem find count
   oObj[sWhat] = oObj[sWhat] + 1;
   -- And of the objects owner if it has one
-  local oPlayer<const> = oObj.P;
-  if oPlayer then oPlayer[sWhat] = oPlayer[sWhat] + 1 end;
+  local oPlr<const> = oObj.P;
+  if oPlr then oPlr[sWhat] = oPlr[sWhat] + 1 end;
 end
 -- Dig tile at specified position ------------------------------------------ --
 local function DigTile(...)
@@ -1845,20 +1686,20 @@ local function DigTile(...)
   -- Get dig tile data
   local function GetDigTileData()
     -- Get the tile id that the object is on now
-    iTIdC = aLevelData[1 + iCP];
+    iTIdC = aLvlData[1 + iCP];
     -- Get the tile above and adjacent the object
     if iDP >= iLLAbsW then
-      iTIdA = aLevelData[1 + (iDP - iLLAbsW)] else iTIdA = 0 end
+      iTIdA = aLvlData[1 + (iDP - iLLAbsW)] else iTIdA = 0 end
     -- Get the tile below and adjacent to the object
     if iDP < iLLAbs - iLLAbsW then
-      iTIdB = aLevelData[1 + (iDP + iLLAbsW)] else iTIdB = 0 end;
+      iTIdB = aLvlData[1 + (iDP + iLLAbsW)] else iTIdB = 0 end;
     -- Get the tile adjacent to the object
-    iTId = aLevelData[1 + iDP];
+    iTId = aLvlData[1 + iDP];
     -- Get the tile left of the object
-    if iDP - 1 >= 0 then iTIdL = aLevelData[1 + (iDP - 1)] else iTIdL = 0 end;
+    if iDP - 1 >= 0 then iTIdL = aLvlData[1 + (iDP - 1)] else iTIdL = 0 end;
     -- Get the tile right of the object
     if iDP + 1 < iLLAbs then
-      iTIdR = aLevelData[1 + iDP + 1] else iTIdR = 0 end;
+      iTIdR = aLvlData[1 + iDP + 1] else iTIdR = 0 end;
   end
   -- Moving left or up-left?
   local function DirectionLeftOrUpleft(oObj)
@@ -2097,9 +1938,9 @@ local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
         -- Get position
         local iPosX<const>, iPosY<const> = iX*16, iY*16;
         -- Compare against all objects
-        for iObject = 1, #aObjects do
+        for iObject = 1, #aObjs do
           -- Get target object data and if not the same object?
-          local oTarget<const> = aObjects[iObject];
+          local oTarget<const> = aObjs[iObject];
           if oTarget ~= oObjVictim then
             -- Get action and if target object...
             local iAction<const> = oTarget.A;
@@ -2162,11 +2003,11 @@ local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
                 local iATFlags<const> = aTileData[1 + iId];
                 if iATFlags & oTileFlags.G ~= 0 then
                   -- Find gate at that position
-                  for iObjId = 1, #aObjects do
+                  for iObjId = 1, #aObjs do
                     -- Get object and if it's a deployed gate? Get its absolute
                     -- location and if it's the same? Destroy the deployed
                     -- gate.
-                    local oObjVictim<const> = aObjects[iObjId];
+                    local oObjVictim<const> = aObjs[iObjId];
                     if oObjVictim.ID == TYP.GATEB and
                       GetLevelOffsetFromObject(oObjVictim, 0, 0) == iTLoc then
                         AdjustObjectHealth(oObjVictim, -100, oObjCause) end;
@@ -2211,7 +2052,7 @@ local function RenderTerrain()
     local iYdraw<const> = iStageT + iPixCenPosY + (iY * 16);
     -- For each screen column to draw tile at, draw the tile from level data
     for iX = 0, iTilesWidth do
-      BlitSLT(texLev, aLevelData[iYdest + iPosX + iX],
+      BlitSLT(texLev, aLvlData[iYdest + iPosX + iX],
         iXdraw + (iX * 16), iYdraw);
     end
   end
@@ -2245,9 +2086,9 @@ local function RenderObjects()
   -- Calculate viewpoint position
   local nVPX<const>, nVPY<const> = iPixPosX - iStageL, iPixPosY - iStageT;
   -- For each object
-  for iObjId = 1, #aObjects do
+  for iObjId = 1, #aObjs do
     -- Get object data
-    local oObj<const> = aObjects[iObjId];
+    local oObj<const> = aObjs[iObjId];
     -- Holds objects render position on-screen
     local iXX, iYY = oObj.X - nVPX + oObj.OFX,
                      oObj.Y - nVPY + oObj.OFY;
@@ -2278,7 +2119,7 @@ local function RenderInterface()
     if not oParent then iStatusId = 980;
     -- If object has an owner but this client is not that owner? Draw 'X'
     -- indicator above object to indicate only the owner can control this.
-    elseif oParent ~= oActivePlayer then iStatusId = 976;
+    elseif oParent ~= oPlrActive then iStatusId = 976;
     -- Parent is me?
     else
       -- If object is busy? Draw 'Zz' indicator above object to indicate
@@ -2329,7 +2170,7 @@ local function RenderInterface()
     -- Pre-calculate Y position
     local iY<const> = iDiggerId * 16;
     -- Get digger data and if Digger is alive?
-    local oDigger<const> = oActivePlayer.D[iDiggerId];
+    local oDigger<const> = oPlrActive.D[iDiggerId];
     if oDigger then
        -- Digger is selected?
       if oObjActive and oDigger == oObjActive then
@@ -2385,13 +2226,13 @@ local function RenderInterface()
   end
   -- Get player and opponent money
   local iPlayerMoney<const>, iOpponentMoney<const> =
-    oActivePlayer.M, oOpponentPlayer.M;
+    oPlrActive.M, oPlrOpponent.M;
   -- Tile was set? Draw it
   if iTile then BlitSLT(texSpr, iTile, 120, 216);
   -- No tile was set
   else
     -- Set tile id based on diggers count
-    local iATile, iOTile = 868 + oOpponentPlayer.DC, 874 + oActivePlayer.DC;
+    local iATile, iOTile = 868 + oPlrOpponent.DC, 874 + oPlrActive.DC;
     -- Get monies and increase flag depending on who has more money
     if iPlayerMoney > iOpponentMoney then iOTile = iOTile + 1;
     elseif iPlayerMoney < iOpponentMoney then iATile = iATile + 1 end;
@@ -2441,7 +2282,7 @@ local function RenderInterface()
   -- Draw utility button
   BlitSLT(texSpr, 814, 232, 216);
   -- Draw info screen
-  fcbInfoScreenCallback();
+  fcbInfoScreen();
   -- I context menu selected?
   if aContextMenuData then
     -- Get object busy flag
@@ -2544,9 +2385,9 @@ end
 -- Check if object is colliding with another ------------------------------- --
 local function CheckObjectCollision(oObj)
   -- Walk objects list
-  for iIndex = 1, #aObjects do
+  for iIndex = 1, #aObjs do
     -- Get target object and if target object...
-    local oTarget<const> = aObjects[iIndex];
+    local oTarget<const> = aObjs[iIndex];
     if oTarget ~= oObj and                 -- ...is not me?
        oTarget.F & OFL.DIGGER ~= 0 and     -- *and* target is a digger?
        oTarget.F & OFL.WATERBASED == 0 and -- *and* target isn't water based?
@@ -2678,16 +2519,16 @@ end
 -- Object collides with an object which acts as terrain -------------------- --
 local function IsCollidePlatform(oObjSrc, iX, iY)
   -- Ignore if not enough objects to compare
-  if #aObjects <= 1 then return false end;
+  if #aObjs <= 1 then return false end;
   -- If source object is a blocking platform too then we should use a
   -- different mask id.
   local iSrcMaskId;
   if oObjSrc.F & OFL.BLOCK ~= 0 then
     iSrcMaskId = 474 else iSrcMaskId = 478 end;
   -- For each object...
-  for iObj = 1, #aObjects do
+  for iObj = 1, #aObjs do
     -- Get target object to test with
-    local oObjDst<const> = aObjects[iObj];
+    local oObjDst<const> = aObjs[iObj];
     -- If the target object set to block? If object isn't the target object?
     -- and the specified object collides with the target object? then yes!
     if oObjDst.F & OFL.BLOCK ~= 0 and oObjSrc ~= oObjDst and
@@ -2769,9 +2610,9 @@ local function InitMoveOtherObjects()
     -- If i'm not a platform then return
     if oObj.F & OFL.BLOCK == 0 then return end;
     -- For each object
-    for iTargetIndex = 1, #aObjects do
+    for iTargetIndex = 1, #aObjs do
       -- Get target object and if it...
-      local oTarget<const> = aObjects[iTargetIndex];
+      local oTarget<const> = aObjs[iTargetIndex];
       if oTarget ~= oObj and           -- ...target object isn't me?
          oTarget.F & OFL.BLOCK == 0 and   -- *and* target object doesn't block?
          oTarget.A ~= ACT.PHASE and       -- *and* is not phasing?
@@ -3430,9 +3271,9 @@ local function InitCreateObject()
     -- Get object sprite and position
     local iX<const>, iY<const> = oObj.X, oObj.Y;
     -- For each object
-    for iIndex = 1, #aObjects do
+    for iIndex = 1, #aObjs do
       -- Get object and if both objects are within reaching distance?
-      local oTarget<const> = aObjects[iIndex];
+      local oTarget<const> = aObjs[iIndex];
       if abs(oTarget.X - iX) < 16 and abs(oTarget.Y - iY) < 16 then
         -- Target must have a parent and is different to objects
         local oParentTarget<const> = oTarget.P;
@@ -3509,7 +3350,7 @@ local function InitCreateObject()
     if iY >= iLLPixH then
       error("Y coord "..iY.." limit is "..iLLPixH.."!") end;
     -- If too many objects? Put warning in console and return!
-    if #aObjects >= 100000 then
+    if #aObjs >= 100000 then
       return CoreWrite("Warning! Too many objects creating "..iObjId..
         " at X="..iX.." and Y="..iY.." with parent "..tostring(oParent).."!",
         9);
@@ -3605,10 +3446,10 @@ local function InitCreateObject()
     -- Set default action (also sets default direction);
     SetAction(oObj, oObjData.ACTION, oObjData.JOB, oObjData.DIRECTION);
     -- Insert into main object array
-    aObjects[1 + #aObjects] = oObj;
+    aObjs[1 + #aObjs] = oObj;
     -- Log creation of item
     CoreLog("Created object '"..sName.."'["..iObjId.."] at X:"..
-      iX..",Y:"..iY.." in position #"..#aObjects.."!");
+      iX..",Y:"..iY.." in position #"..#aObjs.."!");
     -- Return object
     return oObj;
   end
@@ -3666,21 +3507,20 @@ local function PhaseLogic()
       -- Conditions fail so try next inventory item.
       else iObj = iObj + 1 end;
     end
-    -- If object is intelligent?
-    if random() > oObj.IN then
-      -- Get the lowest amount of money a player has
-      local iLowest, aOpponent = maxinteger;
-      for iIndex = 1, #aPlayers do
-        local oPlayer<const> = aPlayers[iIndex];
-        if oPlayer ~= oParent then
-          local iMoney<const> = oPlayer.M;
-          if iMoney < iLowest then aOpponent, iLowest = oPlayer, iMoney end;
-        end
+    -- Get the lowest amount of money a player has
+    local iLowest, oOpponent = maxinteger;
+    for iIndex = 1, #aPlayers do
+      local oPlr<const> = aPlayers[iIndex];
+      if oPlr ~= oParent then
+        local iMoney<const> = oPlr.M;
+        if iMoney < iLowest then oOpponent, iLowest = oPlr, iMoney end;
       end
+    end
+    -- If a random number based on the money gap and the money to win?
+    if random() < (oParent.M - oOpponent.M) / iWinLimit / 4.0 then
       -- Try to purchase something random to keep the scores fair if objects
       -- owner has more money than the lowest player?
-      if oParent.M > aOpponent.M + 400 then
-        BuyItem(oObj, aShopData[random(#aShopData)]) end;
+      BuyItem(oObj, aShopData[random(#aShopData)]);
     end
     -- If items were sold? Check if any player won
     if iItemsSold > 0 then EndConditionsCheck() end;
@@ -3696,9 +3536,9 @@ local function PhaseLogic()
     -- Get current teleport destinations
     local aDestinations<const> = oObj.TD;
     -- For each object
-    for iObjDestIndex = 1, #aObjects do
+    for iObjDestIndex = 1, #aObjs do
       -- Get object
-      local oTarget<const> = aObjects[iObjDestIndex];
+      local oTarget<const> = aObjs[iObjDestIndex];
       -- If object is a Telepole and object is owned by this object
       -- or object is a teleport master and Telepole status nominal?
       if oTarget.ID == TYP.TELEPOLE and
@@ -3755,10 +3595,10 @@ local function PhaseLogic()
   local function PhaseRandomTargetLogic(oObj)
     -- Walk objects list and find candidate objects to teleport to
     local aCandObjs<const> = { };
-    for iCandObjId = 1, #aObjects do
+    for iCandObjId = 1, #aObjs do
       -- Get object and if the object isn't this object and object is
       -- a valid phase target? Insert into valid phase targets list.
-      local aCandObj<const> = aObjects[iCandObjId];
+      local aCandObj<const> = aObjs[iCandObjId];
       if aCandObj ~= oObj and aCandObj.F & OFL.PHASETARGET ~= 0 then
         aCandObjs[1 + #aCandObjs] = aCandObj;
       end
@@ -3801,7 +3641,7 @@ local function PhaseLogic()
     end
     -- If not demo mode and this object is selected and not parent
     if not bAIvsAI and oObjActive == oObj and
-      (not oObj.P or oObj.P ~= oActivePlayer) then
+      (not oObj.P or oObj.P ~= oPlrActive) then
       -- Deselect it. Opponents are not allowed to see where they went!
       SelectObject();
     end
@@ -3926,7 +3766,7 @@ local function ProcessObjectMovement()
       local iLoc<const> = GetLevelOffsetFromObject(oObj, aTrainMoveItem[1], 0);
       if iLoc then
         -- Train on track? Move the train!
-        if aTileData[1 + aLevelData[1 + iLoc]] & oTileFlags.T ~= 0 then
+        if aTileData[1 + aLvlData[1 + iLoc]] & oTileFlags.T ~= 0 then
           MoveX(oObj, aTrainMoveItem[2]);
         -- Train not on track and was searching? Move in opposite direction.
         elseif oObj.J == JOB.SEARCH and oObj.AT > 0 then
@@ -3951,9 +3791,9 @@ end
 -- Process object logic ---------------------------------------------------- --
 local function ProcessObjects()
   -- Enumerate through all objects (while/do because they could be deleted)
-  local iObjId = 1 while iObjId <= #aObjects do
+  local iObjId = 1 while iObjId <= #aObjs do
     -- Get object data
-    local oObj<const> = aObjects[iObjId];
+    local oObj<const> = aObjs[iObjId];
     -- If AI function set, not dying and not phasing then call AI function!
     local fcbAI<const> = oObj.AIF;
     if fcbAI then fcbAI(oObj) end;
@@ -3993,7 +3833,7 @@ local function ProcessObjects()
         if oObj.H >= 100 then
           -- Re-appear the object if is not the player otherwise wait for the
           -- real player to exit the trade centre.
-          if bAIvsAI or oObj.P ~= oActivePlayer then
+          if bAIvsAI or oObj.P ~= oPlrActive then
             SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.R) end;
         -- Health not full? Regenerate health
         elseif oObj.AT % 10 == 0 then AdjustObjectHealth(oObj, 1) end;
@@ -4090,16 +3930,16 @@ local function GameProc()
         -- Get absolute position on map
         local iPos<const> = iYdest + iPosX + iX;
         -- Get tile id and if tile is valid?
-        local iTileId<const> = aLevelData[1 + iPos];
+        local iTileId<const> = aLvlData[1 + iPos];
         if iTileId ~= 0 then
           -- Get tile flags and if flags say we should animate to next tile?
           local iFlags<const> = aTileData[1 + iTileId];
           if iFlags & oTileFlags.AB ~= 0 then
-            aLevelData[1 + iPos] = iTileId + 1;
+            aLvlData[1 + iPos] = iTileId + 1;
           -- Tile is end of animation so go back 3 sprites. This rule means
           -- that all animated terrain tiles must be 4 sprites.
           elseif iFlags & oTileFlags.AE ~= 0 then
-            aLevelData[1 + iPos] = iTileId - 3 end;
+            aLvlData[1 + iPos] = iTileId - 3 end;
         end
       end
     end
@@ -4128,14 +3968,14 @@ local function GameProc()
               -- Get transformation information about this floodgate tile
               local aFGDItem<const> = oFloodGateData[iTileId][1];
               -- Update the flooded gate tile
-              aLevelData[1 + iPosition] = aFGDItem[1];
+              aLvlData[1 + iPosition] = aFGDItem[1];
               -- Continue flooding if needed
               if aFGDItem[2] then
                 aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
             -- Tile is not a flood gate tile?
             else
               -- Update tile to the same tile with water in it
-              aLevelData[1 + iPosition] = iTileId + 240;
+              aLvlData[1 + iPosition] = iTileId + 240;
               -- Continue flooding if the left edge of the tile is exposed
               if iTileFlags & oTileFlags.EL ~= 0 then
                 aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
@@ -4158,14 +3998,14 @@ local function GameProc()
               -- Get transformation information about this floodgate tile
               local aFGDItem<const> = oFloodGateData[iTileId][2];
               -- Update the flooded gate tile
-              aLevelData[1 + iPosition] = aFGDItem[1];
+              aLvlData[1 + iPosition] = aFGDItem[1];
               -- Continue flooding if data requests it
               if aFGDItem[2] then
                 aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
             -- Tile is not a flood gate tile?
             else
               -- Update tile to the same tile with water in it
-              aLevelData[1 + iPosition] = iTileId + 240;
+              aLvlData[1 + iPosition] = iTileId + 240;
               -- Continue flooding if the left edge of the tile is exposed
               if iTileFlags & oTileFlags.ER ~= 0 then
                 aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
@@ -4184,7 +4024,7 @@ local function GameProc()
           if iTileFlags & oTileFlags.W == 0 and
              iTileFlags & oTileFlags.ET ~= 0 then
             -- Update tile to the same tile with water in it and continue
-            aLevelData[1 + iPosition] = iTileId + 240;
+            aLvlData[1 + iPosition] = iTileId + 240;
             aFloodData[1 + #aFloodData] = { iPosition, iTileFlags };
           end
         end
@@ -4198,7 +4038,7 @@ local function GameProc()
   -- If a second has passed?
   if iGameTicks % 60 == 0 then
     -- Get player diggers and enumerate them
-    local aDiggers<const> = oActivePlayer.D;
+    local aDiggers<const> = oPlrActive.D;
     for iDiggerId = 1, #aDiggers do
       -- Play warning sound for any digger in danger
       local oDigger<const> = aDiggers[iDiggerId];
@@ -4220,13 +4060,13 @@ end
 -- Select devices ---------------------------------------------------------- --
 local function SelectDevice()
   -- For each object
-  for iId = 1, #aObjects do
+  for iId = 1, #aObjs do
     -- Get object and if the object belongs to me and is device?
-    local oObj<const> = aObjects[iId];
-    if oActivePlayer == oObj.P and oObj.F & OFL.DEVICE ~= 0 then
+    local oObj<const> = aObjs[iId];
+    if oPlrActive == oObj.P and oObj.F & OFL.DEVICE ~= 0 then
       -- Remove and send to front of objects list
-      remove(aObjects, iId);
-      aObjects[1 + #aObjects] = oObj;
+      remove(aObjs, iId);
+      aObjs[1 + #aObjs] = oObj;
       -- Set as active object
       SelectObject(oObj);
       -- Success!
@@ -4247,7 +4087,7 @@ local function SelectStatusScreen() SelectInfoScreen(3) end;
 -- Init the book ----------------------------------------------------------- --
 local function SelectBook()
   -- Enumerate diggers
-  local aDiggers<const> = oActivePlayer.D;
+  local aDiggers<const> = oPlrActive.D;
   for iDigger = 1, #aDiggers do
     -- Get digger data and if it's teleporting home or going home?
     local oDigger<const> = aDiggers[iDigger];
@@ -4267,7 +4107,7 @@ local function SelectBook()
 end
 -- Load level -------------------------------------------------------------- --
 local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
-  fcbNLogic, fcbNRender, iNHotSpotId, iSM1, iSM2)
+  fcbNLogic, fcbNRender, iNHotSpotId, iSM1, iSM2, bRespawn)
   -- De-init/Reset current level
   DeInitLevel();
   -- Check and set default logic callback
@@ -4308,30 +4148,30 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
   end
   RegisterFBUCallback("game", OnStageUpdated);
   -- Set level number and get data for it.
-  local oLevelInfo;
-  if UtilIsTable(iLId) then iLevelId, oLevelInfo = 1, iLId;
+  local oLvlInfo;
+  if UtilIsTable(iLId) then iLvlId, oLvlInfo = 1, iLId;
   elseif UtilIsInteger(iLId) then
-    iLevelId, oLevelInfo = iLId, aLevelsData[iLId];
+    iLvlId, oLvlInfo = iLId, aLevelsData[iLId];
   else error("Invalid id '"..
     tostring(iLId).."' of type '"..type(iLId).."'!") end;
-  if not UtilIsTable(oLevelInfo) then
-    error("Invalid level data! "..tostring(oLevelInfo)) end;
+  if not UtilIsTable(oLvlInfo) then
+    error("Invalid level data! "..tostring(oLvlInfo)) end;
   -- Get level type data and level type
-  local oLevelTypeData<const> = oLevelInfo.t;
-  local iLevelType<const> = oLevelTypeData.i;
+  local oLvlTypeData<const> = oLvlInfo.t;
+  local iLvlType<const> = oLvlTypeData.i;
   -- Set level name and level type name
-  sLevelName, sLevelType = oLevelInfo.n, oLevelTypeData.n;
+  sLvlName, sLvlType = oLvlInfo.n, oLvlTypeData.n;
   -- Set shroud colour
-  iShroudColour = oLevelTypeData.s;
+  iShroudColour = oLvlTypeData.s;
   -- Holds required assets to set template to music or no music
   local aAssets;
   if sMusic then aAssets, aAssetsMusic[4].F = aAssetsMusic, sMusic;
   else aAssets = aAssetsNoMusic end;
   -- Update asset filenames to load
-  local sFilePrefix<const> = "lvl/"..oLevelInfo.f;
+  local sFilePrefix<const> = "lvl/"..oLvlInfo.f;
   aAssets[1].F = sFilePrefix..".dat";
   aAssets[2].F = sFilePrefix;
-  aAssets[3].F = oLevelTypeData.f;
+  aAssets[3].F = oLvlTypeData.f;
   -- Level assets loaded function
   local function OnLoaded(aResources)
     -- Set texture handle
@@ -4339,7 +4179,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     -- Grab the background part
     iTileBg = TileA(texLev, 0, 256, 512, 512);
     -- Player starting positions
-    local aPlayerStartData<const> = {
+    local aPlrStartData<const> = {
       { 195, 198, iRace1, bAI1 },   -- Player 1 start data
       { 199, 202, iRace2, bAI2 }    -- Player 2 start data
     };
@@ -4347,8 +4187,8 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     maskZone = MaskCreateZero(sFilePrefix, iLLPixW, iLLPixH);
     -- Get minimum and maximum object id
     local iMinObjId<const>, iMaxObjId<const> = TYP.JENNITE, TYP.MAX;
-    -- Player starting point data found
-    local aPlayersFound = { };
+    -- Player starting point data list
+    local aPlrsFound = { };
     -- For each row in the data file
     local binLevel<const> = aResources[1];
     for iY = 0, iLLAbsHm1 do
@@ -4367,13 +4207,13 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
         local iTerrainId<const> = binLevel:RU16LE(iPosition);
         if iTerrainId >= 0 and iTerrainId < #aTileData then
           -- Check if is a player
-          for iPlayer = 1, #aPlayerStartData do
+          for iPlayer = 1, #aPlrStartData do
             -- Get player data and check for player starting position
-            local aPlayerStartItem<const> = aPlayerStartData[iPlayer];
+            local aPlayerStartItem<const> = aPlrStartData[iPlayer];
             if iTerrainId >= aPlayerStartItem[1] and
                iTerrainId <= aPlayerStartItem[2] then
               -- Get existing player data and if player exists?
-              local aPlayerFound<const> = aPlayersFound[iPlayer];
+              local aPlayerFound<const> = aPlrsFound[iPlayer];
               if aPlayerFound then
                 -- Show map maker in console that the player exists
                 CoreWrite("Warning! Player "..iPlayer..
@@ -4381,7 +4221,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
                   iPosition..". Originally found at X="..aPlayerFound[1]..
                   ", Y="..aPlayerFound[2]..".", 9);
               -- Player doesn't exist? Set the new player
-              else aPlayersFound[iPlayer] =
+              else aPlrsFound[iPlayer] =
                 { iX, iY, aPlayerStartItem[3], aPlayerStartItem[4] }
               end
             end
@@ -4389,7 +4229,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
           -- Draw the appropriate tile for the level bit mask
           maskZone:Copy(maskLev, iTerrainId, iPreciseX, iPreciseY);
           -- Insert into level data array
-          aLevelData[1 + #aLevelData] = iTerrainId;
+          aLvlData[1 + #aLvlData] = iTerrainId;
           -- Create entry for shroud data (sprite tile set number)
           aShroudData[1 + #aShroudData] = { 1022, 0x0 };
         -- Show error. Level could be corrupted
@@ -4398,22 +4238,22 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       end
     end
     -- Make sure we got the correct amount of level tiles
-    if #aLevelData < iLLAbs then
-      error("Only "..#aLevelData.."/"..iLLAbs.." level tiles!") end;
+    if #aLvlData < iLLAbs then
+      error("Only "..#aLvlData.."/"..iLLAbs.." level tiles!") end;
     -- Make sure we found two players
-    if #aPlayersFound ~= 2 then
-      error("Only "..#aPlayersFound.."/2 players!") end;
+    if #aPlrsFound ~= 2 then
+      error("Only "..#aPlrsFound.."/2 players!") end;
     -- Fill border with 1's to prevent objects leaving the playfield
     maskZone:Fill(0, 0, iLLPixW, 1);
     maskZone:Fill(0, 0, 1, iLLPixH);
     maskZone:Fill(iLLPixWm1, 0, 1, iLLPixH);
     maskZone:Fill(0, iLLPixHm1, iLLPixW, 1);
-    -- For each pre-positioned object
-    local aLevelObj<const> = aResources[2];
-    for iObjIndex = 1, #aLevelObj do
+    -- For each pre-defined object in level metadata
+    local aObjsPreDef<const> = aResources[2];
+    for iObjIndex = 1, #aObjsPreDef do
       -- Get object id at position and if it's interesting?
-      local oObj<const> = aLevelObj[iObjIndex];
-      local iObjId<const>, iX<const>, iY<const> = oObj[1], oObj[2], oObj[3];
+      local aObj<const> = aObjsPreDef[iObjIndex];
+      local iObjId<const>, iX<const>, iY<const> = aObj[1], aObj[2], aObj[3];
       if iObjId < iMinObjId or iObjId >= iMaxObjId then
         error("Warning! Object id invalid! Id="..iObjIndex..", Item="..iObjId..
           ", X="..iX..", Y="..iY..", Max="..iMaxObjId..".");
@@ -4424,31 +4264,172 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
           ", Item="..iObjId..", X="..iX..", Y="..iY..".");
       end
     end
-    -- Reset races available
-    for iI = 1, #aRacesData do
-      aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
     -- If both players are AI?
     if bAI1 and bAI2 then
-      -- Randomise the players table
-      local aNewPlayers<const> = { };
-      while #aPlayersFound > 0 do
-        local iId<const> = random(#aPlayersFound);
-        aNewPlayers[1 + #aNewPlayers] = aPlayersFound[iId];
-        remove(aPlayersFound, iId);
-      end
-      aPlayersFound = aNewPlayers;
+      -- A randomised version of randomised players
+      local aPlrsFoundRand<const> = { };
+      -- Repeat...
+      repeat
+        -- Get a random player
+        local iId<const> = random(#aPlrsFound);
+        -- Assign it to the randomised players list
+        aPlrsFoundRand[1 + #aPlrsFoundRand] = aPlrsFound[iId];
+        -- Remove original player
+        remove(aPlrsFound, iId);
+      -- ...until all players processed
+      until #aPlrsFound == 0;
+      -- Assign new players found
+      aPlrsFound = aPlrsFoundRand;
     end
+    -- Prepare a modifiable table of races available for selection
+    local aRacesAvailable<const> = { };
+    for iI = 1, #aRacesData do
+      aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
     -- Create players for players found
-    for iPlayerId = 1, #aPlayersFound do
-      local aPlayerData<const> = aPlayersFound[iPlayerId];
-      CreatePlayer(aPlayerData[1], aPlayerData[2], iPlayerId,
-                   aPlayerData[3], aPlayerData[4]);
+    for iPlayerId = 1, #aPlrsFound do
+      -- Unpack saved player data
+      local aPlrFound<const> = aPlrsFound[iPlayerId];
+      local iX<const>, iY<const>, iPlayerId<const>, iRaceId, bIsAI<const> =
+        aPlrFound[1], aPlrFound[2], iPlayerId, aPlrFound[3],
+        aPlrFound[4];
+      -- Digger in races list picked
+      local iRacesId;
+      -- If random digger requested?
+      if iRaceId == TYP.DIGRANDOM then
+        -- Pick a random race from the races array
+        iRacesId = random(#aRacesAvailable);
+        -- Override the random race type with an actual race type
+        iRaceId = aRacesAvailable[iRacesId];
+      -- Actually specified specific race
+      else
+        -- For each available race
+        iRacesId = 1;
+        while iRacesId <= #aRacesAvailable do
+          -- Get race type id and if we matched requested race then break
+          if aRacesAvailable[iRacesId] == iRaceId then break end;
+          -- Try next races id
+          iRacesId = iRacesId + 1;
+        end
+        -- Wasn't able to remove anything? Show error
+        if iRacesId > #aRacesAvailable then
+          error("Race "..iRaceId.." not available!") end;
+      end
+      -- Remove the race from the table so it can't be duplicated
+      remove(aRacesAvailable, iRacesId);
+      -- Players diggers and number of diggers to create
+      local aDiggers<const>, iNumDiggers<const> = { }, 5;
+      -- Calculate home point
+      local iHomeX, iHomeY<const> = iX * 16 - 2, iY * 16 + 32;
+      -- Get object data for race
+      local aRaceData<const> = oObjectData[iRaceId];
+      if not UtilIsTable(aRaceData) then
+        error("Invalid race data for "..iRaceId.."! "..tostring(aRaceData)) end;
+      -- Build player data object
+      local oPlr<const> = {
+        AI  = bIsAI,                   -- Set AI status
+        D   = aDiggers,                -- List of diggers
+        DT  = iNumDiggers,             -- Diggers total
+        DC  = iNumDiggers,             -- Diggers count
+        DUG = 0,                       -- Dirt dug
+        EK  = 0,                       -- Enemies killed (OFL.ENEMY)
+        GEM = 0,                       -- Gems found
+        GS  = 0,                       -- Gems sold
+        PUR = 0,                       -- Purchases made
+        GI  = 0,                       -- Total income
+        M   = 100,                     -- Money
+        R   = iRaceId,                 -- Race type (TYP.*)
+        I   = iPlayerId,               -- Player index
+        LK  = 0,                       -- Lifeforms killedV (OFL.LIVING)
+        HX  = iHomeX,                  -- Home point X position
+        HY  = iHomeY,                  -- Home point Y position
+        SX  = (iX - 1) * 16,           -- Adjust home point X
+        SY  = (iY + 2) * 16,           -- Adjust home point Y
+        RD  = aRaceData                -- Race data
+      };
+      -- If this is player one?
+      if iPlayerId == 1 then
+        -- Set active player
+        oPlrActive = oPlr;
+        -- Is not AI?
+        if not bIsAI then
+          -- Set to un-shroud the players' objects
+          oPlr.US = true;
+          -- Add capital carried and reset its value
+          oPlrActive.M = oPlrActive.M + oGlobalData.gCapitalCarried;
+          oGlobalData.gCapitalCarried = 0;
+          -- Not demo mode
+          bAIvsAI = false;
+          -- Fast scrolling
+          iScrollRate = 16;
+        -- Not AI vs AI
+        else
+          -- Slow scrolling
+          iScrollRate = 32;
+          -- Demo mode
+          bAIvsAI = true;
+        end
+        -- Set viewpoint on this player and synchronise
+        ScrollViewPortTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
+        ForceViewport();
+      -- Set opponent player
+      else oPlrOpponent = oPlr end;
+      -- Adjust starting X co-ordinate for first Digger at the trade centre
+      iHomeX = iHomeX - 16;
+      -- Get weight of treasure
+      local iMaxInventory<const> = aRaceData.STRENGTH;
+      -- For each digger of the player
+      for iDiggerId = 1, iNumDiggers do
+        -- Create a new digger
+        local oDigger<const> = CreateObject(iRaceId, iHomeX, iHomeY, oPlr);
+        if oDigger then
+          -- Digger is not AI?
+          if not bIsAI then
+            -- Set patience AI for player controlled digger
+            oDigger.AI, oDigger.AIF = AI.PATIENCE, AIPatienceLogic;
+            -- Set and verify patience warning value
+            local iPatience = oDigger.OD.PATIENCE;
+            if not UtilIsInteger(iPatience) then
+              error("Digger "..iDiggerId.." of player "..oPlr.I..
+                "has no patience warning value!") end;
+            -- Randomise patience by +/- 25%
+            local iOffset = random(floor(iPatience * 0.25));
+            if random() < 0.5 then iOffset = -iOffset end;
+            iPatience = iPatience + iOffset;
+            oDigger.PW = iPatience;
+            -- Digger will stray between 30-60 seconds of indicated impatience
+            oDigger.PL = iPatience + 1800 + random(1800);
+          -- Is AI?
+          else
+            -- Set maximum treasure items to carry (for AI)
+            oDigger.MI = iMaxInventory;
+            -- Initialise Digger AI anti-wriggle system
+            oDigger.AW, oDigger.AWR = 0, 0;
+            -- Infinite patience
+            oDigger.PW, oDigger.PL = maxinteger, maxinteger;
+          end;
+          -- Set Digger id
+          oDigger.DI = iDiggerId;
+          -- Insert into Digger list
+          aDiggers[1 + #aDiggers] = oDigger;
+        -- Failed so show map maker in console that the object id is invalid
+        else CoreWrite("Warning! Digger "..iDiggerId..
+          " not created for player "..iPlayerId.."! Id="..iRaceId..", X="..iX..
+          ", Y="..iY..".", 9) end;
+        -- Increment home point X position
+        iHomeX = iHomeX + 5;
+      end
+      -- Add player data to players array
+      aPlayers[1 + #aPlayers] = oPlr;
+      -- Log creation of item
+      CoreLog("Created player "..iPlayerId.." as '"..oObjectData[iRaceId].NAME..
+        "'["..iRaceId.."] at AX:"..iX..",AY:"..iY.." in position #"..
+        #aPlayers.."!");
     end
     -- Set player race and level if not set (gam_test used)
     if not oGlobalData.gSelectedRace then
-      oGlobalData.gSelectedRace = oActivePlayer.R end;
+      oGlobalData.gSelectedRace = oPlrActive.R end;
     if not oGlobalData.gSelectedLevel then
-      oGlobalData.gSelectedLevel = iLevelId end;
+      oGlobalData.gSelectedLevel = iLvlId end;
     -- Reset gems available
     local iGemStart<const> = random(#aDigTileData);
     for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
@@ -4457,19 +4438,18 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     if sMusic then PlayMusic(aResources[4], 0) end;
     -- Now we want to hear sounds if human player is set
     if bAI1 == false then SetPlaySounds(true) end;
-    -- Computer is main player?
-    if bAI1 == true then
-      -- Set auto-respawn on all objects death
-      for iI = 1, #aObjects do
-        local oObj<const> = aObjects[iI];
-        oObj.F = oObj.F | OFL.RESPAWN;
-      end
-    -- Set actual win limit
+    -- Respawn flag set?
+    if bRespawn then
+       -- Set auto-respawn on all objects death
+       for iI = 1, #aObjs do
+         local oObj<const> = aObjs[iI];
+         oObj.F = oObj.F | OFL.RESPAWN;
+       end
     end
-    -- Set win limit (Credits will not set 'w' for no limit)
-    iWinLimit = oLevelInfo.w;
-    if iWinLimit then iWinLimit = iWinLimit.r end;
-    if not iWinLimit then iWinLimit = oGlobalData.gCapitalCarried end;
+    -- Set win limit (Credits will not set 'w' meaning no limit)
+    iWinLimit = oLvlInfo.w;
+    if iWinLimit then iWinLimit = iWinLimit.r + oGlobalData.gCapitalCarried;
+                 else iWinLimit = maxinteger end;
     -- Do one tick at least or the fade will try to render with variables
     -- that haven't been initialised yet
     fcbLogic();
@@ -4489,15 +4469,15 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       -- Set requested callbacks
       SetCallbacks(fcbLogic, fcbRender);
       -- Add extra money if requested
-      if iSM1 then oActivePlayer.M = oActivePlayer.M + iSM1 end
-      if iSM2 then oOpponentPlayer.M = oOpponentPlayer.M + iSM2 end
+      if iSM1 then oPlrActive.M = oPlrActive.M + iSM1 end
+      if iSM2 then oPlrOpponent.M = oPlrOpponent.M + iSM2 end
       -- Check for win (test end/post-morten)
       EndConditionsCheck();
     end
     Fade(1, 0, 0.04, fcbRender, OnFadeIn, not not sMusic);
   end
   -- Load level graphics resources asynchronously
-  LoadResources(sLevelName, aAssets, OnLoaded);
+  LoadResources(sLvlName, aAssets, OnLoaded);
 end
 -- Continue game from book or lobby ---------------------------------------- --
 local function InitContinueGame(bMusic)
@@ -4540,12 +4520,12 @@ end
 -- ------------------------------------------------------------------------- --
 local function GetActiveObject() return oObjActive end;
 -- ------------------------------------------------------------------------- --
-local function GetActivePlayer() return oActivePlayer end;
+local function GetActivePlayer() return oPlrActive end;
 -- ------------------------------------------------------------------------- --
-local function GetOpponentPlayer() return oOpponentPlayer end;
+local function GetOpponentPlayer() return oPlrOpponent end;
 -- ------------------------------------------------------------------------- --
 local function GetLevelInfo()
-  return iLevelId, sLevelName, sLevelType, iWinLimit;
+  return iLvlId, sLvlName, sLvlType, iWinLimit;
 end
 -- ------------------------------------------------------------------------- --
 local function GetViewportData()
@@ -4612,7 +4592,7 @@ local function OnScriptLoaded(GetAPI)
     oSfxData.CLICK, oSfxData.ERROR, oSfxData.SELECT;
   -- Select digger if active
   local function SelectDigger(iDiggerId)
-    local oDigger<const> = oActivePlayer.D[iDiggerId];
+    local oDigger<const> = oPlrActive.D[iDiggerId];
     if not oDigger then return PlayStaticSound(iSError) end;
     SelectObject(oDigger);
     PlayStaticSound(iSClick);
@@ -4620,7 +4600,7 @@ local function OnScriptLoaded(GetAPI)
   -- Select an adjacent digger
   local function SelectAdjacentDigger(iAmount)
     -- Find the object we selected first
-    local aDiggers<const>, iCurrentDigger = oActivePlayer.D;
+    local aDiggers<const>, iCurrentDigger = oPlrActive.D;
     for iI = 1, #aDiggers do
       if oObjActive == aDiggers[iI] then iCurrentDigger = iI break end
     end
@@ -4676,7 +4656,7 @@ local function OnScriptLoaded(GetAPI)
   -- Helper for digging
   local function GenericAction(iAction, iJob, iDirection)
     -- Return if object not selected or not mine or not busy.
-    if not oObjActive or oObjActive.P ~= oActivePlayer or
+    if not oObjActive or oObjActive.P ~= oPlrActive or
       oObjActive.F & OFL.BUSY ~= 0 then return end;
     -- Get object data and if requesting special movement detection?
     local oObjData<const> = oObjActive.OD;
@@ -4910,9 +4890,9 @@ local function OnScriptLoaded(GetAPI)
     local nMouseX<const>, nMouseY<const> = GetAbsMousePos();
     -- Walk through objects in backwards order. This is because objects are
     -- drawn from oldest to newest.
-    for iIndex = #aObjects, 1, -1 do
+    for iIndex = #aObjs, 1, -1 do
       -- Get object, select object and return if mouse cursor touching it
-      local oObj<const> = aObjects[iIndex];
+      local oObj<const> = aObjs[iIndex];
       if IsSpriteCollide(479, nMouseX, nMouseY, oObj.S, oObj.X, oObj.Y) then
         SelectObject(oObj);
         return PlayStaticSound(iSSelect);
@@ -4932,7 +4912,7 @@ local function OnScriptLoaded(GetAPI)
     -- Object has menu and object belongs to active player and object isn't
     -- dead or eaten?
     if aObjContextMenu and
-       oObjActive.P == oActivePlayer and
+       oObjActive.P == oPlrActive and
        oObjActive.A ~= ACT.DEATH and
        oObjActive.A ~= ACT.EATEN then
       -- Object does belong to active player so play context menu sound and
@@ -4971,7 +4951,7 @@ local function OnScriptLoaded(GetAPI)
   -- Mouse pressed over inventory?
   local function DropItem(iIId)
     -- Ignore if no active object select or object is not ours
-    if not oObjActive or oObjActive.P ~= oActivePlayer then return end;
+    if not oObjActive or oObjActive.P ~= oPlrActive then return end;
     -- Return if inventory object is invalid
     local oObjInv<const> = oObjActive.I[iIId];
     if not oObjInv then return end;
@@ -4988,7 +4968,7 @@ local function OnScriptLoaded(GetAPI)
   -- Mouse hovering over inventory?
   local function OnItemHover(iIId)
     -- If we have an active object and player owns it
-    if oObjActive and oObjActive.P == oActivePlayer then
+    if oObjActive and oObjActive.P == oPlrActive then
       -- Get id and if we have that inventory item?
       local oObjInv<const> = oObjActive.I[iIId];
       if oObjInv then
@@ -5081,7 +5061,7 @@ return { F = OnScriptLoaded, A = { AdjustObjectHealth = AdjustObjectHealth,
   SelectObject = SelectObject, SellSpecifiedItems = SellSpecifiedItems,
   SetPlaySounds = SetPlaySounds, TriggerEnd = TriggerEnd,
   UpdateShroud = UpdateShroud, aGemsAvailable = aGemsAvailable,
-  aLevelData = aLevelData, aObjects = aObjects, aPlayers = aPlayers,
+  aLvlData = aLvlData, aObjs = aObjs, aPlayers = aPlayers,
   aShroudData = aShroudData } };
 -- ------------------------------------------------------------------------- --
 end                                    -- End of 'InternalsScope' namespace

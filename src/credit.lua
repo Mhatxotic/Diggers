@@ -16,7 +16,7 @@ local BlitLTRB, DeInitLevel, Fade, GameProc, GetMusic, InitScore, LoadDemoLevel,
   LoadLevel, LoadResources, LockViewPort, PlayMusic, PrintC, PrintR, Print,
   PrintWS, RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject,
   SetCallbacks, aCreditsData, aCreditsXData, aEndLoadData, aLevelTypesData,
-  aLevelsData, oObjectTypes, aObjects, aPlayers, fontLarge, fontLittle;
+  aLevelsData, oObjectTypes, aObjs, aPlayers, fontLarge, fontLittle;
 -- Other locals ------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       aLevels,                         -- Levels available to show
@@ -174,7 +174,7 @@ local function ProcCreditsLogic()
     -- Select a random object and not a digger! The last objects in
     -- the list are always the diggers so we can just crop them out.
     -- If we get an object then select and focus on the object!
-    SelectObject(aObjects[random(#aObjects-(#aPlayers[1].D*2))], true);
+    SelectObject(aObjs[random(#aObjs-(#aPlayers[1].D*2))], true);
   end
   -- Should we change level?
   iActionTimer = iActionTimer + 1;
@@ -250,13 +250,13 @@ local function OnScriptLoaded(GetAPI)
     LoadResources, LockViewPort, PlayMusic, PrintC, PrintR, Print, PrintWS,
     RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject,
     SetCallbacks, aCreditsData, aCreditsXData, aLevelTypesData,
-    aLevelsData, oObjectTypes, aObjects, aPlayers, fontLarge, fontLittle =
+    aLevelsData, oObjectTypes, aObjs, aPlayers, fontLarge, fontLittle =
       GetAPI("BlitLTRB", "DeInitLevel", "Fade", "GameProc", "GetMusic",
         "InitScore", "LoadLevel", "LoadResources", "LockViewPort", "PlayMusic",
         "PrintC", "PrintR", "Print", "PrintWS", "RegisterFBUCallback",
         "RenderObjects", "RenderTerrain", "SelectObject", "SetCallbacks",
         "aCreditsData", "aCreditsXData", "aLevelTypesData", "aLevelsData",
-        "oObjectTypes", "aObjects", "aPlayers", "fontLarge", "fontLittle");
+        "oObjectTypes", "aObjs", "aPlayers", "fontLarge", "fontLittle");
   -- Setup required assets
   local oAssetsData<const> = GetAPI("oAssetsData");
   aAssets = { oAssetsData.credits };
