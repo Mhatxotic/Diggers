@@ -50,7 +50,8 @@ local function InitDebugPlay(iId)
       for iDigger = 1, #aDiggers do
         -- Get digger object and if it is in danger?
         local oDigger<const> = aDiggers[iDigger];
-        if oDigger.J == JOB.INDANGER and
+        if oDigger and
+           oDigger.J == JOB.INDANGER and
            oDigger.A ~= ACT.DEATH and
           (oDigger.A ~= ACT.FIGHT or
            oDigger.P == oPlrActive) then
@@ -432,7 +433,8 @@ local function InitDebugPlay(iId)
           local oPlayer<const> = aPlayers[iPlayerId];
           if (oPlayer.M <= 100 and        -- ...(Is stuck on 100 Zogs
               GetGameTicks() >= 36840) or -- ...*and* it's been 10 minutes?)
-             HaveZogsToWin(oPlayer) then  -- ...*or* player has won?
+             HaveZogsToWin(oPlayer) or    -- ...*or* player has won?
+             oPlayer.DC <= 0 then         -- ...*or* all diggers are dead?
             return Finish() end;
         end
       end

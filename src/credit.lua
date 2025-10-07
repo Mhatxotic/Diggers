@@ -131,8 +131,8 @@ local function InitRollingCredits(strMusic)
   -- Current absolute Y position of all credits starting at the bottom
   iRollingCreditY = iStageB;
   -- When faded out to title? Load demo level
-  LoadLevel(aEndLevelData, strMusic, nil, nil,
-    true, oObjectTypes.DIGRANDOM, true, ExtraProc, RenderExtra, 0);
+  LoadLevel(aEndLevelData, strMusic, nil, nil, true, oObjectTypes.DIGRANDOM,
+    true, ExtraProc, RenderExtra, 0, nil, nil, true);
 end
 -- Main render function ---------------------------------------------------- --
 local function ProcCreditsRender()
@@ -216,7 +216,7 @@ local function DoLoadDemoLevel(iLCreditId, strMusic)
                        else fcbCreditsRender = RenderCreditsBottomLeft end;
   -- Load demo level
   LoadLevel(iLevelId, strMusic, nil, nil, true, oObjectTypes.DIGRANDOM, true,
-    ProcCreditsLogic, fcbCreditsRender, 0);
+    ProcCreditsLogic, fcbCreditsRender, 0, nil, nil, true);
 end
 LoadDemoLevel = DoLoadDemoLevel;
 -- When the opengl viewport has changed ------------------------------------ --

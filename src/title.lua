@@ -233,7 +233,7 @@ local function GoLoadLevel(strTitle)
   -- Load AI vs AI and use random zone
   LoadLevel(aZones[random(#aZones)], strTitle, iKeyBankId,
     oObjectTypes.DIGRANDOM, true, oObjectTypes.DIGRANDOM, true,
-    ProcLogic, ProcRender, iHotSpotId);
+    ProcLogic, ProcRender, iHotSpotId, nil, nil, true);
 end
 -- When faded out to quit -------------------------------------------------- --
 local function OnFadeOutToQuit() Core.Quit(0) end;
