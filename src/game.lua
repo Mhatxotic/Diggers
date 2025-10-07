@@ -4746,8 +4746,9 @@ local function OnScriptLoaded(GetAPI)
   local function Teleport() GenericAction(ACT.PHASE, JOB.PHASE, DIR.U) end;
   -- Returns current pixel tile under mouse cursor
   local function GetTileUnderMouse()
-    return UtilClampInt((iPosX * 16) + GetMouseX() - iStageL, 0, iLLPixWm1),
-           UtilClampInt((iPosY * 16) + GetMouseY() - iStageT, 0, iLLPixHm1);
+    return
+      UtilClampInt((iPosX * 16) + GetMouseX() - iStageL - 8, 0, iLLPixWm1),
+      UtilClampInt((iPosY * 16) + GetMouseY() - iStageT - 8, 0, iLLPixHm1);
   end
   -- Spawn Jennite? (Cheat)
   local function SpawnJennite()
