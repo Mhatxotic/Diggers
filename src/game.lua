@@ -597,7 +597,7 @@ local function DeInitLevel()
     aGemsAvailable, aLevelData, aShroudData };
   for iIndex = 1, #aTables do
     local aTable<const> = aTables[iIndex];
-    while #aTable > 0 do remove(aTable, #aTable) end;
+    while #aTable > 0 do remove(aTable) end;
   end
   -- Reset positions and other variables
   iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iGameTicks, iAnimMoney,
@@ -612,130 +612,71 @@ local function DeInitLevel()
 end
 -- Get level tile location from absolute ca-ordinates ---------------------- --
 local function GetTileOffsetFromAbsCoordinates(iAbsX, iAbsY)
-  -- Check parameters
-  if not UtilIsInteger(iAbsX) then
-    error("Invalid X co-ordinate! "..tostring(iAbsX)) end;
-  if not UtilIsInteger(iAbsY) then
-    error("Invalid Y co-ordinate! "..tostring(iAbsY)) end;
   -- Return tile offset if valid
   if iAbsX >= 0 and iAbsX < iLLAbsW and iAbsY >= 0 and iAbsY < iLLAbsH then
     return iAbsY * iLLAbsW + iAbsX end;
 end
 -- Get level tile location from absolute ca-ordinates ---------------------- --
 local function GetLevelOffsetFromAbsCoordinates(iAbsX, iAbsY)
-  -- Check parameters
-  if not UtilIsInteger(iAbsX) then
-    error("Invalid X co-ordinate! "..tostring(iAbsX)) end;
-  if not UtilIsInteger(iAbsY) then
-    error("Invalid Y co-ordinate! "..tostring(iAbsX)) end;
   -- Return location if valid
   local iLoc<const> = GetTileOffsetFromAbsCoordinates(iAbsX, iAbsY);
   if iLoc then return iLoc end;
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromAbsCoordinates(iAbsX, iAbsY)
-  -- Check parameters
-  if not UtilIsInteger(iAbsX) then
-    error("Invalid X co-ordinate! "..tostring(iAbsX)) end;
-  if not UtilIsInteger(iAbsY) then
-    error("Invalid Y co-ordinate! "..tostring(iAbsX)) end;
   -- Get tile at specified location and return tile id if valid
   local iLoc<const> = GetLevelOffsetFromAbsCoordinates(iAbsX, iAbsY);
   if iLoc then return aLevelData[1 + iLoc], iLoc end;
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromLevelOffset(iLoc)
-  -- Check parameters
-  if not UtilIsInteger(iLoc) then
-    error("Invalid location! "..tostring(iLoc)) end;
   -- Get tile at specified location
   if iLoc >= 0 and iLoc < iLLAbs then return aLevelData[1 + iLoc] end;
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromTileOffset(iLoc)
-  -- Check parameters
-  if not UtilIsInteger(iLoc) then
-    error("Invalid location! "..tostring(iLoc)) end;
   -- Get tile at specified location
   return GetLevelDataFromLevelOffset(iLoc);
 end
 -- Get tile location from pixel co-ordinates ------------------------------- --
 local function GetTileOffsetFromCoordinates(iPixX, iPixY)
-  -- Check parameters
-  if not UtilIsInteger(iPixX) then
-    error("Invalid X co-ordinate! "..tostring(iPixX)) end;
-  if not UtilIsInteger(iPixY) then
-    error("Invalid Y co-ordinate! "..tostring(iPixY)) end;
   -- Return location if valid
   if iPixX >= 0 and iPixX < iLLPixW and iPixY >= 0 and iPixY < iLLPixH then
     return (iPixY // 16 * iLLAbsW) + (iPixX // 16) end;
 end
 -- Get level tile location from co-ordinates ------------------------------- --
 local function GetLevelOffsetFromCoordinates(iPixX, iPixY)
-  -- Check parameters
-  if not UtilIsInteger(iPixX) then
-    error("Invalid X co-ordinate! "..tostring(iPixX)) end;
-  if not UtilIsInteger(iPixY) then
-    error("Invalid Y co-ordinate! "..tostring(iPixY)) end;
   -- Return level offset if valid
   local iLoc<const> = GetTileOffsetFromCoordinates(iPixX, iPixY);
   if iLoc then return iLoc end;
 end
 -- Get zero based tile id at specified location ---------------------------- --
 local function GetLevelDataFromCoordinates(iPixX, iPixY)
-  -- Check parameters
-  if not UtilIsInteger(iPixX) then
-    error("Invalid X co-ordinate! "..tostring(iPixX)) end;
-  if not UtilIsInteger(iPixY) then
-    error("Invalid Y co-ordinate! "..tostring(iPixY)) end;
   -- Return tile at specified location
   local iLoc<const> = GetLevelOffsetFromCoordinates(iPixX, iPixY);
   if iLoc then return aLevelData[1 + iLoc], iLoc end;
 end
 -- Get zero based tile id at specified object ------------------------------ --
 local function GetLevelDataFromObject(aObject, iPixX, iPixY)
-  -- Check parameters
-  if not UtilIsTable(aObject) then
-    error("Invalid object specified! "..tostring(aObject)) end;
-  if not UtilIsInteger(iPixX) then
-    error("Invalid X co-ordinate! "..tostring(iPixX)) end;
-  if not UtilIsInteger(iPixY) then
-    error("Invalid Y co-ordinate! "..tostring(iPixY)) end;
   -- Return level data from object co-ordinates
   return GetLevelDataFromCoordinates(aObject.X + aObject.OFX + iPixX,
                                      aObject.Y + aObject.OFY + iPixY);
 end
 -- Get tile at specified object offset pixels ------------------------------ --
 local function GetTileOffsetFromObject(aObject, iPixX, iPixY)
-  -- Check parameters
-  if not UtilIsTable(aObject) then
-    error("Invalid object specified! "..tostring(aObject)) end;
-  if not UtilIsInteger(iPixX) then
-    error("Invalid X co-ordinate! "..tostring(iPixX)) end;
-  if not UtilIsInteger(iPixY) then
-    error("Invalid Y co-ordinate! "..tostring(iPixY)) end;
   -- Return tile offset from object co-ordinates
   return GetTileOffsetFromCoordinates(aObject.X + aObject.OFX + iPixX,
                                       aObject.Y + aObject.OFY + iPixY);
 end
 -- Get tile at specified object offset pixels ------------------------------ --
 local function GetLevelOffsetFromObject(aObject, iPixX, iPixY)
-  -- Check parameters
-  if not UtilIsTable(aObject) then
-    error("Invalid object specified! "..tostring(aObject)) end;
-  if not UtilIsInteger(iPixX) then
-    error("Invalid X co-ordinate! "..tostring(iPixX)) end;
-  if not UtilIsInteger(iPixY) then
-    error("Invalid Y co-ordinate! "..tostring(iPixY)) end;
   -- Get tile offset from location and return level offset if valid
   local iLoc<const> = GetTileOffsetFromObject(aObject, iPixX, iPixY);
   if iLoc then return iLoc end;
 end
 -- Update level and level mask --------------------------------------------- --
 local function UpdateLevel(iPos, iId)
-  -- Check parameters
-  if not UtilIsInteger(iPos) then
-    error("Invalid level tile position! "..tostring(iPos)) end;
+  -- We assign 'iId' to the level data so check it.
   if not UtilIsInteger(iId) then
      error("Invalid level tile index!"..tostring(iId)) end;
   -- Update level data with specified tile
@@ -849,9 +790,6 @@ local function SetPosition(aObject, iX, iY)
 end
 -- Trigger end condition --------------------------------------------------- --
 local function TriggerEnd(fcbFunc)
-  -- Parameter must be a function
-  if not UtilIsFunction(fcbFunc) then
-    error("End function not specified! "..tostring(fcbFunc)) end;
   -- Call the function
   fcbFunc(iLevelId, aActivePlayer, aOpponentPlayer);
 end
@@ -872,11 +810,9 @@ local function EndConditionsCheck()
 end
 -- Destroy object ---------------------------------------------------------- --
 local function DestroyObject(iObj, aObj)
-  -- Check parameters
+  -- We pass 'iObj' to 'table.remove' so we need to check it.
   if not UtilIsInteger(iObj) then
     error("Specified id is not an integer! "..tostring(iObj)) end;
-  if not UtilIsTable(aObj) then
-    error("Invalid object specified! "..tostring(aObj)) end;
   -- Object respawns?
   if aObj.F & OFL.RESPAWN ~= 0 then
     -- Restore object health
@@ -894,9 +830,7 @@ local function DestroyObject(iObj, aObj)
   end
   -- Function to remove specified object from specified list
   local function RemoveObjectFromList(aList, aObj)
-    -- Check parameters
-    if not UtilIsTable(aList) then
-      error("Specified list is not a table! "..tostring(aList)) end;
+    -- Arg 'aList' is table checked below which is safe except 'aObj'.
     if not UtilIsTable(aObj) then
       error("Invalid object specified! "..tostring(aObj)) end;
     -- Return if list empty
@@ -1027,6 +961,9 @@ local function BuyItem(aObj, iItemId)
 end
 -- Drop Object ------------------------------------------------------------- --
 local function DropObject(aOwnObj, aDropObj)
+  -- Verify parameters
+  if not UtilIsTable(aOwnObj) then error("Invalid owner object!") end;
+  if not UtilIsTable(aDropObj) then error("Invalid object to drop!") end;
   -- Get object inventory and enumerate it until we find the object
   local aOwnObjInv<const> = aOwnObj.I;
   for iIndex = 1, #aOwnObjInv do
@@ -3197,7 +3134,7 @@ local function InitCreateObject()
           aObject.X, aObject.Y = iOldX, iOldY;
           -- Try to see if we can jump the gap
           return TryJumpGap(aObject, iAdjX, iYGap, iAdjXW, iAnimAmount,
-            nHealthLimit);
+            nHealthLimit, iOldX, iOldY);
         end
         -- Increase Y position and fall damage. We go at 14 pixels each time as
         -- the bitmask sprite is 14 pixels high.
