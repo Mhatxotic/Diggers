@@ -16,7 +16,7 @@ local BlitLTRB, DeInitLevel, Fade, GameProc, GetMusic, InitScore, LoadDemoLevel,
   LoadLevel, LoadResources, LockViewPort, PlayMusic, PrintC, PrintR, Print,
   PrintWS, RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject,
   SetCallbacks, aCreditsData, aCreditsXData, aEndLoadData, aLevelTypesData,
-  aLevelsData, aObjectTypes, aObjects, aPlayers, fontLarge, fontLittle;
+  aLevelsData, oObjectTypes, aObjects, aPlayers, fontLarge, fontLittle;
 -- Other locals ------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       aLevels,                         -- Levels available to show
@@ -132,7 +132,7 @@ local function InitRollingCredits(strMusic)
   iRollingCreditY = iStageB;
   -- When faded out to title? Load demo level
   LoadLevel(aEndLevelData, strMusic, nil, nil,
-    true, aObjectTypes.DIGRANDOM, true, ExtraProc, RenderExtra, 0);
+    true, oObjectTypes.DIGRANDOM, true, ExtraProc, RenderExtra, 0);
 end
 -- Main render function ---------------------------------------------------- --
 local function ProcCreditsRender()
@@ -215,7 +215,7 @@ local function DoLoadDemoLevel(iLCreditId, strMusic)
   if #aLevels % 2 == 0 then fcbCreditsRender = RenderCreditsTopRight;
                        else fcbCreditsRender = RenderCreditsBottomLeft end;
   -- Load demo level
-  LoadLevel(iLevelId, strMusic, nil, nil, true, aObjectTypes.DIGRANDOM, true,
+  LoadLevel(iLevelId, strMusic, nil, nil, true, oObjectTypes.DIGRANDOM, true,
     ProcCreditsLogic, fcbCreditsRender, 0);
 end
 LoadDemoLevel = DoLoadDemoLevel;
@@ -250,16 +250,16 @@ local function OnScriptLoaded(GetAPI)
     LoadResources, LockViewPort, PlayMusic, PrintC, PrintR, Print, PrintWS,
     RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject,
     SetCallbacks, aCreditsData, aCreditsXData, aLevelTypesData,
-    aLevelsData, aObjectTypes, aObjects, aPlayers, fontLarge, fontLittle =
+    aLevelsData, oObjectTypes, aObjects, aPlayers, fontLarge, fontLittle =
       GetAPI("BlitLTRB", "DeInitLevel", "Fade", "GameProc", "GetMusic",
         "InitScore", "LoadLevel", "LoadResources", "LockViewPort", "PlayMusic",
         "PrintC", "PrintR", "Print", "PrintWS", "RegisterFBUCallback",
         "RenderObjects", "RenderTerrain", "SelectObject", "SetCallbacks",
         "aCreditsData", "aCreditsXData", "aLevelTypesData", "aLevelsData",
-        "aObjectTypes", "aObjects", "aPlayers", "fontLarge", "fontLittle");
+        "oObjectTypes", "aObjects", "aPlayers", "fontLarge", "fontLittle");
   -- Setup required assets
-  local aAssetsData<const> = GetAPI("aAssetsData");
-  aAssets = { aAssetsData.credits };
+  local oAssetsData<const> = GetAPI("oAssetsData");
+  aAssets = { oAssetsData.credits };
   -- Set ending level load data
   aEndLevelData.t = aLevelTypesData[4];
 end

@@ -171,9 +171,9 @@ end
 -- A video event occurred? ------------------------------------------------- --
 local function OnVideoEvent()
   -- Get video events list and id's
-  local aEvents<const> = Video.Events;
+  local oEvents<const> = Video.Events;
   local iStop<const>, iPause<const>, iPlay<const>, iFinish<const> =
-    aEvents.STOP, aEvents.PAUSE, aEvents.PLAY, aEvents.FINISH;
+    oEvents.STOP, oEvents.PAUSE, oEvents.PLAY, oEvents.FINISH;
   -- Actual function
   local function OnVideoEvent(iEvent)
     -- Playing?
@@ -309,21 +309,21 @@ end
 -- When script has loaded -------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, iTexScale;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, iTexScale;
   -- Get imports
   BlitSLT, BlitSLTRB, BlitLT, Fade, GetCallbacks, InitSetup, InitTitle,
     LoadResources, PrintC, RegisterFBUCallback, RegisterHotSpot, RegisterKeys,
     RenderFade, RenderShadow, SetCallbacks, SetHotSpot, SetKeys, SetVLTRB,
-    VideoPlay, VideoStop, aAssetsData, aIntroSubTitles, fontLittle, texSpr,
+    VideoPlay, VideoStop, oAssetsData, aIntroSubTitles, fontLittle, texSpr,
     iTexScale =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitLT", "Fade", "GetCallbacks",
         "InitSetup", "InitTitle", "LoadResources", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderShadow", "SetCallbacks", "SetHotSpot", "SetKeys", "SetVLTRB",
-        "VideoPlay", "VideoStop", "aAssetsData", "aIntroSubTitles",
+        "VideoPlay", "VideoStop", "oAssetsData", "aIntroSubTitles",
         "fontLittle", "texSpr", "iTexScale");
   -- Build assets to load
-  aAssets = { aAssetsData.title, aAssetsData.intro };
+  aAssets = { oAssetsData.title, oAssetsData.intro };
   -- Get font size and padding
   iFWidth, iFHeight, iPadding =
     fontLittle:GetWidth() / iTexScale,

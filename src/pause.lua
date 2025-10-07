@@ -17,7 +17,7 @@ local CoreTime<const>, UtilFormatNTime<const> = Core.Time, Util.FormatNTime;
 local BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic,
   InitLose, PlayMusic, PlayStaticSound, PrintC, RegisterFBUCallback,
   RenderAll, RenderFade, RenderTip, SetCallbacks, SetHotSpot, SetKeys,
-  SetTip, StopMusic, TriggerEnd, aKeyBankCats, fontLittle, fontTiny;
+  SetTip, StopMusic, TriggerEnd, tKeyBankCats, fontLittle, fontTiny;
 -- Statics ------------------------------------------------------------------ --
 local iPauseX<const> = 160;            -- Pause text X position
 local iPauseY<const> = 72;             -- Pause text Y position
@@ -37,7 +37,6 @@ local muMusic;                         -- Current music played
 local nTime;                           -- Current time
 local fCBProc, fCBRender;              -- Last callbacks
 local nTimeNext;                       -- Next clock update
-local aSquares<const> = { };           -- Pause effect
 local texSpr;                          -- Sprite texture
 -- End game callback ------------------------------------------------------- --
 local function EndGame()
@@ -110,21 +109,21 @@ local function InitPause()
   -- Consts
   sInstruction = "PAUSED!"
   sSmallTips =
-    "PRESS \rcffffff00"..aKeyBankCats.igpatg[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.igpatg[9]..
       "\rr OR SELECT AT EDGE TO ABORT GAME\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.igpcg[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.igpcg[9]..
       "\rr OR SELECT IN MIDDLE TO RESUME GAME\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.gksc[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.gksc[9]..
       "\rr TO CHANGE ENGINE OPTIONS\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.gksb[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.gksb[9]..
       "\rr TO CHANGE KEY BINDINGS\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.gksa[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.gksa[9]..
       "\rr FOR THE GAME AND ENGINE CREDITS\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.gkcc[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.gkcc[9]..
       "\rr TO RESET CURSOR POSITION\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.gkwr[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.gkwr[9]..
       "\rr TO RESET WINDOW SIZE AND POSITION\n"..
-    "PRESS \rcffffff00"..aKeyBankCats.gkss[9]..
+    "PRESS \rcffffff00"..tKeyBankCats.gkss[9]..
       "\rr TO TAKE A SCREENSHOT";
   -- Save current music
   muMusic = GetMusic();
@@ -148,35 +147,35 @@ end
 -- When scripts have loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oCursorIdData, oSfxData;
   -- Get imports
   BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, InitLose,
     PlayMusic, PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
     RegisterKeys, RenderAll, RenderFade, RenderTip, SetCallbacks,
-    SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd, aCursorIdData,
-    aKeyBankCats, aSfxData, fontLittle, fontTiny, texSpr =
+    SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd, oCursorIdData,
+    tKeyBankCats, oSfxData, fontLittle, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "GetCallbacks", "GetHotSpot", "GetKeyBank",
         "GetMusic", "InitLose", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderAll", "RenderFade", "RenderTip", "SetCallbacks",
         "SetHotSpot", "SetKeys", "SetTip", "StopMusic", "TriggerEnd",
-        "aCursorIdData", "aKeyBankCats", "aSfxData", "fontLarge", "fontTiny",
+        "oCursorIdData", "tKeyBankCats", "oSfxData", "fontLarge", "fontTiny",
         "texSpr");
   -- Setup hot spot
   iHotSpotId = RegisterHotSpot({
-    { 8, 8, 8, 224, 3, aCursorIdData.OK,   false, false, ContinueGame },
-    { 0, 0, 0, 240, 3, aCursorIdData.EXIT, false, false, EndGame      }
+    { 8, 8, 8, 224, 3, oCursorIdData.OK,   false, false, ContinueGame },
+    { 0, 0, 0, 240, 3, oCursorIdData.EXIT, false, false, EndGame      }
   });
   -- Setup keybank
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
   iKeyBankId = RegisterKeys("IN-GAME PAUSE", {
-    [aStates.PRESS] = {
-      { aKeys.Q,      EndGame,      "igpatg", "ABORT THE GAME" },
-      { aKeys.ESCAPE, ContinueGame, "igpcg",  "CONTINUE GAME" }
+    [oStates.PRESS] = {
+      { oKeys.Q,      EndGame,      "igpatg", "ABORT THE GAME" },
+      { oKeys.ESCAPE, ContinueGame, "igpcg",  "CONTINUE GAME" }
     }
   });
   -- Get sound effects
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitPause = InitPause } };

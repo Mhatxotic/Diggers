@@ -21,7 +21,7 @@ local CoreTime<const>, UtilFormatNumber<const>, UtilIsInteger<const>,
   Util.IsString;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLTWH, BlitSLT, Fade, InitTitle, LoadResources, PlayMusic,
-  PlayStaticSound, Print, PrintC, PrintR, RegisterFBUCallback, aGlobalData,
+  PlayStaticSound, Print, PrintC, PrintR, RegisterFBUCallback, oGlobalData,
   RenderFade, SetCallbacks, SetHotSpot, SetKeys, fontLittle, fontTiny, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
@@ -376,23 +376,23 @@ local function OnAssetsLoaded(aResources)
   iBarY, iTotalId, iTotalScore, aTotals, iScoreItem = 0, 0, 0, { }, 0;
   -- Count levels completed
   local iZonesComplete = 0;
-  for _ in pairs(aGlobalData.gLevelsCompleted) do
+  for _ in pairs(oGlobalData.gLevelsCompleted) do
     iZonesComplete = iZonesComplete + 1 end;
   -- Add score categories
   for iI, aData in ipairs({
-    { "Bank balance",      aGlobalData.gBankBalance,        10 },
+    { "Bank balance",      oGlobalData.gBankBalance,        10 },
     { "Zones completed",   iZonesComplete,               10000 },
-    { "Terrain dug",       aGlobalData.gTotalDug,            1 },
-    { "Exploration",       aGlobalData.gTotalExploration,    1 },
-    { "Gems found",        aGlobalData.gTotalGemsFound,    100 },
-    { "Gems sold",         aGlobalData.gTotalGemsSold,     100 },
-    { "Gems value",        aGlobalData.gTotalIncome,        10 },
-    { "Items purchased",   aGlobalData.gTotalPurchases,   1000 },
-    { "Capital carried",   aGlobalData.gTotalCapital,      100 },
-    { "Fiends eliminated", aGlobalData.gTotalEnemyKills, 10000 },
-    { "Homicide duties",  -aGlobalData.gTotalHomicides,   1000 },
-    { "Mortality duties", -aGlobalData.gTotalDeaths,      1000 },
-    { "Time taken",       -aGlobalData.gTotalTimeTaken,      1 },
+    { "Terrain dug",       oGlobalData.gTotalDug,            1 },
+    { "Exploration",       oGlobalData.gTotalExploration,    1 },
+    { "Gems found",        oGlobalData.gTotalGemsFound,    100 },
+    { "Gems sold",         oGlobalData.gTotalGemsSold,     100 },
+    { "Gems value",        oGlobalData.gTotalIncome,        10 },
+    { "Items purchased",   oGlobalData.gTotalPurchases,   1000 },
+    { "Capital carried",   oGlobalData.gTotalCapital,      100 },
+    { "Fiends eliminated", oGlobalData.gTotalEnemyKills, 10000 },
+    { "Homicide duties",  -oGlobalData.gTotalHomicides,   1000 },
+    { "Mortality duties", -oGlobalData.gTotalDeaths,      1000 },
+    { "Time taken",       -oGlobalData.gTotalTimeTaken,      1 },
   }) do AddTotal(unpack(aData)) end;
   -- Fade in
   Fade(1, 0, 0.025, RenderSimple, OnFadedIn);
@@ -404,23 +404,23 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitLT, BlitSLTWH, BlitSLT, Fade, InitTitle, LoadResources, PlayMusic,
     PlayStaticSound, Print, PrintC, PrintR, RegisterFBUCallback,
     RegisterHotSpot, RegisterKeys, RenderFade, SetCallbacks, SetHotSpot,
-    SetKeys, aAssetsData, aCursorIdData, aGlobalData, aSfxData, fontLittle,
+    SetKeys, oAssetsData, oCursorIdData, oGlobalData, oSfxData, fontLittle,
     fontTiny, texSpr =
       GetAPI("BlitLT", "BlitSLTWH", "BlitSLT", "Fade", "InitTitle",
         "LoadResources", "PlayMusic", "PlayStaticSound", "Print", "PrintC",
         "PrintR", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
-        "RenderFade", "SetCallbacks", "SetHotSpot", "SetKeys", "aAssetsData",
-        "aCursorIdData", "aGlobalData", "aSfxData", "fontLittle",
+        "RenderFade", "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "oSfxData", "fontLittle",
         "fontTiny", "texSpr");
   -- Setup required assets
-  aAssets = { aAssetsData.title, aAssetsData.scorem };
+  aAssets = { oAssetsData.title, oAssetsData.scorem };
   -- Get cursor ids
-  local iCExit<const>, iCWait<const> = aCursorIdData.EXIT, aCursorIdData.WAIT;
+  local iCExit<const>, iCWait<const> = oCursorIdData.EXIT, oCursorIdData.WAIT;
   -- Register hot spot for when all scores tallied
   iHotSpotId = RegisterHotSpot({
     { 0, 0, 0, 240, 3, iCExit, false, false, GoToTitle },
@@ -430,7 +430,7 @@ local function OnScriptLoaded(GetAPI)
     { Input.KeyCodes.ESCAPE, GoToTitle, "igsc", "CLOSE" }
   } });
   -- Get sound effect ids
-  iSSelect = aSfxData.SELECT;
+  iSSelect = oSfxData.SELECT;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitScore = InitScore }, F = OnScriptLoaded };

@@ -18,13 +18,11 @@ local UtilBlank<const>, UtilIsTable<const> = Util.Blank, Util.IsTable;
 local BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, GetGameTicks,
   HaveZogsToWin, InitLobby, LoadResources, PlayMusic, PlayStaticSound, PrintC,
   RenderAll, RenderShadow, RenderTip, SellSpecifiedItems, SetCallbacks,
-  SetHotSpot, SetKeys, SetTip, aGemsAvailable, aObjectActions, aObjectData,
-  aObjectDirections, aObjectJobs, aObjectTypes, fontSpeech, texSpr;
+  SetHotSpot, SetKeys, SetTip, aGemsAvailable, oObjectActions, oObjectData,
+  oObjectDirections, oObjectJobs, oObjectTypes, fontSpeech, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       aBankerData,                     -- Banker data
-      aActiveObject,                   -- Currently selected digger
-      aPlayer,                         -- Owner of digger
       bGameWon,                        -- Game is won?
       fcbSpeechCallback,               -- Speech callback
       iAnimTimer,                      -- Animation timer
@@ -39,9 +37,11 @@ local aAssets,                         -- Required assets
       iSpeechTextX, iSpeechTextY,      -- Speech text position
       iSpeechTimer,                    -- Speech timer
       iTreasureValueModifier,          -- Modified treasure value
+      oObjActive,                      -- Currently selected digger
+      oPlayer,                         -- Owner of digger
       strBankerSpeech,                 -- Speech bubble text
       texBank;                         -- Bank texture
--- Tile data (See data.hpp/aAssetsData.bank.P) ----------------------------- --
+-- Tile data (See data.hpp/oAssetsData.bank.P) ----------------------------- --
 local tileSpeech<const> = 1;           -- Speech tile
 -- Banker id to mouse function look up table ------------------------------- --
 local aBankerStaticData<const> = {
@@ -61,15 +61,15 @@ local function RefreshData()
     -- Get gem type and function data
     local iGemTypeId<const> = aGemsAvailable[iGemId];
     local aFuncData<const> = aBankerStaticData[iGemId];
-    local aGemObjData<const> = aObjectData[iGemTypeId];
+    local aGemObjData<const> = oObjectData[iGemTypeId];
     -- Insert data into lookup table
     aBankerData[iGemId] = {
       iGemId,                                 -- [01] Gem (banker) id
       iGemTypeId,                             -- [02] Gem type id
       aGemObjData.VALUE // 2 +                -- [03] Gem value
         iTreasureValueModifier,
-      aGemObjData[aObjectActions.STOP]        -- [04] Gem sprite
-                 [aObjectDirections.NONE][1],
+      aGemObjData[oObjectActions.STOP]        -- [04] Gem sprite
+                 [oObjectDirections.NONE][1],
       aGemObjData.LONGNAME,                   -- [05] Gem name
       aFuncData[1],                           -- [06] Gem position X
       aFuncData[2],                           -- [07] Gem position Y
@@ -123,7 +123,7 @@ local function GoPriceGrablin() CheckPrice(3) end;
 -- Function to check if player has won game -------------------------------- --
 local function HasBeatenGame()
   -- Ignore if win message already used or player hasn't beaten game
-  if bGameWon or not HaveZogsToWin(aPlayer) then return end;
+  if bGameWon or not HaveZogsToWin(oPlayer) then return end;
   -- Set speech bubble for win
   SetSpeech(iBankerId, 120, iSFind, "YOU'VE WON THIS ZONE!");
   -- Set that we've won the game so we don't have to say it again
@@ -134,17 +134,17 @@ local function Sell(iBankerId)
   -- Get gem id
   local iGemId<const> = aBankerData[iBankerId][2];
   -- Record money
-  local iMoney<const>, strName = aPlayer.M, nil;
+  local iMoney<const>, strName = oPlayer.M, nil;
   -- Sell all Jennite first before trying to sell anything else
-  if SellSpecifiedItems(aActiveObject, aObjectTypes.JENNITE) > 0 then
-    strName = aObjectData[aObjectTypes.JENNITE].LONGNAME;
+  if SellSpecifiedItems(oObjActive, oObjectTypes.JENNITE) > 0 then
+    strName = oObjectData[oObjectTypes.JENNITE].LONGNAME;
   -- No Jennite found so try what the banker is trading
-  elseif SellSpecifiedItems(aActiveObject, iGemId) > 0 then
-    strName = aObjectData[iGemId].LONGNAME end;
+  elseif SellSpecifiedItems(oObjActive, iGemId) > 0 then
+    strName = oObjectData[iGemId].LONGNAME end;
   -- Money changed hands? Set succeeded message and check for win
   if strName then
     SetSpeech(iBankerId, 60, iSTrade, strName.." SOLD FOR $"..
-      format("%03u", aPlayer.M - iMoney), HasBeatenGame);
+      format("%03u", oPlayer.M - iMoney), HasBeatenGame);
   -- Set failed speech bubble
   else SetSpeech(iBankerId, 60, iSError, "YOU HAVE NONE OF THESE!") end;
 end
@@ -235,7 +235,7 @@ local function OnAssetsLoaded(aResources)
   -- Set a speech bubble above the specified characters head
   fcbSpeechCallback = nil;
   -- Get active object and objects owner
-  aPlayer = aActiveObject.P;
+  oPlayer = oObjActive.P;
   -- Prevents duplicate win messages
   bGameWon = false;
   -- Set keys and hot spots
@@ -247,8 +247,8 @@ end
 -- Initialise the bank screen ---------------------------------------------- --
 local function InitBank()
   -- Set and check active object
-  aActiveObject = GetActiveObject();
-  if not UtilIsTable(aActiveObject) then error("Object not selected!") end;
+  oObjActive = GetActiveObject();
+  if not UtilIsTable(oObjActive) then error("Object not selected!") end;
   -- Sanity check gems available count
   if #aGemsAvailable < #aBankerStaticData then
     error("Gems available mismatch ("..#aGemsAvailable.."<"..
@@ -260,31 +260,31 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, GetGameTicks,
     HaveZogsToWin, InitLobby, LoadResources, PlayMusic, PlayStaticSound,
     PrintC, RegisterHotSpot, RegisterKeys, RenderAll, RenderShadow, RenderTip,
-    SellSpecifiedItems, SetCallbacks, SetHotSpot, SetKeys, SetTip, aAssetsData,
-    aCursorIdData, aGemsAvailable, aObjectActions, aObjectData,
-    aObjectDirections, aObjectJobs, aObjectTypes, aSfxData, fontSpeech,
+    SellSpecifiedItems, SetCallbacks, SetHotSpot, SetKeys, SetTip, oAssetsData,
+    oCursorIdData, aGemsAvailable, oObjectActions, oObjectData,
+    oObjectDirections, oObjectJobs, oObjectTypes, oSfxData, fontSpeech,
     texSpr =
       GetAPI("BlitLT", "BlitSLT", "Fade", "GameProc", "GetActiveObject",
         "GetGameTicks", "HaveZogsToWin", "InitLobby", "LoadResources",
         "PlayMusic", "PlayStaticSound", "PrintC", "RegisterHotSpot",
         "RegisterKeys", "RenderAll", "RenderShadow", "RenderTip",
         "SellSpecifiedItems", "SetCallbacks", "SetHotSpot", "SetKeys",
-        "SetTip", "aAssetsData", "aCursorIdData", "aGemsAvailable",
-        "aObjectActions", "aObjectData", "aObjectDirections", "aObjectJobs",
-        "aObjectTypes", "aSfxData", "fontSpeech", "texSpr");
+        "SetTip", "oAssetsData", "oCursorIdData", "aGemsAvailable",
+        "oObjectActions", "oObjectData", "oObjectDirections", "oObjectJobs",
+        "oObjectTypes", "oSfxData", "fontSpeech", "texSpr");
   -- Setup required assets
-  aAssets = { aAssetsData.bank, aAssetsData.bankm };
+  aAssets = { oAssetsData.bank, oAssetsData.bankm };
   -- Set sound effect ids
   iSError, iSFind, iSSelect, iSTrade =
-    aSfxData.ERROR, aSfxData.FIND, aSfxData.SELECT, aSfxData.TRADE;
+    oSfxData.ERROR, oSfxData.FIND, oSfxData.SELECT, oSfxData.TRADE;
   -- Get cursor ids
   local iCSelect<const>, iCExit<const> =
-    aCursorIdData.SELECT, aCursorIdData.EXIT;
+    oCursorIdData.SELECT, oCursorIdData.EXIT;
   -- Register hotspots
   iHotSpotId = RegisterHotSpot({
     {  25, 113,  62,  70, 0, iCSelect, "SELL 1ST",    false, GoSellFTarg    },
@@ -297,16 +297,16 @@ local function OnScriptLoaded(GetAPI)
     {   0,   0,   0, 240, 3, iCExit,   "GO TO LOBBY", false, GoToLobby      }
   });
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   iKeyBankId = RegisterKeys("ZMTC BANK", {
     [Input.States.PRESS] = {
-      { aKeys.ESCAPE, GoToLobby,      "zmtcbl",   "LEAVE"        },
-      { aKeys.N1,     GoPriceFTarg,   "zmtcbcsa", "CHECK SLOT 1" },
-      { aKeys.N2,     GoPriceHabbish, "zmtcbcsb", "CHECK SLOT 2" },
-      { aKeys.N3,     GoPriceGrablin, "zmtcbcsc", "CHECK SLOT 3" },
-      { aKeys.N8,     GoSellFTarg,    "zmtcbssa", "SELL SLOT 1"  },
-      { aKeys.N9,     GoSellHabbish,  "zmtcbssb", "SELL SLOT 2"  },
-      { aKeys.N0,     GoSellGrablin,  "zmtcbssc", "SELL SLOT 3"  }
+      { oKeys.ESCAPE, GoToLobby,      "zmtcbl",   "LEAVE"        },
+      { oKeys.N1,     GoPriceFTarg,   "zmtcbcsa", "CHECK SLOT 1" },
+      { oKeys.N2,     GoPriceHabbish, "zmtcbcsb", "CHECK SLOT 2" },
+      { oKeys.N3,     GoPriceGrablin, "zmtcbcsc", "CHECK SLOT 3" },
+      { oKeys.N8,     GoSellFTarg,    "zmtcbssa", "SELL SLOT 1"  },
+      { oKeys.N9,     GoSellHabbish,  "zmtcbssb", "SELL SLOT 2"  },
+      { oKeys.N0,     GoSellGrablin,  "zmtcbssc", "SELL SLOT 3"  }
     }
   });
 end

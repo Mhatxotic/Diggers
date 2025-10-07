@@ -14,7 +14,7 @@
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTRB, BlitSLT, BlitLT, Fade, InitCon, LoadResources,
   PlayStaticSound, RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot,
-  SetKeys, TypeIdToId, aGlobalData, aRaceStatData, texSpr;
+  SetKeys, TypeIdToId, oGlobalData, aRaceStatData, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets Required
       iHotSpotId,                      -- Hot spot id
@@ -30,7 +30,7 @@ local aAssets,                         -- Assets Required
       iTileSpecial,                    -- Special id to draw
       texZmtc,                         -- Lobby texture
       texRace;                         -- Race texture
--- Tile data (See data.lua/aAssetsData.race.P) ----------------------------- --
+-- Tile data (See data.lua/oAssetsData.race.P) ----------------------------- --
 local iTileRaceStart<const>    = 1;    -- First race texture
 local iTileLabelStart<const>   = 6;    -- Race labels
 local iTileSpecialStart<const> = 10;   -- Special items tile
@@ -115,7 +115,7 @@ end
 -- When accepting the race selection --------------------------------------- --
 local function GoAccept()
   -- Apply new setting
-  aGlobalData.gSelectedRace, iRaceIdSelected = iRaceObjId, iRaceId;
+  oGlobalData.gSelectedRace, iRaceIdSelected = iRaceObjId, iRaceId;
   -- Fade out to lobby
   GoCntrl();
 end
@@ -128,7 +128,7 @@ local function OnAssetsLoaded(aResources)
   -- Get lobby and race texture
   texZmtc, texRace = aResources[1], aResources[2];
   -- Set currently selected race
-  iRaceIdSelected = aGlobalData.gSelectedRace;
+  iRaceIdSelected = oGlobalData.gSelectedRace;
   -- Set race already selected
   SetRaceId(iRaceIdSelected or 0);
   -- Fade in
@@ -139,40 +139,40 @@ local function InitRace() LoadResources("Race", aAssets, OnAssetsLoaded) end;
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitSLTRB, BlitSLT, BlitLT, Fade, InitCon, LoadResources, PlayStaticSound,
     RegisterHotSpot, RegisterKeys, RenderShadow, RenderTipShadow, SetCallbacks,
-    SetHotSpot, SetKeys, aAssetsData, aCursorIdData, aGlobalData,
-    aRaceStatData, aSfxData, texSpr =
+    SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData,
+    aRaceStatData, oSfxData, texSpr =
       GetAPI("BlitSLTRB", "BlitSLT", "BlitLT", "Fade", "InitCon",
         "LoadResources", "PlayStaticSound", "RegisterHotSpot",
         "RegisterKeys", "RenderShadow", "RenderTipShadow", "SetCallbacks",
-        "SetHotSpot", "SetKeys", "aAssetsData", "aCursorIdData", "aGlobalData",
-        "aRaceStatData", "aSfxData", "texSpr");
+        "SetHotSpot", "SetKeys", "oAssetsData", "oCursorIdData", "oGlobalData",
+        "aRaceStatData", "oSfxData", "texSpr");
   -- Set assets data
-  aAssets = { aAssetsData.zmtc, aAssetsData.race };
+  aAssets = { oAssetsData.zmtc, oAssetsData.race };
   -- Set sound effect ids
-  iSClick, iSSelect = aSfxData.CLICK, aSfxData.SELECT;
+  iSClick, iSSelect = oSfxData.CLICK, oSfxData.SELECT;
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   iKeyBankId = RegisterKeys("ZMTC RACE SELECT", {
     [Input.States.PRESS] = {
-      { aKeys.ESCAPE, GoCntrl,    "zmtcrsc", "CANCEL"   },
-      { aKeys.ENTER,  GoAccept,   "zmtcrsa", "ACCEPT"   },
-      { aKeys.LEFT,   GoPrevious, "zmtcrsp", "PREVIOUS" },
-      { aKeys.RIGHT,  GoNext,     "zmtcrsn", "NEXT"     },
+      { oKeys.ESCAPE, GoCntrl,    "zmtcrsc", "CANCEL"   },
+      { oKeys.ENTER,  GoAccept,   "zmtcrsa", "ACCEPT"   },
+      { oKeys.LEFT,   GoPrevious, "zmtcrsp", "PREVIOUS" },
+      { oKeys.RIGHT,  GoNext,     "zmtcrsn", "NEXT"     },
     }
   });
   -- Register hotspots
   iHotSpotId = RegisterHotSpot({
-    { 172,  54,  54, 128, 0, aCursorIdData.OK,
+    { 172,  54,  54, 128, 0, oCursorIdData.OK,
       "ACCEPT",      OnScroll, GoAccept },
-    { 248, 192,  16,  16, 0, aCursorIdData.SELECT,
+    { 248, 192,  16,  16, 0, oCursorIdData.SELECT,
       "NEXT RACE",   OnScroll, GoNext   },
     {   8,   8, 304, 200, 0, 0,
       "SELECT RACE", OnScroll, false    },
-    {   0,   0,   0, 240, 3, aCursorIdData.EXIT,
+    {   0,   0,   0, 240, 3, oCursorIdData.EXIT,
       "CANCEL",      OnScroll, GoCntrl  }
   });
 end

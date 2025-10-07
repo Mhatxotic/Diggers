@@ -18,7 +18,7 @@ local TextureCreateTS<const>, ImageRaw<const>, AssetCreate<const>
 local BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
   aLevelData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
   RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjects, aTileData,
-  aTileFlags, texSpr;
+  oTileFlags, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets;                         -- Assets required
 local iBSize<const> = 128 * 128 * 3;   -- Byte size of map
@@ -127,9 +127,9 @@ local function ProcLogic()
   -- For each object, treat as POI
   for iObjectId = 1, #aObjects do
     -- Get object
-    local aObj<const> = aObjects[iObjectId];
+    local oObj<const> = aObjects[iObjectId];
     -- Get position in pixel in bitmap for object
-    local iPos<const> = (iBSize - ((aObj.AY + 1) * 384)) + (aObj.AX * 3) + 3;
+    local iPos<const> = (iBSize - ((oObj.AY + 1) * 384)) + (oObj.AX * 3) + 3;
     -- Make a white RGB dot
     asBData:WU16LE(iPos - 2, 0xFFFF);
     asBData:WU8(iPos - 3, 0xFF);
@@ -156,25 +156,25 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
   BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
     LoadResources, PlayStaticSound, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot,
-    SetKeys, aAssetsData, aCursorIdData, aLevelData, aObjects, aSfxData,
-    aTileData, aTileFlags, texSpr =
+    SetKeys, oAssetsData, oCursorIdData, aLevelData, aObjects, oSfxData,
+    aTileData, oTileFlags, texSpr =
       GetAPI("BlitSLTRB", "BlitLT", "Fade", "GameProc", "GetGameTicks",
         "InitContinueGame", "LoadResources", "PlayStaticSound",
         "RegisterHotSpot", "RegisterKeys", "RenderAll", "RenderShadow",
-        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "aAssetsData",
-        "aCursorIdData", "aLevelData", "aObjects", "aSfxData", "aTileData",
-        "aTileFlags", "texSpr");
+        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "aLevelData", "aObjects", "oSfxData", "aTileData",
+        "oTileFlags", "texSpr");
   -- Setup required assets
-  aAssets = { aAssetsData.tntmap };
+  aAssets = { oAssetsData.tntmap };
   -- Get sound effects
-  iSSelect, iSClick = aSfxData.SELECT, aSfxData.CLICK;
+  iSSelect, iSClick = oSfxData.SELECT, oSfxData.CLICK;
   -- Get cursor ids
-  local iCExit, iCSelect = aCursorIdData.EXIT, aCursorIdData.SELECT;
+  local iCExit, iCSelect = oCursorIdData.EXIT, oCursorIdData.SELECT;
   -- Setup hotspots
   local aHUp<const>, aHDown<const>, aHMap<const>, aHExit<const> =
     { 140, 179,  17,  17, 0, iCSelect, "PAGE UP",   GoScroll, GoUp   },
@@ -184,17 +184,17 @@ local function OnScriptLoaded(GetAPI)
   iHotSpotIdUp = RegisterHotSpot({ aHUp, aHMap, aHExit });
   iHotSpotIdDown = RegisterHotSpot({ aHDown, aHMap, aHExit });
   -- Register keybinds
-  local aKeys<const> = Input.KeyCodes;
+  local oKeys<const> = Input.KeyCodes;
   local sName<const> = "IN-GAME TNT MAP";
   local iPress<const> = Input.States.PRESS;
   local aKExit<const>, aKUp<const>, aKDown<const> =
-    { aKeys.ESCAPE, GoExit, "igtnte",  "LEAVE"       },
-    { aKeys.UP,     GoUp,   "igtntsu", "SCROLL UP"   },
-    { aKeys.DOWN,   GoDown, "igtntsd", "SCROLL DOWN" };
+    { oKeys.ESCAPE, GoExit, "igtnte",  "LEAVE"       },
+    { oKeys.UP,     GoUp,   "igtntsu", "SCROLL UP"   },
+    { oKeys.DOWN,   GoDown, "igtntsd", "SCROLL DOWN" };
   iKeyBankIdUp = RegisterKeys(sName, { [iPress] = { aKUp, aKExit } });
   iKeyBankIdDown = RegisterKeys(sName, { [iPress] = { aKDown, aKExit } });
   -- Store water and solid tile flags
-  iWFlags, iSFlags = aTileFlags.W, aTileFlags.D + aTileFlags.AD;
+  iWFlags, iSFlags = oTileFlags.W, oTileFlags.D + oTileFlags.AD;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitTNTMap = InitTNTMap }, F = OnScriptLoaded };

@@ -19,7 +19,7 @@ local BlitSLT, AdjustViewPortX, AdjustViewPortY, DeInitLevel, Fade,
   IsMouseXLessThan, IsMouseYGreaterEqualThan, IsMouseYLessThan,
   IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
   RegisterFBUCallback, RenderFade, RenderObjects, RenderTerrain, SelectObject,
-  SetCallbacks, SetCursor, SetHotSpot, SetKeys, aGlobalData, aLevelsData,
+  SetCallbacks, SetCursor, SetHotSpot, SetKeys, oGlobalData, aLevelsData,
   aObjectFlags, aObjects, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
@@ -60,17 +60,17 @@ local function OnFadedOutToLobby()
   -- Dereference assets for garbage collection
   texEnd = nil;
   -- Current level completed and clear new game and selected level status
-  aGlobalData.gLevelsCompleted[aGlobalData.gSelectedLevel] = true;
-  aGlobalData.gSelectedLevel, aGlobalData.gNewGame = nil, nil;
+  oGlobalData.gLevelsCompleted[oGlobalData.gSelectedLevel] = true;
+  oGlobalData.gSelectedLevel, oGlobalData.gNewGame = nil, nil;
   -- Bank balance reached? Show good ending if bank balance reached
-  if aGlobalData.gBankBalance >= aGlobalData.gZogsToWinGame then
-    return InitEnding(aGlobalData.gSelectedRace) end;
+  if oGlobalData.gBankBalance >= oGlobalData.gZogsToWinGame then
+    return InitEnding(oGlobalData.gSelectedRace) end;
   -- Count number of levels completed and if all levels
   -- completed? Show bad ending :(
-  local iNumCompleted<const> = UtilTableSize(aGlobalData.gLevelsCompleted);
+  local iNumCompleted<const> = UtilTableSize(oGlobalData.gLevelsCompleted);
   if iNumCompleted >= #aLevelsData then return InitFail() end;
   -- More levels to play so go back to the lobby.
-  aGlobalData.gGameSaved = false;
+  oGlobalData.gGameSaved = false;
   InitLobby();
 end
 -- Fade out to lobby ------------------------------------------------------- --
@@ -92,8 +92,8 @@ local function SetObject(iNewObj)
   if iObject < 1 or iObject > #aObjects then
     iObject = 1 + ((iObject - 1) % #aObjects) end;
   -- Focus on the object even with the mouse cursor
-  local aObject<const> = aObjects[iObject];
-  SelectObject(aObject, true, true);
+  local oObj<const> = aObjects[iObject];
+  SelectObject(oObj, true, true);
 end
 -- Cycle between objects --------------------------------------------------- --
 local function GoNextObject() SetObject(iObject + 1) end;
@@ -122,11 +122,11 @@ local function OnHover()
     -- Walk through objects
     for iIndex = 1, #aObjects do
       -- Get object data and if cursor overlapping it ?
-      local aObject<const> = aObjects[iIndex];
-      if IsSpriteCollide(479, iAMX, iAMY, aObject.S, aObject.X, aObject.Y) then
+      local oObj<const> = aObjects[iIndex];
+      if IsSpriteCollide(479, iAMX, iAMY, oObj.S, oObj.X, oObj.Y) then
         -- Set tip with name and health of object
-        sObject = (aObject.OD.LONGNAME or aObject.OD.NAME)..
-          " ("..aObject.H.."%)";
+        sObject = (oObj.OD.LONGNAME or oObj.OD.NAME)..
+          " ("..oObj.H.."%)";
         -- Done
         return;
       end
@@ -219,7 +219,7 @@ end
 -- When the script has loaded ---------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, aAssetsData, aCursorIdData, aSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Imports
   AdjustViewPortX, AdjustViewPortY, BlitSLT, DeInitLevel, Fade, GetAbsMousePos,
     InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan,
@@ -227,8 +227,8 @@ local function OnScriptLoaded(GetAPI)
     IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
     RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderFade,
     RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
-    SetHotSpot, SetKeys, aAssetsData, aCursorIdData, aGlobalData, aLevelsData,
-    aObjectFlags, aObjects, aSfxData, fontSpeech =
+    SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData, aLevelsData,
+    aObjectFlags, aObjects, oSfxData, fontSpeech =
       GetAPI("AdjustViewPortX", "AdjustViewPortY", "BlitSLT", "DeInitLevel",
         "Fade", "GetAbsMousePos", "InitEnding", "InitFail", "InitLobby",
         "IsMouseXGreaterEqualThan", "IsMouseXLessThan",
@@ -236,25 +236,25 @@ local function OnScriptLoaded(GetAPI)
         "LoadResources", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderObjects", "RenderTerrain", "SelectObject", "SetCallbacks",
-        "SetCursor", "SetHotSpot", "SetKeys", "aAssetsData", "aCursorIdData",
-        "aGlobalData", "aLevelsData", "aObjectFlags", "aObjects", "aSfxData",
+        "SetCursor", "SetHotSpot", "SetKeys", "oAssetsData", "oCursorIdData",
+        "oGlobalData", "aLevelsData", "aObjectFlags", "aObjects", "oSfxData",
         "fontSpeech");
   -- Setup required assets
-  aAssets = { aAssetsData.post, aAssetsData.postm };
+  aAssets = { oAssetsData.post, oAssetsData.postm };
   -- Register keybinds
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
   local aScrUp<const>, aScrDown<const>, aScrLeft<const>, aScrRight<const> =
-    { aKeys.UP,    GoScrollUp,    "igpmsmu", "SCROLL MAP UP"    },
-    { aKeys.DOWN,  GoScrollDown,  "igpmsmd", "SCROLL MAP DOWN"  },
-    { aKeys.LEFT,  GoScrollLeft,  "igpmsml", "SCROLL MAP LEFT"  },
-    { aKeys.RIGHT, GoScrollRight, "igpmsmr", "SCROLL MAP RIGHT" };
+    { oKeys.UP,    GoScrollUp,    "igpmsmu", "SCROLL MAP UP"    },
+    { oKeys.DOWN,  GoScrollDown,  "igpmsmd", "SCROLL MAP DOWN"  },
+    { oKeys.LEFT,  GoScrollLeft,  "igpmsml", "SCROLL MAP LEFT"  },
+    { oKeys.RIGHT, GoScrollRight, "igpmsmr", "SCROLL MAP RIGHT" };
   iKeyBankId = RegisterKeys("IN-GAME POST MORTEM", {
-    [aStates.PRESS] = {
-      { aKeys.ESCAPE, GoFinish,         "igpmc",  "CLOSE" },
-      { aKeys.MINUS,  GoPreviousObject, "igpmop", "PREVIOUS" },
-      { aKeys.EQUAL,  GoNextObject,     "igpmon", "NEXT" },
+    [oStates.PRESS] = {
+      { oKeys.ESCAPE, GoFinish,         "igpmc",  "CLOSE" },
+      { oKeys.MINUS,  GoPreviousObject, "igpmop", "PREVIOUS" },
+      { oKeys.EQUAL,  GoNextObject,     "igpmon", "NEXT" },
       aScrUp, aScrDown, aScrLeft, aScrRight
-    }, [aStates.REPEAT] = { aScrUp, aScrDown, aScrLeft, aScrRight },
+    }, [oStates.REPEAT] = { aScrUp, aScrDown, aScrLeft, aScrRight },
   });
   -- Set hot spot
   iHotSpotId = RegisterHotSpot({
@@ -262,11 +262,11 @@ local function OnScriptLoaded(GetAPI)
   });
   -- Set cursor ids
   iCLeft, iCRight, iCTop, iCBottom, iCWait, iCArrow, iCExit =
-    aCursorIdData.LEFT, aCursorIdData.RIGHT, aCursorIdData.TOP,
-      aCursorIdData.BOTTOM, aCursorIdData.WAIT, aCursorIdData.ARROW,
-      aCursorIdData.EXIT;
+    oCursorIdData.LEFT, oCursorIdData.RIGHT, oCursorIdData.TOP,
+      oCursorIdData.BOTTOM, oCursorIdData.WAIT, oCursorIdData.ARROW,
+      oCursorIdData.EXIT;
   -- Set sound effect ids
-  iSSelect, iSClick = aSfxData.SELECT, aSfxData.CLICK;
+  iSSelect, iSClick = oSfxData.SELECT, oSfxData.CLICK;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitPost = InitPost }, F = OnScriptLoaded };

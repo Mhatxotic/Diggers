@@ -17,7 +17,7 @@ local UtilFormatNumber<const>, UtilIsInteger<const>, UtilIsTable<const> =
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLTRB, BlitSLT, Fade, GetCallbacks, InitCredits,
   LoadResources, PlayMusic, PrintC, RegisterFBUCallback, SetCallbacks,
-  SetVLTRB, VideoPlay, VideoStop, aEndingData, aGlobalData, fontLittle;
+  SetVLTRB, VideoPlay, VideoStop, oEndingData, oGlobalData, fontLittle;
 -- Locals ------------------------------------------------------------------ --
 local aAssets1, aAssets2, aAssets3;    -- Assets required
 local aEndingItem;                     -- Race ending data
@@ -239,8 +239,8 @@ local function OnEnding1AssetsLoaded(aResources)
   -- Load lobby texture
   texZmtc = aResources[1];
   -- Set dynamic completed text
-  sText1Bd = UtilFormatNumber(aGlobalData.gBankBalance, 0).." OF THE "..
-             UtilFormatNumber(aGlobalData.gZogsToWinGame, 0).." "..sText1B;
+  sText1Bd = UtilFormatNumber(oGlobalData.gBankBalance, 0).." OF THE "..
+             UtilFormatNumber(oGlobalData.gZogsToWinGame, 0).." "..sText1B;
   -- Fade in to ending screen 1 (Mining operations complete!)
   Fade(1, 0, 0.01, ProcRenderEnding1, OnEnding1FadedIn);
 end
@@ -248,8 +248,8 @@ end
 local function InitEnding(iRaceId)
   -- Check race id and check ending data
   if not UtilIsInteger(iRaceId) then error("No race id specified!") end;
-  aEndingItem = aEndingData[iRaceId];
-  if not UtilIsTable(aEndingData) then error("Invalid race id!") end;
+  aEndingItem = oEndingData[iRaceId];
+  if not UtilIsTable(oEndingData) then error("Invalid race id!") end;
   -- Load bank texture
   LoadResources("Ending1", aAssets1, OnEnding1AssetsLoaded);
 end
@@ -258,20 +258,20 @@ local function OnScriptLoaded(GetAPI)
   -- Grab imports
   BlitLT, BlitSLT, BlitSLTRB, Fade, GetCallbacks, InitCredits, LoadResources,
     PlayMusic, PrintC, RegisterFBUCallback, SetCallbacks, SetVLTRB, VideoPlay,
-    VideoStop, aEndingData, aGlobalData, fontLittle, texSpr =
+    VideoStop, oEndingData, oGlobalData, fontLittle, texSpr =
       GetAPI("BlitLT", "BlitSLT", "BlitSLTRB", "Fade", "GetCallbacks",
         "InitCredits", "LoadResources", "PlayMusic", "PrintC",
         "RegisterFBUCallback", "SetCallbacks", "SetVLTRB", "VideoPlay",
-        "VideoStop", "aEndingData", "aGlobalData", "fontLittle", "texSpr");
+        "VideoStop", "oEndingData", "oGlobalData", "fontLittle", "texSpr");
   -- Setup required assets
-  local aAssetsData<const> = GetAPI("aAssetsData");
-  aAssets1 = { aAssetsData.zmtc, aAssetsData.postm };
-  aAssets2 = { aAssetsData.ending2 };
-  aAssets3 = { aAssetsData.ending3, aAssetsData.title };
+  local oAssetsData<const> = GetAPI("oAssetsData");
+  aAssets1 = { oAssetsData.zmtc, oAssetsData.postm };
+  aAssets2 = { oAssetsData.ending2 };
+  aAssets3 = { oAssetsData.ending3, oAssetsData.title };
   -- Set ending texts
-  local aEnding1Data<const> = aEndingData[-1];
+  local aEnding1Data<const> = oEndingData[-1];
   sText1A, sText1B = aEnding1Data[1], aEnding1Data[2];
-  local aEnding3Data<const> = aEndingData[-2];
+  local aEnding3Data<const> = oEndingData[-2];
   sText3A, sText3B = aEnding3Data[1], aEnding3Data[2];
 end
 -- Exports and imports ----------------------------------------------------- --

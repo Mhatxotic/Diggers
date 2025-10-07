@@ -25,8 +25,8 @@ local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   DisplayVidModeData<const>, DisplayVidModes<const>, DisplayVReset<const>,
   InputGetKeyName<const>, InputOnKey<const>, UtilClamp<const>,
   UtilClampInt<const>, UtilExplode<const>, UtilGetRatio<const>,
-  UtilWordWrap<const>, VariableRegister<const>, aCVars<const>,
-  aMods<const>, iCredits<const>, iNativeMode<const> =
+  UtilWordWrap<const>, VariableRegister<const>, oCVars<const>,
+  oMods<const>, iCredits<const>, iNativeMode<const> =
     Audio.GetNumPBDevices, Audio.GetPBDeviceName, Audio.Reset, Core.CPUUsage,
     Core.Engine, Core.Library, Core.License, Core.RAM, Core.Time,
     Display.FSType, Display.GetSize, Display.GPUFPS, Display.Monitor,
@@ -44,11 +44,11 @@ sAppTitle, sAppVendor, sAppExeType =
 local sGameVersion<const>, sGameName<const>, sGameCopyr<const>,
       sGameDescription<const>, sGameWebsite<const>
       = -- ----------------------------------------------------------------- --
-      aCVars.app_version:Get():upper(),
-      aCVars.app_longname:Get():upper(),
-      aCVars.app_copyright:Get():upper(),
-      aCVars.app_description:Get():upper(),
-      aCVars.app_website:Get():upper();
+      oCVars.app_version:Get():upper(),
+      oCVars.app_longname:Get():upper(),
+      oCVars.app_copyright:Get():upper(),
+      oCVars.app_description:Get():upper(),
+      oCVars.app_website:Get():upper();
 -- Other CVars used -------------------------------------------------------- --
 local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>,
       vAudvol<const>, vAudstrvol<const>, vAudsamvol<const>,
@@ -56,16 +56,16 @@ local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>,
       vWinheight<const>, vVidfs<const>, vVidfsmode<const>,
       vAudinterface
       = -- ----------------------------------------------------------------- --
-      aCVars.vid_vsync, aCVars.app_delay, aCVars.vid_texfilter, aCVars.aud_vol,
-      aCVars.aud_strvol, aCVars.aud_samvol, aCVars.aud_fmvvol,
-      aCVars.vid_monitor, aCVars.win_width, aCVars.win_height, aCVars.vid_fs,
-      aCVars.vid_fsmode, aCVars.aud_interface;
+      oCVars.vid_vsync, oCVars.app_delay, oCVars.vid_texfilter, oCVars.aud_vol,
+      oCVars.aud_strvol, oCVars.aud_samvol, oCVars.aud_fmvvol,
+      oCVars.vid_monitor, oCVars.win_width, oCVars.win_height, oCVars.vid_fs,
+      oCVars.vid_fsmode, oCVars.aud_interface;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
   GetMusic, InitSetup, IsMouseYLessThan, LoadResources, PlayMusic, PrintC,
   PrintM, PrintR, PrintS, Print, RegisterFBUCallback, RenderFade, RenderShadow,
   RestoreKeyHandlers, SetCallbacks, SetHotSpot, SetKeys, StopMusic, VideoPause,
-  VideoResume, aKeyBankCats, aKeyToLiteral, aSetupButtonData, aSetupOptionData,
+  VideoResume, tKeyBankCats, oKeyToLiteral, aSetupButtonData, aSetupOptionData,
   fontLarge, fontLittle, fontTiny, texSpr;
 -- Frame-limiter types ----------------------------------------------------- --
 local aFrameLimiterLabels<const> = {
@@ -450,11 +450,11 @@ local function UpdateReadmeLines()
   -- Make sure marquee is showing
   SetTip(0, "MOVE THE CURSOR TO THE BOTTOM OR TOP OF THE SCREEN AND PRESS \z
     RMB, JB1 OR PRESS "..
-    aKeyBankCats.srmpu[9]..", "..aKeyBankCats.srmpd[9]..", "..
-    aKeyBankCats.srmh[9]..", "..aKeyBankCats.srme[9]..", "..
-    aKeyBankCats.srmu[9].." OR "..aKeyBankCats.srmd[9].." TO SCROLL THE \z
-    README. "..aKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
-    aKeyBankCats.sf[9].." TO LEAVE SETUP.");
+    tKeyBankCats.srmpu[9]..", "..tKeyBankCats.srmpd[9]..", "..
+    tKeyBankCats.srmh[9]..", "..tKeyBankCats.srme[9]..", "..
+    tKeyBankCats.srmu[9].." OR "..tKeyBankCats.srmd[9].." TO SCROLL THE \z
+    README. "..tKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
+    tKeyBankCats.sf[9].." TO LEAVE SETUP.");
 end
 -- ------------------------------------------------------------------------- --
 local function InitReadme()
@@ -553,17 +553,17 @@ local function InitConfig()
     sGameWebsite;
   sStatusLine2 = sAppVendor.." PROUDLY PRESENTS "..sGameName.."! A REMAKE \z
     FOR MODERN OPERATING SYSTEMS AND HARDWARE FROM THE CLASSIC CD32 AND DOS \z
-    DAYS. THIS IS THE CONFIGURATION SCREEN. PRESS "..aKeyBankCats.sf[9].." \z
+    DAYS. THIS IS THE CONFIGURATION SCREEN. PRESS "..tKeyBankCats.sf[9].." \z
     OR CLICK THE EDGE OF THE SCREEN TO RETURN TO THE GAME OR MOVE YOUR MOUSE \z
     OVER AN OPTION TO HAVE MORE EXPLAINED ABOUT IT HERE. USE YOUR MOUSE OR \z
     JOYSTICK TO MOVE THE CURSOR AND THE BUTTONS TO CHANGE OPTIONS. PRESS "..
-    aKeyBankCats.gksc[9].." AT ANY TIME TO SEE THIS SCREEN, "..
-    aKeyBankCats.gksb[9].." TO CHANGE KEYBINDINGS OR "..
-    aKeyBankCats.gksa[9].." TO SEE THE ACKNOWLEDGEMENTS. \z
+    tKeyBankCats.gksc[9].." AT ANY TIME TO SEE THIS SCREEN, "..
+    tKeyBankCats.gksb[9].." TO CHANGE KEYBINDINGS OR "..
+    tKeyBankCats.gksa[9].." TO SEE THE ACKNOWLEDGEMENTS. \z
     PRESS ALT+ENTER AT ANY TIME TO TOGGLE FULL-SCREEN AND WINDOW. PRESS "..
-    aKeyBankCats.gkcc[9].." TO FIX THE MOUSE CURSOR, PRESS "..
-    aKeyBankCats.gkwr[9].." TO RESTORE THE WINDOW POSITION OR PRESS "..
-    aKeyBankCats.gkss[9].." TO TAKE A SCREENSHOT.";
+    tKeyBankCats.gkcc[9].." TO FIX THE MOUSE CURSOR, PRESS "..
+    tKeyBankCats.gkwr[9].." TO RESTORE THE WINDOW POSITION OR PRESS "..
+    tKeyBankCats.gkss[9].." TO TAKE A SCREENSHOT.";
   sStatusLineSave = sStatusLine2;
   SetTip(0, sStatusLineSave);
   -- Refresh all settings
@@ -599,11 +599,11 @@ local function UpdateBindsLines()
   -- Make sure marquee is showing
   SetTip(0, "MOVE THE CURSOR TO A BIND YOU WANT TO CHANGE AND PRESS LMB OR \z
     JB1 ON IT TO CHANGE THE KEY BINDING FOR IT. PRESS "..
-    aKeyBankCats.sbpu[9]..", "..aKeyBankCats.sbpd[9]..", "..
-    aKeyBankCats.sbh[9]..", "..aKeyBankCats.sbe[9]..", "..
-    aKeyBankCats.sbu[9].." OR "..aKeyBankCats.sbd[9].." TO SCROLL THE \z
-    BINDS. "..aKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
-    aKeyBankCats.sf[9].." TO LEAVE SETUP.");
+    tKeyBankCats.sbpu[9]..", "..tKeyBankCats.sbpd[9]..", "..
+    tKeyBankCats.sbh[9]..", "..tKeyBankCats.sbe[9]..", "..
+    tKeyBankCats.sbu[9].." OR "..tKeyBankCats.sbd[9].." TO SCROLL THE \z
+    BINDS. "..tKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
+    tKeyBankCats.sf[9].." TO LEAVE SETUP.");
 end
 -- ------------------------------------------------------------------------- --
 local function RenderBinds()
@@ -704,16 +704,16 @@ InitSetup = DoInitSetup;
 -- Script has been initialised --------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local PlayStaticSound, RegisterHotSpot, RegisterKeys, aAssetsData,
-    aCursorIdData, aSfxData;
+  local PlayStaticSound, RegisterHotSpot, RegisterKeys, oAssetsData,
+    oCursorIdData, oSfxData;
   -- Grab import functions and data
   BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
     GetMusic, IsMouseYLessThan, LoadResources, PlayMusic, PlayStaticSound,
     PrintC, PrintM, PrintR, PrintS, Print, RegisterFBUCallback,
     RegisterHotSpot, RegisterKeys, RenderFade, RenderShadow,
     RestoreKeyHandlers, SetCallbacks, SetHotSpot, SetKeys, StopMusic,
-    VideoPause, VideoResume, aAssetsData, aCursorIdData, aKeyBankCats,
-    aKeyToLiteral, aSetupButtonData, aSetupOptionData, aSfxData, fontLarge,
+    VideoPause, VideoResume, oAssetsData, oCursorIdData, tKeyBankCats,
+    oKeyToLiteral, aSetupButtonData, aSetupOptionData, oSfxData, fontLarge,
     fontLittle, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "DisableKeyHandlers", "GetCallbacks", "GetHotSpot",
         "GetKeyBank", "GetMusic", "IsMouseYLessThan", "LoadResources",
@@ -721,11 +721,11 @@ local function OnScriptLoaded(GetAPI)
         "Print", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderFade", "RenderShadow", "RestoreKeyHandlers", "SetCallbacks",
         "SetHotSpot", "SetKeys", "StopMusic", "VideoPause", "VideoResume",
-        "aAssetsData", "aCursorIdData", "aKeyBankCats", "aKeyToLiteral",
-        "aSetupButtonData", "aSetupOptionData", "aSfxData", "fontLarge",
+        "oAssetsData", "oCursorIdData", "tKeyBankCats", "oKeyToLiteral",
+        "aSetupButtonData", "aSetupOptionData", "oSfxData", "fontLarge",
         "fontLittle", "fontTiny", "texSpr");
   -- Set assetsData
-  aAssets = { aAssetsData.setupm };
+  aAssets = { oAssetsData.setupm };
   -- Callback to set all settings to default
   local function SetDefaults()
     -- Push defaults
@@ -774,7 +774,7 @@ local function OnScriptLoaded(GetAPI)
   local aButtons<const> =
     { GoFinish, ApplySettings, SetDefaults, InitBinds, InitReadme };
   -- Get frequently used sound effect ids
-  local iSClick<const>, iSSelect<const> = aSfxData.CLICK, aSfxData.SELECT;
+  local iSClick<const>, iSSelect<const> = oSfxData.CLICK, oSfxData.SELECT;
   -- Start drawing buttons from the left and the size of each button. We set
   -- the shader to round off any sub-pixelling so fractions are handled safely.
   local nX, nSize<const>, nYButton<const> = 4, 312 / #aButtons, 193;
@@ -1067,8 +1067,8 @@ local function OnScriptLoaded(GetAPI)
   end;
   -- Get frequently used cursor ids
   local iCBottom<const>, iCExit<const>, iCSelect<const>, iCTop<const> =
-    aCursorIdData.BOTTOM, aCursorIdData.EXIT, aCursorIdData.SELECT,
-    aCursorIdData.TOP;
+    oCursorIdData.BOTTOM, oCursorIdData.EXIT, oCursorIdData.SELECT,
+    oCursorIdData.TOP;
   -- Default hot spot
   aHotSpots[1 + #aHotSpots] =
     { 4, 4, 312, 232, 0, 0,      OnSetupHover, false, false    };
@@ -1076,11 +1076,11 @@ local function OnScriptLoaded(GetAPI)
     { 0, 0,   0, 240, 3, iCExit, OnSetupHover, false, GoFinish };
   iHotSpotSetup = RegisterHotSpot(aHotSpots);
   -- Get frequently used keyboard keys
-  local aKeys<const>, aStates<const> = Input.KeyCodes, Input.States;
+  local oKeys<const>, oStates<const> = Input.KeyCodes, Input.States;
   local iPress<const>, iRepeat<const>, iControl<const>, iBackspace<const>,
-    iLetterC<const>, iEscape<const>, iLetterD<const> = aStates.PRESS,
-      aStates.REPEAT, aMods.CONTROL, aKeys.BACKSPACE, aKeys.C, aKeys.ESCAPE,
-      aKeys.D;
+    iLetterC<const>, iEscape<const>, iLetterD<const> = oStates.PRESS,
+      oStates.REPEAT, oMods.CONTROL, oKeys.BACKSPACE, oKeys.C, oKeys.ESCAPE,
+      oKeys.D;
   -- Setup key bank
   local aGenericEscape<const> = { iEscape, GoFinish, "sf", "CLOSE" };
   local aOnlyEscape<const> = { [iPress] = { aGenericEscape } };
@@ -1088,8 +1088,8 @@ local function OnScriptLoaded(GetAPI)
   iKeyBankSetup = RegisterKeys("SETUP", aOnlyEscape);
   -- Frequently used key ids
   local iPageUp<const>, iPageDown<const>, iHome<const>, iEnd<const>,
-    iUp<const>, iDown<const> = aKeys.PAGE_UP, aKeys.PAGE_DOWN, aKeys.HOME,
-      aKeys.END, aKeys.UP, aKeys.DOWN;
+    iUp<const>, iDown<const> = oKeys.PAGE_UP, oKeys.PAGE_DOWN, oKeys.HOME,
+      oKeys.END, oKeys.UP, oKeys.DOWN;
   -- Set readme position to specified line
   local function SetReadme(iLine)
     -- Get maximum lines
@@ -1268,9 +1268,9 @@ local function OnScriptLoaded(GetAPI)
   -- Get flag for a unsigned integer saveable cvar type
   local iSS<const> = Variable.Flags.UINTEGERSAVE;
   -- Build bindings list
-  for iBind = 1, #aKeyBankCats do
+  for iBind = 1, #tKeyBankCats do
     -- Get bind data
-    local aBind<const> = aKeyBankCats[iBind];
+    local aBind<const> = tKeyBankCats[iBind];
     -- Create a cvar for key
     local function CVarModified(sV)
       -- Convert to number and check it
@@ -1278,7 +1278,7 @@ local function OnScriptLoaded(GetAPI)
       if sV < 0 and sV >= 1000 then return false end;
       -- Update actual keybind and literal value
       aBind[1] = sV;
-      local sValue<const> = aKeyToLiteral[sV] or aKeyToLiteral.UNKNOWN;
+      local sValue<const> = oKeyToLiteral[sV] or oKeyToLiteral.UNKNOWN;
       aBind[8] = sValue.." ["..format("%03d", sV).."]";
       aBind[9] = sValue;
       -- Accepted
