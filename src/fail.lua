@@ -11,7 +11,7 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local UtilFormatNumber<const> = Util.FormatNumber;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 -- Diggers function and data aliases --------------------------------------- --
 local Fade, InitScore, LoadResources, PlayMusic, PlayStaticSound, PrintC,
   SetCallbacks, SetHotSpot, SetKeys, oGlobalData, fontLarge;
@@ -24,15 +24,15 @@ local aAssets,                         -- Assets required
 -- Game over render tick --------------------------------------------------- --
 local function ProcRender()
   -- Show fail message
-  fontLarge:SetCRGB(1, 0.25, 0.25);
-  PrintC(fontLarge, 160, 58, strMsg);
+  fontLarge:SetCRGB(1.0, 0.25, 0.25);
+  PrintC(fontLarge, 160.0, 50.0, strMsg);
 end
 -- Finish procedure -------------------------------------------------------- --
 local function GoScore()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Fade out and load title with fade
-  Fade(0,1, 0.04, ProcRender, InitScore, true);
+  Fade(0.0, 1.0, 0.04, ProcRender, InitScore, true);
 end
 -- When fail screen has faded in ------------------------------------------- --
 local function OnFadedIn()
@@ -53,9 +53,10 @@ local function OnAssetsLoaded(aResources)
             "..UtilFormatNumber(oGlobalData.gZogsToWinGame -
                 oGlobalData.gBankBalance, 0).." SHORT\n\z
             \n\z
-            YOUR MISSION HAS FAILED!"
+            YOUR MISSION HAS\n\z
+            FAILED!"
   -- Fade in to show failure message
-  Fade(1, 0, 0.04, ProcRender, OnFadedIn);
+  Fade(1.0, 0.0, 0.04, ProcRender, OnFadedIn);
 end
 -- Init ending screen functions -------------------------------------------- --
 local function InitFail() LoadResources("Fail", aAssets, OnAssetsLoaded) end;

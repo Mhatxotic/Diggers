@@ -9,9 +9,9 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
--- Lua aliases (optimisation) ---------------------------------------------- --
+-- Core function aliases --------------------------------------------------- --
 local error, tostring = error, tostring;
--- M-Engine aliases (optimisation) ----------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local UtilIsInteger<const>, UtilIsNumber<const>, UtilIsTable<const> =
   Util.IsInteger, Util.IsNumber, Util.IsTable;
 -- Input handling variables ------------------------------------------------ --
@@ -32,8 +32,8 @@ local function VideoResume() if vidVideo then vidVideo:Play() end end;
 local function VideoPlay(Handle)
   VideoStop();
   vidVideo = Handle;
-  vidVideo:SetVLTRB(0, 0, 320, 240);
-  vidVideo:SetTCLTRB(0, 0, 1, 1);
+  vidVideo:SetVLTRB(0.0, 0.0, 320.0, 240.0);
+  vidVideo:SetTCLTRB(0.0, 0.0, 1.0, 1.0);
   vidVideo:SetFilter(true);
   vidVideo:Play();
   return vidVideo;
@@ -48,7 +48,7 @@ end
 -- Pause if there is a music handle----------------------------------------- --
 local function PauseMusic() if musMusic then musMusic:Stop() end end;
 -- Resume music if there is a music handle---------------------------------- --
-local function ResumeMusic() if musMusic then musMusic:Play(-1,1,0) end end
+local function ResumeMusic() if musMusic then musMusic:Play() end end
 -- Stop music -------------------------------------------------------------- --
 local function StopMusic(iPosCmd)
   -- No current track? No problem

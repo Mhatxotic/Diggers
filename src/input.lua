@@ -9,10 +9,10 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
--- Lua aliases (optimisation) ---------------------------------------------- --
+-- Core function aliases --------------------------------------------------- --
 local error<const>, floor<const>, pairs<const>, remove<const>, tostring<const>,
   xpcall<const> = error, math.floor, pairs, table.remove, tostring, xpcall;
--- M-Engine aliases (optimisation) ----------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreStack<const>, CoreTicks<const>, DisplayReset<const>,
   InputClearStates<const>, InputGetJoyAxis<const>, InputGetJoyButton<const>,
   InputGetNumJoyAxises<const>, InputGetNumJoyButtons<const>,

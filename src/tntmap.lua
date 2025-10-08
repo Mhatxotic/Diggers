@@ -10,12 +10,12 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local TextureCreateTS<const>, ImageRaw<const>, AssetCreate<const>
       = -- ----------------------------------------------------------------- --
       Texture.CreateTS, Image.Raw, Asset.Create;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
+local BlitSLTWH, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
   aLvlData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
   RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjs, aTileData,
   oTileFlags, texSpr;
@@ -68,18 +68,20 @@ local function ProcRender()
   -- Render everything
   RenderAll();
   -- Draw appropriate background
-  BlitLT(texMap, 8, 8);
+  BlitLT(texMap, 8.0, 8.0);
   -- Render shadow
-  RenderShadow(8, 8, 312, 208);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Render tip
   RenderTip();
   -- Draw terrain
-  BlitSLTRB(texTerrain, iTerrainPage, 32, 44, 288, 172);
+  BlitSLTWH(texTerrain, iTerrainPage, 32, 44, 256, 128);
   -- Dim appropriate button
-  texSpr:SetCRGBA(1, 0, 0, 0.5);
-  if iTerrainPage == 0 then BlitSLTRB(texSpr, 1022, 140, 179, 157, 196);
-  elseif iTerrainPage == 1 then BlitSLTRB(texSpr, 1022, 162, 179, 179, 196) end;
-  texSpr:SetCRGBA(1, 1, 1, 1);
+  texSpr:SetCRGBA(1.0, 0.0, 0.0, 0.5);
+  if iTerrainPage == 0 then
+    BlitSLTWH(texSpr, 1022, 140.0, 179.0, 17.0, 17.0);
+  elseif iTerrainPage == 1 then
+    BlitSLTWH(texSpr, 1022, 162.0, 179.0, 17.0, 17.0) end;
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
 end
 -- TNT map procedure ------------------------------------------------------- --
 local function ProcLogic()
@@ -158,12 +160,12 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
-  BlitSLTRB, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
+  BlitSLTWH, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
     LoadResources, PlayStaticSound, RegisterHotSpot, RegisterKeys,
     RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot,
     SetKeys, oAssetsData, oCursorIdData, aLvlData, aObjs, oSfxData,
     aTileData, oTileFlags, texSpr =
-      GetAPI("BlitSLTRB", "BlitLT", "Fade", "GameProc", "GetGameTicks",
+      GetAPI("BlitSLTWH", "BlitLT", "Fade", "GameProc", "GetGameTicks",
         "InitContinueGame", "LoadResources", "PlayStaticSound",
         "RegisterHotSpot", "RegisterKeys", "RenderAll", "RenderShadow",
         "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",

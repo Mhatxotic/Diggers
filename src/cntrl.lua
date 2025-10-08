@@ -38,23 +38,27 @@ local tileRace<const>    = 9;          local tileBook<const>    = 10;
 local tileFile<const>    = 11;
 -- Data for flashing textures to help the player know what to do ----------- --
 local aFlashCache<const> = {
-  [tileMap]  = { tileMap,  9,   9 }, [tileRace] = { tileRace, 242, 160 },
-  [tileBook] = { tileBook, 9, 176 }, [tileFile] = { tileFile,  76, 181 },
+  [tileMap]  = { tileMap,    9.0,   9.0 },
+  [tileRace] = { tileRace, 242.0, 160.0 },
+  [tileBook] = { tileBook,   9.0, 176.0 },
+  [tileFile] = { tileFile,  76.0, 181.0 },
 };
 -- Render callback --------------------------------------------------------- --
 local function ProcRender()
   -- Draw backdrop, controller screen and shadow around it
-  BlitLT(texZmtc, -96, 0);
-  BlitLT(texCon, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitLT(texZmtc, -96.0, 0.0);
+  BlitLT(texCon, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw animated fish. The first tile is already drawn.
   local iFishAnimId<const> = iAnimTimer % 5;
-  if iFishAnimId > 0 then BlitSLT(texCon, tileFish + iFishAnimId, 19, 135) end;
+  if iFishAnimId > 0 then
+    BlitSLT(texCon, tileFish + iFishAnimId, 19.0, 135.0) end;
   -- Controller talking?
   if iSpeechTimer > 0 then
     -- Draw controller speaking. The first tile is already drawn.
     local iAnimId<const> = iAnimTimer % 4;
-    if iAnimId > 0 then BlitSLT(texCon, iAnimId + tileConAnim, 100, 36) end;
+    if iAnimId > 0 then
+      BlitSLT(texCon, iAnimId + tileConAnim, 100.0, 36.0) end;
     -- Have flash data?
     if aFlashData then
       -- Draw flashing hotspot. The first tile is already drawn.
@@ -64,8 +68,8 @@ local function ProcRender()
           aFlashData[2], aFlashData[3]) end;
     end
     -- Draw speech bubble and caption
-    BlitSLT(texCon, tileSpeech, 147, 139);
-    PrintC(fontSpeech, 225, 146, sMsg);
+    BlitSLT(texCon, tileSpeech, 147.0, 139.0);
+    PrintC(fontSpeech, 225.0, 146.0, sMsg);
   end
   -- Draw tip
   RenderTipShadow();
@@ -102,7 +106,7 @@ local function GoTransition(fcbOnFadeOut, ...);
     fcbOnFadeOut(unpack(aParams));
   end
   -- Fade out to requested loading procedure
-  return Fade(0, 1, 0.04, ProcRender, OnFadeOut);
+  return Fade(0.0, 1.0, 0.04, ProcRender, OnFadeOut);
 end
 -- Hotspot function events ------------------------------------------------- --
 local function GoBook() GoTransition(InitBook, false) end;
@@ -175,9 +179,9 @@ local function OnAssetsLoaded(aResources)
   AddSpeechItem("THE BOOK MAY BE OF HELP", tileBook);
   AddSpeechItem("AND DON'T TAKE ALL DAY");
   -- Set colour of speech text
-  fontSpeech:SetCRGB(0, 0, 0.25);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
   -- Change render procedures
-  Fade(1, 0, 0.04, ProcRender, OnFadedIn);
+  Fade(1.0, 0.0, 0.04, ProcRender, OnFadedIn);
 end
 -- Init controller screen function ----------------------------------------- --
 local function InitCon()

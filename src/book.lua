@@ -10,7 +10,7 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreLog<const>, UtilBlank<const>, UtilClampInt<const> =
   Core.Log, Util.Blank, Util.ClampInt;
 -- Diggers function and data aliases --------------------------------------- --
@@ -43,10 +43,10 @@ local function ProcRenderPage()
   -- Render book background
   fcbProcRenderBack();
   -- Render page
-  BlitLT(texPage, 8, 8);
+  BlitLT(texPage, 8.0, 8.0);
   -- Render text
   fontSpeech:SetCRGB(0.45, 0.3, 0.22);
-  PrintW(fontSpeech, 77, 28, 298, strText);
+  PrintW(fontSpeech, 77, 28.0, 298.0, strText);
   -- Render illustration if set
   if aIllustration then
     BlitSLT(texPage, aIllustration[1], aIllustration[2], aIllustration[3]);
@@ -59,7 +59,7 @@ local function LoadPage(fcbOnComplete)
   -- Set text, illustration data
   strText, aIllustration = aPage.T, aPage.I;
   -- Set text line spacing if specified
-  fontSpeech:SetLSpacing(aPage.L or 0);
+  fontSpeech:SetLSpacing(aPage.L or 0.0);
   -- Update page and set it as tip
   strPage = "PAGE "..iPage.."/"..#aBookData;
   SetTip(strPage)
@@ -107,14 +107,14 @@ local function HoverNext() SetTip(strPageNext) end;
 local function HoverLast() SetTip(strPageLast) end;
 -- Scroll wheel callback --------------------------------------------------- --
 local function OnScroll(nX, nY)
-  if nY > 0 then GoLast() elseif nY < 0 then GoNext() end;
+  if nY > 0.0 then GoLast() elseif nY < 0.0 then GoNext() end;
 end
 -- On render callback ------------------------------------------------------ --
 local function ProcRenderCover()
   -- Render background
   fcbProcRenderBack();
   -- Draw backdrop
-  BlitLT(texCover, 8, 8);
+  BlitLT(texCover, 8.0, 8.0);
 end
 -- Change cover to inside the book ----------------------------------------- --
 local function GoOpen()
@@ -139,12 +139,12 @@ local function ProcRenderBackInGame()
   -- Draw tip
   RenderTip();
   -- Render shadow
-  RenderShadow(8, 8, 312, 208);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
 end
 -- Set render background function ------------------------------------------ --
 local function ProcRenderBackLobby()
   -- Render static background
-  BlitLT(texZmtc, -54, 0);
+  BlitLT(texZmtc, -54.0, 0.0);
   -- Draw tip and return
   RenderTipShadow();
 end
@@ -167,7 +167,7 @@ end
 -- Cover loaded in-lobby supplimental callback ----------------------------- --
 local function OnPageAssetsPostLobby()
   -- From controller screen? Fade in
-  Fade(1, 0, 0.04, fcbProcRender, OnPageAssetsPostLobbyFadedIn);
+  Fade(1.0, 0.0, 0.04, fcbProcRender, OnPageAssetsPostLobbyFadedIn);
 end
 -- Finish in-game supplimental callback ------------------------------------ --
 local function ExitInGame()
@@ -192,7 +192,7 @@ local function ExitLobby()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Fade out to controller
-  Fade(0, 1, 0.04, fcbProcRender, OnExitLobbyFadedOut);
+  Fade(0.0, 1.0, 0.04, fcbProcRender, OnExitLobbyFadedOut);
 end
 -- Lobby cover resources laoded -------------------------------------------- --
 local function OnAssetsLoadedLobby(texHandle)
@@ -253,7 +253,7 @@ local function InitBook(bFromInGame)
   LoadResources("Book", aAssets, OnAssetsLoaded, fcbProcCustomHandle);
 end
 -- Scripts have been loaded ------------------------------------------------ --
-local function OnScriptLoaded(GetAPI, aModData, aAPI)
+local function OnScriptLoaded(GetAPI, aModData, oAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData,
     cvLang;
@@ -280,7 +280,7 @@ local function OnScriptLoaded(GetAPI, aModData, aAPI)
       SelectLanguage("", true);
     end
     -- Get book language data and if it is there?
-    local aData<const> = aAPI["aBookData_"..sSelectedLang];
+    local aData<const> = oAPI["aBookData_"..sSelectedLang];
     if aData then
       -- Accepted
       aBookData = aData;

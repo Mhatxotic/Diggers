@@ -11,39 +11,39 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local cos<const>, sin<const> = math.cos, math.sin;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreTime<const>, UtilFormatNTime<const> = Core.Time, Util.FormatNTime;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic,
-  InitLose, PlayMusic, PlayStaticSound, PrintC, RegisterFBUCallback,
-  RenderAll, RenderFade, RenderTip, SetCallbacks, SetHotSpot, SetKeys,
-  SetTip, StopMusic, TriggerEnd, tKeyBankCats, fontLittle, fontTiny;
+local BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, PlayMusic,
+  PlayStaticSound, PrintC, RegisterFBUCallback, RenderAll, RenderFade,
+  RenderTip, SetCallbacks, SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd,
+  tKeyBankCats, fontLittle, fontTiny;
 -- Statics ------------------------------------------------------------------ --
-local iPauseX<const> = 160;            -- Pause text X position
-local iPauseY<const> = 72;             -- Pause text Y position
-local iInstructionY<const> = iPauseY + 24; -- Instruction text Y position
-local iSmallTipsY<const> = iInstructionY + 44; -- Small tips Y position
+local nPauseX<const> = 160.0;                    -- Pause text X position
+local nPauseY<const> = 72.0;                     -- Pause text Y position
+local nInstructionY<const> = nPauseY + 24.0;     -- Instruction text Y position
+local nSmallTipsY<const> = nInstructionY + 44.0; -- Small tips Y position
 -- Locals ------------------------------------------------------------------ --
+local fCBProc, fCBRender;              -- Last callbacks
 local iHotSpotId;                      -- Pause screen hot spot id
 local iKeyBankId;                      -- Pause screen key bank id
-local iLastKeyBankId;                  -- Saved key bank id
 local iLastHotSpotId;                  -- Saved hot spot id
-local iStageT, iStageB;                -- Stage vertical bounds
-local iStageL, iStageR;                -- Stage horizontal bounds
+local iLastKeyBankId;                  -- Saved key bank id
 local iSSelect;                        -- Sound error and select ids
+local muMusic;                         -- Current music played
+local nStageL, nStageR;                -- Stage horizontal bounds
+local nStageT, nStageB;                -- Stage vertical bounds
+local nTime;                           -- Current time
+local nTimeNext;                       -- Next clock update
 local sInstruction;                    -- Instruction text
 local sSmallTips;                      -- Small instructions text
-local muMusic;                         -- Current music played
-local nTime;                           -- Current time
-local fCBProc, fCBRender;              -- Last callbacks
-local nTimeNext;                       -- Next clock update
 local texSpr;                          -- Sprite texture
 -- End game callback ------------------------------------------------------- --
 local function EndGame()
   -- Play sound
   PlayStaticSound(iSSelect);
-  -- Abort the game
-  TriggerEnd(InitLose);
+  -- Abort the game with the opponent raising all the money
+  TriggerEnd(3);
 end
 -- Continue game callback -------------------------------------------------- --
 local function ContinueGame()
@@ -76,33 +76,36 @@ local function RenderPause()
   RenderAll();
   RenderFade(0.75);
   -- Draw background animations
-  local iStageLP6<const> = iStageL + 6;
-  local nTimeM2<const> = nTime * 2;
-  for iY = iStageT + 7, iStageB, 16 do
+  local nStageLP6<const> = nStageL + 6.0;
+  local nTimeM2<const> = nTime * 2.0;
+  for nY = nStageT + 7.0, nStageB, 16.0 do
     local nTimeM2SX<const> = nTimeM2;
-    for iX = iStageLP6, iStageR, 16 do
-      local iPos = (iY * iStageR) + iX;
-      local nAngle = nTimeM2SX + (iPos / 0.46);
+    for nX = nStageLP6, nStageR, 16.0 do
+      local nPos<const> = (nY * nStageR) + nX;
+      local nAngle = nTimeM2SX + (nPos / 0.46);
       nAngle = 0.5 + ((cos(nAngle) * sin(nAngle)));
-      texSpr:SetCRGBA(0, 0, 0, nAngle * 0.5);
-      local nDim<const> = nAngle * 16;
-      BlitSLTWHA(texSpr, 444, iX, iY, nDim, nDim, nAngle);
+      texSpr:SetCRGBA(0.0, 0.0, 0.0, nAngle * 0.5);
+      local nDim<const> = nAngle * 16.0;
+      BlitSLTWHA(texSpr, 444, nX, nY, nDim, nDim, nAngle);
     end
   end
-  texSpr:SetCRGBA(1, 1, 1, 1);
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Write text informations
-  local nTime = CoreTime();
-  fontLittle:SetCRGBA(1, 1, 1, 0.1 + (0.5 + (sin(nTime) * cos(nTime) * 0.9)));
-  PrintC(fontLittle, iPauseX, iInstructionY, sInstruction);
-  fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1);
-  PrintC(fontTiny, iPauseX, iSmallTipsY, sSmallTips);
-  fontLittle:SetCRGBA(1, 1, 1, 1);
+  local nTime<const> = CoreTime();
+  fontLittle:SetCRGBA(1.0, 1.0, 1.0,
+    0.1 + (0.5 + (sin(nTime) * cos(nTime) * 0.9)));
+  PrintC(fontLittle, nPauseX, nInstructionY, sInstruction);
+  fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1.0);
+  PrintC(fontTiny, nPauseX, nSmallTipsY, sSmallTips);
+  fontLittle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Get and print local time
   RenderTip();
 end
-local function OnStageUpdated(...)
-  -- Update stage bounds
-  local _ _, _, iStageL, iStageT, iStageR, iStageB = ...;
+-- When main framebuffer size has changed ---------------------------------- --
+local function OnStageUpdated(_, _, iStageL, iStageT, iStageR, iStageB)
+  -- Update stage bounds as numbers
+  nStageL, nStageT, nStageR, nStageB =
+    iStageL + 0.0, iStageT + 0.0, iStageR + 0.0, iStageB + 0.0;
 end
 -- Init pause screen ------------------------------------------------------- --
 local function InitPause()
@@ -134,7 +137,7 @@ local function InitPause()
   -- Get stage bounds
   RegisterFBUCallback("pause", OnStageUpdated);
   -- Pause string
-  nTimeNext = 0;
+  nTimeNext = 0.0;
   -- Save game keybank id to restore it on exit
   iLastKeyBankId = GetKeyBank();
   iLastHotSpotId = GetHotSpot();
@@ -149,13 +152,13 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oCursorIdData, oSfxData;
   -- Get imports
-  BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, InitLose,
-    PlayMusic, PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
-    RegisterKeys, RenderAll, RenderFade, RenderTip, SetCallbacks,
-    SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd, oCursorIdData,
-    tKeyBankCats, oSfxData, fontLittle, fontTiny, texSpr =
+  BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, PlayMusic,
+    PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
+    RegisterKeys, RenderAll, RenderFade, RenderTip, SetCallbacks, SetHotSpot,
+    SetKeys, SetTip, StopMusic, TriggerEnd, oCursorIdData, tKeyBankCats,
+    oSfxData, fontLittle, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "GetCallbacks", "GetHotSpot", "GetKeyBank",
-        "GetMusic", "InitLose", "PlayMusic", "PlayStaticSound", "PrintC",
+        "GetMusic", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderAll", "RenderFade", "RenderTip", "SetCallbacks",
         "SetHotSpot", "SetKeys", "SetTip", "StopMusic", "TriggerEnd",

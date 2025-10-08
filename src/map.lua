@@ -11,7 +11,7 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local pairs<const>, floor<const> = pairs, math.floor;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreTicks<const>, UtilClampInt<const>, UtilFormatNumber<const>,
   UtilIsNumber<const>, UtilIsTable<const> = Core.Ticks, Util.ClampInt,
     Util.FormatNumber, Util.IsNumber, Util.IsTable;
@@ -230,7 +230,7 @@ end
 -- Play sound and start fading out to controller --------------------------- --
 local function GoFadeController()
   PlayStaticSound(iSSelect);
-  Fade(0, 1, 0.04, RenderMap, OnFadedOutToController);
+  Fade(0.0, 1.0, 0.04, RenderMap, OnFadedOutToController);
 end
 -- Set selected zone and transition to controller -------------------------- --
 local function FinishAndAccept()
@@ -325,7 +325,7 @@ local function OnAssetsLoaded(aResources)
   -- Register frame buffer update
   RegisterFBUCallback("map", OnStageUpdated);
   -- Change render procedures
-  Fade(1, 0, 0.04, RenderMap, OnMapFadedIn);
+  Fade(1.0, 0.0, 0.04, RenderMap, OnMapFadedIn);
 end
 -- Init zone selection screen function ------------------------------------- --
 local function InitMap()

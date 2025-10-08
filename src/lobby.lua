@@ -12,7 +12,7 @@
 -- Core function aliases --------------------------------------------------- --
 local error<const>, tostring<const>, unpack<const> =
   error, tostring, table.unpack;
--- M-Engine aliases (optimisation) ----------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreTicks<const>, UtilBlank<const>, UtilIsTable<const>,
   UtilIsBoolean<const>, UtilIsInteger<const> =
     Core.Ticks, Util.Blank, Util.IsTable, Util.IsBoolean, Util.IsInteger;
@@ -40,23 +40,23 @@ local oObjActive,                   -- Selected object when entering lobby
       iKeyBankClosedSelectedId,        -- Closed key bank selected
       iKeyBankOpenedId,                -- Opened key bank id
       iSSelect,                        -- Select sound effect id
-      iStageL, iStageR,                -- Stage bounds
+      nStageL, nStageR,                -- Stage bounds
       texLobby,                        -- Lobby texture
       texZmtc;                         -- Background texture
 -- Register frame buffer update -------------------------------------------- --
-local function OnStageUpdated(...)
-  local _; _, _, iStageL, _, iStageR, _ = ...;
+local function OnStageUpdated(_, _, iStageL, _, iStageR)
+  nStageL, nStageR = iStageL + 0.0, iStageR + 0.0;
 end
 -- Lobby open render proc -------------------------------------------------- --
 local function RenderOpen()
   -- Render game interface, backdrop, shadow and tip
   RenderAll();
-  BlitLT(texLobby, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitLT(texLobby, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Render fire
   local iFrame<const> = CoreTicks() % 9;
-  if iFrame >= 6 then BlitSLT(texLobby, 1, 113, 74);
-  elseif iFrame >= 3 then BlitSLT(texLobby, 2, 113, 74);
+  if iFrame >= 6 then BlitSLT(texLobby, 1, 113.0, 74.0);
+  elseif iFrame >= 3 then BlitSLT(texLobby, 2, 113.0, 74.0);
   else fcbRenderExtra() end;
   -- Render tip
   RenderTip();
@@ -64,18 +64,18 @@ end
 -- Lobby closed render proc ------------------------------------------------ --
 local function RenderClosed()
   -- Draw backdrop, lobby background and shadow around lobby
-  BlitLT(texZmtc, -96, 0);
-  RenderShadow(8, 8, 312, 208);
-  BlitLT(texLobby, 8, 8);
+  BlitLT(texZmtc, -96.0, 0.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
+  BlitLT(texLobby, 8.0, 8.0);
   -- Render fire
   local iFrame<const> = CoreTicks() % 9;
-  if iFrame >= 6 then BlitSLT(texLobby, 4, 113, 74);
-  elseif iFrame >= 3 then BlitSLT(texLobby, 3, 113, 74);
+  if iFrame >= 6 then BlitSLT(texLobby, 4, 113.0, 74.0);
+  elseif iFrame >= 3 then BlitSLT(texLobby, 3, 113.0, 74.0);
   -- Flash if not ready to play
   else fcbRenderExtra() end;
   -- Draw foliage
-  BlitSLT(texLobby, 1, iStageR-238, 184);
-  BlitSLT(texLobby, 2, iStageL,      56);
+  BlitSLT(texLobby, 1, nStageR - 238.0, 184.0);
+  BlitSLT(texLobby, 2, nStageL,          56.0);
   -- Render tip
   RenderTipShadow();
 end
@@ -114,9 +114,9 @@ local function OnLoadedClosed(aResources, bSetMusic)
   -- Register frame buffer update
   RegisterFBUCallback("lobby", OnStageUpdated);
   -- Set speech colour to white
-  fontSpeech:SetCRGBAI(0xFFFFFFFF);
+  fontSpeech:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Fade In a closed lobby
-  Fade(1, 0, 0.04, RenderClosed, OnFadedIn);
+  Fade(1.0, 0.0, 0.04, RenderClosed, OnFadedIn);
 end
 -- Not ready callback ------------------------------------------------------ --
 local function NotReadyCallback() Print(fontSpeech, 157, 115, "!") end;
@@ -199,7 +199,7 @@ local function ExitClose(bFadeMusic, fcbCallback, ...)
     texLobby, texZmtc = nil, nil;
   end
   -- Fade out to title screen
-  return Fade(0, 1, 0.04, RenderClosed, OnFadeOutClosed, bFadeMusic);
+  return Fade(0.0, 1.0, 0.04, RenderClosed, OnFadeOutClosed, bFadeMusic);
 end
 -- Click when lobby is opened ---------------------------------------------- --
 local function ExitOpen(fcbCallback, ...)

@@ -10,9 +10,9 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTRB, BlitSLT, BlitLT, Fade, InitCon, LoadResources,
+local BlitSLTWH, BlitSLT, BlitLT, Fade, InitCon, LoadResources,
   PlayStaticSound, RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot,
   SetKeys, TypeIdToId, oGlobalData, aRaceStatData, texSpr;
 -- Locals ------------------------------------------------------------------ --
@@ -22,12 +22,12 @@ local aAssets,                         -- Assets Required
       iRaceId,                         -- Chosen race id
       iRaceIdSelected,                 -- Currently displayed race id
       iRaceObjId,                      -- Race object id selected
-      iStatStr, iStatSta, iStatDsp,    -- Race trait power bars
-      iStatPat, iStatAtp, iStatTel,    -- Race trait power bars
       iSClick, iSSelect,               -- Sound effect ids
       iTileLabel,                      -- Label id to draw
       iTilePortrait,                   -- Portrait id to draw
       iTileSpecial,                    -- Special id to draw
+      nStatStr, nStatSta, nStatDsp,    -- Race trait power bars
+      nStatPat, nStatAtp, nStatTel,    -- Race trait power bars
       texZmtc,                         -- Lobby texture
       texRace;                         -- Race texture
 -- Tile data (See data.lua/oAssetsData.race.P) ----------------------------- --
@@ -48,35 +48,34 @@ local function SetRaceId(iId)
   -- Set actual race object type
   iRaceObjId = aRaceDataSelected[1];
   -- Set power bars
-  local iX<const> = 115;
-  iStatStr, iStatSta, iStatDsp, iStatPat, iStatAtp, iStatTel =
-    iX + aRaceDataSelected[2], iX + aRaceDataSelected[3],
-    iX + aRaceDataSelected[4], iX + aRaceDataSelected[5],
-    iX + aRaceDataSelected[6], iX + aRaceDataSelected[7];
+  nStatStr, nStatSta, nStatDsp, nStatPat, nStatAtp, nStatTel =
+    aRaceDataSelected[2], aRaceDataSelected[3],
+    aRaceDataSelected[4], aRaceDataSelected[5],
+    aRaceDataSelected[6], aRaceDataSelected[7];
 end
 -- Render race ------------------------------------------------------------- --
 local function ProcRenderRace()
   -- Draw zmtc backdrop
-  BlitLT(texZmtc, -96, 0);
+  BlitLT(texZmtc, -96.0, 0.0);
   -- Draw race page backdrop, race title text and race special
-  BlitLT(texRace, 8, 8);
-  BlitSLT(texRace, iTilePortrait, 172, 54);
-  BlitSLT(texRace, iTileLabel, 80, 24);
-  BlitSLT(texRace, iTileSpecial, 114, 175);
+  BlitLT(texRace, 8.0, 8.0);
+  BlitSLT(texRace, iTilePortrait, 172.0, 54.0);
+  BlitSLT(texRace, iTileLabel, 80.0, 24.0);
+  BlitSLT(texRace, iTileSpecial, 114.0, 175.0);
   -- Draw selected symbol if this is the selected digger
   if iRaceId == iRaceIdSelected then
-    BlitSLT(texRace, 5, 132, 80, 192, 208) end;
+    BlitSLT(texRace, 5, 132.0, 80.0, 192.0, 208.0) end;
   -- Draw stats
-  texSpr:SetCRGBA(1, 0, 0, 0.5);
-  BlitSLTRB(texSpr, 1022, 115,  62, iStatStr,  65);
-  BlitSLTRB(texSpr, 1022, 115,  82, iStatSta,  85);
-  BlitSLTRB(texSpr, 1022, 115, 102, iStatDsp, 105);
-  BlitSLTRB(texSpr, 1022, 115, 122, iStatPat, 125);
-  BlitSLTRB(texSpr, 1022, 115, 142, iStatAtp, 145);
-  BlitSLTRB(texSpr, 1022, 115, 162, iStatTel, 165);
-  texSpr:SetCRGBA(1, 1, 1, 1);
+  texSpr:SetCRGBA(1.0, 0.0, 0.0, 0.5);
+  BlitSLTWH(texSpr, 1022, 115.0,  62.0, nStatStr, 3.0);
+  BlitSLTWH(texSpr, 1022, 115.0,  82.0, nStatSta, 3.0);
+  BlitSLTWH(texSpr, 1022, 115.0, 102.0, nStatDsp, 3.0);
+  BlitSLTWH(texSpr, 1022, 115.0, 122.0, nStatPat, 3.0);
+  BlitSLTWH(texSpr, 1022, 115.0, 142.0, nStatAtp, 3.0);
+  BlitSLTWH(texSpr, 1022, 115.0, 162.0, nStatTel, 3.0);
+  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Draw background shadow
-  RenderShadow(8, 8, 312, 208);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw tip and shadow
   RenderTipShadow();
 end
@@ -103,14 +102,14 @@ local function GoCntrl()
   -- When faded out?
   local function OnFadeOut()
     -- Dereference used variables and handles
-    iRaceId, iRaceObjId, iStatStr, iStatSta, iStatDsp, iStatPat, iStatAtp,
-      iStatTel, iTileLabel, iTilePortrait, iTileSpecial, texZmtc, texRace =
+    iRaceId, iRaceObjId, nStatStr, nStatSta, nStatDsp, nStatPat, nStatAtp,
+      nStatTel, iTileLabel, iTilePortrait, iTileSpecial, texZmtc, texRace =
         nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil;
     -- Load controller screen
     InitCon();
   end
   -- Fade out to controller screen
-  Fade(0, 1, 0.04, ProcRenderRace, OnFadeOut);
+  Fade(0.0, 1.0, 0.04, ProcRenderRace, OnFadeOut);
 end
 -- When accepting the race selection --------------------------------------- --
 local function GoAccept()
@@ -121,7 +120,7 @@ local function GoAccept()
 end
 -- When scroll wheel or trackpad is moved ---------------------------------- --
 local function OnScroll(nX, nY)
-  if nY > 0 then GoPrevious() elseif nY < 0 then GoNext() end;
+  if nY > 0.0 then GoPrevious() elseif nY < 0.0 then GoNext() end;
 end
 -- Data loaded function ---------------------------------------------------- --
 local function OnAssetsLoaded(aResources)
@@ -132,7 +131,7 @@ local function OnAssetsLoaded(aResources)
   -- Set race already selected
   SetRaceId(iRaceIdSelected or 0);
   -- Fade in
-  Fade(1, 0, 0.04, ProcRenderRace, ProcRaceInitial);
+  Fade(1.0, 0.0, 0.04, ProcRenderRace, ProcRaceInitial);
 end
 -- Init race screen function ----------------------------------------------- --
 local function InitRace() LoadResources("Race", aAssets, OnAssetsLoaded) end;
@@ -141,11 +140,11 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
-  BlitSLTRB, BlitSLT, BlitLT, Fade, InitCon, LoadResources, PlayStaticSound,
+  BlitSLTWH, BlitSLT, BlitLT, Fade, InitCon, LoadResources, PlayStaticSound,
     RegisterHotSpot, RegisterKeys, RenderShadow, RenderTipShadow, SetCallbacks,
     SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData,
     aRaceStatData, oSfxData, texSpr =
-      GetAPI("BlitSLTRB", "BlitSLT", "BlitLT", "Fade", "InitCon",
+      GetAPI("BlitSLTWH", "BlitSLT", "BlitLT", "Fade", "InitCon",
         "LoadResources", "PlayStaticSound", "RegisterHotSpot",
         "RegisterKeys", "RenderShadow", "RenderTipShadow", "SetCallbacks",
         "SetHotSpot", "SetKeys", "oAssetsData", "oCursorIdData", "oGlobalData",

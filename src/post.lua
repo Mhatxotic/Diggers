@@ -10,11 +10,11 @@
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local UtilTableSize<const>, UtilIsInteger<const> =
   Util.TableSize, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLT, AdjustViewPortX, AdjustViewPortY, DeInitLevel, Fade,
+local BlitSLT, AdjustViewportX, AdjustViewportY, DeInitLevel, Fade,
   GetAbsMousePos, InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan,
   IsMouseXLessThan, IsMouseYGreaterEqualThan, IsMouseYLessThan,
   IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
@@ -40,9 +40,9 @@ local function ProcRenderPostMortem()
   RenderTerrain();
   RenderObjects();
   -- Render post mortem banner and text
-  BlitSLT(texEnd, 4, 8, 208);
-  fontSpeech:SetCRGB(0, 0, 0.25);
-  PrintC(fontSpeech, 160, 215, sObject);
+  BlitSLT(texEnd, 4, 8.0, 208.0);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
+  PrintC(fontSpeech, 160.0, 215.0, sObject);
 end
 -- On frame buffer updated ------------------------------------------------- --
 local function OnStageUpdated(...)
@@ -78,7 +78,7 @@ local function GoFinish()
   -- Play button select sound
   PlayStaticSound(iSSelect);
   -- Start fading out
-  Fade(0, 1, 0.04, ProcRenderPostMortem, OnFadedOutToLobby, true);
+  Fade(0.0, 1.0, 0.04, ProcRenderPostMortem, OnFadedOutToLobby, true);
 end
 -- Set specific object ----------------------------------------------------- --
 local function SetObject(iNewObj)
@@ -99,10 +99,10 @@ end
 local function GoNextObject() SetObject(iObject + 1) end;
 local function GoPreviousObject() SetObject(iObject - 1) end;
 -- Scroll the map ---------------------------------------------------------- --
-local function GoScrollUp() AdjustViewPortY(-16) end;
-local function GoScrollDown() AdjustViewPortY(16) end;
-local function GoScrollLeft() AdjustViewPortX(-16) end;
-local function GoScrollRight() AdjustViewPortX(16) end;
+local function GoScrollUp() AdjustViewportY(-16) end;
+local function GoScrollDown() AdjustViewportY(16) end;
+local function GoScrollLeft() AdjustViewportX(-16) end;
+local function GoScrollRight() AdjustViewportX(16) end;
 -- On hover ---------------------------------------------------------------- --
 local function OnHover()
   -- Cursor at top edge of screen?
@@ -138,17 +138,17 @@ end
 -- On scroll --------------------------------------------------------------- --
 local function OnScroll(nX, nY)
   -- Mouse wheel is scrolling up? Goto previous object
-  if nY > 0 then GoPreviousObject();
+  if nY > 0.0 then GoPreviousObject();
   -- Mouse wheel is scrolling down? Goto next object
-  elseif nY < 0 then GoNextObject() end;
+  elseif nY < 0.0 then GoNextObject() end;
 end
 -- On mouse released (remove logic function) ------------------------------- --
 local function OnRelease() SetCallbacks(nil, ProcRenderPostMortem) end;
 -- Cursor drag event ------------------------------------------------------- --
 local function OnDrag(_, _, _, iMoveX, iMoveY)
   -- Move the level to how the mouse is dragging
-  AdjustViewPortX(iMoveX);
-  AdjustViewPortY(iMoveY);
+  AdjustViewportX(iMoveX);
+  AdjustViewportY(iMoveY);
   -- Keep arrow shown
   SetCursor(iCArrow)
 end
@@ -173,9 +173,9 @@ end
 -- Proc fade in ------------------------------------------------------------ --
 local function LogicAnimatedPostMortem()
   -- Fade in elements and return until zero
-  if nFade > 0 then nFade = nFade - 0.01 return end;
+  if nFade > 0.0 then nFade = nFade - 0.01 return end;
   -- Clamp fade to fully transparent
-  nFade = 0;
+  nFade = 0.0;
   -- Enable post mortem keys and hotspots
   SetKeys(true, iKeyBankId);
   SetHotSpot(iHotSpotId);
@@ -192,10 +192,10 @@ local function RenderAnimatedPostMortem()
   -- Render fade in
   RenderFade(nFade);
   -- Render post mortem banner and text
-  local nAdj<const> = nFade * 128;
-  BlitSLT(texEnd, 4, 8, 208 + nAdj);
-  fontSpeech:SetCRGB(0, 0, 0.25);
-  PrintC(fontSpeech, 160, 215 + nAdj, sObject);
+  local nAdj<const> = nFade * 128.0;
+  BlitSLT(texEnd, 4, 8.0, 208.0 + nAdj);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
+  PrintC(fontSpeech, 160.0, 215.0 + nAdj, sObject);
 end
 -- When post mortem assets are loaded? ------------------------------------- --
 local function OnAssetsLoaded(aResources)
@@ -221,7 +221,7 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Imports
-  AdjustViewPortX, AdjustViewPortY, BlitSLT, DeInitLevel, Fade, GetAbsMousePos,
+  AdjustViewportX, AdjustViewportY, BlitSLT, DeInitLevel, Fade, GetAbsMousePos,
     InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan,
     IsMouseXLessThan, IsMouseYGreaterEqualThan, IsMouseYLessThan,
     IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
@@ -229,7 +229,7 @@ local function OnScriptLoaded(GetAPI)
     RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
     SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData, aLevelsData,
     aObjectFlags, aObjs, oSfxData, fontSpeech =
-      GetAPI("AdjustViewPortX", "AdjustViewPortY", "BlitSLT", "DeInitLevel",
+      GetAPI("AdjustViewportX", "AdjustViewportY", "BlitSLT", "DeInitLevel",
         "Fade", "GetAbsMousePos", "InitEnding", "InitFail", "InitLobby",
         "IsMouseXGreaterEqualThan", "IsMouseXLessThan",
         "IsMouseYGreaterEqualThan", "IsMouseYLessThan", "IsSpriteCollide",

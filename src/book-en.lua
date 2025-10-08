@@ -188,7 +188,7 @@ local aBookData<const> = {
     Search\n\z
     \n\z
     Teleport",
-    I={ 1, 164, 54 }, L=-1.5
+    I={ 1, 164.0, 54.0 }, L=-1.5
   -- Page 15 --------------------------------------------------------------- --
   },{ T="Jump\n\z
     \n\z
@@ -205,7 +205,7 @@ local aBookData<const> = {
     Return to main menu\n\z
     \n\z
     Walk left",
-    I={ 2, 164, 24 }, L=-1.5
+    I={ 2, 164.0, 24.0 }, L=-1.5
   -- Page 16 --------------------------------------------------------------- --
   },{ T="\n\z
     Digging directions\n\z
@@ -221,7 +221,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Cycles between teleport",
-    I={ 3, 164, 24 }, L=-0.75
+    I={ 3, 164.0, 24.0 }, L=-0.75
   -- Page 17 --------------------------------------------------------------- --
   },{ T="                                     CONTROL PANEL\n\z
         Cash Account                Items and gems collected\n\z
@@ -239,7 +239,7 @@ local aBookData<const> = {
     \n\z
     \n\z
     Digger selected      Machine selection      Diggers location",
-    I={ 4, 96, 51 }, L=-0.75
+    I={ 4, 96.0, 51.0 }, L=-0.75
   -- Page 18 --------------------------------------------------------------- --
   },{ T="DESCRIPTION OF RACE CHARACTERISTICS\n\z
     \n\z
@@ -253,7 +253,7 @@ local aBookData<const> = {
     \n\z
     Intelligence                                    Double healing\n\z
     ¶                                                      (F'Targs only)",
-    I={ 5, 140, 44 }, L=-1.5
+    I={ 5, 140.0, 44.0 }, L=-1.5
   -- Page 19 --------------------------------------------------------------- --
   },{ T="LOADING & SAVING\n\z
     \n\z
@@ -307,7 +307,7 @@ local aBookData<const> = {
     they could continue digging for a\n\z
     long time, they are very impatient and soon lose interest in digging, \z
     preferring wherever possible to pilfer aluables mined by others.",
-    I={ 6, 210, 41 }
+    I={ 6, 210.0, 41.0 }
   -- Page 24 --------------------------------------------------------------- --
   },{ T="The Habbish are a mystical order ruled by their Lord High \z
     Habborg. This exalted being has decreed that his followers must build \z
@@ -337,7 +337,7 @@ local aBookData<const> = {
     The Grablins only weakness is for the fiendishly strong drink, Grok. \z
     Although described by others as an \"unaquirable taste\" with a smell \z
     \"worse than the",
-    I={ 7, 200, 15 }
+    I={ 7, 200.0, 15.0 }
   -- Page 26 --------------------------------------------------------------- --
   },{ T="breath of a fire-breathing Scabrosaur from the swirling slime \z
     pools of Sulphuria\" and \"more userul as a defensive shield against \z
@@ -366,7 +366,7 @@ local aBookData<const> = {
     yet adapted well to cramped mining conditions, they tire easily and \z
     are slow at digging. They are extremely reliable and patient, but \z
     lack initiative.",
-    I={ 8, 210, 20 }
+    I={ 8, 210.0, 20.0 }
   -- Page 28 --------------------------------------------------------------- --
   },{ T="The Quarriors are flat broke as they were recently tricked by a \z
     second-hand arms salescreature. Their ambition is to build a fortified \z
@@ -387,7 +387,7 @@ local aBookData<const> = {
     Grablins but can continue mining much longer than the others. They \z
     enjoy digging but can be distracted by objects that take their fancy. \z
     Their",
-    I={ 9, 210, 20 }
+    I={ 9, 210.0, 20.0 }
   -- Page 30 --------------------------------------------------------------- --
   },{ T="desire to collect often gets them into trouble outside the mines. \z
     They are not very aggressive or good at fighting but if hurt, they can \z
@@ -477,7 +477,7 @@ local aBookData<const> = {
     Upon capture and infra-red studying, one specimen's stomach was found \z
     to contain a beginner's guide to spotting dangerous plants and a pair \z
     of spectacles of a similar prescription to Dr Frinklin's.",
-    I={ 10, 200, 15 }
+    I={ 10, 200.0, 15.0 }
   -- Page 38 --------------------------------------------------------------- --
   },{ T="Fungus Kaleidoscopus\n\z
     \n\z
@@ -490,7 +490,7 @@ local aBookData<const> = {
     wide variety of effects upon Some simply died, some became twice as \z
     strong while others seemed distracted and talked gibberish about pink \z
     giraffes.",
-    I={ 11, 200, 15 }
+    I={ 11, 200.0, 15.0 }
   -- Page 39 --------------------------------------------------------------- --
   },{ T="\n\z
     \n\z
@@ -506,7 +506,7 @@ local aBookData<const> = {
     skin, two horns.\n\z
     Normally docile, Stegosaurus will charge if provoked or threatened. \z
     In narrow tunnels Stegosaurus is capable of",
-    I={ 12, 96, 15 }
+    I={ 12, 96.0, 15.0 }
   -- Page 40 --------------------------------------------------------------- --
   },{ T="crushing victories over enemies.\n\z
     \n\z
@@ -541,7 +541,7 @@ local aBookData<const> = {
     a miner, now retired. His story is below.\n\z
     \n\z
     \"It was 'orrible. The guvnor said we should dig into",
-    I={ 13, 96, 15 }
+    I={ 13, 96.0, 15.0 }
   -- Page 43 --------------------------------------------------------------- --
   },{ T="this bit of rock. Well, I don't mind telling you, I didn't like \z
     it, not one bit. Something was wrong you know, it wasn't quite right \z
@@ -568,7 +568,7 @@ local aBookData<const> = {
     ago. The frozen remains of one ot these beasts was discovered one year \z
     ago and more may be discovered in a petrified condition in icy areas. \z
     Woolly",
-    I={ 14, 96, 15 }
+    I={ 14, 96.0, 15.0 }
   -- Page 45 --------------------------------------------------------------- --
   },{ T="mammal meat has been eaten by starving Arctic explorers:\n\z
     \"Mnmn, just give me a ... second to stop mnmnmn ... chewing ...\"\n\z
@@ -589,7 +589,7 @@ local aBookData<const> = {
     Many varieties of fish are belleved to exist. However anglers' stories \z
     have proved somewhat unreliable. Few examples have ever been brought \z
     to the institute, \"it",
-    I={ 15, 96, 15 }
+    I={ 15, 96.0, 15.0 }
   -- Page 47 --------------------------------------------------------------- --
   },{ T="got away\" - and accurate size estimates have proved impossible. \z
     Tales of the ferocious \"Pikosaurus\" must also be taken with a pinch \z
@@ -608,7 +608,7 @@ local aBookData<const> = {
     believed to live deep underground, they are rarely seen and little is \z
     known of their behavioural patterns. The following is a Quarrior's \z
     account of his encounter with a sand worm.",
-    I={ 16, 96, 15 }
+    I={ 16, 96.0, 15.0 }
   -- Page 49 --------------------------------------------------------------- --
   },{ T="\"We were minding our own business, tunnelling away quietly - \z
     well, as quiet as you can get with dynamite and suddenly the floor \z
@@ -699,7 +699,7 @@ local aBookData<const> = {
     used to secure mining operations from rival diggers. Flood gates are \z
     extremely resilient to pressure and can withstand most digging \z
     machines, but they can be opened by large amounts of explosives",
-    I={ 17, 196, 29 }
+    I={ 17, 196.0, 29.0 }
   -- Page 56 --------------------------------------------------------------- --
   },{ T="Telepole\n\z
     \n\z
@@ -713,7 +713,7 @@ local aBookData<const> = {
     instantly. At the beginning of mining operations, each race of diggers \z
     is supplied with a teleport. Habbish can use any of the other diggers' \z
     telepoles. Other diggers can only use their telepoles.",
-    I={ 18, 196, 29 }
+    I={ 18, 196.0, 29.0 }
   -- Page 57 --------------------------------------------------------------- --
   },{ T="Train Track\n\z
     \n\z
@@ -727,7 +727,7 @@ local aBookData<const> = {
     pack of 5. Track must be positioned correctly. Once laid in position, \z
     it forms a permanent bond with the ground and cannot be moved, nor can \z
     it be dug through.",
-    I={ 19, 196, 29 }
+    I={ 19, 196.0, 29.0 }
   -- Page 58 --------------------------------------------------------------- --
   },{ T="Automatic Mine Cart\n\z
     \n\z
@@ -739,7 +739,7 @@ local aBookData<const> = {
     General Information: An ingenious self-propelling and self-steering \z
     mine cart capable of holding large amounts of minerals. Ideal for \z
     quick transport of diggers or minerals between locations.",
-    I={ 20, 196, 29 }
+    I={ 20, 196.0, 29.0 }
   -- Page 59 --------------------------------------------------------------- --
   },{ T="Small Tunnelling Machine\n\z
     \n\z
@@ -751,7 +751,7 @@ local aBookData<const> = {
     General Information: Cordless machine. Nicknamed 'the mole', this \z
     tunnelling machine is light and portable. Drills many times quicker \z
     than the fastest spade-wielding digger.",
-    I={ 21, 196, 29 }
+    I={ 21, 196.0, 29.0 }
   -- Page 60 --------------------------------------------------------------- --
   },{ T="Single Bridge Bit\n\z
     \n\z
@@ -764,7 +764,7 @@ local aBookData<const> = {
     Extremely strong, can take heauy loads. Bridge bit must be securely \z
     anchored on firm ground. Bridges are vulnerable targets - caution must \z
     be exercised when crossing them.",
-    I={ 22, 196, 29 }
+    I={ 22, 196.0, 29.0 }
   -- Page 61 --------------------------------------------------------------- --
   },{ T="Inflatable Boat\n\z
     \n\z
@@ -775,7 +775,7 @@ local aBookData<const> = {
     \n\z
     General Information: Extremely durable crafts. Carrying capacity is \z
     limited to one digger. Unsuitable for rough seas or long voyages.",
-    I={ 23, 196, 29 }
+    I={ 23, 196.0, 29.0 }
   -- Page 62 --------------------------------------------------------------- --
   },{ T="Vertical Digger\n\z
     \n\z
@@ -789,7 +789,7 @@ local aBookData<const> = {
     Once started, the 'corkscrew' continues drilling automatically for a \z
     set period of time or until it hits an obstacle. Beware using this \z
     equipment in watery areas.",
-    I={ 24, 196, 29 }
+    I={ 24, 196.0, 29.0 }
   -- Page 63 --------------------------------------------------------------- --
   },{ T="Large Tunnelling Machine\n\z
     \n\z
@@ -804,7 +804,7 @@ local aBookData<const> = {
     exercised when operating the 'Monster'. Point at surface to be \z
     drilled and start up. Do not stand in front of the 'Monster' at any \z
     time.",
-    I={ 25, 196, 29 }
+    I={ 25, 196.0, 29.0 }
   -- Page 64 --------------------------------------------------------------- --
   },{ T="Explosives\n\z
     \n\z
@@ -818,7 +818,7 @@ local aBookData<const> = {
     rivals' mine.\n\z
     There is very little margin for error when using explosives, mistakes \z
     are often fatal!",
-    I={ 26, 196, 29 }
+    I={ 26, 196.0, 29.0 }
   -- Page 65 --------------------------------------------------------------- --
   },{ T="Lift\n\z
     \n\z
@@ -833,7 +833,7 @@ local aBookData<const> = {
     block at the top of the lift and the foot block at the bottom MUST be \z
     firmly anchored in a block of plain earth. Without these element in \z
     the correct position the lift will refuse to function.",
-    I={ 27, 196, 29 }
+    I={ 27, 196.0, 29.0 }
   -- Page 66 --------------------------------------------------------------- --
   },{ T="TNT Map\n\z
     \n\z
@@ -846,7 +846,7 @@ local aBookData<const> = {
     apart from the guide! Utilising the special abilities of TNT paper, \z
     the map shows the entire zone with all it's features and is constantly \z
     updated.",
-    I={ 28, 196, 29 }
+    I={ 28, 196.0, 29.0 }
   -- Page 67 --------------------------------------------------------------- --
   },{ T="First Aid Kit\n\z
     \n\z
@@ -859,7 +859,7 @@ local aBookData<const> = {
     will slowly replenish the stamina of the digger holding it. It is \z
     possible to give the kit to another digger who may benefit from any \z
     remaining \'medicine\'.",
-    I={ 29, 196, 29 }
+    I={ 29, 196.0, 29.0 }
   -- Page 68 --------------------------------------------------------------- --
   },{ T="ZARGON BANK\n\z
     \n\z
@@ -970,7 +970,7 @@ local aBookData<const> = {
     Thanks for the rocks suckers.\"\n\z
     \n\z
     Larson E.",
-    I={ 30, 212, 62 }
+    I={ 30, 212.0, 62.0 }
   -- Page 78 --------------------------------------------------------------- --
   },{ T="THE CRASH OF '94\n\z
     \n\z

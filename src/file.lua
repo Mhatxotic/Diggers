@@ -13,7 +13,7 @@
 local cos<const>, floor<const>, format<const>, pairs<const>, sin<const>,
   tonumber<const> =
     math.cos, math.floor, string.format, pairs, math.sin, tonumber;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local UtilFormatNumber<const>, UtilFormatTime<const>, CoreOSTime<const>,
   CoreTime<const>, VariableSave<const> = Util.FormatNumber, Util.FormatTime,
     Core.OSTime, Core.Time, Variable.Save;
@@ -125,23 +125,25 @@ end
 -- Render callback --------------------------------------------------------- --
 local function RenderFile()
   -- Draw trace-centre backdrop, file screen and shadow
-  BlitLT(texZmtc, -96, 0);
-  BlitLT(texFile, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitLT(texZmtc, -96.0, 0.0);
+  BlitLT(texFile, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw message
-  fontSpeech:SetCRGB(0, 0, 0.25);
-  PrintC(fontSpeech, 160, 31, sMsg);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
+  PrintC(fontSpeech, 160.0, 31.0, sMsg);
   -- Render file names
   for iFileId = 1, #aSaveSlot do
+    -- Calculate Y
+    local nY<const> = iFileId * 13.0;
     -- File selected? Draw selection box!
     if iSelected == iFileId then
       local nTime<const> = CoreTime();
       RenderFade(0.5 + (sin(nTime) * cos(nTime) * 0.25),
-        35, 47 + (iFileId * 13), 285, 60 + (iFileId * 13));
+        35.0, 47.0 + nY, 285.0, 60.0 + nY);
     end
     -- Print name of file
-    fontSpeech:SetCRGB(1, 1, 1);
-    PrintC(fontSpeech, 160, 49 + (iFileId * 13), aNameData[iFileId]);
+    fontSpeech:SetCRGB(1.0, 1.0, 1.0);
+    PrintC(fontSpeech, 160.0, 49 + nY, aNameData[iFileId]);
   end
   -- Draw tip
   RenderTipShadow();
@@ -158,7 +160,7 @@ local function GoCntrl()
     InitCon();
   end
   -- Fade out
-  Fade(0, 1, 0.04, RenderFile, OnFadeOut);
+  Fade(0.0, 1.0, 0.04, RenderFile, OnFadeOut);
 end
 -- Item selected ----------------------------------------------------------- --
 local function Select(iId)
@@ -320,7 +322,7 @@ local function OnAssetsLoaded(aResources)
   -- Make sure nothing selected so load/save buttons are disabled
   iSelected, sMsg = nil, "SELECT FILE";
   -- Change render procedures
-  Fade(1, 0, 0.04, RenderFile, OnFadeIn);
+  Fade(1.0, 0.0, 0.04, RenderFile, OnFadeIn);
 end
 -- Init load/save screen function ------------------------------------------ --
 local function InitFile() LoadResources("File", aAssets, OnAssetsLoaded) end;

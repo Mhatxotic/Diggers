@@ -12,7 +12,7 @@
 -- Core function aliases --------------------------------------------------- --
 local format<const>, unpack<const>, error<const> =
   string.format, table.unpack, error;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local UtilBlank<const>, UtilIsTable<const> = Util.Blank, Util.IsTable;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, GetGameTicks,
@@ -28,13 +28,13 @@ local aAssets,                         -- Required assets
       iAnimTimer,                      -- Animation timer
       iBankerId,                       -- Banker id selected
       iBankerTexId,                    -- Banker texture id selected
-      iBankerX, iBankerY,              -- Banker position
       iHotSpotId,                      -- Bank hotspot id
       iKeyBankId,                      -- Bank key bank id
       iSError, iSFind, iSSelect,       -- Sound effect ids
       iSTrade,                         -- Trade sound effect id
-      iSpeechBubbleX, iSpeechBubbleY,  -- Speech bubble position
-      iSpeechTextX, iSpeechTextY,      -- Speech text position
+      nBankerX, nBankerY,              -- Banker position
+      nSpeechBubbleX, nSpeechBubbleY,  -- Speech bubble position
+      nSpeechTextX, nSpeechTextY,      -- Speech text position
       iSpeechTimer,                    -- Speech timer
       iTreasureValueModifier,          -- Modified treasure value
       oObjActive,                      -- Currently selected digger
@@ -45,11 +45,11 @@ local aAssets,                         -- Required assets
 local tileSpeech<const> = 1;           -- Speech tile
 -- Banker id to mouse function look up table ------------------------------- --
 local aBankerStaticData<const> = {
-  -- Gem XY  Tex<Bank>XY  Bub XY  Msg XY ----
-  {  50,21, { 1,  25,96,   0,62,  56,69 } }, -- [01]
-  { 153,21, { 4, 129,96, 104,62, 160,69 } }, -- [02]
-  { 257,21, { 7, 233,96, 208,62, 264,69 } }  -- [03]
-  -- Gem XY  Tex<Bank>XY  Bub XY  Msg XY ----
+  -- GemXY --- TexId --- BankerXY ---- BubbleXY ---- MessageXY ----
+  {  50.0, 21.0, { 1,   25.0, 96.0,    0.0, 62.0,   56.0, 69.0 } }, -- [1]
+  { 153.0, 21.0, { 4,  129.0, 96.0,  104.0, 62.0,  160.0, 69.0 } }, -- [2]
+  { 257.0, 21.0, { 7,  233.0, 96.0,  208.0, 62.0,  264.0, 69.0 } }  -- [3]
+  -- GemXY --- TexId --- BankerXY ---- BubbleXY ---- MessageXY ----
 };
 -- Function to refresh banker data ----------------------------------------- --
 local function RefreshData()
@@ -83,8 +83,8 @@ local function SetSpeech(iId, iHoldTime, iSfxId, strMsg, fcbOnComplete)
   strBankerSpeech = strMsg;
   iBankerId = iId;
   -- Set render details from lookup table
-  iBankerTexId, iBankerX, iBankerY, iSpeechBubbleX, iSpeechBubbleY,
-    iSpeechTextX, iSpeechTextY = unpack(aBankerData[iId][8]);
+  iBankerTexId, nBankerX, nBankerY, nSpeechBubbleX, nSpeechBubbleY,
+    nSpeechTextX, nSpeechTextY = unpack(aBankerData[iId][8]);
   -- Finish callback
   local function OnComplete()
     -- Call completion function if set
@@ -171,7 +171,7 @@ local function ProcRender()
   -- Render original interface
   RenderAll();
   -- Draw backdrop with bankers and windows
-  BlitLT(texBank, 8, 8);
+  BlitLT(texBank, 8.0, 8.0);
   -- For each banker
   for iI = 1, #aBankerData do
     -- Get banker data and draw the gem that the banker will sell
@@ -183,10 +183,10 @@ local function ProcRender()
     -- Show banker talking graphic, speech bubble and text
     local iAnimId<const> = iAnimTimer % 4;
     if iAnimId > 0 then
-      BlitSLT(texBank, iAnimId + iBankerTexId, iBankerX, iBankerY);
+      BlitSLT(texBank, iAnimId + iBankerTexId, nBankerX, nBankerY);
     end
-    BlitSLT(texBank, tileSpeech, iSpeechBubbleX, iSpeechBubbleY);
-    PrintC(fontSpeech, iSpeechTextX, iSpeechTextY, strBankerSpeech);
+    BlitSLT(texBank, tileSpeech, nSpeechBubbleX, nSpeechBubbleY);
+    PrintC(fontSpeech, nSpeechTextX, nSpeechTextY, strBankerSpeech);
   end
   -- Render tip
   RenderTip();
@@ -227,10 +227,10 @@ local function OnAssetsLoaded(aResources)
   -- No speech bubbles, reset win notification and set empty tip
   iSpeechTimer = 0;
   -- Set colour of speech text
-  fontSpeech:SetCRGB(0, 0, 0.25);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
   -- Speech render data and message
-  strBankerSpeech, iBankerId, iBankerTexId, iBankerX, iBankerY,
-    iSpeechBubbleX, iSpeechBubbleY, iSpeechTextX, iSpeechTextY =
+  strBankerSpeech, iBankerId, iBankerTexId, nBankerX, nBankerY,
+    nSpeechBubbleX, nSpeechBubbleY, nSpeechTextX, nSpeechTextY =
       nil, nil, nil, nil, nil, nil, nil, nil, nil;
   -- Set a speech bubble above the specified characters head
   fcbSpeechCallback = nil;

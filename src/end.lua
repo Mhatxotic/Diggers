@@ -12,7 +12,7 @@
 -- Core function aliases --------------------------------------------------- --
 local abs<const>, error<const>, floor<const>, tostring<const> =
   math.abs, error, math.floor, tostring;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local UtilFormatNumber<const>, UtilIsBoolean<const>, UtilIsInteger<const>,
   UtilIsString<const>, UtilIsTable<const> = Util.FormatNumber, Util.IsBoolean,
     Util.IsInteger, Util.IsString, Util.IsTable;
@@ -56,32 +56,32 @@ end
 -- Function to help make lines data ---------------------------------------- --
 local function MakeLine(aDest, sMsg)
   -- Chosen X pixel and callback to scroll in
-  local iX, fCb;
+  local nX, fCb;
   -- Id would be even?
   if #aDest % 2 == 0 then
     -- Function to gradually scroll the message in from the left
-    local function Increase(iX)
+    local function Increase(nX)
       -- Clamp (don't include 160 or we'll get a FP error)
-      if iX >= 159 then return 160;
+      if nX > 160.0 then return 160.0;
       -- Move the message right
-      else return iX + abs(-160 + iX) * 0.1 end;
+      else return nX + abs(-160.0 + nX) * 0.1 end;
     end
     -- Set the X pixel and callback
-    iX, fCb = -160, Increase;
+    nX, fCb = -160.0, Increase;
   -- Id would be odd?
   else
     -- Function to gradually scroll the message in from the right
-    local function Decrease(iX)
+    local function Decrease(nX)
       -- Clamp (don't include 160 or we'll get a FP error)
-      if iX < 161 then return 160;
+      if nX < 160.0 then return 160.0;
       -- Move the message left
-      else return iX - (iX - 160) * 0.1 end;
+      else return nX - (nX - 160.0) * 0.1 end;
     end
     -- Set the X pixel and callback
-    iX, fCb = 480, Decrease;
+    nX, fCb = 480.0, Decrease;
   end
   -- Insert into chosen lines
-  aDest[1 + #aDest] = { iX, aDest.Y + (#aDest * 16), fCb, sMsg };
+  aDest[1 + #aDest] = { nX, aDest.Y + (#aDest * 16.0), fCb, sMsg };
 end
 -- Proc a collection of lines ---------------------------------------------- --
 local function ProcCollection(aCollection)
@@ -92,7 +92,7 @@ local function ProcCollection(aCollection)
 end
 -- Draw a collection of lines ---------------------------------------------- --
 local function DrawCollection(aCollection)
-  fontLarge:SetCRGBA(1, 1, 1, 1);
+  fontLarge:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   for iLineId = 1, #aCollection do
     local aItem<const> = aCollection[iLineId];
     PrintC(fontLarge, aItem[1], aItem[2], aItem[4]);
@@ -106,9 +106,10 @@ local function RenderEnd()
   -- Render animated fade
   RenderFade(nFade);
   -- Draw ending graphic
-  local nScale<const> = nFade * 2;
+  local nScale<const> = nFade * 2.0;
   texEnd:SetCA(nScale);
-  BlitSLTWHA(texEnd, iEndTexId, 160, 120, 159 * nScale, 95 * nScale, nScale);
+  BlitSLTWHA(texEnd, iEndTexId, 160.0, 120.0, 159.0 * nScale, 95.0 * nScale,
+    nScale);
   -- Set font colour and draw lines
   for iCollectionId = 1, #aCollections do
     DrawCollection(aCollections[iCollectionId]);
@@ -162,7 +163,7 @@ local function GoWinGameStatus()
   MakeLine(aLinesCentre,
     "(REQUIRED: "..Colourise(oGlobalData.gZogsToWinGame)..")");
   -- We're going to reuse this value just as an input blocking timer
-  nFade = 0;
+  nFade = 0.0;
   -- Dereference the ending texture
   texEnd = nil
   -- Set no keys and wait hot spot until animation finished
@@ -183,7 +184,7 @@ local function GoLoseScore()
     InitScore();
   end
   -- Failed? Restart the level!
-  Fade(0, 1, 0.04, RenderEnd, OnFadeOut, true);
+  Fade(0.0, 1.0, 0.04, RenderEnd, OnFadeOut, true);
 end
 -- Proc end function ------------------------------------------------------- --
 local function ProcBankAnimateEnd()
@@ -308,7 +309,7 @@ local function OnAssetsLoaded(aResources, oPlrActive, oPlrOpponent, sMsg)
   oGlobalData.gPercentCompleted =
     floor(oGlobalData.gBankBalance / oGlobalData.gZogsToWinGame * 100);
   -- Make lines data with initial Y position
-  aLinesTop, aLinesBottom, aLinesCentre = { Y=12 }, { Y=180 }, { Y=80 };
+  aLinesTop, aLinesBottom, aLinesCentre = { Y=12.0 }, { Y=180.0 }, { Y=80.0 };
   -- Array holding top and bottom datas which are drawn together
   aCollections = { aLinesTop, aLinesBottom };
   -- Build data for top three lines
@@ -321,7 +322,7 @@ local function OnAssetsLoaded(aResources, oPlrActive, oPlrOpponent, sMsg)
   MakeLine(aLinesBottom, Red(iSalary).." SALARY PAID");
   MakeLine(aLinesBottom, Red(iDeadCost).." DEATH DUTIES");
   -- Fade amount
-  nFade, nScale = 0, 0;
+  nFade, nScale = 0.0, 0.0;
   -- Change render procedures
   SetCallbacks(ProcAnimateEnd, RenderEnd);
 end

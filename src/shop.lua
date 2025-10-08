@@ -12,7 +12,7 @@
 -- Core function aliases --------------------------------------------------- --
 local random<const>, format<const>, error<const>, tostring<const> =
   math.random, string.format, error, tostring;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 local CoreTicks<const>, UtilIsInteger<const>, UtilIsTable<const> =
   Core.Ticks, Util.IsInteger, Util.IsTable;
 -- Diggers function and data aliases --------------------------------------- --
@@ -39,19 +39,28 @@ local aAssets,                         -- Assets required
       iKeyBankClosedId,                -- Closed key bank id
       iKeyBankOpenId,                  -- Opened key bank id
       iSHolo,                          -- Switch product sound effect id
-      iSError, iSFind, iSHoloHum,      -- Sound effect ids
-      iSOpen, iSSelect, iSTrade,       -- More sound effect ids
+      iSFind, iSHoloHum,               -- Sound effect ids
+      iSOpen, iSSelect,                -- More sound effect ids
       iSpeechTicks,                    -- Speech ticks left and shop open
-      oObjActive,                   -- Currently selected digger
+      oObjActive,                      -- Currently selected digger
       oBuyObject,                      -- Currently selected object data
       oDiggerInfo,                     -- Digger properties
       sLongName, sPrice, sDesc,        -- Long name and info of product
       sMsg,                            -- Speech text
       texShop;                         -- shop texture
 -- Tile ids (see data.lua/oAssetsData.shop.P) ------------------------------ --
-local iTileDoor<const> = 31;           local iTileFork<const> = 46;
-local iTileDoorMax     = iTileDoor + 14;   -- Maximum door tile id
-local iTileAnimMax     = iTileFork + 11;   -- Maximum forklift tile id
+local iTileDoor<const>    = 31;               -- Door start tile id
+local iTileFork<const>    = 46;               -- Forklift start tile id
+local iTileDoorMax<const> = iTileDoor + 14;   -- Maximum door tile id
+local iTileAnimMax<const> = iTileFork + 11;   -- Maximum forklift tile id
+-- BuyItem() function results ---------------------------------------------- --
+local aBuyItemResults<const> = {
+  { "YOU CAN'T AFFORD IT!",   false, false }, -- 1 (Speech, SfxId, Success)
+  { "TOO HEAVY FOR YOU!",     false, false }, -- 2
+  { "OUT OF STOCK!",          false, false }, -- 3
+  { "WHOOPS! DON'T DROP IT!", false, false }, -- 4
+  { "SOLD TO YOU NOW!",       false, true  }, -- 5
+};
 -- Update price and carryable display -------------------------------------- --
 local function UpdateCarryable()
   sPrice = format("%03uz (%u)",
@@ -122,13 +131,13 @@ end
 local function RenderBackground()
   -- Render original interface backdrop and shadow
   RenderAll();
-  BlitSLT(texShop, 20, 8, 8);
-  RenderShadow(8, 8, 312, 208);
+  BlitSLT(texShop, 20, 8.0, 8.0);
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw animations
-  if iAnimDoor ~= 0 then BlitSLT(texShop, iAnimDoor, 272, 79) end;
+  if iAnimDoor ~= 0 then BlitSLT(texShop, iAnimDoor, 272.0, 79.0) end;
   if random() < 0.001 and iAnimDoorMod == 0 then iAnimDoorMod = 1 end;
   BlitSLT(texShop, CoreTicks() // 10 % 3 + 28, 9, 174); -- Floor lights
-  if iForkAnim ~= 0 then BlitSLT(texShop, iForkAnim, 112, 95) end;
+  if iForkAnim ~= 0 then BlitSLT(texShop, iForkAnim, 112.0, 95.0) end;
   if random() < 0.001 and iForkAnimMod == 0 then iForkAnimMod = 1 end;
 end
 -- Render speech bubble scene ---------------------------------------------- --
@@ -136,9 +145,9 @@ local function RenderSpeech()
   -- Speech ticks set?
   if iSpeechTicks > 0 then
     -- Render shopkeeper talking and speech bubble
-    BlitSLT(texShop, CoreTicks() // 10 % 4 + 22, 112, 127);
-    BlitSLT(texShop, 21, 0, 160);
-    PrintC(fontSpeech, 56, 167, sMsg);
+    BlitSLT(texShop, CoreTicks() // 10 % 4 + 22, 112.0, 127.0);
+    BlitSLT(texShop, 21, 0.0, 160.0);
+    PrintC(fontSpeech, 56.0, 167.0, sMsg);
   end
   -- Render tip
   RenderTip();
@@ -148,16 +157,16 @@ local function RenderOpen()
   -- Render background part
   RenderBackground();
   -- Render open parts
-  BlitSLT(texShop, iBuyHoloId, 197, 88);
-  BlitSLT(texShop, iHoloAnimTileId, 197, 88);
-  BlitSLT(texShop, 27, 200, 168); -- Holo emitter light
-  BlitSLT(texShop, 26, 16, 16); -- Product info background
-  fontLittle:SetCRGB(0.5, 1, 0.5);
-  PrintC(fontLittle, 80, 31, sLongName);
-  fontLittle:SetCRGB(1, 1, 0);
-  PrintC(fontLittle, 80, 63, sPrice);
-  fontTiny:SetCRGB(0.5, 0.75, 0);
-  PrintC(fontTiny, 80, 43, sDesc);
+  BlitSLT(texShop, iBuyHoloId, 197.0, 88.0);
+  BlitSLT(texShop, iHoloAnimTileId, 197.0, 88.0);
+  BlitSLT(texShop, 27, 200.0, 168.0); -- Holo emitter light
+  BlitSLT(texShop, 26, 16.0, 16.0); -- Product info background
+  fontLittle:SetCRGBA(0.5, 1.0, 0.5, 1.0);
+  PrintC(fontLittle, 80.0, 31.0, sLongName);
+  fontLittle:SetCRGB(1.0, 1.0, 0.0);
+  PrintC(fontLittle, 80.0, 63.0, sPrice);
+  fontTiny:SetCRGBA(0.5, 0.75, 0.0, 1.0);
+  PrintC(fontTiny, 80.0, 43.0, sDesc);
   -- Render speech and tip
   RenderSpeech();
 end
@@ -217,16 +226,10 @@ end
 local function GoLast() AdjustProduct(-1) end;
 local function GoNext() AdjustProduct(1) end;
 local function GoBuy()
-  -- Check weight and if can't carry this?
-  if oObjActive.IW + oBuyObject.WEIGHT > oDiggerInfo.STRENGTH then
-    SetSpeechSound("TOO HEAVY FOR YOU", iSError);
-  -- Try to buy it and if failed?
-  elseif BuyItem(oObjActive, iBuyObjTypeId) then
-    SetSpeechSound("SOLD TO YOU NOW!", iSTrade);
-    PlayStaticSound(iSTrade);
-    UpdateCarryable();
-  -- Can't afford it
-  else SetSpeechSound("YOU CAN'T AFFORD IT!", iSError) end;
+  -- Try to buy it and play error and show reason if failed?
+  local aData<const> = aBuyItemResults[BuyItem(oObjActive, iBuyObjTypeId)];
+  SetSpeechSound(aData[1], aData[2]);
+  if aData[3] then UpdateCarryable() end;
 end
 -- Scroll wheel function --------------------------------------------------- --
 local function Scroll(nX, nY)
@@ -242,7 +245,7 @@ local function OnAssetsLoaded(aResources)
   iAnimDoor, iAnimDoorMod = iTileDoor, 0;
   iForkAnim, iForkAnimMod = iTileFork, 0;
   -- Set colour of speech text
-  fontSpeech:SetCRGB(0, 0, 0.25);
+  fontSpeech:SetCRGB(0.0, 0.0, 0.25);
   -- Set initial speech bubble
   SetSpeech("SELECT ME TO OPEN SHOP");
   -- Select first object
@@ -315,9 +318,14 @@ local function OnScriptLoaded(GetAPI)
     { oKeys.SPACE, GoBuy,  "zmtcsbp", "PURCHASE PRODUCT" },
   } });
   -- Set sound effect ids
-  iSError, iSFind, iSHolo, iSHoloHum, iSOpen, iSSelect, iSTrade =
-    oSfxData.ERROR, oSfxData.FIND, oSfxData.SSELECT, oSfxData.HOLOHUM,
-    oSfxData.SOPEN, oSfxData.SELECT, oSfxData.TRADE;
+  iSFind, iSHolo, iSHoloHum, iSOpen, iSSelect =
+    oSfxData.FIND, oSfxData.SSELECT, oSfxData.HOLOHUM,
+    oSfxData.SOPEN, oSfxData.SELECT;
+  -- Set BuyItem() result sound effects
+  local iSError<const> = oSfxData.ERROR;
+  aBuyItemResults[1][2], aBuyItemResults[2][2], aBuyItemResults[3][2],
+    aBuyItemResults[4][2], aBuyItemResults[5][2] =
+      iSError, iSError, iSError, iSError, oSfxData.TRADE;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitShop = InitShop }, F = OnScriptLoaded };

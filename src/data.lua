@@ -9,6 +9,65 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
+-- Actions ----------------------------------------------------------------- --
+local ACT<const> = { -- Object actions array (primary action)
+  -- Only one of these can be active at a time and have accompanying sprites...
+  -- Invisible          Standing still        Creeping (15fps)
+  HIDE    = 0x00000001, STOP    = 0x00000002, CREEP   = 0x00000003,
+  -- Walking (30fps)    Running (60fps)       Digging
+  WALK    = 0x00000004, RUN     = 0x00000005, DIG     = 0x00000006,
+  -- Teleporting        Dead                  Fighting
+  PHASE   = 0x00000007, DEATH   = 0x00000008, FIGHT   = 0x00000009,
+  -- Eaten (Egg)        Dying (Egg)           Jumping
+  EATEN   = 0x0000000a, DYING   = 0x0000000b, JUMP    = 0x0000000c,
+  -- Resting
+  REST    = 0x0000000d,
+  -- These are only commands for 'SetAction()' function...
+  -- Show (TNT map)                    Pickup item
+  MAP     = 0xfffffff7,                GRAB    = 0xfffffff8,
+  -- Drop item                         Select previous inventory
+  DROP    = 0xfffffff9,                PREV    = 0xfffffffa,
+  -- Select next inventory             Deploy purchased item
+  NEXT    = 0xfffffffb,                DEPLOY  = 0xfffffffc,
+  -- Open (flood gate)                 Close (flood gate)
+  OPEN    = 0xfffffffd,                CLOSE   = 0xfffffffe,
+  -- Keep previous action
+  KEEP    = 0xffffffff
+};
+-- Jobs -------------------------------------------------------------------- --
+local JOB<const> = { -- Job data array (secondary action)
+  -- Only one of these can be active at a time and doesn't need sprites...
+  -- No job                            Go opposite when blocked
+  NONE     = 0x00000001,               BOUNCE   = 0x00000002,
+  -- Dig when blocked                  Dig down when in centre of tile
+  DIG      = 0x00000003,               DIGDOWN  = 0x00000004,
+  -- Enter trade centre                In danger / low health
+  HOME     = 0x00000005,               INDANGER = 0x00000006,
+  -- Phasing out (dir = command)       Pickup treasure
+  PHASE    = 0x00000007,               SEARCH   = 0x00000008,
+  -- These are only commands for 'SetAction()' function...
+  -- Preserve job (don't dig down)     Keep current job
+  KNDD     = 0xfffffffe,               KEEP     = 0xffffffff,
+};
+-- Directions -------------------------------------------------------------- --
+local DIR<const> = {
+  -- Only one of these can be active at a time and have accompanying sprites...
+  -- Moving up-left      Moving up              Moving up-right
+  UL       = 0x00000001, U        = 0x00000002, UR       = 0x00000003,
+  -- Moving left         No direction           Moving right
+  L        = 0x00000004, NONE     = 0x00000005, R        = 0x00000006,
+  -- Moving down-left    Moving down            Moving down-right
+  DL       = 0x00000007, D        = 0x00000008, DR       = 0x00000009,
+  -- These are only commands for 'SetAction()' function...
+  -- Go up or down                     Go left or right
+  UD       = 0xfffffff9,               LR       = 0xfffffffa,
+  -- Go in opposite direction          Direction of centre tile
+  OPPOSITE = 0xfffffffb,               TCTR     = 0xfffffffc,
+  -- Keep if moving random if not      Direction towards home
+  KEEPMOVE = 0xfffffffd,               HOME     = 0xfffffffe,
+  -- Keep last direction               Randomise sprite tile
+  KEEP     = 0xffffffff
+};
 -- Menu data types array --------------------------------------------------- --
 local MNU<const> = {                   -- Menu ids
   -- No menu selected                  -- Main digger menu
@@ -31,46 +90,6 @@ local MNU<const> = {                   -- Menu ids
 -- Menu flags array -------------------------------------------------------- --
 local MFL<const> = {    -- Menu flags array
   BUSY   = 0x01; -- Block action if object is busy
-};
--- Actions ----------------------------------------------------------------- --
-local ACT<const> = {    -- Object actions array
-  HIDE    = 0x01, -- Object is invinsible
-  STOP    = 0x02, -- Object is standing still
-  CREEP   = 0x03, -- Object is creeping
-  WALK    = 0x04, -- Object is walking
-  RUN     = 0x05, -- Object is running
-  DIG     = 0x06, -- Object is digging
-  PHASE   = 0x07, -- Object is teleporting
-  DEATH   = 0x08, -- Object is dead
-  FIGHT   = 0x09, -- Object is fighting
-  EATEN   = 0x0A, -- Object is eaten by an alien egg
-  DYING   = 0x0B, -- Object is dying?
-  KEEP    = 0x0C, -- Object should preserve the current action
-  JUMP    = 0x0D, -- Object should jump
-  GRAB    = 0x0E, -- Object should grab the nearest object
-  DROP    = 0x0F, -- Object should drop the selected object
-  PREV    = 0x10, -- Object should cycle to the previous held item
-  NEXT    = 0x11, -- Object should cycle to the next held item
-  REST    = 0x12, -- Object should rest at the trade-centre
-  DEPLOY  = 0x13, -- Object should be deployed
-  OPEN    = 0x14, -- Object should open (flood gate)
-  CLOSE   = 0x15, -- Object should close (flood gate)
-  MAP     = 0x16, -- Object should show TNT map
-};
--- Jobs -------------------------------------------------------------------- --
-local JOB<const> = {     -- Job data array
-  NONE     = 0x1, -- No job
-  BOUNCE   = 0x2, -- The object bounces in the opposite direction when blocked
-  DIG      = 0x3, -- The object digs when it is blocked
-  DIGDOWN  = 0x4, -- The object digs down when in centre of tile
-  HOME     = 0x5, -- The object moves towards the home point
-  INDANGER = 0x6, -- The object is in danger
-  PHASE    = 0x7, -- The object is to teleport
-  SEARCH   = 0x8, -- The object walks around and picks up treasure
-  SPAWN    = 0x9, -- The object is spawning not teleporting (uses ACT_PHASE)
-  KEEP     = 0xA, -- Preserve the current job (SETACTION() Command)
-  REST     = 0xB, -- Object should rest
-  KNDD     = 0xC, -- Preserve current job, but disallow JOB.DIGDOWN
 };
 -- Object types array ------------------------------------------------------ --
 -- DO NOT MODIFY the order of these variables as it will screw up the level
@@ -122,19 +141,22 @@ local TYP<const> = {
   LIFTB     = 0x2A, -- Deployed elevator
   LIFTC     = 0x2B, -- Deployed elevator attachment
   CAMPFIRE  = 0x2C, -- Campfire
-  MAX       = 0x2D, -- Maximum
+  MAX       = 0x2E, -- Maximum
+  TEST      = 0xFE, -- Test marker
   DIGRANDOM = 0xFF  -- For LoadLevel(). Select a random race
 };
 -- Races available list ---------------------------------------------------- --
 local aRacesData<const> =
   { TYP.FTARG, TYP.GRABLIN, TYP.HABBISH, TYP.QUARRIOR };
+-- Tile ids that signify starting and ending tile positions ---------------- --
+local aPlrStartData<const> = { { 195, 198 }, { 199, 202 } };
 -- Race data --------------------------------------------------------------- --
 local aRaceStatData<const> = {
-  -- Object id -- STR STA DSP PAT ATP TEL ---------------------------------- --
-  { TYP.FTARG,    25, 50, 37, 32, 35, 42 },
-  { TYP.HABBISH,  42, 45, 27, 25, 42, 50 },
-  { TYP.GRABLIN,  37, 35, 50, 35, 27, 38 },
-  { TYP.QUARRIOR, 50, 27, 20, 50, 48, 25 }
+  -- Object id -- STR - STA - DIG - PAT - ATP - INT ---------------------------------- --
+  { TYP.FTARG,    25.0, 50.0, 37.0, 32.0, 35.0, 42.0 },
+  { TYP.HABBISH,  42.0, 45.0, 27.0, 25.0, 42.0, 50.0 },
+  { TYP.GRABLIN,  37.0, 35.0, 50.0, 35.0, 27.0, 38.0 },
+  { TYP.QUARRIOR, 50.0, 27.0, 20.0, 50.0, 48.0, 25.0 }
 };
 -- Shop data statics ------------------------------------------------------- --
 local aShopData<const> = {
@@ -207,7 +229,16 @@ local OFL<const> = {          -- Max 64-bits
   CONSUME      = 0x400000000, -- Object consumes another object
   NOHOME       = 0x800000000, -- Object cannot enter home
 };
-OFL.JUMPMASK = OFL.JUMPRISE|OFL.JUMPFALL;
+-- Commonly used combinations
+OFL.JUMP         = OFL.JUMPRISE | OFL.JUMPFALL; -- Jumping (rising OR fallign)
+OFL.JUMPFLOAT    = OFL.JUMP | OFL.FLOATING;     -- Jumping and floating
+OFL.JUMPRISEBUSY = OFL.JUMPRISE | OFL.BUSY;     -- Jump rising and busy
+OFL.JUMPFALLBUSY = OFL.JUMPFALL | OFL.BUSY;     -- Jump falling and busy
+-- Commonly used combinations that are inverted for the '&' (AND) operator
+OFL.iBUSY, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER, OFL.iJUMP,
+  OFL.iJUMPRISE, OFL.iNOHOME, OFL.iJUMPFALLBUSY =
+    ~OFL.BUSY, ~OFL.FALL, ~OFL.FLOATING, ~OFL.INWATER, ~OFL.JUMP,
+    ~OFL.JUMPRISE, ~OFL.NOHOME, ~OFL.JUMPFALLBUSY;
 -- Jumping ----------------------------------------------------------------- --
 local aJumpRiseData<const> =
   { -2, -2, -2, -1,  -1, -1, -1, -1,  -1, -1,  0, -1,   0,  0, -1,  0,
@@ -215,26 +246,6 @@ local aJumpRiseData<const> =
 local aJumpFallData<const> =
   {  0,  0,  0,  0,   0,  0,  0,  1,   0,  0,  1,  0,   1,  0,  1,  1,
      1,  1,  1,  1,   1,  2,  2,  2 };
--- Directions -------------------------------------------------------------- --
-local DIR<const> = {
-  UL       = 0x01, -- Move left and dig up-left diagonally
-  U        = 0x02, -- Up direction but not used
-  UR       = 0x03, -- Move right and dig up-right diagonally
-  L        = 0x04, -- Move left and dig left
-  NONE     = 0x05, -- No direction
-  R        = 0x06, -- Move right and dig right
-  DL       = 0x07, -- Move left and dig down-left diagnoally
-  D        = 0x08, -- Dig down
-  DR       = 0x09, -- Move right and dig down-right diagonally
-  LR       = 0x0A, -- Go left or right
-  UD       = 0x0B, -- Go up or down
-  OPPOSITE = 0x0C, -- Move in the opposite direction (SETACTION() Command)
-  KEEP     = 0x0D, -- Preserve the current direction (SETACTION() Command)
-  KEEPMOVE = 0x0E, -- Keep direction if moving or move in random direction
-  HOME     = 0x0F, -- Direction to the player's home point (SETACTION() Cmd)
-  TCTR     = 0x10, -- Move into the centre of the tile (SETACTION() Command)
-  RNG      = 0x100 -- Randomise the sprite tile (FLAG!)
-};
 -- Actions when blocked ---------------------------------------------------- --
 local aDigBlockData<const> =
 { -- Job             Action    Job         Direction
@@ -246,9 +257,7 @@ local aDigBlockData<const> =
   [JOB.INDANGER] = { ACT.WALK, JOB.BOUNCE, DIR.OPPOSITE }, -- Danger
   [JOB.PHASE]    = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Other jobs
   [JOB.SEARCH]   = { ACT.KEEP, JOB.SEARCH, DIR.OPPOSITE }, -- Searching
-  [JOB.SPAWN]    = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Spawning
   [JOB.KEEP]     = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Keeping job
-  [JOB.REST]     = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Resting
   [JOB.KNDD]     = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Preserve
 };
 -- Treasure spawning table ------------------------------------------------- --
@@ -680,7 +689,7 @@ local function MakeTreasureObject(iAB, iAE, iHS, iValue, sName)
     ACTION    = ACT.PHASE,             AITYPE    = AI.NONE,
     ANIMTIMER = TD.ANIMNORMAL,         DIRECTION = DIR.NONE,
     FLAGS     = OFL.SELLABLE|OFL.TREASURE|OFL.AQUALUNG,
-    HUDSPRITE = iHS,                   JOB       = JOB.SPAWN,
+    HUDSPRITE = iHS,                   JOB       = JOB.NONE,
     LONGNAME  = sName,                 NAME      = sName,
     STAMINA   = -1,                    STRENGTH  = 0,
     TELEDELAY = 200,                   VALUE     = iValue,
@@ -733,15 +742,15 @@ local oObjectData<const> = {           -- Objects data
 -- Digger races (S2,W4,R4,D6,F4,E4,R2,DS,DD,INT,PAT,LUN,STA,STR,TLD,FL,N,LN) --
 [TYP.FTARG] = MakeDiggerObject(138, 140,  12, 15, 8, 11,
   20, 23, 16, 19,  63, 65, 60, 62, 86, 88,  245, 249, 240, 244,
-  77, 79, 74, 76,  nil, nil,  oSfxData.DIEFTAR,  60,  0.6,  9600,  4,
+  77, 79, 74, 76,  nil, nil,  oSfxData.DIEFTAR,  60,  0.7,  9600,  4,
   60,  3,  120,  OFL.DELICATE,  "FTARG",  "F'TARG"),
 [TYP.HABBISH] = MakeDiggerObject(135, 137,  120, 123, 116, 119,
   128, 131, 124, 127,  228, 230, 225, 227, 237, 239,  255, 259, 250, 254,
-  151, 153, 141, 143,  132, 132,  oSfxData.DIEHABB,  70,  0.5,  7500,  12,
+  151, 153, 141, 143,  132, 132,  oSfxData.DIEHABB,  70,  0.65,  7500,  12,
   120,  5,  60,  OFL.DELICATE|OFL.TPMASTER,  "HABBISH"),
 [TYP.GRABLIN] = MakeDiggerObject(222, 224,  204, 207, 200, 203,
   212, 215, 208, 211,  83, 85, 80, 82, 89, 91,  275, 279, 270, 274,
-  219, 221, 216, 218,  nil, nil,  oSfxData.DIEGRAB,  50,  0.7,  10500,  8,
+  219, 221, 216, 218,  nil, nil,  oSfxData.DIEGRAB,  50,  0.75,  10500,  8,
   120,  4,  120,  OFL.DELICATE,  "GRABLIN"),
 [TYP.QUARRIOR] = MakeDiggerObject(178, 180,  160, 163, 156, 159,
   168, 171, 164, 167,  234, 236, 231, 233, 92, 94,  265, 269, 260, 264,
@@ -913,7 +922,7 @@ local oObjectData<const> = {           -- Objects data
  },
  ACTION    = ACT.PHASE,                AITYPE    = AI.NONE,
  ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
- FLAGS     = OFL.ENEMY,                JOB       = JOB.SPAWN,
+ FLAGS     = OFL.ENEMY,                JOB       = JOB.NONE,
  LONGNAME  = "MYSTERIOUS EGG",         LUNGS     = 128,
  NAME      = "EGG",                    STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 3600,
@@ -1329,7 +1338,7 @@ local oObjectData<const> = {           -- Objects data
  ACTION     = ACT.STOP,                AITYPE     = AI.LIFT,
  ANIMTIMER  = TD.ANIMNORMAL,           ATTACHMENT = TYP.LIFTC,
  DIRECTION  = DIR.D,
- FLAGS      = OFL.DEVICE|OFL.EXPLODE|OFL.AQUALUNG,
+ FLAGS      = OFL.DEVICE|OFL.AQUALUNG,
  JOB        = JOB.NONE,                LONGNAME   = "ELEVATOR",
  MENU       = MNU.LIFT,                NAME       = "ELEVATOR",
  STAMINA    = -1,                      STRENGTH   = 0,
@@ -1368,6 +1377,17 @@ local oObjectData<const> = {           -- Objects data
  NAME      = "CAMPFIRE",               STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 0,
  VALUE     = 110,                      WEIGHT    = 0
+-- ------------------------------------------------------------------------- --
+}, [TYP.TEST] = {
+ [ACT.DEATH] = oGenericActDeathData,
+ [ACT.STOP] = { [DIR.NONE] = { 478, 478 }, FLAGS = OFL.BUSY },
+ ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
+ ANIMTIMER = 60,                       DESC      = "TEST MASK SPRITE",
+ DIRECTION = DIR.NONE,                 FLAGS     = 0,
+ JOB       = JOB.NONE,                 LONGNAME  = "TEST OBJECT MASK",
+ NAME      = "TEST OBJECT MASK",       STAMINA   = -1,
+ STRENGTH  = 0,                        TELEDELAY = 0,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 } };
 -- Digging tile flags ------------------------------------------------------ --
@@ -1686,7 +1706,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.EA,                          -- 0592701
   TF.D|TF.EA,                          -- 0602801
   TF.D|TF.EA,                          -- 0612901
-  TF.ELRB,                             -- 0623001
+  TF.ELRB,                             -- 0623001 Elevator shaft top
   TF.F,                                -- 0633101
   TF.F,                                -- 0640002
   TF.NONE,                             -- 0650102
@@ -1803,7 +1823,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1761605 Outside decoration only
   TF.NONE,                             -- 1771705 Outside decoration only
   TF.NONE,                             -- 1781805 Outside decoration only
-  TF.NONE,                             -- 179195 Outside decoration only
+  TF.NONE,                             -- 1791905 Outside decoration only
   TF.NONE,                             -- 1802005 Outside decoration only
   TF.NONE,                             -- 1812105 Outside decoration only
   TF.NONE,                             -- 1822205 Outside decoration only
@@ -1813,8 +1833,8 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1862605 Outside decoration only
   TF.NONE,                             -- 1872705 Outside decoration only
   TF.NONE,                             -- 1882805 Outside decoration only
-  TF.EA|TF.E,                          -- 1892905 Elevator shaft wire
-  TF.NONE,                             -- 1903005 Elevator base
+  TF.D|TF.EA|TF.E,                     -- 1892905 Elevator shaft wire
+  TF.D,                                -- 1903005 Elevator base
   TF.NONE,                             -- 1913105 Trade centre top left
   TF.NONE,                             -- 1920006 Trade centre top right
   TF.NONE,                             -- 1930106 Trade centre bottom left
@@ -1926,7 +1946,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.W|TF.EA,                     -- 2991109 Flood cave ceil top-left
   TF.D|TF.W|TF.EA,                     -- 3001209 Flood cave ceil top-right
   TF.D|TF.W|TF.EA,                     -- 3011309 Flood cave floor bot-right
-  TF.D|TF.W|TF.ELRB,                   -- 3021409 Flood elevator ceiling
+  TF.D|TF.W|TF.ELRB,                   -- 3021409 Flood elevator top
   TF.F,                                -- 3031509 Outside top-right ceiling 1
   TF.F,                                -- 3041609 Outside top-right ceiling 2
   TF.F,                                -- 3051709 Outside ceiling
@@ -2138,28 +2158,6 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 5113115 Unused
 };
 assert(#aTileData == 512, "aTileData must only have 512 tiles!");
--- Explode directions data ------------------------------------------------- --
-local aExplodeDirData<const> = {
-  -- X -- Y -- Flags -----             -- Order is important!
-  {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
-  {  -1,   0, TF.W|TF.ER },            -- [Left] Flood if left tile exposed
-  {   0,   0, TF.W       },            -- [Centre] No flooding check needed
-  {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
-  {   0,   1, TF.W|TF.ET },            -- [Down] Flood if below tile exposed
-};
--- Explode directions data ------------------------------------------------- --
-local oExplodeAboveData<const> = {
-  [ 88] =   7, -- Remove left end of track and set clear tile
-  [ 91] =   7, -- Remove right end of track and set clear tile
-  [149] = 150, -- Remove track from dug tile with light
-  [169] = 170, -- Remove track from dug tile with forward beam
-  [210] =   7, -- Remove track from dug tile beam backwards
-  [328] = 247, -- Remove watered right end of track and set to cleared water
-  [331] = 247, -- Remove watered left end of track and set to cleared water
-  [389] = 390, -- Remove watered light and set to watered light
-  [409] = 410, -- Remove watered beam forward and set to watered beam forward
-  [450] = 247, -- Remove watered clear track and set to clear
-};
 -- Train track data -------------------------------------------------------- --
 local oTrainTrackData<const> = {
   [  7] = 210, -- Dug tile to clear track tile
@@ -2611,19 +2609,19 @@ return { F = Util.Blank, A = {         -- Sending API to main loader
   aDigBlockData = aDigBlockData, oDigData = oDigData,
   aDigTileData = aDigTileData, aDigTileFlags = DF,
   oDugRandShaftData = oDugRandShaftData, oEndingData = oEndingData,
-  oExplodeAboveData = oExplodeAboveData, aExplodeDirData = aExplodeDirData,
-  oFloodGateData = oFloodGateData, aIntroSubTitles = aIntroSubTitles,
-  oKeyToLiteral = oKeyToLiteral, aJumpFallData = aJumpFallData,
-  aJumpRiseData = aJumpRiseData, aLevelTypesData = aLevelTypesData,
-  aLevelsData = aLevelsData, oMenuData = oMenuData, oMenuFlags = MFL,
-  oMenuIds = MNU, oObjectActions = ACT, oObjectData = oObjectData,
-  oObjectDirections = DIR, aObjectFlags = OFL, oObjectJobs = JOB,
-  oObjectTypes = TYP, aRaceStatData = aRaceStatData, aRacesData = aRacesData,
+  aExplodeDirData = aExplodeDirData, oFloodGateData = oFloodGateData,
+  aIntroSubTitles = aIntroSubTitles, oKeyToLiteral = oKeyToLiteral,
+  aJumpFallData = aJumpFallData, aJumpRiseData = aJumpRiseData,
+  aLevelTypesData = aLevelTypesData, aLevelsData = aLevelsData,
+  oMenuData = oMenuData, oMenuFlags = MFL, oMenuIds = MNU,
+  oObjectActions = ACT, oObjectData = oObjectData, oObjectDirections = DIR,
+  aObjectFlags = OFL, oObjectJobs = JOB, oObjectTypes = TYP,
+  aRaceStatData = aRaceStatData, aRacesData = aRacesData,
   aSetupButtonData = aSetupButtonData, aSetupOptionData = aSetupOptionData,
   oSfxData = oSfxData, aShopData = aShopData, aShroudCircle = aShroudCircle,
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,
   oTileFlags = TF, oTimerData = TD, oTrainTrackData = oTrainTrackData,
-  aZoneData = aZoneData
+  aZoneData = aZoneData, aPlrStartData = aPlrStartData
   -- ----------------------------------------------------------------------- --
 } };                                   -- End of definitions to send to loader
 -- End-of-File ============================================================= --

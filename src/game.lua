@@ -15,58 +15,58 @@ local abs<const>, ceil<const>, error<const>, floor<const>, format<const>,
   remove<const>, tostring<const> =
     math.abs, math.ceil, error, math.floor, string.format, math.max,
     math.maxinteger, math.min, pairs, math.random, table.remove, tostring;
--- M-Engine function aliases ----------------------------------------------- --
-local CoreLog<const>, CoreWrite<const>, MaskCreateZero<const>,
-  UtilClamp<const>, UtilClampInt<const>, UtilFormatNumber<const>,
-  UtilIsBoolean<const>, UtilIsFunction<const>, UtilIsInteger<const>,
-  UtilIsString<const>, UtilIsTable<const> =
-    Core.Log, Core.WriteEx, Mask.CreateZero, Util.Clamp, Util.ClampInt,
-    Util.FormatNumber, Util.IsBoolean, Util.IsFunction, Util.IsInteger,
-    Util.IsString, Util.IsTable;
--- Assets required --------------------------------------------------------- --
-local aAssetsMusic, aAssetsNoMusic, aAssetsContinue;
--- Diggers shared functions and data --------------------------------------- --
-local ACT, AI, BlitSLTRB, BlitSLT, DF, DIR, Fade, GetMouseX, GetMouseY,
-  GetTestMode, InitBook, InitLobby, InitLose, InitLoseDead, InitPause,
-  InitTNTMap, InitWin, InitWinDead, IsMouseInBounds, JOB, LoadResources, MFL,
-  MNU, OFL, PlayMusic, PlaySound, PlayStaticSound, Print, PrintC, PrintR,
-  RegisterFBUCallback, RenderFade, RenderShadow, RenderTip, SetCallbacks,
-  SetCursorPos, SetHotSpot, SetKeys, SetTip, TileA, TYP, aAIChoicesData,
-  aDigBlockData, oDigData, aDigTileData, oDugRandShaftData, oExplodeAboveData,
-  aExplodeDirData, oFloodGateData, oGlobalData, aJumpFallData, aJumpRiseData,
-  aLevelsData, oMenuData, oObjectData, oSfxData, aShopData, aShroudCircle,
-  aShroudTileLookup, aTileData, oTileFlags, oTimerData, oTrainTrackData,
-  iSlowDown, iSavedSlowDown, fontLarge, fontLittle, fontTiny, iPosX, iPosY,
-  texSpr;
--- High priority variables (because of MAXVARS limit) ---------------------- --
-local function HighPriorityVars()
--- Prototype functions (assigned later) ------------------------------------ --
-local CreateObject, MoveOtherObjects, PlayInterfaceSound, PlaySoundAtObject,
-  SetAction;
+-- Engine function aliases ------------------------------------------------- --
+local CoreLog<const>, CoreWrite<const>, UtilClamp<const>, UtilClampInt<const>,
+  UtilFormatNumber<const>, UtilIsBoolean<const>, UtilIsFunction<const>,
+  UtilIsInteger<const>, UtilIsString<const>, UtilIsTable<const>,
+  UtilSign<const> =
+    Core.Log, Core.WriteEx, Util.Clamp, Util.ClampInt, Util.FormatNumber,
+    Util.IsBoolean, Util.IsFunction, Util.IsInteger, Util.IsString,
+    Util.IsTable, Util.Sign;
+-- Diggers shared functions and data assigned later ------------------------ --
+local ACT, AI, BlitSLT, BlitSLTRB, BlitSLTWH, CreateObject, DF, DIR,
+  GetTestMode, InitBook, InitLobby, InitTNTMap, JOB, MFL, MNU,
+  MoveOtherObjects, OFL, PlayInterfaceSound, PlaySound, PlaySoundAtObject,
+  PlayStaticSound, Print, PrintC, PrintR, RenderFade, RenderShadow, RenderTip,
+  SelectInfoScreen, SetAction, SetCursorPos, SetTip, TYP, aAIChoicesData,
+  aDigBlockData, aDigTileData, aJumpFallData, aJumpRiseData, aLevelsData,
+  aShopData, aShroudCircle, aShroudTileLookup, aTileData, fontLarge,
+  fontLittle, fontTiny, iSavedSlowDown, iSlowDown, oDigData, oDugRandShaftData,
+  oFloodGateData, oGlobalData, oMenuData, oObjectData, oSfxData, oTileFlags,
+  oTimerData, oTrainTrackData, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aContextMenu;                    -- Currently open context menu
 local aContextMenuData;                -- Cached context menu positions data
-local aFloodData = { };                -- Active tile flooding data
-local aGemsAvailable = { };            -- Gems available to be sold
-local aLvlData = { };                  -- Current level data
-local aObjs = { };                     -- Game objects list
-local aPlayers = { };                  -- All the players in the game
+local aFloodData<const> = { };         -- Active tile flooding data
+local aGemsAvailable<const> = { };     -- Gems available to be sold
+local aLvlData<const> = { };           -- Current level data
+local aObjs<const> = { };              -- Game objects list
+local aPlayers<const> = { };           -- All the players in the game
 local aRacesData;                      -- Races data (data.lua)
-local aShroudData = { };               -- Current level shroud data
+local aShroudData<const> = { };        -- Current level shroud data
+local aDamageValues<const> = { };      -- Holds damage values
 local bAIvsAI;                         -- Is currently an AI vs AI game?
-local fcbInfoScreen;                   -- Current info screen callback
-local fcbLogic;                        -- Current logic callback
-local fcbRender;                       -- Current render callback
-local iAbsCenPosX, iAbsCenPosY;        -- Current viewport absolute centre pos
-local iAnimMoney;                      -- Current animated money
+local fcbLogic, fcbRender, fcbEnd;     -- Current logic/render/end callbacks
 local iGameTicks;                      -- Frames rendered for this level
 local iHotSpotId;                      -- Current mouse hot spots id
 local iKeyBankId;                      -- Current key bank activated
-local iLLAbsHmVP, iLLAbsWmVP;          -- Maximum viewport tile position
-local iLLPixHmVP, iLLPixWmVP;          -- Maximum viewport pixel position
 local iLvlId;                          -- Current level id selected
 local iMenuBottom, iMenuLeft;          -- Menu position bottom/left bounds
 local iMenuRight, iMenuTop;            -- Menu position top/right bounds
+local iPlayerMoney, iOpponentMoney;    -- Cached player and opponent money
+local iShroudColour;                   -- Current selected shroud colour
+local iTileBg, texLev;                 -- Background tex id and lv tex handle
+local iUniqueId;                       -- Current unique object id
+local iWinLimit;                       -- Zogs needed to win this level
+local maskLev, maskSpr, maskZone;      -- Level/sprite/zone bitmask handles
+local oObjActive, oPlrActive;          -- Currently selected object and player
+local oPlrOpponent;                    -- Reference to opposing player data
+local sLvlName, sLvlType;              -- Level name and type strings
+-- Viewport ---------------------------------------------------------------- --
+local iAbsCenPosX, iAbsCenPosY;        -- Current viewport absolute centre pos
+local iAbsPosX, iAbsPosY;              -- Current viewport absolute position
+local iLLAbsHmVP, iLLAbsWmVP;          -- Maximum viewport tile position
+local iLLPixHmVP, iLLPixWmVP;          -- Maximum viewport pixel position
 local iPixCenPosX, iPixCenPosY;        -- Current viewport pixel centre pos
 local iPixPosTargetX, iPixPosTargetY;  -- Current viewport animated pixel pos
 local iPixPosX, iPixPosY;              -- Current viewport pixel position
@@ -78,21 +78,11 @@ local iScrTilesW;                      -- Max horizontal tiles on screen
 local iScrTilesWd2;                    -- " as above but divided by two
 local iScrTilesWd2p1;                  -- " as above but div by two plus one
 local iScrTilesWm1;                    -- " as above but minus one
-local iScrollRate;                     -- Viewport scrolling speed
-local iShroudColour;                   -- Current selected shroud colour
 local iStageB, iStageH, iStageL;       -- Fbo bottom/height/left bounds
 local iStageR, iStageT, iStageW;       -- Fbo right/top/width bounds
-local iTileBg, texLev;                 -- Background tex id and lv tex handle
 local iTilesHeight, iTilesWidth;       -- Total tiles on screen
-local iUniqueId;                       -- Current unique object id
 local iViewportH, iViewportW;          -- Current viewport width and height
-local iWinLimit;                       -- Zogs needed to win this level
-local maskLev, maskSpr, maskZone;      -- Level/sprite/zone bitmask handles
-local oObjActive;                      -- Currently selected object
-local oPlrActive;                      -- Reference to main player data
-local oPlrOpponent;                    -- Reference to opposing player data
-local sLvlName, sLvlType;              -- Level name and type strings
-local sMoney;                          -- Currently displayed money value
+local iViewportX, iViewportY;          -- Current viewport absolute position
 -- Level limits ------------------------------------------------------------ --
 local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
 local iLLAbsH<const>   = 128;               -- Total # of vertical tiles
@@ -106,26 +96,20 @@ local iLLPixH<const>   = iLLAbsH * 16;      -- Total # of vertical pixels
 local iLLPixWm1<const> = iLLPixW - 1;       -- Total H pixels minus one
 local iLLPixHm1<const> = iLLPixH - 1;       -- Total V pixels minus one
 -- Other consts ------------------------------------------------------------ --
-local iVPScrollThreshold<const> = 4;         -- Limit before centring viewport
--- Bounds checking sprite blitter ------------------------------------------ --
-local function BCBlit(iTexIndex, iLeft, iTop, iRight, iBottom)
-  -- Draw only if not occluded outside the viewport
-  if min(iRight, iStageR) > max(iLeft, iStageL) or
-     min(iBottom, iStageB) > max(iTop, iStageT) then
-    BlitSLTRB(texSpr, iTexIndex, iLeft, iTop, iRight, iBottom) end;
-end
+local iVPScrollThreshold<const> = 4;        -- Limit before centring viewport
+-- Blank function ---------------------------------------------------------- --
+local function BlankFunction() end;
 -- Function to play a sound ------------------------------------------------ --
 local function DoPlaySoundAtObject(oObj, iSfxId, nPitch)
   -- Check that object is in the players view
-  local nX<const> = (oObj.X / 16) - iPosX;
+  local nX<const> = (oObj.X / 16) - iAbsPosX;
   if nX < -1 or nX > iScrTilesW then return end;
-  local nY<const> = (oObj.Y / 16) - iPosY;
+  local nY<const> = (oObj.Y / 16) - iAbsPosY;
   if nY < -1 or nY > iScrTilesH then return end;
   -- Play the sound and clamp the pan value as engine requires
   PlaySound(iSfxId, UtilClamp(-1 + ((nX / iScrTilesW) * 2), -1, 1), nPitch);
 end
 -- Enable or disable playing sounds ---------------------------------------- --
-local function BlankFunction() end;
 local function SetPlaySounds(bState)
   if bState then PlaySoundAtObject, PlayInterfaceSound =
     DoPlaySoundAtObject, PlayStaticSound;
@@ -133,7 +117,7 @@ local function SetPlaySounds(bState)
     BlankFunction, BlankFunction end;
 end
 -- Update viewport data ---------------------------------------------------- --
-local function UpdateViewPort(nPos, iTLMVPS, iTTD2, iTT, iTL)
+local function UpdateViewport(nPos, iTLMVPS, iTTD2, iTT, iTL)
   -- Obey limits of level
   if nPos > iTLMVPS then nPos = iTLMVPS elseif nPos < 0 then nPos = 0 end;
   -- Reuse limit and calculate centre tile
@@ -146,48 +130,35 @@ local function UpdateViewPort(nPos, iTLMVPS, iTTD2, iTT, iTL)
          min(iTLMVPS + iTT, iTL); -- iViewport[W|H]  (Scroll pos)
 end
 -- Update horizontal viewport data ----------------------------------------- --
-local function SetViewPortX(nX)
-  iPixPosX, iPixCenPosX, iPosX, iAbsCenPosX, iViewportW =
-    UpdateViewPort(nX, iLLPixWmVP, iScrTilesWd2, iScrTilesW, iLLAbsW);
+local function SetViewportX(nX)
+  iPixPosX, iPixCenPosX, iAbsPosX, iAbsCenPosX, iViewportW =
+    UpdateViewport(nX, iLLPixWmVP, iScrTilesWd2, iScrTilesW, iLLAbsW);
   if iPixCenPosX < 0 then iTilesWidth = iScrTilesW;
                      else iTilesWidth = iScrTilesWm1 end;
+  iViewportX = iPixPosX - iStageL;
 end
 -- Update vertical viewport data ------------------------------------------- --
-local function SetViewPortY(nY)
-  iPixPosY, iPixCenPosY, iPosY, iAbsCenPosY, iViewportH =
-    UpdateViewPort(nY, iLLPixHmVP, iScrTilesHd2,
+local function SetViewportY(nY)
+  iPixPosY, iPixCenPosY, iAbsPosY, iAbsCenPosY, iViewportH =
+    UpdateViewport(nY, iLLPixHmVP, iScrTilesHd2,
       iScrTilesH, iLLAbsWm1);
   if iPixCenPosY < 0 then iTilesHeight = iScrTilesH;
                      else iTilesHeight = iScrTilesHm1 end;
+  iViewportY = iPixPosY - iStageT;
 end
 -- Adjust viewport --------------------------------------------------------- --
-local function AdjustViewPortX(iX) SetViewPortX(iPixPosX + iX) end;
-local function AdjustViewPortY(iY) SetViewPortY(iPixPosY + iY) end;
--- Scroll viewport --------------------------------------------------------- --
-local function ProcessViewPort()
-  -- Move horizontally if not over requested viewport
-  if iPixPosTargetX < iPixPosX then
-    AdjustViewPortX(-ceil((iPixPosX - iPixPosTargetX) / iScrollRate));
-  elseif iPixPosTargetX > iPixPosX then
-    AdjustViewPortX(ceil((iPixPosTargetX - iPixPosX) / iScrollRate)) end;
-  -- Move vertically if not over requested viewport
-  if iPixPosTargetY < iPixPosY then
-    AdjustViewPortY(-ceil((iPixPosY - iPixPosTargetY) / iScrollRate));
-  elseif iPixPosTargetY > iPixPosY then
-    AdjustViewPortY(ceil((iPixPosTargetY - iPixPosY) / iScrollRate)) end;
-end
+local function AdjustViewportX(iX) SetViewportX(iPixPosX + iX) end;
+local function AdjustViewportY(iY) SetViewportY(iPixPosY + iY) end;
 -- Update new viewport ----------------------------------------------------- --
-local function SetViewPort(iX, iY) SetViewPortX(iX) SetViewPortY(iY) end
+local function SetViewport(iX, iY) SetViewportX(iX) SetViewportY(iY) end
 -- Set instant focus on object horizontally -------------------------------- --
-local function ScrollViewPortTo(iX, iY)
+local function ScrollViewportTo(iX, iY)
   iPixPosTargetX, iPixPosTargetY =
     UtilClampInt(iX, 0, iLLAbsWmVP) * 16,
     UtilClampInt(iY, 0, iLLAbsHmVP) * 16;
 end
 -- Force viewport position without scrolling ------------------------------- --
-local function ForceViewport() SetViewPort(iPixPosTargetX, iPixPosTargetY) end;
--- Lock viewport to top left ----------------------------------------------- --
-local function LockViewPort() ScrollViewPortTo(0, 0) ForceViewport() end;
+local function ForceViewport() SetViewport(iPixPosTargetX, iPixPosTargetY) end;
 -- Focus on object --------------------------------------------------------- --
 local function ObjectFocus(oObj)
   -- This object is not selected? Ignore it
@@ -195,16 +166,16 @@ local function ObjectFocus(oObj)
   -- Get object absolute position
   local iX<const>, iY<const> = oObj.AX, oObj.AY;
   -- Object is almost out of the viewport?
-  if (iPosX > 0 and                             -- VP not left edge? *and*
-      iX - iVPScrollThreshold < iPosX) or       -- ...Near off left VP? *or*
-     (iPosX < iLLAbsWmVP and                    -- ...VP not right edge? *and*
+  if (iAbsPosX > 0 and                          -- VP not left edge? *and*
+      iX - iVPScrollThreshold < iAbsPosX) or    -- ...Near off left VP? *or*
+     (iAbsPosX < iLLAbsWmVP and                 -- ...VP not right edge? *and*
       iX + iVPScrollThreshold >= iViewportW) or -- ...Near right VP? *or*
-     (iPosY > 0 and                             -- ...VP not top edge? *and*
-      iY - iVPScrollThreshold < iPosY) or       -- ...Near top VP? *or*
-     (iPosY < iLLAbsHmVP and                    -- ...VP not bottom edge? *and*
+     (iAbsPosY > 0 and                          -- ...VP not top edge? *and*
+      iY - iVPScrollThreshold < iAbsPosY) or    -- ...Near top VP? *or*
+     (iAbsPosY < iLLAbsHmVP and                 -- ...VP not bottom edge? *and*
       iY + iVPScrollThreshold >= iViewportH) then -- ...Near bottom VP?
     -- Gradually scroll to this position centred on the object
-    ScrollViewPortTo(iX - iScrTilesWd2, iY - iScrTilesHd2);
+    ScrollViewportTo(iX - iScrTilesWd2, iY - iScrTilesHd2);
     -- If we're already off the end of the screen?
     if (abs(iX - iAbsCenPosX) > iScrTilesWd2p1 or
         abs(iY - iAbsCenPosY) > iScrTilesHd2p1) and not bAIvsAI then
@@ -213,61 +184,14 @@ local function ObjectFocus(oObj)
     end
   end
 end
--- Get mouse position on level --------------------------------------------- --
-local function GetAbsMousePos()
-  return GetMouseX() - iStageL + iPixPosX, GetMouseY() - iStageT + iPixPosY;
-end
--- Update object menu position --------------------------------------------- --
-local function UpdateMenuPosition(iX, iY)
-  -- Get menu size (reuse vars)
-  iMenuRight, iMenuBottom = aContextMenu[1] * 16, aContextMenu[2] * 16;
-  -- Update left and top co-ordinates
-  iMenuLeft, iMenuTop =
-    UtilClampInt(iX, iStageL, iStageR - iMenuRight),
-    UtilClampInt(iY, iStageT, iStageB - iMenuBottom - 32);
-  -- Update right and bottom co-ordinates
-  iMenuRight, iMenuBottom = iMenuRight + iMenuLeft, iMenuBottom + iMenuTop;
-  -- Get context menu item data
-  local aMData<const> = aContextMenu[3];
-  -- Start building context menu data to help with rendering
-  aContextMenuData = { };
-  -- Current position of title
-  local iX, iY = iMenuLeft, iMenuTop;
-  -- Walk through selected menu
-  for iMIndex = 1, #aMData do
-    -- Get menu item data
-    local aMItem<const> = aMData[iMIndex];
-    -- Build formatted item which helps processing more efficent
-    aContextMenuData[1 + #aContextMenuData] = {
-      aMItem,                    -- Actual data
-      aMItem[1],                 -- Menu tile id
-      aMItem[2] & MFL.BUSY ~= 0, -- Disabled if busy?
-      iX,                        -- Menu render position X
-      iY,                        -- Menu render position Y
-      iX + 16,                   -- Menu render position end X
-      iY + 16                    -- Menu render position end Y
-    };
-    -- Increment tile position and wrap the
-    iX = iX + 16;
-    if iX >= iMenuRight then iX, iY = iMenuLeft, iY + 16 end;
-  end
-end
--- Update object menu position with current mouse -------------------------- --
-local function UpdateMenuPositionAtMouseCursor()
-  UpdateMenuPosition(GetMouseX(), GetMouseY());
-end
 -- Set active object menu -------------------------------------------------- --
-local function SetContextMenu(iId, bUpdatePos)
+local function SetContextMenu(iId)
   -- Hide the menu?
   if not iId then aContextMenu, aContextMenuData = nil, nil return end;
   -- Get requested context menu and if it is a different context menu?
   aContextMenu = oMenuData[iId];
   if not UtilIsTable(aContextMenu) then
     error("Invalid menu data for "..iId.."! "..tostring(aContextMenu)) end;
-  -- Update menu position if requested
-  if bUpdatePos then UpdateMenuPositionAtMouseCursor();
-  -- Just update menu size
-  else UpdateMenuPosition(iMenuLeft, iMenuTop) end;
 end
 -- Select an object -------------------------------------------------------- --
 local function SelectObject(oObj, bNow, bCursor)
@@ -284,433 +208,86 @@ local function SelectObject(oObj, bNow, bCursor)
   if bNow then ForceViewport() end;
   -- Also set the cursor?
   if bCursor then
-    SetCursorPos(oObj.X - (iPixPosX - iStageL) + oObj.OFX + 8,
-                 oObj.Y - (iPixPosY - iStageT) + oObj.OFY + 8) end;
-end
--- Return game ticks ------------------------------------------------------- --
-local function GetGameTicks() return iGameTicks end;
--- Render an information frame --------------------------------------------- --
-local function DrawInfoFrameAndTitle(iTileId)
-  -- Draw the left part of the title bar
-  BlitSLT(texSpr, 847, 8, 8);
-  -- Draw the middle part of the title bar
-  for iColumn = 1, 17 do BlitSLT(texSpr, 848, 8 + (iColumn * 16), 8) end;
-  -- Draw the right part of the title bar
-  BlitSLT(texSpr, 849, 296, 8);
-  -- Draw transparent backdrop
-  RenderFade(0.75, 8, 32, 312, 208);
-  -- Draw frame around transparent backdrop
-  BlitSLT(texSpr, 850, 8, 32);
-  for iX = 24, 280, 16 do BlitSLT(texSpr, 851, iX, 32) end;
-  BlitSLT(texSpr, 852, 296, 32);
-  for iY = 48, 176, 16 do
-    BlitSLT(texSpr, 856, 8, iY);
-    BlitSLT(texSpr, 858, 296, iY);
-  end
-  BlitSLT(texSpr, 853, 8, 192);
-  for iX = 24, 280, 16 do BlitSLT(texSpr, 854, iX, 192) end;
-  BlitSLT(texSpr, 855, 296, 192);
-  -- Draw shadows
-  RenderShadow(8, 8, 312, 24);
-  RenderShadow(8, 32, 312, 208);
-  -- Print the title bar text
-  PrintC(fontLittle, 160, 12, iTileId);
+    SetCursorPos(oObj.X - iViewportX + oObj.OFX + 8,
+                 oObj.Y - iViewportY + oObj.OFY + 8) end;
 end
 -- Draw health bar --------------------------------------------------------- --
-local function DrawHealthBar(iHealth, iDivisor, iL, iT, iR, iB)
-  -- White (100%) to green bar (50%)
-  if iHealth >= 50 then
-    texSpr:SetCRGB(1, 1, (iHealth - 50) / 50);
-    BlitSLTRB(texSpr, 1022, iL, iT, iR + iHealth / iDivisor, iB);
-    texSpr:SetCRGB(1, 1 ,1);
-  -- Green (50%) to red bar (0%)
-  elseif iHealth > 0 then
-    texSpr:SetCRGB(1, iHealth / 50, 0);
-    BlitSLTRB(texSpr, 1022, iL, iT, iR + iHealth / iDivisor, iB);
-    texSpr:SetCRGB(1, 1 ,1);
-  end
-end
--- Select info screens ----------------------------------------------------- --
-local function SelectInfoScreen()
-  -- Draw digger inventory
-  local function InfoScreenRenderInventory()
-    -- Draw frame and title
-    DrawInfoFrameAndTitle("DIGGER INVENTORY");
-    -- Set tiny font spacing and colour
-    fontTiny:SetLSpacing(2);
-    fontTiny:SetCRGB(0, 0.75, 1);
-    -- For each digger
-    for iDiggerId = 1, #oPlrActive.D do
-      -- Calculate Y position
-      local iY<const> = iDiggerId * 33;
-      -- Print id number of digger
-      Print(fontLarge, 16, iY + 8, iDiggerId);
-      -- Draw health bar background
-      BlitSLTRB(texSpr, 1023, 24, iY + 31, 291, iY + 33);
-      -- Get Digger data and if it exists?
-      local oDigger<const> = oPlrActive.D[iDiggerId];
-      if oDigger then
-        -- Draw digger health bar
-        DrawHealthBar(oDigger.H, 0.375, 24, iY + 31, 24, iY + 33);
-        -- Draw digger portrait
-        BlitSLT(texSpr, oDigger.S, 31, iY + 8);
-        -- Digger has items?
-        if oDigger.IW > 0 then
-          -- Get digger inventory and enumerate through it and draw it
-          local aInventory<const> = oDigger.I;
-          for iInvIndex = 1, #aInventory do
-            BlitSLT(texSpr, aInventory[iInvIndex].S,
-              iInvIndex * 16 + 32, iY + 8) end;
-        -- No inventory. Print no inventory message
-        else Print(fontTiny, 48, iY + 13, "NOT CARRYING ANYTHING") end;
-        -- Draw weight and impatience
-        PrintR(fontLittle, 308, iY + 4,
-          format("%03u%%          %03u%%\n\z
-                  %03u%%         %05u\n\z
-                  %04u          %03u%%",
-            oDigger.H, floor(oDigger.IW / oDigger.STR * 100),
-            max(0, floor(oDigger.JT / oDigger.PL * 100)), oDigger.DUG,
-            oDigger.GEM, ceil(oDigger.LDT / iGameTicks * 100)));
-      -- Digger is dead
-      else
-        -- Draw grave icon
-        BlitSLT(texSpr, 319, 31, iY + 8);
-        -- Draw dead labels
-        PrintR(fontLittle, 308, iY + 4,
-          "---%          ---%\n\z
-           ---%         -----\n\z
-           ----          ---%");
-      end
-      -- Draw labels
-      fontTiny:SetLSpacing(2);
-      PrintR(fontTiny, 308, iY + 5,
-        "HEALTH:             WEIGHT:        \n\z
-         IMPATIENCE:         GROADS DUG:        \n\z
-         GEMS FOUND:         EFFICIENCY:        ");
-    end
-    -- Reset tiny font spacing
-    fontTiny:SetLSpacing(0);
-  end
-  -- Draw digger locations
-  local function InfoScreenRenderLocations()
-    -- Draw frame and title
-    DrawInfoFrameAndTitle("DIGGER LOCATIONS");
-    -- Draw map grid of level
-    for Y = 37, 188, 15 do for X = 141, 291, 15 do
-      BlitSLT(texSpr, 864, X, Y);
-    end end
-    -- For each digger
-    for iDiggerId = 1, #oPlrActive.D do
-      -- Calculate Y position
-      local iY<const> = iDiggerId * 31;
-      -- Print id number of digger
-      Print(fontLarge, 16, iY + 8, iDiggerId);
-      -- Draw colour key of digger
-      BlitSLT(texSpr, 858 + iDiggerId, 31, iY + 11);
-      -- Draw X and Y letters
-      fontTiny:SetCRGB(0, 0.75, 1);
-      Print(fontTiny, 64, iY + 8, "X:       Y:");
-      -- Draw health bar background
-      BlitSLTRB(texSpr, 1023, 24, iY + 30, 124, iY + 32);
-      -- Get digger and if it exists?
-      local oDigger<const> = oPlrActive.D[iDiggerId];
-      if oDigger then
-        -- Draw digger health bar
-        DrawHealthBar(oDigger.H, 1, 24, iY + 30, 24, iY + 32);
-        -- Draw digger item data
-        Print(fontLittle, 72, iY + 8,
-          format("%04u  %04u\n\\%03u  \\%03u",
-            oDigger.X, oDigger.Y, oDigger.AX, oDigger.AY));
-        -- Draw digger portrait
-        BlitSLT(texSpr, oDigger.S, 43, iY + 8);
-        -- Draw position of digger
-        BlitSLT(texSpr, 858 + iDiggerId, 141 + (oDigger.AX * 1.25),
-          38 + (oDigger.AY * 1.25));
-      -- Digger is dead
-      else
-        -- Draw grave icon
-        BlitSLT(texSpr, 319, 43, iY + 8);
-        -- Draw dashes for unavailable digger item data
-        Print(fontLittle, 72, iY + 8, "----  ----\n\\---  \\---");
-      end
-    end
-  end
-  -- Draw digger locations
-  local function InfoScreenRenderStatus()
-    -- Draw frame and title
-    DrawInfoFrameAndTitle("ZONE STATUS");
-    -- Score for who is winning
-    local iScoreAP, iScoreOP = 0, 0;
-    -- Draw little labels first for rendering performance. Print level info
-    Print(fontLittle, 16, 56, sLvlType.." TERRAIN");
-    PrintR(fontLittle, 304, 56, "OPERATIONS TIME");
-    local iPDiggers<const> = oPlrActive.DC;
-    PrintC(fontLittle, 160, 88, "YOU HAVE "..iPDiggers.." OF "..
-      oPlrActive.DT.." DIGGERS REMAINING");
-    -- Draw who has the most diggers
-    local iODiggers<const>, sDiggers = oPlrOpponent.DC;
-    if iPDiggers > iODiggers then
-      iScoreAP, sDiggers = iScoreAP + 1,
-        "YOU HAVE MORE DIGGERS THEN YOUR OPPONENT";
-    elseif iPDiggers < iODiggers then
-      iScoreOP, sDiggers = iScoreOP + 1, "YOUR OPPONENT HAS MORE DIGGERS";
-    else sDiggers = "YOU AND YOUR OPPONENT HAVE EQUAL DIGGERS" end;
-    PrintC(fontLittle, 160, 96, sDiggers);
-    -- Show who has mined the most terrain
-    local iPDug, iODug<const> = oPlrActive.DUG, oPlrOpponent.DUG;
-    PrintC(fontLittle, 160, 112, "YOU MINED "..
-      UtilFormatNumber(oPlrActive.GEM, 0)..
-      " GEMS AND "..UtilFormatNumber(iPDug, 0).." GROADS OF TERRAIN");
-    local sMined;
-    if iPDug > iODug then sMined = "YOU HAVE MINED THE MOST TERRAIN";
-    elseif iPDug < iODug then
-      sMined = "YOUR OPPONENT HAS MINED THE MOST TERRAIN";
-    else sMined = "YOU AND YOUR OPPONENT HAVE MINED EQUAL TERRAIN" end;
-    PrintC(fontLittle, 160, 120, sMined);
-    -- Draw who has found the most gems
-    local iPGems<const>, iOGems<const>, sGems =
-      oPlrActive.GEM, oPlrOpponent.GEM;
-    if iPGems > iOGems then sGems = "YOU HAVE FOUND THE MOST GEMS";
-    elseif iPGems < iOGems then
-      sGems = "YOUR OPPONENT HAS FOUND THE MOST GEMS";
-    else sGems = "YOU AND YOUR OPPONENT HAVE FOUND EQUAL GEMS" end;
-    PrintC(fontLittle, 160, 128, sGems);
-    -- Draw who has the most zogs
-    local iPlayerMoney<const> = oPlrActive.M;
-    PrintC(fontLittle, 160,  146, "YOU HAVE RAISED "..
-      UtilFormatNumber(iPlayerMoney, 0)..
-      " OF "..iWinLimit.." ZOGS ("..
-      UtilFormatNumber(iPlayerMoney/iWinLimit*100, 0).."%)");
-    local iOpponentMoney<const> = oPlrOpponent.M;
-    local sZogs;
-    if iPlayerMoney > iOpponentMoney then
-      iScoreAP, sZogs = iScoreAP + 1, "YOU HAVE THE MOST ZOGS";
-    elseif iPlayerMoney < iOpponentMoney then
-      iScoreOP, sZogs = iScoreOP + 1, "YOUR OPPONENT HAS MORE ZOGS";
-    else sZogs = "YOU AND YOUR OPPONENT HAVE EQUAL ZOGS" end;
-    PrintC(fontLittle, 160, 154, sZogs);
-    PrintC(fontLittle, 160, 162, "RAISE "..
-      UtilFormatNumber(iWinLimit-iPlayerMoney, 0).." MORE ZOGS TO WIN");
-    -- Draw prediction
-    local sPName<const>, sOName<const>, sWinning =
-      oPlrActive.RD.NAME, oPlrOpponent.RD.NAME;
-    if iScoreAP > iScoreOP then sWinning = sPName;
-    elseif iScoreAP < iScoreOP then sWinning = sOName;
-    else sWinning = "NOBODY" end;
-    PrintC(fontLittle, 160, 178, "THE TRADE CENTRE HAS PREDICTED");
-    -- Draw large labels now
-    Print(fontLarge, 16, 40, sLvlName);
-    PrintR(fontLarge, 304, 40, format("%02u:%02u:%02u",
-      iGameTicks // 216000 % 24,
-      iGameTicks // 3600 % 60,
-      iGameTicks // 60 % 60));
-    PrintC(fontLarge, 160, 72, sPName.." VS "..sOName);
-    PrintC(fontLarge, 160, 186, sWinning.." IS WINNING");
-  end
-  -- Inventory button pressed?
-  local aInfoScreenData<const> = {
-    { 248, 216, 815, 816, InfoScreenRenderInventory },
-    { 264, 216, 817, 818, InfoScreenRenderLocations },
-    { 280, 216, 802, 803, InfoScreenRenderStatus },
-    { 296, 216, 819, 820, BlankFunction }
-  };
-  -- Active screen item
-  local aInfoScreenActiveItem;
-  -- Button disabled function
-  local function InfoScreenEnabled()
-    -- Enumerate each button
-    for iIndex = 1, #aInfoScreenData do
-      -- Get info screen item and if its the active button?
-      local aInfoScreenItem<const> = aInfoScreenData[iIndex];
-      if aInfoScreenItem == aInfoScreenActiveItem then
-        -- Draw enabled button
-        BlitSLT(texSpr, aInfoScreenItem[4],
-          aInfoScreenItem[1], aInfoScreenItem[2])
-        -- Set font colours
-        fontTiny:SetCRGB(1, 1, 1);
-        fontLarge:SetCRGB(1, 1, 1);
-        fontLittle:SetCRGB(1, 1, 1);
-        -- Execute render function
-        aInfoScreenItem[5]();
-      -- Inactive so draw disabled button
-      else BlitSLT(texSpr, aInfoScreenItem[3],
-        aInfoScreenItem[1], aInfoScreenItem[2]) end;
-    end
-  end
-  -- Button disabled function
-  local function InfoScreenDisabled()
-    -- Enumerate each button
-    for iIndex = 1, #aInfoScreenData do
-      -- Get info screen item
-      local aInfoScreenItem<const> = aInfoScreenData[iIndex];
-      -- Draw disabled button
-      BlitSLT(texSpr, aInfoScreenItem[3],
-        aInfoScreenItem[1], aInfoScreenItem[2]);
-    end
-  end
-  -- Actual function
-  local function SelectInfoScreen(iScreen)
-    -- Reset?
-    if iScreen == nil then
-      -- Disable it
-      aInfoScreenActiveItem = nil;
-      fcbInfoScreen = InfoScreenDisabled;
-      -- Done
-      return;
-    end
-    -- Check parameter
-    if not UtilIsInteger(iScreen) or
-           iScreen < 1 or
-           iScreen > #aInfoScreenData then
-      error("Invalid screen! "..tostring(iScreen)) end
-    -- Play sound effect to show the player clicked it
-    PlayInterfaceSound(oSfxData.CLICK);
-    -- Get the screen info data and if we're already showing it?
-    local aInfoScreenItem<const> = aInfoScreenData[iScreen];
-    if aInfoScreenActiveItem == aInfoScreenItem then
-      -- Disable it
-      aInfoScreenActiveItem = nil;
-      fcbInfoScreen = InfoScreenDisabled;
-    -- We're not showing this one
-    else
-      -- Enable it
-      aInfoScreenActiveItem = aInfoScreenItem;
-      fcbInfoScreen = InfoScreenEnabled;
-    end
-  end
-  -- Set disabled callback
-  fcbInfoScreen = InfoScreenDisabled;
-  -- Return actual function
-  return SelectInfoScreen;
-end
--- De-init the level ------------------------------------------------------- --
-local function DeInitLevel()
-  -- Unset FBU callback
-  RegisterFBUCallback("game");
-  -- De-init information screen
-  SelectInfoScreen();
-  -- Dereference loaded assets for garbage collector
-  iTileBg, texLev, maskZone = nil, nil, nil;
-  -- Flush specified tables whilst keeping the actual table
-  local aTables<const> =
-    { aObjs, aPlayers, aFloodData, aGemsAvailable, aLvlData, aShroudData };
-  for iIndex = 1, #aTables do
-    local aTable<const> = aTables[iIndex];
-    while #aTable > 0 do remove(aTable) end;
-  end
-  -- Reset positions and other variables
-  iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iGameTicks, iAnimMoney,
-    iLvlId, iWinLimit, sMoney, iUniqueId, fcbLogic, fcbRender =
-      0, 0, 0, 0, 0, 0, nil, nil, nil, 0, nil, nil;
-  -- Reset active objects, menus and players
-  oPlrActive, oPlrOpponent = nil, nil;
-  -- Remove active object and menu data
-  SelectObject();
-  -- We don't want to hear sounds
-  SetPlaySounds(false);
-end
--- Get level tile location from absolute ca-ordinates ---------------------- --
-local function GetTileOffsetFromAbsCoordinates(iAbsX, iAbsY)
-  -- Return tile offset if valid
-  if iAbsX >= 0 and iAbsX < iLLAbsW and iAbsY >= 0 and iAbsY < iLLAbsH then
-    return iAbsY * iLLAbsW + iAbsX end;
-end
--- Get level tile location from absolute ca-ordinates ---------------------- --
-local function GetLevelOffsetFromAbsCoordinates(iAbsX, iAbsY)
-  -- Return location if valid
-  local iLoc<const> = GetTileOffsetFromAbsCoordinates(iAbsX, iAbsY);
-  if iLoc then return iLoc end;
+local function DrawHealthBar(iHealth, nDivisor, nLeft, nTop, nHeight)
+  -- Go from white (100% to orange (50%) to red (0%).
+  texSpr:SetCRGB(1.0, min(iHealth, 50.0) / 50.0,
+                      max(iHealth - 50.0, 0.0) / 50.0);
+  BlitSLTWH(texSpr, 1022, nLeft, nTop, iHealth / nDivisor, nHeight);
+  texSpr:SetCRGB(1.0, 1.0, 1.0);
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromAbsCoordinates(iAbsX, iAbsY)
-  -- Get tile at specified location and return tile id if valid
-  local iLoc<const> = GetLevelOffsetFromAbsCoordinates(iAbsX, iAbsY);
-  if iLoc then return aLvlData[1 + iLoc], iLoc end;
+  -- Return if tile offset is invalid
+  if iAbsX < 0 or iAbsX >= iLLAbsW or
+     iAbsY < 0 or iAbsY >= iLLAbsH then return end;
+  -- Calculate specified location and return it and the tile at that location
+  local iLoc<const> = iAbsY * iLLAbsW + iAbsX;
+  return aLvlData[1 + iLoc], iLoc;
 end
 -- Get zero based tile id at specified absolute location ------------------- --
 local function GetLevelDataFromLevelOffset(iLoc)
   -- Get tile at specified location
   if iLoc >= 0 and iLoc < iLLAbs then return aLvlData[1 + iLoc] end;
 end
--- Get zero based tile id at specified absolute location ------------------- --
-local function GetLevelDataFromTileOffset(iLoc)
-  -- Get tile at specified location
-  return GetLevelDataFromLevelOffset(iLoc);
-end
--- Get tile location from pixel co-ordinates ------------------------------- --
-local function GetTileOffsetFromCoordinates(iPixX, iPixY)
-  -- Return location if valid
-  if iPixX >= 0 and iPixX < iLLPixW and iPixY >= 0 and iPixY < iLLPixH then
-    return (iPixY // 16 * iLLAbsW) + (iPixX // 16) end;
-end
--- Get level tile location from co-ordinates ------------------------------- --
-local function GetLevelOffsetFromCoordinates(iPixX, iPixY)
-  -- Return level offset if valid
-  local iLoc<const> = GetTileOffsetFromCoordinates(iPixX, iPixY);
-  if iLoc then return iLoc end;
-end
--- Get zero based tile id at specified location ---------------------------- --
-local function GetLevelDataFromCoordinates(iPixX, iPixY)
-  -- Return tile at specified location
-  local iLoc<const> = GetLevelOffsetFromCoordinates(iPixX, iPixY);
-  if iLoc then return aLvlData[1 + iLoc], iLoc end;
+-- Get tile at specified object offset pixels ------------------------------ --
+local function GetLevelOffsetFromObject(oObj, iPixX, iPixY)
+  -- Adjust pixel parameters to where the object is
+  iPixX = iPixX + oObj.X + oObj.OFX;
+  iPixY = iPixY + oObj.Y + oObj.OFY;
+  -- Return if the specified pixel location adjacend to the object is invalid
+  if iPixX < 0 or iPixX >= iLLPixW and
+     iPixY < 0 or iPixY >= iLLPixH then return end;
+  -- Return absolute location of tile at specified pixel position
+  return (iPixY // 16 * iLLAbsW) + (iPixX // 16);
 end
 -- Get zero based tile id at specified object ------------------------------ --
 local function GetLevelDataFromObject(oObj, iPixX, iPixY)
-  -- Return level data from object co-ordinates
-  return GetLevelDataFromCoordinates(oObj.X + oObj.OFX + iPixX,
-                                     oObj.Y + oObj.OFY + iPixY);
-end
--- Get tile at specified object offset pixels ------------------------------ --
-local function GetTileOffsetFromObject(oObj, iPixX, iPixY)
-  -- Return tile offset from object co-ordinates
-  return GetTileOffsetFromCoordinates(oObj.X + oObj.OFX + iPixX,
-                                      oObj.Y + oObj.OFY + iPixY);
-end
--- Get tile at specified object offset pixels ------------------------------ --
-local function GetLevelOffsetFromObject(oObj, iPixX, iPixY)
-  -- Get tile offset from location and return level offset if valid
-  local iLoc<const> = GetTileOffsetFromObject(oObj, iPixX, iPixY);
-  if iLoc then return iLoc end;
+  -- Return tile at specified location
+  local iLoc<const> = GetLevelOffsetFromObject(oObj, iPixX, iPixY);
+  if iLoc then return aLvlData[1 + iLoc], iLoc end;
 end
 -- Update level and level mask --------------------------------------------- --
-local function UpdateLevel(iPos, iId)
-  -- We assign 'iId' to the level data so check it.
-  if not UtilIsInteger(iId) then
-     error("Invalid level tile index!"..tostring(iId)) end;
+local function UpdateLevel(iLoc, iTid)
+  -- We assign 'iTid' directly to the level data so check it.
+  if not UtilIsInteger(iTid) then
+     error("Invalid level tile index!"..tostring(iTid)) end;
   -- Update level data with specified tile
-  aLvlData[1 + iPos] = iId;
-  -- Calculate absolute X and Y position from location
-  local iX<const>, iY<const> = iPos % iLLAbsW * 16, iPos // iLLAbsW * 16;
+  aLvlData[1 + iLoc] = iTid;
+  -- Calculate pixel X and Y position from location
+  local iX<const>, iY<const> = iLoc % iLLAbsW * 16, iLoc // iLLAbsW * 16;
   -- Update zone collision bit-mask
-  maskZone:Copy(maskLev, iId, iX, iY);
+  maskZone:Copy(maskLev, iTid, iX, iY);
   -- This part will keep the 1 pixel barrier around the level
-  if iPos < iLLAbsW then
+  if iLoc < iLLAbsW then
     -- Keep top-left corner barrier to stop objects going off screen
-    if iPos == 0 then maskZone:Fill(0, 0, 16, 1);
+    if iLoc == 0 then maskZone:Fill(0, 0, 16, 1);
                       maskZone:Fill(0, 0, 1, 16);
     -- Keep top-right corner barrier to stop objects going off screen
-    elseif iPos == iLLAbsWm1 then
+    elseif iLoc == iLLAbsWm1 then
       maskZone:Fill(iX - 16, 0, 16, 1);
       maskZone:Fill(iX - 1, 0, 1, 16);
     -- Top row
     else maskZone:Fill(iX, 0, iX + 16, 1) end;
   -- Bottom row?
-  elseif iPos >= iLLAbsMLW then
+  elseif iLoc >= iLLAbsMLW then
     -- Keep bottom-left corner barrier to stop objects going off screen
-    if iPos == iLLAbsMLW then
+    if iLoc == iLLAbsMLW then
       maskZone:Fill(0, iY, 1, 16);
       maskZone:Fill(0, iY + 15, 16, 1);
     -- Keep bottom-right corner barrier to stop objects going off screen
-    elseif iPos == iLLAbsM1 then
+    elseif iLoc == iLLAbsM1 then
       maskZone:Fill(iX + 15, iY, 1, 16);
       maskZone:Fill(iX, iY + 15, 16, 1);
     -- Bottom row?
     else maskZone:Fill(iX, iY + 15, 16, 1) end;
     -- Keep left side barrier to stop objects going off screen
-  elseif iPos % iLLAbsW == 0 then maskZone:Fill(0, iY, 1, iY + 16);
+  elseif iLoc % iLLAbsW == 0 then maskZone:Fill(0, iY, 1, iY + 16);
   -- Keep right side barrier to stop objects going off screen
-  elseif iPos % iLLAbsW == iLLAbsWm1 then
+  elseif iLoc % iLLAbsW == iLLAbsWm1 then
     maskZone:Fill(iX + 15, iY, 1, iY + 16);
   end
 end
@@ -736,22 +313,21 @@ local function UpdateShroud(iOX, iOY)
     -- Calculate adjusted position based on object
     local iX<const>, iY<const> =
       iOX + aShroudCircleItem[1], iOY + aShroudCircleItem[2];
-    -- If the co-ordinates are valid?
-    if iX >= 0 and iY >= 0 and iX < iLLAbsW and iY < iLLAbsH then
-      -- Get shroud flags and calc new flags data and if different?
-      local aShroudItem<const> = aShroudData[iY * iLLAbsW + iX + 1];
-      local iOldFlags<const> = aShroudItem[2];
-      local iNewFlags<const> = iOldFlags | aShroudCircleItem[3];
-      if iOldFlags ~= iNewFlags then
-        -- Lookup new tile id and if theres only one? Set first tile
-        local aTiles<const> = aShroudTileLookup[1 + iNewFlags];
-        if #aTiles == 1 then
-          aShroudItem[1], aShroudItem[2] = aTiles[1], iNewFlags;
-        -- More than one tile? Randomly select one
-        else aShroudItem[1], aShroudItem[2] =
-          aTiles[random(#aTiles)], iNewFlags end;
-      end
-    end
+    -- If the co-ordinates are not valid then skip
+    if iX < 0 or iY < 0 or iX >= iLLAbsW or iY >= iLLAbsH then goto lSkip end;
+    -- Get shroud flags and calc new flags data and continue skip if same
+    local aShroudItem<const> = aShroudData[iY * iLLAbsW + iX + 1];
+    local iOldFlags<const> = aShroudItem[2];
+    local iNewFlags<const> = iOldFlags | aShroudCircleItem[3];
+    if iOldFlags == iNewFlags then goto lSkip end;
+    -- Lookup new tile id and if theres only one? Set first tile
+    local aTiles<const> = aShroudTileLookup[1 + iNewFlags];
+    if #aTiles == 1 then aShroudItem[1], aShroudItem[2] = aTiles[1], iNewFlags;
+    -- More than one tile? Randomly select one
+    else aShroudItem[1], aShroudItem[2] =
+      aTiles[random(#aTiles)], iNewFlags end;
+    -- Next shroud tile
+    ::lSkip::
   end
 end
 -- Set object X position --------------------------------------------------- --
@@ -787,25 +363,18 @@ local function SetPosition(oObj, iX, iY)
   -- Refocus on object if needed
   ObjectFocus(oObj);
 end
--- Trigger end condition --------------------------------------------------- --
-local function TriggerEnd(fcbFunc)
-  -- Call the function
-  fcbFunc(iLvlId, oPlrActive, oPlrOpponent);
-end
 -- Get win limit ----------------------------------------------------------- --
 local function HaveZogsToWin(oPlr) return oPlr.M >= iWinLimit end;
 -- Level end conditions check ---------------------------------------------- --
 local function EndConditionsCheck()
-  -- No active player? (Playing a demo?) Just ignore
-  if bAIvsAI or PlaySoundAtObject == BlankFunction then return end;
   -- Player has enough Zogs?
-  if HaveZogsToWin(oPlrActive) then return TriggerEnd(InitWin) end;
+  if HaveZogsToWin(oPlrActive) then return fcbEnd(1) end;
   -- All the opponents Diggers have died?
-  if oPlrOpponent.DC <= 0 then return TriggerEnd(InitWinDead) end;
+  if oPlrOpponent.DC <= 0 then return fcbEnd(2) end;
   -- The opponent has enough Zogs?
-  if HaveZogsToWin(oPlrOpponent) then return TriggerEnd(InitLose) end;
+  if HaveZogsToWin(oPlrOpponent) then return fcbEnd(3) end;
   -- All the players Diggers have died?
-  if oPlrActive.DC <= 0 then return TriggerEnd(InitLoseDead) end;
+  if oPlrActive.DC <= 0 then return fcbEnd(4) end;
 end
 -- Destroy object ---------------------------------------------------------- --
 local function DestroyObject(iObj, oObj)
@@ -897,8 +466,6 @@ local function AddToInventory(oObjOwner, oObjTake, bOnlyTreasure)
   -- Check parameters
   if not UtilIsTable(oObjOwner) then
     error("Invalid owner object specified! "..tostring(oObjOwner)) end;
-  if not UtilIsTable(oObjTake) then
-    error("Invalid take object specified! "..tostring(oObjTake)) end;
   -- Failed if the object to take is...
   if oObjTake.F & OFL.BUSY ~= 0 or        -- ...busy? -or-
     #oObjTake.I > 0 or                    -- ...has inventory? -or-
@@ -916,6 +483,8 @@ local function AddToInventory(oObjOwner, oObjTake, bOnlyTreasure)
       oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
       -- Add weight and set active inventory object to this object
       oObjOwner.IW, oObjOwner.IS = oObjOwner.IW + oObjTake.W, oObjTake;
+      -- Set object that is now carrying this
+      oObjTake.IP = oObjActive;
       -- Stop the taken object for inventory preview purposes
       SetAction(oObjTake, ACT.STOP, JOB.NONE, DIR.NONE);
       -- If item picked up was the active object then deselect it and its menu
@@ -927,40 +496,10 @@ local function AddToInventory(oObjOwner, oObjTake, bOnlyTreasure)
   -- This shouldn't happen! The object should be in the objects list!
   return false;
 end
--- Buy an item ------------------------------------------------------------- --
-local function BuyItem(oObj, iItemId)
-  -- Check parameters
-  if not UtilIsTable(oObj) then
-    error("Invalid object specified! "..tostring(oObj)) end;
-  if not UtilIsInteger(iItemId) then
-    error("Invalid item id specified! "..tostring(iItemId)) end;
-  -- Get object data
-  local oObjData<const> = oObjectData[iItemId];
-  if not UtilIsTable(oObjData) then
-    error("No such item id exists! "..tostring(oObjData)) end;
-  -- If objects owner doesn't have enough money or strength then failed
-  local oParent<const> = oObj.P;
-  local iValue<const> = oObjData.VALUE;
-  local iParentMoney<const> = oParent.M;
-  if iValue > iParentMoney or oObj.IW + oObjData.WEIGHT > oObj.STR or
-    not AddToInventory(oObj,
-      CreateObject(iItemId, oObj.X, oObj.Y, oParent)) then
-        return false end;
-  -- Reduce money
-  oParent.M = iParentMoney - iValue;
-  -- Total purchases plus one
-  oParent.PUR = oParent.PUR + 1
-  -- Log the purchase
-  CoreLog(oObj.OD.NAME.." "..oObj.DI.." purchased "..oObjData.NAME..
-    " for "..iValue.." Zogs ("..iParentMoney..">"..oParent.M..")!");
-  -- Success!
-  return true;
-end
 -- Drop Object ------------------------------------------------------------- --
 local function DropObject(oObjOwner, oObjDrop)
-  -- Verify parameters
-  if not UtilIsTable(oObjOwner) then error("Invalid owner object!") end;
-  if not UtilIsTable(oObjDrop) then error("Invalid object to drop!") end;
+  -- Return if object to drop is not specified
+  if not oObjDrop then return end;
   -- Get object inventory and enumerate it until we find the object
   local oObjOwnInv<const> = oObjOwner.I;
   for iIndex = 1, #oObjOwnInv do
@@ -975,7 +514,9 @@ local function DropObject(oObjOwner, oObjDrop)
       oObjOwner.IW = oObjOwner.IW - oObjDrop.W;
       -- Select next object
       oObjOwner.IS = oObjOwnInv[iIndex];
-      -- If invalid select first object
+      -- Remove object inventory owner
+      oObjOwnInv.IP = false;
+      -- If now invalid select first object
       if not oObjOwner.IS then oObjOwner.IS = oObjOwnInv[1] end;
       -- Success!
       return true;
@@ -1019,33 +560,6 @@ local function SellItem(oObjOwner, aSellObj)
   -- Sold
   return true;
 end
--- Sell all available items of specified type ------------------------------ --
-local function SellSpecifiedItems(oObj, iItemId)
-  -- Check parameters
-  if not UtilIsTable(oObj) then
-    error("Invalid object specified! "..tostring(oObj)) end;
-  if not UtilIsInteger(iItemId) then
-    error("Item type not specified! "..tostring(iItemId)) end;
-  -- Get digger inventory and return if no items
-  local aObjInv<const> = oObj.I;
-  if #aObjInv == 0 then return -1 end;
-  -- Something sold?
-  local iItemsSold = 0;
-  local iInvId = 1 while iInvId <= #aObjInv do
-    -- Get object and if is a matching type and we can sell and we sold it?
-    local oObjInv<const> = aObjInv[iInvId];
-    local iTypeId<const> = oObjInv.ID;
-    if iTypeId == iItemId and
-       CanSellGem(iTypeId) and
-       SellItem(oObj, oObjInv) then
-      -- Sold something
-      iItemsSold = iItemsSold + 1;
-    -- Not sellable solid so increment inventory index
-    else iInvId = iInvId + 1 end;
-  end
-  -- Return if we sold something
-  return iItemsSold;
-end
 -- Sprite collides with another sprite ------------------------------------- --
 local function IsSpriteCollide(S1, X1, Y1, S2, X2, Y2)
   return maskSpr:IsCollideEx(S1, X1, Y1, maskSpr, S2, X2, Y2);
@@ -1067,50 +581,27 @@ end
 -- Pickup Objects ---------------------------------------------------------- --
 local function PickupObjects(oObj, bOnlyTreasure)
   -- Look for objects that can be picked up
-  local iObj = 1 while iObj <= #aObjs do
+  for iObj = 1, #aObjs do
     -- Try to pickup specified object and return success if succeeded
     if PickupObject(oObj, aObjs[iObj], bOnlyTreasure) then return true end;
-    -- Try next object
-    iObj = iObj + 1;
   end
   -- Failed!
   return false;
 end
 -- Set a random action, job and direction ---------------------------------- --
 local function SetRandomJob(oObj, bUser)
-  -- Select a random choice
+  -- Select a random choice and failed direction matches?
   local aChoice = aAIChoicesData[random(#aAIChoicesData)];
-  -- Failed direction matches then try something else
   if aChoice[1] == oObj.FDD then aChoice = aChoice[2];
   -- We're not blocked from digging so try moving in that direction
   else aChoice = aChoice[3] end;
   -- Set new AI choice and return
   SetAction(oObj, aChoice[1], aChoice[2], aChoice[3], bUser);
 end
--- AI player override patience logic --------------------------------------- --
-local function AIPatienceLogic(oObj)
-  -- Return if...
-  if (oObj.F & OFL.BUSY ~= 0 and -- Digger is busy? -AND-
-     oObj.A ~= ACT.REST) or      -- Digger is NOT resting? -OR-
-     oObj.JT < oObj.PL then      -- Digger is not at impatience limit?
-    return end;
-  -- If have rest ability? (25% chance to execute). Use it and return
-  if oObj.OD[ACT.REST] and random() < 0.25 then
-    return SetAction(oObj, ACT.REST, JOB.NONE, DIR.NONE);
-  end
-  -- Do something casual
-  SetRandomJob(oObj, true);
-end
 -- Object is at home ------------------------------------------------------- --
 local function ObjectIsAtHome(oObj)
-  -- Check parameter is valid
-  if not UtilIsTable(oObj) then
-    error("Invalid object specified! "..tostring(oObj)) end;
-  -- Make sure object has an owner
+  -- Return if object is at the home point. A parent is assumed.
   local oPlr<const> = oObj.P;
-  if not UtilIsTable(oPlr) then
-    error("Object has invalid parent! "..tostring(oPlr)) end;
-  -- Return if object is at the home point
   return oObj.X == oPlr.HX and oObj.Y == oPlr.HY;
 end
 -- Cycle object inventory -------------------------------------------------- --
@@ -1123,9 +614,8 @@ local function CycleObjInventory(oObj, iDirection)
     -- Get inventory object and if we got it
     local oObjInv<const> = aInv[iInvIndex];
     if oObjInv == oObj.IS then
-      -- Cycle object wrapping on low or high
+      -- Cycle object wrapping on low or high and return success
       oObj.IS = aInv[1 + (((iInvIndex - 1) + iDirection) % #aInv)];
-      -- Success
       return true;
     end
   end
@@ -1174,8 +664,7 @@ local function InitSetAction()
     -- object was successful?
     local iId, iLoc<const> = GetLevelDataFromObject(oObj, 8, 16);
     if iId and aTileData[1 + iId] & oTileFlags.F ~= 0 and
-      CreateObject(TYP.GATEB,
-        iLoc % iLLAbsW * 16,
+      CreateObject(TYP.GATEB, iLoc % iLLAbsW * 16,
         (iLoc - iLLAbsW) // iLLAbsW * 16, oObj.P) then
       -- Update tile to a flood gate
       UpdateLevel(iLoc - iLLAbsW, 438);
@@ -1185,7 +674,37 @@ local function InitSetAction()
     -- Failed
     return false;
   end
-  -- Deployment functions
+  -- Do actually deploy the lift
+  local function LiftFindTop(oObj, iLoc, iBottom)
+    -- Search for a buildable above ground surface
+    for iTop = iLoc, iLLAbsW, -iLLAbsW do
+      -- Get tile
+      local iId<const> = aLvlData[1 + iTop];
+      local iTileId<const> = aTileData[1 + iId];
+      -- Tile has not been dug
+      if iTileId & oTileFlags.AD == 0 then
+        -- Tile is firm buildable ground?
+        if iTileId & oTileFlags.F ~= 0 then
+          -- Height check and if ok and creating an object went ok?
+          -- Create lift object
+          if iTop >= iLLAbsW and iBottom - iTop >= 384 and
+            CreateObject(TYP.LIFTB, (oObj.X + 8) // 16 * 16,
+              (oObj.Y + 15) // 16 * 16, oObj.P) then
+            -- Draw cable from top to bottom
+            UpdateLevel(iTop, 62);
+            for iTop = iTop + iLLAbsW, iBottom - iLLAbsW, iLLAbsW do
+              UpdateLevel(iTop, 189) end;
+            UpdateLevel(iBottom, 190);
+            -- We are fully deployed now so set success
+            return true;
+          end
+        end
+        -- Done
+        break;
+      end
+    end
+  end
+  -- Deploy the lift
   local function DEPLOYLift(oObj)
     -- Calculate absolute location of object
     local iLoc<const> = GetLevelOffsetFromObject(oObj, 8, 0);
@@ -1196,41 +715,10 @@ local function InitSetAction()
       local iTileId<const> = aTileData[1 + iId];
       -- Tile has not been dug
       if iTileId & oTileFlags.AD == 0 then
-        -- If we're on firm ground?
-        if iTileId & oTileFlags.F ~= 0 then
-          -- Search for a buildable above ground surface
-          for iTop = iLoc, iLLAbsW, -iLLAbsW do
-            -- Get tile
-            local iId<const> = aLvlData[1 + iTop];
-            local iTileId<const> = aTileData[1 + iId];
-            -- Tile has not been dug
-            if iTileId & oTileFlags.AD == 0 then
-              -- Tile is firm buildable ground?
-              if iTileId & oTileFlags.F ~= 0 then
-                -- Height check and if ok and creating an object went ok?
-                -- Create lift object
-                if iTop >= iLLAbsW and iBottom-iTop >= 384 and
-                  CreateObject(TYP.LIFTB,
-                    (oObj.X + 8) // 16 * 16,
-                    (oObj.Y + 15) // 16 * 16, oObj.P) then
-                  -- Update level data for top and bottom part of lift
-                  UpdateLevel(iTop, 62);
-                  UpdateLevel(iBottom, 190);
-                  -- Draw cable
-                  for iTop = iTop + iLLAbsW,
-                    iBottom - iLLAbsW, iLLAbsW do
-                    -- Update level data for bottom part of lift
-                    UpdateLevel(iTop, 189);
-                  end
-                  -- We are deploying now so set success
-                  return true;
-                end
-              end
-              -- Done
-              break;
-            end
-          end
-        end
+        -- If we're on firm ground? Check the shaft and return success if
+        -- shaft was successfully built.
+        if iTileId & oTileFlags.F ~= 0 and
+          LiftFindTop(oObj, iLoc, iBottom) then return true end;
         -- Done
         break;
       end
@@ -1266,7 +754,7 @@ local function InitSetAction()
        oObj.FS == 1 and               -- ...not actually falling *and*
        oObj.FD == 0 then              -- ...not accumulating fall damage
       -- Remove fall flag and add busy and jumping flags
-      oObj.F = (oObj.F | OFL.BUSY | OFL.JUMPRISE) & ~OFL.FALL;
+      oObj.F = (oObj.F | OFL.JUMPRISEBUSY) & OFL.iFALL;
       -- Play jump sound
       PlaySoundAtObject(oObj, oSfxData.JUMP);
       -- Reset action timer as jump lookup tables use this
@@ -1281,7 +769,7 @@ local function InitSetAction()
   local function ACTDeathOrEaten(oObj)
     -- Remove jump and fall flags or if the digger is jumping then busy will
     -- be unset and they will be able to instantly come out of phasing.
-    oObj.F = oObj.F & ~(OFL.JUMPRISE | OFL.JUMPFALL);
+    oObj.F = oObj.F & OFL.iJUMP;
     -- Force normal timer speed for animation
     oObj.ANT = oTimerData.ANIMNORMAL;
     -- Continue execution of function
@@ -1339,7 +827,9 @@ local function InitSetAction()
   -- Grab requested?
   local function ACTGrabItem(oObj) return true, PickupObjects(oObj, false) end;
   -- Drop requested?
-  local function ACTDropItem(oObj) return true, DropObject(oObj, oObj.IS) end;
+  local function ACTDropItem(oObj)
+    return true, DropObject(oObj, oObj.IS)
+  end
   -- Next inventory item requested?
   local function ACTNextItem(oObj) return true, CycleObjInventory(oObj, 1) end;
   -- Previous inventory item requested?
@@ -1352,7 +842,7 @@ local function InitSetAction()
       oObj.F & OFL.TPMASTER == 0 then return true, false end;
     -- Remove jump and fall flags or if the digger is jumping then busy will
     -- be unset and they will be able to instantly come out of phasing.
-    oObj.F = oObj.F & ~(OFL.JUMPRISE | OFL.JUMPFALL);
+    oObj.F = oObj.F & OFL.iJUMP;
     -- Continue function execution
     return false;
   end
@@ -1442,7 +932,7 @@ local function InitSetAction()
   -- Performed when object is in danger
   local function JOBInDanger(oObj, iJob)
     -- Keep busy unset if not dead or phasing!
-    if not aActionsToIgnore[oObj.A] then oObj.F = oObj.F & ~OFL.BUSY end;
+    if not aActionsToIgnore[oObj.A] then oObj.F = oObj.F & OFL.iBUSY end;
     -- Return originally set job
     return iJob;
   end
@@ -1492,13 +982,13 @@ local function InitSetAction()
     local fcbJobCallback<const> = oJobs[iJob];
     if fcbJobCallback then iJob = fcbJobCallback(oObj, iJob) end;
     -- Get object data
-    local aObjInitData<const> = oObj.OD;
+    local oObjInitData<const> = oObj.OD;
     -- Compare action. Stop requested?
     if iAction == ACT.STOP then
       -- If object can stop? Keep busy unset!
-      if oObj.CS then oObj.F = oObj.F & ~OFL.BUSY;
+      if oObj.CS then oObj.F = oObj.F & OFL.iBUSY;
       -- Can't stop? Set default action and move in opposite direction
-      else return SetAction(oObj, aObjInitData.ACTION,
+      else return SetAction(oObj, oObjInitData.ACTION,
                     JOB.KEEP, DIR.OPPOSITE) end;
     -- Keep existing job? Keep existing action!
     elseif iAction == ACT.KEEP then iAction = oObj.A end;
@@ -1517,9 +1007,9 @@ local function InitSetAction()
     local iDirFlags<const> = oObj.AD.FLAGS or OFL.NONE;
     oObj.F = oObj.F & ~iDirFlags;
     -- Set action data according to lookup table
-    local aAction<const> = aObjInitData[iAction];
+    local aAction<const> = oObjInitData[iAction];
     if not UtilIsTable(aAction) then
-      error(aObjInitData.NAME.." actdata for "..iAction..
+      error(oObjInitData.NAME.." actdata for "..iAction..
         " not found!"..tostring(aAction)) end;
     oObj.AD = aAction;
     -- If object has patience?
@@ -1534,19 +1024,21 @@ local function InitSetAction()
     -- Set directional data according to lookup table
     local aDirection<const> = aAction[iDirection];
     if not UtilIsTable(aDirection) then
-      error(aObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
+      error(oObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
         " not found! "..tostring(aDirection)) end;
     oObj.DD = aDirection;
+    -- Re-add flags according to lookup table
+    oObj.F = oObj.F | (aAction.FLAGS or 0);
     -- Get and check starting sprite id
     local iSprIdBegin<const> = aDirection[1];
     if not UtilIsInteger(iSprIdBegin) then
-      error(aObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
+      error(oObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
         " missing starting sprite! "..tostring(iSprIdBegin)) end;
     oObj.S1 = iSprIdBegin;
     -- Get and check ending sprite id
     local iSprIdEnd<const> = aDirection[2];
     if not UtilIsInteger(iSprIdEnd) then
-      error(aObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
+      error(oObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
         " missing starting sprite! "..tostring(iSprIdEnd)) end;
     oObj.S2 = iSprIdEnd;
     -- Set optional sprite draw offset
@@ -1572,37 +1064,37 @@ local function InitSetAction()
     if iAttTypeId then
       -- Check that its valid
       if not UtilIsInteger(iAttTypeId) then
-        error(aObjInitData.NAME.."'s specified attachment id is invalid! "..
+        error(oObjInitData.NAME.."'s specified attachment id is invalid! "..
           tostring(iAttTypeId)) end;
       -- Get and check object data for attachment
       local aAttObjectData<const> = oObjectData[iAttTypeId];
       if not UtilIsTable(aAttObjectData) then
-        error(aObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
+        error(oObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
           " is invalid! "..tostring(aAttObjectData)) end;
       -- Get and check action data for attachment
       local aAttAction<const> = aAttObjectData[iAction];
       if not UtilIsTable(aAttAction) then
-        error(aObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
+        error(oObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
           " actdata for "..iAction.." invalid! "..tostring(aAttAction)) end;
       oObj.AA = aAttAction;
       -- Set object data
       local aAttDirection<const> = aAttAction[iDirection];
       if not UtilIsTable(aAttDirection) then
-        error(aObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
+        error(oObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
           " dirdata for "..iAction.." > "..iDirection.." invalid! "..
           tostring(aAttDirection)) end;
       oObj.DA = aAttDirection;
       -- Get and check attachment starting sprite id
       local iAttSprIdBegin<const> = aAttDirection[1];
       if not UtilIsInteger(iAttSprIdBegin) then
-        error(aObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
+        error(oObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
           " dirdata for "..iAction.."->"..iDirection..
           " missing starting sprite! "..tostring(iAttSprIdBegin)) end;
       oObj.S1A = iAttSprIdBegin;
       -- Get and check attachment ending sprite id
       local iAttSprIdEnd<const> = aAttDirection[2];
       if not UtilIsInteger(iAttSprIdEnd) then
-        error(aObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
+        error(oObjInitData.NAME.."'s specified attachment id #"..iAttTypeId..
           " dirdata for "..iAction.."->"..iDirection..
           " missing starting sprite! "..tostring(iAttSprIdEnd)) end;
       oObj.S2A = iAttSprIdEnd;
@@ -1615,14 +1107,12 @@ local function InitSetAction()
         aAttDirection[3] or 0, aAttDirection[4] or 0;
     -- Set no attachment
     end
-    -- Re-add flags according to lookup table
-    oObj.F = oObj.F | (aAction.FLAGS or 0);
     -- Get optional sound id and optional pitch and if specified?
     local iSoundId = aAction.SOUND;
     if iSoundId then
       -- Check it
       if not UtilIsInteger(iSoundId) then
-        error(aObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
+        error(oObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
           " has invalid sound id! "..tostring(iSoundId)) end;
       -- Play the sound now with no panning
       PlaySoundAtObject(oObj, iSoundId);
@@ -1633,7 +1123,7 @@ local function InitSetAction()
       if iSoundId then
         -- Check it
         if not UtilIsInteger(iSoundId) then
-          error(aObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
+          error(oObjInitData.NAME.." dirdata for "..iAction.."->"..iDirection..
             " has invalid random pitch sound id! "..tostring(iSoundId)) end;
         -- Play sound with random pitch
         PlaySoundAtObject(oObj, iSoundId, 0.975 + (random() % 0.05));
@@ -1659,269 +1149,189 @@ local function RollTheDice(nX, nY)
   return not not CreateObject(aDigTileData[random(#aDigTileData)], nX, nY);
 end
 -- Roll the dice to spawn treasure at the specified location --------------- --
-local function SetObjectAndParentCounter(oObj, sWhat)
+local function AdjObjParentStat(oObj, sWhat)
   -- Increase objects gem find count
   oObj[sWhat] = oObj[sWhat] + 1;
   -- And of the objects owner if it has one
   local oPlr<const> = oObj.P;
   if oPlr then oPlr[sWhat] = oPlr[sWhat] + 1 end;
 end
--- Dig tile at specified position ------------------------------------------ --
-local function DigTile(...)
-  -- Storage for certain positions and tile ids relative to the object
-  local iDP,   -- Vertical position at objects feet
-        iCP,   -- Vertical position at objects waist height
-        iTId,  -- Tile id the object is on now
-        iTIdA, -- Tile id above the object is on now
-        iTIdC, -- Tile id the object is on now (centre pixel position)
-        iTIdB, -- Tile id below the object is on now
-        iTIdL, -- Tile id left of the object is on now
-        iTIdR; -- Tile id right of the object is on now
-  -- Current object direction
-  local iDirection;
-  -- Frequently used flags
-  local iTFW<const>, iTFP<const>, iTFEL<const>, iTFER<const>, iTFEB<const>,
-    iTFET<const> = oTileFlags.W, oTileFlags.P, oTileFlags.EL,
-      oTileFlags.ER, oTileFlags.EB, oTileFlags.ET;
-  -- Get dig tile data
-  local function GetDigTileData()
-    -- Get the tile id that the object is on now
-    iTIdC = aLvlData[1 + iCP];
-    -- Get the tile above and adjacent the object
-    if iDP >= iLLAbsW then
-      iTIdA = aLvlData[1 + (iDP - iLLAbsW)] else iTIdA = 0 end
-    -- Get the tile below and adjacent to the object
-    if iDP < iLLAbs - iLLAbsW then
-      iTIdB = aLvlData[1 + (iDP + iLLAbsW)] else iTIdB = 0 end;
-    -- Get the tile adjacent to the object
-    iTId = aLvlData[1 + iDP];
-    -- Get the tile left of the object
-    if iDP - 1 >= 0 then iTIdL = aLvlData[1 + (iDP - 1)] else iTIdL = 0 end;
-    -- Get the tile right of the object
-    if iDP + 1 < iLLAbs then
-      iTIdR = aLvlData[1 + iDP + 1] else iTIdR = 0 end;
+-- Set object health (properly initialised at script init) ----------------- --
+local function AdjustObjectHealth()
+  -- Commonly accessed aliases
+  local iADeath<const>, iAPhase<const>, iTFWater<const>,
+    iTFDestructable<const>, iTFArtificial<const>, iTFProtected<const>,
+    iTFFirmGround<const>, iTypLiftB<const>, iTypFloodGate<const> =
+      ACT.DEATH, ACT.PHASE, oTileFlags.W, oTileFlags.D, oTileFlags.AD,
+      oTileFlags.P, oTileFlags.F, TYP.LIFTB, TYP.GATEB;
+  -- Actually kill object
+  local function KillObject(oTarget, oObjCause)
+    AdjustObjectHealth(oTarget, -100, oObjCause);
   end
-  -- Moving left or up-left?
-  local function DirectionLeftOrUpleft(oObj)
-    -- Get tile at objects feet
-    iDP = GetLevelOffsetFromObject(oObj, 5, 15) or 0;
-    GetDigTileData();
-    local iFDL<const>, iFDT<const> =
-      aTileData[1 + iTIdL], aTileData[1 + iTIdA];
-    if iFDT & iTFP ~= 0 or
-      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
-    return true;
-  end
-  -- Moving left or up-left?
-  local function DirectionUpLeft(oObj)
-    -- Get tile at objects waist
-    iCP = GetLevelOffsetFromObject(oObj, 8, 15) or 0;
-    return DirectionLeftOrUpleft(oObj);
-  end
-  -- Digging left?
-  local function DirectionLeft(oObj)
-    -- Tile at objects waist not required
-    iCP = 0;
-    return DirectionLeftOrUpleft(oObj);
-  end
-  -- Digging down-left?
-  local function DirectionDownLeft(oObj)
-    -- Get tile at objects hands and feet
-    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1) or 0,
-               GetLevelOffsetFromObject(oObj, 5, 1) or 0;
-    GetDigTileData();
-    local iFDB<const>, iFDL<const>, iFDT<const> =
-      aTileData[1 + iTIdB], aTileData[1 + iTIdL], aTileData[1 + iTIdA];
-    if iFDT & iTFP ~= 0 or
-      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
-      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
-    return true;
-  end
-  -- Digging right or up-right?
-  local function DirectionRightOrUpright(oObj)
-    -- Get tile at objects feet
-    iDP = GetLevelOffsetFromObject(oObj, 10, 15) or 0;
-    GetDigTileData();
-    local iFDT<const>, iFDR<const> =
-      aTileData[1 + iTIdA], aTileData[1 + iTIdR];
-    if iFDT & iTFP ~= 0 or
-      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
-    return true;
-  end
-  -- Digging up-right
-  local function DirectionUpRight(oObj)
-    -- Get tile at objects waist
-    iCP = GetLevelOffsetFromObject(oObj, 8, 15) or 0;
-    return DirectionRightOrUpright(oObj);
-  end
-  -- Digging right or up-right?
-  local function DirectionRight(oObj)
-    -- Tile at objects waist not required
-    iCP = 0;
-    return DirectionRightOrUpright(oObj);
-  end
-  -- Digging down-right?
-  local function DirectionDownRight(oObj)
-    -- Get tile at objects waist and feet
-    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1) or 0,
-               GetLevelOffsetFromObject(oObj, 10, 1) or 0;
-    GetDigTileData();
-    local iFDB<const>, iFDR<const>, iFDT<const> =
-      aTileData[1 + iTIdB], aTileData[1 + iTIdR], aTileData[1 + iTIdA];
-    if iFDT & iTFP ~= 0 or
-      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
-      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
-    return true;
-  end
-  -- Digging down?
-  local function DirectionDown(oObj)
-    -- Get tile at objects waist and feet
-    iCP, iDP = 0, GetLevelOffsetFromObject(oObj, 8, 16) or 0;
-    GetDigTileData();
-    local iFDL<const>, iFDT<const>, iFDR<const>, iFDB<const> =
-      aTileData[1 + iTIdL], aTileData[1 + iTIdA], aTileData[1 + iTIdR],
-      aTileData[1 + iTIdB];
-    if iFDT & iTFP ~= 0 or
-      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
-      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
-      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) then
-      return false end;
-    return true;
-  end
-  -- Do the dig
-  local function DoDig(oObj, aSubDigItem)
-    -- Terrain should change?
-    local iTOS<const>, iFlags<const> = aSubDigItem[4], aSubDigItem[7];
-    if iTOS then
-      -- Check ToOver and convert random shaft tiles
-      local aDugData<const> = oDugRandShaftData[iTOS];
-      if aDugData then iTId = aDugData[random(#aDugData)];
-      else iTId = iTOS end;
-      -- Successful dig should search for treasure and if successful?
-      -- Then increment the gem found counter for object and parent.
-      if iFlags & DF.OG ~= 0 and RollTheDice(oObj.X, oObj.Y) then
-        SetObjectAndParentCounter(oObj, "GEM") end;
-    end
-    -- Set tiles if needed
-    local iTAS<const> = aSubDigItem[5];
-    if iTAS then iTIdA = iTAS end;
-    local iTBS<const> = aSubDigItem[6];
-    if iTBS then iTIdB = iTBS end;
-    -- Set digger flags if needed
-    if iFlags & DF.OB ~= 0 then oObj.F = oObj.F | OFL.BUSY end;
-    if iFlags & DF.OI ~= 0 then oObj.F = oObj.F & ~OFL.BUSY end;
-    -- Update above tile if tile location if we can
-    if iDP >= iLLAbsW then UpdateLevel(iDP - iLLAbsW, iTIdA) end;
-    -- Update level
-    UpdateLevel(iDP, iTId);
-    -- Update below tile if tile location if we can
-    if iDP < iLLAbs - iLLAbsW then UpdateLevel(iDP + iLLAbsW, iTIdB) end;
-    -- Dig was successful
-    return true;
-  end
-  -- Direction possibilities
-  local oDirectionRequirements<const> = {
-    [DIR.UL] = DirectionUpLeft,        [DIR.UR] = DirectionUpRight,
-    [DIR.L]  = DirectionLeft,          [DIR.R]  = DirectionRight,
-    [DIR.DL] = DirectionDownLeft,      [DIR.D]  = DirectionDown,
-    [DIR.DR] = DirectionDownRight
-  };
-  -- Actual dig tile function
-  local function DoDigTile(oObj)
-    -- Cache digging direction of object and if going left or up-left?
-    iDirection = oObj.D;
-    -- Return if no dig data for direction
-    local fcbDirection<const> = oDirectionRequirements[iDirection];
-    if not fcbDirection or not fcbDirection(oObj) then return false end;
-    -- Get digging data table
-    local aDigDataItem<const> = oDigData[iDirection];
-    if not aDigDataItem then return false end;
-    -- Walk through all the digger data structs to find info about current tile
-    for iDigDataIndex = 1, #aDigDataItem do
-      -- Get dig data and data about the specific tile to check for and if the
-      -- adjacent tile id the object is at matches?
-      local aDigItem<const> = aDigDataItem[iDigDataIndex];
-      if iTId ~= aDigItem[1] then goto nextdditem end;
-      -- Go through all the sub-possibilities
-      for iDigDataSubIndex = 2, #aDigItem do
-        -- Get sub-data, always assumed to be a table
-        local aSubDigItem<const> = aDigItem[iDigDataSubIndex];
-        -- Skip if the tile above the object isn't matched
-        local iMTIdA<const> = aSubDigItem[1];
-        if iMTIdA and iTIdA ~= iMTIdA then goto nextsdditem end;
-        -- Skip if the tile below the object isn't matched
-        local iMTIdB<const> = aSubDigItem[2];
-        if iMTIdB and iTIdB ~= iMTIdB then goto nextsdditem end;
-        -- Skip if the tile the object is on isn't matched
-        local iMTIdC<const> = aSubDigItem[3];
-        if iMTIdC and iTIdC ~= iMTIdC then goto nextsdditem end;
-        -- We can dig now and return if successful.
-        if DoDig(oObj, aSubDigItem) then return true end;
-        -- Continue mark
-        ::nextsdditem::
+  -- Kill surrounding objects
+  local function KillObjects(oObjVictim, oObjCause, iX, iY, iLoc)
+    -- Get absolute position
+    local iAX<const>, iAY<const> = iX * 16, iY * 16;
+    -- Compare against all objects
+    for iObject = 1, #aObjs do
+      -- Get target object data and if not the same object?
+      local oTarget<const> = aObjs[iObject];
+      if oTarget ~= oObjVictim then
+        -- Get action and if target object...
+        local iAction<const> = oTarget.A;
+        if iAction ~= iADeath and           -- ...is not dying?
+           iAction ~= iAPhase and           -- *and* not phasing?
+           IsSpriteCollide(476, iAX, iAY, -- *and* in explosion?
+             oTarget.S, oTarget.X + oTarget.OFX, oTarget.Y + oTarget.OFY) then
+          KillObject(oTarget, oObjCause) end;
       end
-      -- Continue mark
-      ::nextdditem::
     end
-    -- Dig failed
-    return false;
   end
-  -- Set actual function and call it
-  DigTile = DoDigTile;
-  return DoDigTile(...);
-end
--- Set object health ------------------------------------------------------- --
-local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
-  -- Calculate new health amount and if still alive?
-  local iNewHealth<const> = oObjVictim.H + iAmount;
-  if iNewHealth > 0 then
-    -- Clamp at a 100% if needed or update the objects new health
-    if iNewHealth > 100 then oObjVictim.H = 100
-                        else oObjVictim.H = iNewHealth end;
-    -- Do not do anything else
-    return;
-  end;
-  -- Object is dead so clamp health to zero or update the objects new health
-  if iNewHealth < 0 then oObjVictim.H = 0 else oObjVictim.H = iNewHealth end;
-  -- Kill object (Don't move this, for explosion stuff to work)
-  SetAction(oObjVictim, ACT.DEATH, JOB.INDANGER, DIR.NONE);
-  -- Remove jump and falling status from object
-  local iFlags<const> = oObjVictim.F & ~(OFL.JUMPRISE|OFL.JUMPFALL);
-  oObjVictim.F = iFlags;
-  -- Get victim name
-  local sVictim<const> = oObjVictim.OD.NAME..
-    "["..oObjVictim.U.."] at X:"..oObjVictim.X.." Y:"..oObjVictim.Y;
-  -- If caused by another object?
-  if oObjCause then
-    -- Get causer name
-    local sCauser<const> = oObjCause.OD.NAME..
-       "["..oObjCause.U.."] at X:"..oObjCause.X.." Y:"..oObjCause.Y;
-    -- Was victim a living thing?
-    if iFlags & OFL.LIVING ~= 0 then
-      -- increase their living kills count and log the kill
-      CoreLog(sCauser.." killed "..sVictim.."!");
-      SetObjectAndParentCounter(oObjCause, "LK");
-    -- Was victim an enemy?
-    elseif iFlags & OFL.ENEMY ~= 0 then
-      -- Increase their enemy kills count and log the kill
-      CoreLog(sCauser.." destroyed enemy "..sVictim.."!");
-      SetObjectAndParentCounter(oObjCause, "EK");
-    -- Anything else? Log the destruction
-    else CoreLog(sCauser.." destroyed "..sVictim.."!") end;
-  -- No killer and is living
-  elseif iFlags & OFL.LIVING ~= 0 then CoreLog(sVictim.." died!");
-  -- No killer? Log the destruction
-  else CoreLog(sVictim.." was destroyed!") end;
-  -- Object explodes on death?
-  if oObjVictim.F & OFL.EXPLODE ~= 0 then
+  -- Explode directions data
+  local aExplodeDirData<const> = {
+    -- X -- Y -- Flags -----                  -- Order is important!
+    {   0,  -1, iTFWater|oTileFlags.EB }, -- [Up] Flood if above exposed
+    {  -1,   0, iTFWater|oTileFlags.ER }, -- [Left] Flood if left exposed
+    {   0,   0, iTFWater               }, -- [Centre] No flooding check
+    {   1,   0, iTFWater|oTileFlags.EL }, -- [Right] Flood if right exposed
+    {   0,   1, iTFWater|oTileFlags.ET }, -- [Down] Flood if below exposed
+  };
+  -- Check for flooding surrounding the specified tile location
+  local function CheckSurroundingFlooding(iLoc)
+    -- Test for flooding around the cleared tile
+    for iFloodIndex = 1, #aExplodeDirData do
+      -- Get flood test data and calculate location to test
+      local aFloodTestItem<const> = aExplodeDirData[iFloodIndex];
+      local iTLoc<const> =
+        (iLoc + (aFloodTestItem[2] * iLLAbsW)) + aFloodTestItem[1];
+      -- Get tile id and if valid
+      local iId<const> = GetLevelDataFromLevelOffset(iTLoc);
+      if iId then
+        -- Get flags to test for and insert a new flood if found
+        local iTFFlags<const> = aFloodTestItem[3];
+        if aTileData[1 + iId] & iTFFlags == iTFFlags then
+          aFloodData[1 + #aFloodData] = { iTLoc, iTFFlags };
+        end
+      end
+    end
+  end
+  -- Lift tiles which cause cascading clear effect
+  local oLiftShaftTiles<const> = {
+    -- Top          Cable          Bottom
+    [ 62] = 7,      [189] = 7,     [190] = 7,
+    -- Top (Water)  Cable (Water)  Bottom (Water)
+    [302] = 247,    [429] = 247,   [430] = 247
+  };
+  -- Destroy lift shaft
+  local function DestroyLiftShaft(oObjCause, iLoc, iStep)
+    -- Restart point
+    ::lTryAgain::
+    -- Get tile id and return if invalid
+    local iId<const> = GetLevelDataFromLevelOffset(iLoc);
+    if not iId then return end;
+    -- Check to see if this is a lift tile and return if invalid
+    local iToTile<const> = oLiftShaftTiles[iId];
+    if not iToTile then return end;
+    -- Clear the shaft tile
+    UpdateLevel(iLoc, iToTile);
+    -- Find gate at that position
+    for iObjId = 1, #aObjs do
+      -- Get object and if it's a deployed lift? Get its absolute location,
+      -- and it's in the same place? Kill it if it's not killed already.
+      local oObjLift<const> = aObjs[iObjId];
+      if oObjLift.ID == iTypLiftB and
+         oObjLift.A ~= iADeath and
+         GetLevelOffsetFromObject(oObjLift, 0, 0) == iLoc then
+        KillObject(oObjLift, oObjCause);
+      end
+    end
+    -- Goto next specified row
+    iLoc = iLoc + iStep;
+    -- Try again until we can check no more
+    goto lTryAgain;
+  end
+  -- Explode directions data
+  local oExplodeAboveData<const> = {
+    [ 88] =   7, -- Remove left end of track and set clear tile
+    [ 91] =   7, -- Remove right end of track and set clear tile
+    [149] = 150, -- Remove track from dug tile with light
+    [169] = 170, -- Remove track from dug tile with forward beam
+    [210] =   7, -- Remove track from dug tile beam backwards
+    [328] = 247, -- Remove watered right end of track and set to cleared water
+    [331] = 247, -- Remove watered left end of track and set to cleared water
+    [389] = 390, -- Remove watered light and set to watered light
+    [409] = 410, -- Remove watered beam forward and set to watered beam forward
+    [450] = 247, -- Remove watered clear track and set to clear
+  };
+  -- Start destroying terrain
+  local function DestroyTerrain(oObjVictim, iX, iY, iId, iLoc)
+    -- Get tile flags and return if tile is not destructible and been cleared?
+    local iTFlags<const> = aTileData[1 + iId];
+    if iTFlags & iTFDestructable == 0 or
+       iTFlags & iTFArtificial ~= 0 then return end;
+    -- If get tile above flags and return if below this tile is a protected
+    -- platform?
+    local iAId<const> = GetLevelDataFromAbsCoordinates(iX, iY - 1);
+    if iAId and aTileData[1 + iAId] & iTFProtected ~= 0 then return end;
+    -- Increase dug count
+    AdjObjParentStat(oObjVictim, "DUG");
+    -- Roll the dice and spawn treasure and increase objects gem find
+    -- count if found and not protected ground.
+    if RollTheDice(iX * 16, iY * 16) then
+      AdjObjParentStat(oObjVictim, "GEM") end;
+    -- If this was a lift tile?
+    if oLiftShaftTiles[iId] then
+      -- Destroy lift shaft upwards then downwards
+      DestroyLiftShaft(oObjCause, iLoc, -iLLAbsW);
+      DestroyLiftShaft(oObjCause, iLoc + iLLAbsW, iLLAbsW);
+    end
+    -- Tile blown does not contain water?
+    if iTFlags & iTFWater == 0 then
+      -- Set cleared dug tile
+      UpdateLevel(iLoc, 7);
+      -- Check for surrounding flooding
+      CheckSurroundingFlooding(iLoc);
+    -- Tile is in water
+    else
+      -- Set cleared water tile
+      UpdateLevel(iLoc, 247);
+      -- Test for flood here with all edges exposed
+      aFloodData[1 + #aFloodData] = { iLoc, iTFWater|oTileFlags.EA };
+    end
+    -- Return if tile blown was not firm ground
+    if iTFlags & iTFFirmGround == 0 then return end;
+    -- Get tile location above and return if not valid
+    local iTLoc<const> = iLoc - iLLAbsW;
+    local iId<const> = GetLevelDataFromLevelOffset(iTLoc);
+    if not iId then return end;
+    -- Get above tile flags and if is a gate?
+    local iATFlags<const> = aTileData[1 + iId];
+    if iATFlags & oTileFlags.G ~= 0 then
+      -- Find gate at that position
+      for iObjId = 1, #aObjs do
+        -- Get object and if it's a deployed gate? Get its absolute
+        -- location and if it's the same? Destroy the deployed
+        -- gate.
+        local oObjVictim<const> = aObjs[iObjId];
+        if oObjVictim.ID == iTypFloodGate and
+          GetLevelOffsetFromObject(oObjVictim, 0, 0) == iTLoc then
+            KillObject(oObjVictim, oObjCause) end;
+      end
+      -- Is watered gate? Set watered cleared tile else normal
+      -- clear
+      if iATFlags & iTFWater ~= 0 then
+        UpdateLevel(iTLoc, 247) else UpdateLevel(iTLoc, 7) end;
+      -- Check if removed gate would cause a flood
+      aFloodData[1 + #aFloodData] = { iTLoc, oTileFlags.EA };
+    -- Not a gate?
+    else
+      -- Is a supported tile that we should clear
+      local iToTile<const> = oExplodeAboveData[iId];
+      if iToTile then UpdateLevel(iTLoc, iToTile) end;
+    end
+  end
+  -- Process explosion logic ----------------------------------------------- --
+  local function ProcessExplosion(oObjVictim, oObjCause)
     -- Enumerate possible destruct positions again. We can't have the TERRAIN
     -- destruction checks in the above enumeration because of the recursive
     -- nature of the OBJECT destruction which would cause problems.
@@ -1935,182 +1345,438 @@ local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
       -- Calculate locate of tile and if in valid bounds?
       local iId, iLoc<const> = GetLevelDataFromAbsCoordinates(iX, iY);
       if iId then
-        -- Get position
-        local iPosX<const>, iPosY<const> = iX*16, iY*16;
-        -- Compare against all objects
-        for iObject = 1, #aObjs do
-          -- Get target object data and if not the same object?
-          local oTarget<const> = aObjs[iObject];
-          if oTarget ~= oObjVictim then
-            -- Get action and if target object...
-            local iAction<const> = oTarget.A;
-            if iAction ~= ACT.DEATH and           -- ...is not dying?
-               iAction ~= ACT.PHASE and           -- *and* not phasing?
-               IsSpriteCollide(476, iPosX, iPosY, -- *and* in explosion?
-                 oTarget.S, oTarget.X+oTarget.OFX, oTarget.Y+oTarget.OFY) then
-              AdjustObjectHealth(oTarget, -100, oObjCause);
-            end
-          end
-        end
-        -- Get tile flags and if tile is destructible and not been cleared?
-        local iTFlags<const> = aTileData[1 + iId];
-        if iTFlags & oTileFlags.D ~= 0 and iTFlags & oTileFlags.AD == 0 then
-          -- If get tile above flags and if below this tile is a protected
-          -- platform?
-          local iAId<const> = GetLevelDataFromAbsCoordinates(iX, iY - 1);
-          if not iAId or aTileData[1 + iAId] & oTileFlags.P == 0 then
-            -- Increase dug count
-            SetObjectAndParentCounter(oObjVictim, "DUG");
-            -- Roll the dice and spawn treasure and increase objects gem find
-            -- count if found and not protected ground.
-            if RollTheDice(iX * 16, iY * 16) then
-              SetObjectAndParentCounter(oObjVictim, "GEM") end;
-            -- Tile blown does not contain water?
-            if iTFlags & oTileFlags.W == 0 then
-              -- Set cleared dug tile
-              UpdateLevel(iLoc, 7);
-              -- Test for flooding around the cleared tile
-              for iFloodIndex = 1, #aExplodeDirData do
-                -- Get flood test data and calculate location to test
-                local aFloodTestItem<const> = aExplodeDirData[iFloodIndex];
-                local iTLoc<const> = (iLoc + (aFloodTestItem[2] *
-                  iLLAbsW)) + aFloodTestItem[1];
-                -- Get tile id and if valid
-                iId = GetLevelDataFromLevelOffset(iTLoc);
-                if iId then
-                  -- Get flags to test for and insert a new flood if found
-                  local iTFFlags<const> = aFloodTestItem[3];
-                  if aTileData[1 + iId] & iTFFlags == iTFFlags then
-                    aFloodData[1 + #aFloodData] = { iTLoc, iTFFlags };
-                  end
-                end
-              end
-            -- Tile is in water
-            else
-              -- Set cleared water tile
-              UpdateLevel(iLoc, 247);
-              -- Test for flood here with all edges exposed
-              aFloodData[1 + #aFloodData] = { iLoc, oTileFlags.W|oTileFlags.EA };
-            end
-            -- Tile blown was firm ground?
-            if iTFlags & oTileFlags.F ~= 0 then
-              -- Get tile location above
-              local iTLoc<const> = iLoc - iLLAbsW;
-              -- Get tile id and if valid?
-              iId = GetLevelDataFromLevelOffset(iTLoc);
-              if iId then
-                -- Get above tile flags and if is a gate?
-                local iATFlags<const> = aTileData[1 + iId];
-                if iATFlags & oTileFlags.G ~= 0 then
-                  -- Find gate at that position
-                  for iObjId = 1, #aObjs do
-                    -- Get object and if it's a deployed gate? Get its absolute
-                    -- location and if it's the same? Destroy the deployed
-                    -- gate.
-                    local oObjVictim<const> = aObjs[iObjId];
-                    if oObjVictim.ID == TYP.GATEB and
-                      GetLevelOffsetFromObject(oObjVictim, 0, 0) == iTLoc then
-                        AdjustObjectHealth(oObjVictim, -100, oObjCause) end;
-                  end
-                  -- Is watered gate? Set watered cleared tile else normal
-                  -- clear
-                  if iATFlags & oTileFlags.W ~= 0 then
-                    UpdateLevel(iTLoc, 247) else UpdateLevel(iTLoc, 7) end;
-                  -- Check if removed gate would cause a flood
-                  aFloodData[1 + #aFloodData] = { iTLoc, oTileFlags.EA };
-                -- Not a gate?
-                else
-                  -- Is a supported tile that we should clear
-                  local iToTile<const> = oExplodeAboveData[iId];
-                  if iToTile then UpdateLevel(iTLoc, iToTile) end;
-                end
-              end
-            end
-          end
+        -- Kill objects in this vicinity
+        KillObjects(oObjVictim, oObjCause, iX, iY, iId, iLoc);
+        -- Check for flooding
+        DestroyTerrain(oObjVictim, iX, iY, iId, iLoc);
+      end
+    end
+  end
+  -- Create a damage value ------------------------------------------------- --
+  local function CreateDamageValue(iAmount, oObj, oObjCause, nR, nG, nB)
+    -- Return if caused by neutral damage and not by another or another player
+    -- or the object is in someones inventory.
+    if not GetTestMode() and ((not oObjCause and oObj.P ~= oPlrActive) or
+       (oObjCause and not oObjCause.P) or oObj.IP) then return end;
+    -- Add to the number value display
+    aDamageValues[1 + #aDamageValues] = { oObj.X + oObj.OFX + 8,
+      oObj.Y + oObj.OFY - 7, iAmount, nR, nG, nB, 1.0 };
+  end
+  -- Actual function that gets returned when initialised for first time ---- --
+  local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
+    -- Calculate new health amount and if still alive?
+    local iNewHealth<const> = oObjVictim.H + iAmount;
+    if iNewHealth > 0 then
+      -- Clamp at a 100% if needed or update the objects new health
+      if iNewHealth > 100 then
+        oObjVictim.H, iAmount = 100, 100 - oObjVictim.H;
+      else oObjVictim.H = iNewHealth end;
+      -- Add a damage value above the objects head
+      if iAmount < 0 then
+        CreateDamageValue(iAmount, oObjVictim, oObjCause, 1.0, 1.0, 1.0);
+      elseif iAmount > 0 then
+        CreateDamageValue(iAmount, oObjVictim, oObjCause, 1.0, 1.0, 0.25);
+      end
+      -- Do not do anything else
+      return;
+    end
+    -- Write killing value above objects head
+    CreateDamageValue(iAmount, oObjVictim, oObjCause, 1.0, 0.0, 1.0);
+    -- Object is dead so clamp health to zero or update the objects new health
+    if iNewHealth < 0 then oObjVictim.H = 0 else oObjVictim.H = iNewHealth end;
+    -- Kill object (Don't move this, for explosion stuff to work)
+    SetAction(oObjVictim, iADeath, JOB.INDANGER, DIR.NONE);
+    -- Remove jump and falling status from object
+    local iFlags<const> = oObjVictim.F & OFL.iJUMP;
+    oObjVictim.F = iFlags;
+    -- Get victim name
+    local sVictim<const> = oObjVictim.OD.NAME..
+      "["..oObjVictim.U.."] at X:"..oObjVictim.X.." Y:"..oObjVictim.Y;
+    -- If caused by another object?
+    if oObjCause then
+      -- Get causer name
+      local sCauser<const> = oObjCause.OD.NAME..
+         "["..oObjCause.U.."] at X:"..oObjCause.X.." Y:"..oObjCause.Y;
+      -- Was victim a living thing?
+      if iFlags & OFL.LIVING ~= 0 then
+        -- increase their living kills count and log the kill
+        CoreLog(sCauser.." killed "..sVictim.."!");
+        AdjObjParentStat(oObjCause, "LK");
+      -- Was victim an enemy?
+      elseif iFlags & OFL.ENEMY ~= 0 then
+        -- Increase their enemy kills count and log the kill
+        CoreLog(sCauser.." destroyed enemy "..sVictim.."!");
+        AdjObjParentStat(oObjCause, "EK");
+      -- Anything else? Log the destruction
+      else CoreLog(sCauser.." destroyed "..sVictim.."!") end;
+    -- No killer and is living
+    elseif iFlags & OFL.LIVING ~= 0 then CoreLog(sVictim.." died!");
+    -- No killer? Log the destruction
+    else CoreLog(sVictim.." was destroyed!") end;
+    -- Object explodes on death? Cause an explosion!
+    if oObjVictim.F & OFL.EXPLODE ~= 0 then
+      ProcessExplosion(oObjVictim, oObjCause) end;
+    -- Make victim drop all objects
+    while oObjVictim.IS do DropObject(oObjVictim, oObjVictim.IS) end;
+    -- Disable menu if object is selected and menu open
+    if oObjActive == oObjVictim and aContextMenu then SetContextMenu() end;
+    -- Object died
+    return true;
+  end
+  -- Return actual function
+  return AdjustObjectHealth;
+end
+-- Render all screen elements ---------------------------------------------- --
+local function RenderAll()
+  -- Locals ---------------------------------------------------------------- --
+  local aInfoScreenActiveItem;         -- Active screen item
+  local fcbInfoScreen;                 -- Current info screen callback
+  -- Draw specific digger inventory information ---------------------------- --
+  local function DrawDiggerInventoryInformation(iDiggerId)
+    -- Calculate Y position
+    local nY<const> = iDiggerId * 33.0;
+    -- Print id number of digger
+    Print(fontLarge, 16.0, nY + 8.0, iDiggerId);
+    -- Draw health bar background
+    BlitSLTWH(texSpr, 1023, 24.0, nY + 31.0, 267.0, 2.0);
+    -- Get Digger data and if it exists?
+    local oDigger<const> = oPlrActive.D[iDiggerId];
+    if oDigger then
+      -- Draw digger health bar
+      DrawHealthBar(oDigger.H, 0.375, 24.0, nY + 31.0, 2.0);
+      -- Draw digger portrait
+      BlitSLT(texSpr, oDigger.S, 31.0, nY + 8.0);
+      -- Digger has items?
+      if oDigger.IW > 0 then
+        -- Get digger inventory and enumerate through it and draw it
+        local aInventory<const> = oDigger.I;
+        for iInvIndex = 1, #aInventory do
+          BlitSLT(texSpr, aInventory[iInvIndex].S,
+            iInvIndex * 16.0 + 32.0, nY + 8.0) end;
+      -- No inventory. Print no inventory message
+      else Print(fontTiny, 48.0, nY + 13.0, "NOT CARRYING ANYTHING") end;
+      -- Draw weight and impatience
+      PrintR(fontLittle, 308.0, nY + 4.0,
+        format("%03u%%          %03u%%\n\z
+                %03u%%         %05u\n\z
+                %04u          %03u%%",
+          oDigger.H, floor(oDigger.IW / oDigger.STR * 100.0),
+          max(0, floor(oDigger.JT / oDigger.PL * 100.0)), oDigger.DUG,
+          oDigger.GEM, ceil(oDigger.LDT / iGameTicks * 100.0)));
+    -- Digger is dead
+    else
+      -- Draw grave icon
+      BlitSLT(texSpr, 319, 31.0, nY + 8.0);
+      -- Draw dead labels
+      PrintR(fontLittle, 308.0, nY + 4.0,
+        "---%          ---%\n\z
+         ---%         -----\n\z
+         ----          ---%");
+    end
+    -- Draw labels
+    fontTiny:SetLSpacing(2.0);
+    PrintR(fontTiny, 308.0, nY + 5.0,
+      "HEALTH:             WEIGHT:        \n\z
+       IMPATIENCE:         GROADS DUG:        \n\z
+       GEMS FOUND:         EFFICIENCY:        ");
+  end
+  -- Render an information frame ------------------------------------------- --
+  local function DrawInfoFrameAndTitle(iTileId)
+    -- Draw the left part of the title bar
+    BlitSLT(texSpr, 847, 8.0, 8.0);
+    -- Draw the middle part of the title bar
+    for nX = 24.0, 280.0, 16.0 do BlitSLT(texSpr, 848, nX, 8.0) end;
+    -- Draw the right part of the title bar
+    BlitSLT(texSpr, 849, 296.0, 8.0);
+    -- Draw transparent backdrop
+    RenderFade(0.75, 8.0, 32.0, 312.0, 208.0);
+    -- Draw frame around transparent backdrop
+    BlitSLT(texSpr, 850, 8.0, 32.0);
+    for nX = 24.0, 280.0, 16.0 do BlitSLT(texSpr, 851, nX, 32.0) end;
+    BlitSLT(texSpr, 852, 296.0, 32.0);
+    for nY = 48.0, 176.0, 16.0 do
+      BlitSLT(texSpr, 856, 8.0, nY);
+      BlitSLT(texSpr, 858, 296.0, nY);
+    end
+    BlitSLT(texSpr, 853, 8.0, 192.0);
+    for nX = 24.0, 280.0, 16.0 do BlitSLT(texSpr, 854, nX, 192.0) end;
+    BlitSLT(texSpr, 855, 296, 192);
+    -- Draw shadows
+    RenderShadow(8.0, 8.0, 312.0, 24.0);
+    RenderShadow(8.0, 32.0, 312.0, 208.0);
+    -- Print the title bar text
+    PrintC(fontLittle, 160.0, 12.0, iTileId);
+  end
+  -- Draw digger inventory ------------------------------------------------- --
+  local function InfoScreenRenderInventory()
+    -- Draw frame and title
+    DrawInfoFrameAndTitle("DIGGER INVENTORY");
+    -- Set tiny font colour and spacing
+    fontTiny:SetCRGB(0.0, 0.75, 1.0);
+    fontTiny:SetLSpacing(2.0);
+    -- For each digger
+    for iDiggerId = 1, #oPlrActive.D do
+      DrawDiggerInventoryInformation(iDiggerId) end;
+    -- Reset tiny font spacing
+    fontTiny:SetLSpacing(0.0);
+  end
+  -- Draw specific digger information -------------------------------------- --
+  local function DrawDiggerLocationInformation(iDiggerId)
+    -- Calculate Y position
+    local nY<const> = iDiggerId * 31.0;
+    -- Print id number of digger
+    Print(fontLarge, 16.0, nY + 8.0, iDiggerId);
+    -- Draw colour key of digger
+    BlitSLT(texSpr, 858 + iDiggerId, 31.0, nY + 11.0);
+    -- Draw X and Y letters
+    fontTiny:SetCRGB(0.0, 0.75, 1.0);
+    Print(fontTiny, 64.0, nY + 8.0, "X:       Y:");
+    -- Draw health bar background
+    BlitSLTWH(texSpr, 1023, 24.0, nY + 30, 100.0, 2.0);
+    -- Get digger and if it exists?
+    local oDigger<const> = oPlrActive.D[iDiggerId];
+    if oDigger then
+      -- Draw digger health bar
+      DrawHealthBar(oDigger.H, 1.0, 24.0, nY + 30.0, 2.0);
+      -- Draw digger item data
+      Print(fontLittle, 72.0, nY + 8.0,
+        format("%04u  %04u\n\\%03u  \\%03u",
+          oDigger.X, oDigger.Y, oDigger.AX, oDigger.AY));
+      -- Draw digger portrait
+      BlitSLT(texSpr, oDigger.S, 43.0, nY + 8.0);
+      -- Draw position of digger
+      BlitSLT(texSpr, 858 + iDiggerId, 141.0 + (oDigger.AX * 1.25),
+        38.0 + (oDigger.AY * 1.25));
+      -- Done
+      return;
+    -- Digger is dead
+    end
+    -- Draw grave icon
+    BlitSLT(texSpr, 319, 43.0, nY + 8.0);
+    -- Draw dashes for unavailable digger item data
+    Print(fontLittle, 72.0, nY + 8.0, "----  ----\n\\---  \\---");
+  end
+  -- Draw digger locations ------------------------------------------------- --
+  local function InfoScreenRenderLocations()
+    -- Draw frame and title
+    DrawInfoFrameAndTitle("DIGGER LOCATIONS");
+    -- Draw map grid of level
+    for nY = 37.0, 188.0, 15.0 do
+      for nX = 141.0, 291.0, 15.0 do BlitSLT(texSpr, 864, nX, nY) end;
+    end
+    -- For each digger
+    for iDiggerId = 1, #oPlrActive.D do
+      DrawDiggerLocationInformation(iDiggerId) end;
+  end
+  -- Draw digger locations ------------------------------------------------- --
+  local function InfoScreenRenderStatus()
+    -- Draw frame and title
+    DrawInfoFrameAndTitle("ZONE STATUS");
+    -- Score for who is winning
+    local iScoreAP, iScoreOP = 0, 0;
+    -- Draw little labels first for rendering performance. Print level info
+    Print(fontLittle, 16.0, 56.0, sLvlType.." TERRAIN");
+    PrintR(fontLittle, 304.0, 56.0, "OPERATIONS TIME");
+    local iPDiggers<const> = oPlrActive.DC;
+    PrintC(fontLittle, 160.0, 88.0, "YOU HAVE "..iPDiggers.." OF "..
+      oPlrActive.DT.." DIGGERS REMAINING");
+    -- Draw who has the most diggers
+    local iODiggers<const>, sDiggers = oPlrOpponent.DC;
+    if iPDiggers > iODiggers then
+      iScoreAP, sDiggers = iScoreAP + 1,
+        "YOU HAVE MORE DIGGERS THEN YOUR OPPONENT";
+    elseif iPDiggers < iODiggers then
+      iScoreOP, sDiggers = iScoreOP + 1, "YOUR OPPONENT HAS MORE DIGGERS";
+    else sDiggers = "YOU AND YOUR OPPONENT HAVE EQUAL DIGGERS" end;
+    PrintC(fontLittle, 160.0, 96.0, sDiggers);
+    -- Show who has mined the most terrain
+    local iPDug, iODug<const> = oPlrActive.DUG, oPlrOpponent.DUG;
+    PrintC(fontLittle, 160.0, 112.0, "YOU MINED "..
+      UtilFormatNumber(oPlrActive.GEM, 0)..
+      " GEMS AND "..UtilFormatNumber(iPDug, 0).." GROADS OF TERRAIN");
+    local sMined;
+    if iPDug > iODug then sMined = "YOU HAVE MINED THE MOST TERRAIN";
+    elseif iPDug < iODug then
+      sMined = "YOUR OPPONENT HAS MINED THE MOST TERRAIN";
+    else sMined = "YOU AND YOUR OPPONENT HAVE MINED EQUAL TERRAIN" end;
+    PrintC(fontLittle, 160.0, 120.0, sMined);
+    -- Draw who has found the most gems
+    local iPGems<const>, iOGems<const>, sGems =
+      oPlrActive.GEM, oPlrOpponent.GEM;
+    if iPGems > iOGems then sGems = "YOU HAVE FOUND THE MOST GEMS";
+    elseif iPGems < iOGems then
+      sGems = "YOUR OPPONENT HAS FOUND THE MOST GEMS";
+    else sGems = "YOU AND YOUR OPPONENT HAVE FOUND EQUAL GEMS" end;
+    PrintC(fontLittle, 160.0, 128.0, sGems);
+    -- Draw who has the most zogs
+    PrintC(fontLittle, 160.0, 146.0, "YOU HAVE RAISED "..
+      UtilFormatNumber(iPlayerMoney, 0)..
+      " OF "..iWinLimit.." ZOGS ("..
+      UtilFormatNumber(iPlayerMoney / iWinLimit * 100, 0).."%)");
+    local iPlayerMoney<const>, iOpponentMoney<const> =
+      oPlrActive.M, oPlrOpponent.M;
+    local sZogs;
+    if iPlayerMoney > iOpponentMoney then
+      iScoreAP, sZogs = iScoreAP + 1, "YOU HAVE THE MOST ZOGS";
+    elseif iPlayerMoney < iOpponentMoney then
+      iScoreOP, sZogs = iScoreOP + 1, "YOUR OPPONENT HAS MORE ZOGS";
+    else sZogs = "YOU AND YOUR OPPONENT HAVE EQUAL ZOGS" end;
+    PrintC(fontLittle, 160.0, 154.0, sZogs);
+    PrintC(fontLittle, 160.0, 162.0, "RAISE "..
+      UtilFormatNumber(iWinLimit-iPlayerMoney, 0).." MORE ZOGS TO WIN");
+    -- Draw prediction
+    local sPName<const>, sOName<const>, sWinning =
+      oPlrActive.RD.NAME, oPlrOpponent.RD.NAME;
+    if iScoreAP > iScoreOP then sWinning = sPName;
+    elseif iScoreAP < iScoreOP then sWinning = sOName;
+    else sWinning = "NOBODY" end;
+    PrintC(fontLittle, 160.0, 178.0, "THE TRADE CENTRE HAS PREDICTED");
+    -- Draw large labels now
+    Print(fontLarge, 16.0, 40.0, sLvlName);
+    PrintR(fontLarge, 304.0, 40.0, format("%02u:%02u:%02u",
+      iGameTicks // 216000 % 24,
+      iGameTicks // 3600 % 60,
+      iGameTicks // 60 % 60));
+    PrintC(fontLarge, 160.0, 72.0, sPName.." VS "..sOName);
+    PrintC(fontLarge, 160.0, 186.0, sWinning.." IS WINNING");
+  end
+  -- Inventory button pressed?
+  local aInfoScreenData<const> = {
+    { 248.0, 216.0, 815, 816, InfoScreenRenderInventory },
+    { 264.0, 216.0, 817, 818, InfoScreenRenderLocations },
+    { 280.0, 216.0, 802, 803, InfoScreenRenderStatus },
+    { 296.0, 216.0, 819, 820, BlankFunction }
+  };
+  -- Button disabled function ---------------------------------------------- --
+  local function InfoScreenEnabled()
+    -- Enumerate each button
+    for iIndex = 1, #aInfoScreenData do
+      -- Get info screen item and if its the active button?
+      local aInfoScreenItem<const> = aInfoScreenData[iIndex];
+      if aInfoScreenItem == aInfoScreenActiveItem then
+        -- Draw enabled button
+        BlitSLT(texSpr, aInfoScreenItem[4],
+          aInfoScreenItem[1], aInfoScreenItem[2])
+        -- Set font colours
+        fontTiny:SetCRGB(1.0, 1.0, 1.0);
+        fontLarge:SetCRGB(1.0, 1.0, 1.0);
+        fontLittle:SetCRGB(1.0, 1.0, 1.0);
+        -- Execute render function
+        aInfoScreenItem[5]();
+      -- Inactive so draw disabled button
+      else BlitSLT(texSpr, aInfoScreenItem[3],
+        aInfoScreenItem[1], aInfoScreenItem[2]) end;
+    end
+  end
+  -- Button disabled function ---------------------------------------------- --
+  local function InfoScreenDisabled()
+    -- Enumerate each button
+    for iIndex = 1, #aInfoScreenData do
+      -- Get info screen item
+      local aInfoScreenItem<const> = aInfoScreenData[iIndex];
+      -- Draw disabled button
+      BlitSLT(texSpr, aInfoScreenItem[3],
+        aInfoScreenItem[1], aInfoScreenItem[2]);
+    end
+  end
+  -- Select info screen shared function ------------------------------------ --
+  local function SelectInfoScreen(iScreen)
+    -- Reset?
+    if iScreen == nil then
+      -- Disable it
+      aInfoScreenActiveItem = nil;
+      fcbInfoScreen = InfoScreenDisabled;
+      -- Done
+      return;
+    end
+    -- Check parameter
+    if not UtilIsInteger(iScreen) or
+           iScreen < 1 or
+           iScreen > #aInfoScreenData then
+      error("Invalid screen! "..tostring(iScreen)) end
+    -- Play sound effect to show the player clicked it
+    PlayInterfaceSound(oSfxData.CLICK);
+    -- Get the screen info data and if we're already showing it?
+    local aInfoScreenItem<const> = aInfoScreenData[iScreen];
+    if aInfoScreenActiveItem == aInfoScreenItem then
+      -- Disable it
+      aInfoScreenActiveItem = nil;
+      fcbInfoScreen = InfoScreenDisabled;
+    -- We're not showing this one
+    else
+      -- Enable it
+      aInfoScreenActiveItem = aInfoScreenItem;
+      fcbInfoScreen = InfoScreenEnabled;
+    end
+  end
+  -- Set disabled info screen callback ------------------------------------- --
+  fcbInfoScreen = InfoScreenDisabled;
+  -- Render terrain -------------------------------------------------------- --
+  local function RenderTerrain()
+    -- Render the backdrop
+    BlitSLT(texLev, iTileBg,
+      -iLLAbsW + ((iLLAbsW - iAbsPosX) / iLLAbsW * 64),
+      -32 + ((iLLAbsH - iAbsPosY) / iLLAbsH * 32));
+    -- Calculate the X pixel position to draw at
+    local iXdraw<const> = iStageL + iPixCenPosX;
+    -- For each screen row to draw tile at
+    for iY = 0, iTilesHeight do
+      -- Calculate the Y position to grab from the level data
+      local iYdest<const> = 1 + (iAbsPosY + iY) * iLLAbsW;
+      -- Calculate the Y pixel position to draw at
+      local iYdraw<const> = iStageT + iPixCenPosY + (iY * 16);
+      -- For each screen column to draw tile at, draw the tile from level data
+      for iX = 0, iTilesWidth do
+        BlitSLT(texLev, aLvlData[iYdest + iAbsPosX + iX],
+          iXdraw + (iX * 16), iYdraw) end;
+    end
+  end
+  -- Render all objects ---------------------------------------------------- --
+  local function RenderObjects()
+    -- For each object
+    for iObjId = 1, #aObjs do
+      -- Get object data
+      local oObj<const> = aObjs[iObjId];
+      -- If in bounds of the viewport?
+      local iXX<const>, iYY<const> =
+        oObj.X - iViewportX + oObj.OFX,
+        oObj.Y - iViewportY + oObj.OFY;
+      if min(iXX + 16, iStageR) > max(iXX, iStageL) and
+         min(iYY + 16, iStageB) > max(iYY, iStageT) then
+        -- Draw the object
+        BlitSLT(texSpr, oObj.S, iXX, iYY);
+        -- Got an attachment? Draw it too!
+        if oObj.STA then
+          BlitSLT(texSpr, oObj.SA, iXX + oObj.OFXA, iYY + oObj.OFYA);
         end
       end
     end
   end
-  -- Drop all objects
-  while oObjVictim.IS do DropObject(oObjVictim, oObjVictim.IS) end;
-  -- Disable menu if object is selected and menu open
-  if oObjActive == oObjVictim and aContextMenu then SetContextMenu() end;
-end
--- Render terrain ---------------------------------------------------------- --
-local function RenderTerrain()
-  -- Render the backdrop
-  BlitSLT(texLev, iTileBg,
-    -iLLAbsW + ((iLLAbsW - iPosX) / iLLAbsW * 64),
-    -32 + ((iLLAbsH - iPosY) / iLLAbsH * 32));
-  -- Calculate the X pixel position to draw at
-  local iXdraw<const> = iStageL + iPixCenPosX;
-  -- For each screen row to draw tile at
-  for iY = 0, iTilesHeight do
-    -- Calculate the Y position to grab from the level data
-    local iYdest<const> = 1 + (iPosY + iY) * iLLAbsW;
-    -- Calculate the Y pixel position to draw at
-    local iYdraw<const> = iStageT + iPixCenPosY + (iY * 16);
-    -- For each screen column to draw tile at, draw the tile from level data
-    for iX = 0, iTilesWidth do
-      BlitSLT(texLev, aLvlData[iYdest + iPosX + iX],
-        iXdraw + (iX * 16), iYdraw);
-    end
-  end
-end
--- Render shroud data ------------------------------------------------------ --
-local function RenderShroud()
-  -- Calculate the X pixel position to draw at
-  local iXdraw<const> = iStageL + iPixCenPosX;
-  -- Set shroud colour
-  texSpr:SetCRGBAI(iShroudColour);
-  -- For each screen row to draw tile at
-  for iY = 0, iTilesHeight do
-    -- Calculate the Y position to grab from the level data
-    local iYdest<const> = 1 + (iPosY + iY) * iLLAbsW;
-    -- Calculate the Y pixel position to draw at
-    local iYdraw<const> = iStageT + iPixCenPosY + (iY * 16);
-    -- For each screen column to draw tile at
-    for iX = 0, iTilesWidth do
-      -- Get shroud information at specified tile and draw it if theres data
-      local aItem<const> = aShroudData[iYdest + iPosX + iX];
-      if aItem[2] < 0xF then
-        BlitSLT(texSpr, aItem[1], iXdraw + (iX * 16), iYdraw);
+  -- Render shroud data ---------------------------------------------------- --
+  local function RenderShroud()
+    -- Calculate the X pixel position to draw at
+    local iXdraw<const> = iStageL + iPixCenPosX;
+    -- Set shroud colour
+    texSpr:SetCRGBAI(iShroudColour);
+    -- For each screen row to draw tile at
+    for iY = 0, iTilesHeight do
+      -- Calculate the Y position to grab from the level data
+      local iYdest<const> = 1 + (iAbsPosY + iY) * iLLAbsW;
+      -- Calculate the Y pixel position to draw at
+      local iYdraw<const> = iStageT + iPixCenPosY + (iY * 16);
+      -- For each screen column to draw tile at
+      for iX = 0, iTilesWidth do
+        -- Get shroud information at specified tile and draw it if theres data
+        local aItem<const> = aShroudData[iYdest + iAbsPosX + iX];
+        if aItem[2] < 0xF then
+          BlitSLT(texSpr, aItem[1], iXdraw + (iX * 16), iYdraw) end;
       end
     end
+    -- Restore normal sprite colour
+    texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   end
-  -- Restore shroud colour
-  texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
-end
--- Render all objects ------------------------------------------------------ --
-local function RenderObjects()
-  -- Calculate viewpoint position
-  local nVPX<const>, nVPY<const> = iPixPosX - iStageL, iPixPosY - iStageT;
-  -- For each object
-  for iObjId = 1, #aObjs do
-    -- Get object data
-    local oObj<const> = aObjs[iObjId];
-    -- Holds objects render position on-screen
-    local iXX, iYY = oObj.X - nVPX + oObj.OFX,
-                     oObj.Y - nVPY + oObj.OFY;
-    BCBlit(oObj.S, iXX, iYY, iXX + 16, iYY + 16);
-    -- Got an attachment? Draw it too!
-    if oObj.STA then
-      iXX, iYY = iXX + oObj.OFXA, iYY + oObj.OFYA;
-      BCBlit(oObj.SA, iXX, iYY, iXX + 16, iYY + 16);
-    end
-  end
-end
--- Render Interface -------------------------------------------------------- --
-local function RenderInterface()
-  -- Render shadows around ui parts at button
-  RenderShadow(8, 216, 136, 232);
-  RenderShadow(144, 216, 224, 232);
-  RenderShadow(232, 216, 312, 232);
-  -- Draw bottom left part, money and health backgrounds
-  for iColumn = 0, 6 do
-    BlitSLT(texSpr, 821 + iColumn, 8 + (iColumn * 16), 216) end;
-  -- What object is selected?
-  if oObjActive then
+  -- Draw status id above object ------------------------------------------- --
+  local function RenderStatusIndicatorOnActiveObject()
     -- Which indicator to draw?
     local iStatusId;
     -- Object does not have an owner? Draw 'O' indicator above object to
@@ -2127,6 +1793,8 @@ local function RenderInterface()
       if oObjActive.F & OFL.BUSY ~= 0 then iStatusId = 984;
       -- 'v' is default, free to control this object
       else iStatusId = 988 end;
+      -- Get animated health
+      local iAnimatedHealth<const> = oObjActive.HA;
       -- Get health and if object has health?
       local iHealth<const> = oObjActive.H;
       if iHealth > 0 then
@@ -2148,373 +1816,264 @@ local function RenderInterface()
               local iObjConvId<const> = oObj.OD.HUDSPRITE;
               if iObjConvId then BlitSLT(texSpr, iObjConvId, 61 + iX, 218);
               -- Draw as resized sprite
-              else BlitSLTRB(texSpr, oObj.S, 61 + iX, 218, 69 + iX, 226) end;
+              else BlitSLTWH(texSpr, oObj.S, 61 + iX, 218, 8, 8) end;
               -- Increase X position
               iX = iX + 8;
             end
           end
         end
+        -- Animated health is higher than digger health?
+        if iHealth < iAnimatedHealth then
+          -- Draw animated health bar
+          texSpr:SetCRGBA(0.0, 0.0, 0.0, 1.0);
+          BlitSLTWH(texSpr, 1022, 61.0, 227.0, iAnimatedHealth / 2, 2.0);
+          texSpr:SetCRGB(1.0, 1.0, 1.0);
+          -- Decrease animated health
+          oObjActive.HA = iAnimatedHealth - 1;
+        -- Set animated health and don't draw otherwise
+        elseif iAnimatedHealth < iHealth then oObjActive.HA = iHealth end;
         -- Draw health bar
-        DrawHealthBar(iHealth, 2, 61, 227, 61, 229);
+        DrawHealthBar(iHealth, 2.0, 61.0, 227.0, 2.0);
+      -- Else if health under animated health
+      elseif iAnimatedHealth > 0 then
+        -- Draw animated health bar
+        texSpr:SetCRGBA(0.0, 0.0, 0.0, 1.0);
+        BlitSLTWH(texSpr, 1022, 61.0, 227.0, iAnimatedHealth / 2, 2.0);
+        texSpr:SetCRGB(1.0, 1.0, 1.0);
+        -- Decrease animated health
+        oObjActive.HA = iAnimatedHealth - 1;
       end
     end
     -- Draw the indicator
     BlitSLT(texSpr, iGameTicks // 5 % 4 + iStatusId,
-      iStageL + iPixCenPosX + oObjActive.X - iPosX * 16,
-      iStageT + iPixCenPosY + oObjActive.Y - iPosY * 16 - 16);
+      iStageL + iPixCenPosX + oObjActive.X - iAbsPosX * 16,
+      iStageT + iPixCenPosY + oObjActive.Y - iAbsPosY * 16 - 16);
   end
-  -- Tile to draw
-  local iTile;
-  -- Draw digger buttons and activity
-  for iDiggerId = 1, 5 do
-    -- Pre-calculate Y position
-    local iY<const> = iDiggerId * 16;
-    -- Get digger data and if Digger is alive?
-    local oDigger<const> = oPlrActive.D[iDiggerId];
-    if oDigger then
-       -- Digger is selected?
-      if oObjActive and oDigger == oObjActive then
-        -- Show lightened up button
-        BlitSLT(texSpr, 808 + iDiggerId, 128 + iY, 216)
-        -- Object is jumping?
-        if oObjActive.F & OFL.JUMPMASK ~= 0 then iTile = 836;
-        -- Not jumping?
-        else
-          -- Get Digger action and if stopped?
-          local iObjAction<const> = oObjActive.A;
-          if iObjAction == ACT.STOP then iTile = 834;
-          -- If fighting?
-          elseif iObjAction == ACT.FIGHT then iTile = 840;
-          -- If teleporting?
-          elseif iObjAction == ACT.PHASE then iTile = 841;
-          -- Something else?
-          else
-            -- Get Digger job and if home or inside the home?
-            local iObjJob<const> = oObjActive.J;
-            if iObjJob == JOB.HOME or iObjAction == ACT.HIDE then iTile = 838;
-            -- If searching for treasure?
-            elseif iObjJob == JOB.SEARCH then iTile = 839;
-            -- If walking or running?
-            elseif iObjAction == ACT.WALK or
-              iObjAction == ACT.RUN then iTile = 835;
-            -- If digging?
-            elseif iObjAction == ACT.DIG then iTile = 837 end;
-          end
-        end
-      -- Show dimmed button
-      else BlitSLT(texSpr, 803 + iDiggerId, 128 + iY, 216) end;
-      -- Status tile to draw
-      local iStatusTile;
-      -- Digger is in danger?
-      if oDigger.J == JOB.INDANGER then
-        -- Every even second set a different blue indicator.
-        if iGameTicks % 120 < 60 then iStatusTile = 831;
-                                 else iStatusTile = 832 end;
-      -- Digger is in impatient and every even second?
-      elseif oDigger.JT >= oDigger.PW and
-             iGameTicks % 120 < 60 then iStatusTile = 833;
-      -- Not in danger but busy?
-      elseif oDigger.F & OFL.BUSY ~= 0 then iStatusTile = 830;
-      -- Not in danger, not busy but doing something?
-      elseif oDigger.A ~= ACT.STOP then iStatusTile = 829;
-      -- Not in danger, not busy and not doing something
-      else iStatusTile = 828 end;
-      -- Show activity indicator (78-84)
-      BlitSLT(texSpr, iStatusTile, 128 + iY, 204);
-    -- Digger is not alive! Show dimmed button
-    else BlitSLT(texSpr, 803 + iDiggerId, 128 + iY, 216) end;
-  end
-  -- Get player and opponent money
-  local iPlayerMoney<const>, iOpponentMoney<const> =
-    oPlrActive.M, oPlrOpponent.M;
-  -- Tile was set? Draw it
-  if iTile then BlitSLT(texSpr, iTile, 120, 216);
-  -- No tile was set
-  else
-    -- Set tile id based on diggers count
-    local iATile, iOTile = 868 + oPlrOpponent.DC, 874 + oPlrActive.DC;
-    -- Get monies and increase flag depending on who has more money
-    if iPlayerMoney > iOpponentMoney then iOTile = iOTile + 1;
-    elseif iPlayerMoney < iOpponentMoney then iATile = iATile + 1 end;
-    -- Draw flags for both sides
-    BlitSLT(texSpr, iATile, 120, 216);
-    BlitSLT(texSpr, iOTile, 120, 216);
-  end
-  -- Animate player one's money
-  if iAnimMoney ~= iPlayerMoney then
-    -- Animated money over actual money?
-    if iAnimMoney > iPlayerMoney then
-      -- Decrement it
-      iAnimMoney = iAnimMoney - ceil((iAnimMoney - iPlayerMoney) * 0.1);
-      -- Update displayed money
-      sMoney = format("%04u", min(9999, iAnimMoney));
-      -- Red colour, draw money and reset colour
-      fontLittle:SetCRGB(1, 0.75, 0.75);
-      Print(fontLittle, 15, 220, sMoney);
-      fontLittle:SetCRGB(1, 1, 1);
-    -- Animated money under actual money? Increment
-    elseif iAnimMoney < iPlayerMoney then
-      -- Increment it
-      iAnimMoney = iAnimMoney + ceil((iPlayerMoney - iAnimMoney) * 0.1);
-      -- Update displayed money
-      sMoney = format("%04u", min(9999, iAnimMoney));
-      -- Green colour, draw money and reset colour
-      fontLittle:SetCRGB(0.75, 1, 0.75);
-      Print(fontLittle, 15, 220, sMoney);
-      fontLittle:SetCRGB(1, 1, 1);
-    -- No change so set white font
-    else
-      -- Reset colour and draw money
-      fontLittle:SetCRGB(1, 1, 1);
-      Print(fontLittle, 15, 220, sMoney);
-    end
-  -- Animated money/actual money is synced, display blue if > 9999
-  elseif iPlayerMoney > 9999 then
-    -- Set other colour and draw money
-    fontLittle:SetCRGB(0.75, 0.75, 1);
-    Print(fontLittle, 15, 220, sMoney);
-  -- Normal display
-  else
-    -- Reset colour and draw money
-    fontLittle:SetCRGB(1, 1, 1);
-    Print(fontLittle, 15, 220, sMoney);
-  end
-  -- Draw utility button
-  BlitSLT(texSpr, 814, 232, 216);
-  -- Draw info screen
-  fcbInfoScreen();
-  -- I context menu selected?
-  if aContextMenuData then
+  -- Render control context menu ------------------------------------------- --
+  local function RenderContextMenu()
     -- Get object busy flag
     local bBusy<const> = oObjActive.F & OFL.BUSY ~= 0;
     -- Walk through it and test position
     for iMIndex = 1, #aContextMenuData do
       -- Get context menu item and draw it
       local aMItem<const> = aContextMenuData[iMIndex];
-      BlitSLTRB(texSpr, aMItem[2], aMItem[4], aMItem[5], aMItem[6], aMItem[7]);
+      BlitSLTRB(texSpr, aMItem[2], aMItem[4], aMItem[5], aMItem[6],
+        aMItem[7]);
       -- Render a dim if object is busy and tile data says we should
       if aMItem[3] and bBusy then
-        texSpr:SetCRGBA(1, 0, 0, 0.5);
+        texSpr:SetCRGBA(1.0, 0.0, 0.0, 0.5);
         BlitSLTRB(texSpr, 1022, aMItem[4], aMItem[5], aMItem[6], aMItem[7]);
-        texSpr:SetCRGBA(1, 1, 1, 1);
+        texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
       end
     end
     -- Draw context menu shadow
     RenderShadow(iMenuLeft, iMenuTop, iMenuRight, iMenuBottom);
     -- If inventory selected and drop menu open?
     local aInventory<const> = oObjActive.IS;
-    if aInventory and aContextMenu == oMenuData[MNU.DROP] then
-      -- Draw active inventory item and health
-      BlitSLT(texSpr, aInventory.S, iMenuLeft+23, iMenuTop+4);
-      fontTiny:SetCRGB(1, 1, 1);
-      PrintR(fontTiny, iMenuRight-2, iMenuTop+24, aInventory.H.."%");
-    end
+    if not aInventory or aContextMenu ~= oMenuData[MNU.DROP] then return end;
+    -- Draw active inventory item and health
+    BlitSLT(texSpr, aInventory.S, iMenuLeft+23, iMenuTop+4);
+    fontTiny:SetCRGB(1.0, 1.0, 1.0);
+    PrintR(fontTiny, iMenuRight-2, iMenuTop+24, aInventory.H.."%");
   end
-  -- Render tooltip
-  RenderTip();
-end
--- Render all screen elements ---------------------------------------------- --
-local function RenderAll()
-  RenderTerrain();
-  RenderObjects();
-  RenderShroud();
-  RenderInterface();
-end
--- Check object is in water at specified pixel height ---------------------- --
-local function CheckObjectInWater(oObj, iY)
-  -- Get tile at the specified position from object and return if water
-  local iId<const> = GetLevelDataFromObject(oObj, 8, iY);
-  return iId and aTileData[1 + iId] & oTileFlags.W ~= 0;
-end
--- Proc object underwater -------------------------------------------------- --
-local function CheckObjectUnderwater(oObj)
-  -- Ignore if object isn't underwater
-  if oObj.F & OFL.AQUALUNG ~= 0 then return end;
-  -- If object is not in water
-  if not CheckObjectInWater(oObj, 2) then
-    -- Remove flag if set
-    if oObj.F & OFL.INWATER ~= 0 then
-      oObj.F = oObj.F & ~OFL.INWATER end
-    -- Done
-    return;
-  end
-  -- Add in water flag if not set.
-  if oObj.F & OFL.INWATER == 0 then
-    oObj.F = oObj.F | OFL.INWATER end;
-  -- If object is a digger and it isn't in danger? Run!
-  if oObj.F & OFL.DIGGER ~= 0 and oObj.J ~= JOB.INDANGER then
-    SetAction(oObj, ACT.RUN, JOB.INDANGER, DIR.KEEPMOVE) end;
-  -- Only reduce health once per four game ticks
-  if oObj.AT % oObj.LC == 0 then AdjustObjectHealth(oObj, -1) end;
-end
--- Animate object ---------------------------------------------------------- --
-local function AnimateObject(oObj)
-  -- If sprite timer and not reached speed limit?
-  if oObj.ST < oObj.ANT then
-    oObj.ST = oObj.ST + 1 return end;
-  -- Sprite id not reached the limit yet? Next sprite
-  if oObj.S < oObj.S2 then
-    oObj.S, oObj.SA = oObj.S+1, oObj.SA+1;
-  -- Can sprite reset?
-  elseif oObj.F & OFL.NOANIMLOOP == 0 then
-    -- Restart sprite number
-    oObj.S, oObj.SA = oObj.S1, oObj.S1A;
-    -- Do we play the sound for the animation again?
-    if oObj.F & OFL.SOUNDLOOP ~= 0 then
-      -- Check if theres a sound to play and play sound if there is
-      local iSound = oObj.AD.SOUND;
-      if iSound then PlaySoundAtObject(oObj, iSound);
-      -- No non-repeating sound...
-      else
-        -- Check if we have a sound with random pitch and if we do?
-        iSound = oObj.AD.SOUNDRP;
-        if iSound then
-          PlaySoundAtObject(oObj, iSound, 0.975 + (random() % 0.05));
-        end
+  -- Animate money value --------------------------------------------------- --
+  local iAnimMoney, sMoney = 0, ""; -- Animated and formatted money value
+  local function AnimateMoney()
+    -- Animated money is different from current actual money
+    if iAnimMoney ~= iPlayerMoney then
+      -- Animated money over actual money?
+      if iAnimMoney > iPlayerMoney then
+        -- Decrement it
+        iAnimMoney = iAnimMoney - ceil((iAnimMoney - iPlayerMoney) * 0.1);
+        -- Update displayed money
+        sMoney = min(9999, iAnimMoney);
+        -- Red colour, draw money and reset colour
+        fontLittle:SetCRGB(1.0, 0.75, 0.75);
+        PrintR(fontLittle, 41, 220, sMoney);
+        fontLittle:SetCRGB(1.0, 1.0, 1.0);
+        -- Done
+        return;
       end
+      -- Animated money under actual money? Increment
+      if iAnimMoney < iPlayerMoney then
+        -- Increment it
+        iAnimMoney = iAnimMoney + ceil((iPlayerMoney - iAnimMoney) * 0.1);
+        -- Update displayed money
+        sMoney = min(9999, iAnimMoney);
+        -- Green colour, draw money and reset colour
+        fontLittle:SetCRGB(0.75, 1.0, 0.75);
+        PrintR(fontLittle, 41, 220, sMoney);
+        fontLittle:SetCRGB(1.0, 1.0, 1.0);
+        -- Done
+        return;
+      end
+      -- Reset colour and draw money
+      fontLittle:SetCRGB(1.0, 1.0, 1.0);
+      PrintR(fontLittle, 41, 220, sMoney);
+      -- Done
+      return;
     end
+    -- Animated money/actual money is synced, display blue if > 9999
+    if iPlayerMoney > 9999 then
+      -- Set other colour and draw money
+      fontLittle:SetCRGB(0.75, 0.75, 1.0);
+      PrintR(fontLittle, 41, 220, sMoney);
+      -- Done
+      return;
+    end
+    -- Reset colour and draw money
+    fontLittle:SetCRGB(1.0, 1.0, 1.0);
+    PrintR(fontLittle, 41, 220, sMoney);
   end
-  -- Reset sprite timer
-  oObj.ST = 0;
+  -- Render damage values -------------------------------------------------- --
+  local function RenderDamageValues()
+    -- Can't use 'for do' because we delete them
+    local iIndex = 1 repeat
+      -- Get next damage value
+      local aDamageValue<const> = aDamageValues[iIndex];
+      -- Calculate position relative to the viewport
+      local iXX<const>, iYY<const> =
+        aDamageValue[1] - iViewportX, aDamageValue[2] - iViewportY;
+      -- If the damage value is in view?
+      if min(iXX + 16, iStageR) > max(iXX, iStageL) and
+         min(iYY + 16, iStageB) > max(iYY, iStageT) then
+        -- Set colour of it
+        fontTiny:SetCRGBA(aDamageValue[4], aDamageValue[5],
+          aDamageValue[6], aDamageValue[7]);
+        -- Draw the text
+        PrintC(fontTiny, iXX, iYY, aDamageValue[3]);
+      end
+      -- Reduce Y gradually
+      if iGameTicks % 4 == 0 then aDamageValue[2] = aDamageValue[2] - 1 end;
+      -- Reduce alpha gradually and delete it if hidden else setup next id
+      aDamageValue[7] = aDamageValue[7] - 0.02;
+      if aDamageValue[7] <= 0.0 then remove(aDamageValues, iIndex);
+      else iIndex = iIndex + 1 end;
+    -- Until we've processed all the values this frame
+    until iIndex > #aDamageValues;
+    -- Restore alpha on tiny font
+    fontTiny:SetCA(1.0);
+  end
+  -- Render Interface ------------------------------------------------------ --
+  local function RenderInterface()
+    -- Render damage values
+    if #aDamageValues > 0 then RenderDamageValues() end;
+    -- Get player and opponent money
+    iPlayerMoney, iOpponentMoney = oPlrActive.M, oPlrOpponent.M;
+    -- Render shadows around ui parts and buttons
+    RenderShadow(8.0, 216.0, 136.0, 232.0);
+    RenderShadow(144.0, 216.0, 224.0, 232.0);
+    RenderShadow(232.0, 216.0, 312.0, 232.0);
+    -- Draw bottom left part, money and health backgrounds
+    for iColumn = 0, 6 do
+      BlitSLT(texSpr, 821 + iColumn, 8 + (iColumn * 16), 216) end;
+    -- What object is selected?
+    if oObjActive then RenderStatusIndicatorOnActiveObject() end;
+    -- Tile to draw
+    local iTile;
+    -- Draw digger buttons and activity
+    for iDiggerId = 1, 5 do
+      -- Pre-calculate Y position
+      local iY<const> = iDiggerId * 16;
+      -- Get digger data and if Digger is alive?
+      local oDigger<const> = oPlrActive.D[iDiggerId];
+      if oDigger then
+         -- Digger is selected?
+        if oObjActive and oDigger == oObjActive then
+          -- Show lightened up button
+          BlitSLT(texSpr, 808 + iDiggerId, 128 + iY, 216)
+          -- Object is jumping?
+          if oObjActive.F & OFL.JUMP ~= 0 then iTile = 836;
+          -- Not jumping?
+          else
+            -- Get Digger action and if stopped?
+            local iObjAction<const> = oObjActive.A;
+            if iObjAction == ACT.STOP then iTile = 834;
+            -- If fighting?
+            elseif iObjAction == ACT.FIGHT then iTile = 840;
+            -- If teleporting?
+            elseif iObjAction == ACT.PHASE then iTile = 841;
+            -- Something else?
+            else
+              -- Get Digger job and if home or inside the home?
+              local iObjJob<const> = oObjActive.J;
+              if iObjJob == JOB.HOME or iObjAction == ACT.HIDE then
+                iTile = 838;
+              -- If searching for treasure?
+              elseif iObjJob == JOB.SEARCH then iTile = 839;
+              -- If walking or running?
+              elseif iObjAction == ACT.WALK or
+                iObjAction == ACT.RUN then iTile = 835;
+              -- If digging?
+              elseif iObjAction == ACT.DIG then iTile = 837 end;
+            end
+          end
+        -- Show dimmed button
+        else BlitSLT(texSpr, 803 + iDiggerId, 128 + iY, 216) end;
+        -- Status tile to draw
+        local iStatusTile;
+        -- Digger is in danger?
+        if oDigger.J == JOB.INDANGER then
+          -- Every even second set a different blue indicator.
+          if iGameTicks % 120 < 60 then iStatusTile = 831;
+                                   else iStatusTile = 832 end;
+        -- Digger is in impatient and every even second?
+        elseif oDigger.JT >= oDigger.PW and
+               iGameTicks % 120 < 60 then iStatusTile = 833;
+        -- Not in danger but busy?
+        elseif oDigger.F & OFL.BUSY ~= 0 then iStatusTile = 830;
+        -- Not in danger, not busy but doing something?
+        elseif oDigger.A ~= ACT.STOP then iStatusTile = 829;
+        -- Not in danger, not busy and not doing something
+        else iStatusTile = 828 end;
+        -- Show activity indicator (78-84)
+        BlitSLT(texSpr, iStatusTile, 128 + iY, 204);
+      -- Digger is not alive! Show dimmed button
+      else BlitSLT(texSpr, 803 + iDiggerId, 128 + iY, 216) end;
+    end
+    -- Tile was set? Draw it
+    if iTile then BlitSLT(texSpr, iTile, 120, 216);
+    -- No tile was set
+    else
+      -- Set tile id based on diggers count
+      local iATile, iOTile = 868 + oPlrOpponent.DC, 874 + oPlrActive.DC;
+      -- Get monies and increase flag depending on who has more money
+      if iPlayerMoney > iOpponentMoney then iOTile = iOTile + 1;
+      elseif iPlayerMoney < iOpponentMoney then iATile = iATile + 1 end;
+      -- Draw flags for both sides
+      BlitSLT(texSpr, iATile, 120, 216);
+      BlitSLT(texSpr, iOTile, 120, 216);
+    end
+    -- Animate player one's money
+    AnimateMoney();
+    -- Draw utility button
+    BlitSLT(texSpr, 814, 232, 216);
+    -- Draw info screen
+    fcbInfoScreen();
+    -- Context menu selected?
+    if aContextMenuData then RenderContextMenu() end;
+    -- Render tooltip
+    RenderTip();
+  end
+  -- Actual function
+  local function RenderAll()
+    -- Render all terrain
+    RenderTerrain();
+    -- Render all game objects
+    RenderObjects();
+    -- Render shroud overlay
+    RenderShroud();
+    -- Render user interface
+    RenderInterface();
+  end
+  -- Return shared functions
+  return RenderAll, RenderTerrain, RenderObjects, RenderShroud,
+    RenderInterface, SelectInfoScreen;
 end
 -- Make object face another ------------------------------------------------ --
 local function GetTargetDirection(oObj, oTarget)
   if oTarget.X < oObj.X then return DIR.L;
   else return DIR.R end;
-end
--- Check if object is colliding with another ------------------------------- --
-local function CheckObjectCollision(oObj)
-  -- Walk objects list
-  for iIndex = 1, #aObjs do
-    -- Get target object and if target object...
-    local oTarget<const> = aObjs[iIndex];
-    if oTarget ~= oObj and                 -- ...is not me?
-       oTarget.F & OFL.DIGGER ~= 0 and     -- *and* target is a digger?
-       oTarget.F & OFL.WATERBASED == 0 and -- *and* target isn't water based?
-       oObj.H > 0 and                      -- *and* source is alive?
-       oTarget.H > 0 and                   -- *and* target is alive?
-       oTarget.A ~= ACT.PHASE and          -- *and* target not teleporting?
-       oTarget.A ~= ACT.HIDE and           -- *and* target not hidden?
-       oObj.A ~= ACT.EATEN and             -- *and* source object not eaten?
-       maskSpr:IsCollideEx(                -- *and* target collides source?
-         477, oObj.X, oObj.Y, maskSpr,
-         477, oTarget.X, oTarget.Y) then
-      -- If object can consume the object?
-      if oObj.F & OFL.CONSUME ~= 0 then
-        -- Kill egg
-        AdjustObjectHealth(oObj, -100, oTarget);
-        -- Eat digger and set it to busy
-        SetAction(oTarget, ACT.EATEN, JOB.NONE, DIR.KEEP);
-        -- This digger is selected by the client? Unset control menu
-        if oObjActive == oTarget then SetContextMenu() end;
-        -- Don't need to test collision anymore since we killed the egg
-        return;
-      -- If target object is not eaten?
-      elseif oTarget.A ~= ACT.EATEN then
-        -- If object can phase the Digger? Phase target to another object
-        if oObj.F & OFL.PHASEDIGGER ~= 0 then
-          SetAction(oTarget, ACT.PHASE, JOB.PHASE, DIR.D);
-        -- If object can heal the Digger? Increase health
-        elseif oObj.F & OFL.HEALNEARBY ~= 0 then
-          AdjustObjectHealth(oTarget, 1, oObj);
-        -- If object can hurt the Digger?
-        elseif oObj.F & OFL.HURTDIGGER ~= 0 then
-          -- Object is stationary? Make me fight and face the digger
-          if oObj.F & OFL.STATIONARY ~= 0 then
-            SetAction(oObj, ACT.FIGHT, JOB.NONE,
-              GetTargetDirection(oObj, oTarget));
-          -- Change to objects direction if object moving parallel to Digger
-          elseif oObj.F & OFL.PURSUEDIGGER ~= 0 then
-            SetAction(oObj, ACT.KEEP, JOB.KEEP,
-              GetTargetDirection(oObj, oTarget)) end;
-          -- Target is not jumping?
-          if oTarget.F & (OFL.JUMPRISE|OFL.JUMPFALL) == 0 then
-            -- Digger isn't running? Make him run!
-            if oTarget.A ~= ACT.RUN then
-              SetAction(oTarget, ACT.RUN, JOB.INDANGER, DIR.LR);
-            else
-              SetAction(oTarget, ACT.KEEP, JOB.INDANGER, DIR.KEEP);
-            end
-          -- Target in danger
-          else oTarget.J = JOB.INDANGER end;
-          -- Reduce health
-          AdjustObjectHealth(oTarget, -1, oObj);
-        -- Object is dangerous and target is not jumping?
-        elseif oObj.F & OFL.DANGEROUS ~= 0 then
-          -- Target is not jumping?
-          if oTarget.F & (OFL.JUMPRISE|OFL.JUMPFALL) == 0 then
-            -- Digger isn't running?
-            if oTarget.A ~= ACT.RUN then
-              -- Digger not moving in any direction?
-              if oTarget.D ~= DIR.NONE then
-                SetAction(oTarget, ACT.RUN, JOB.INDANGER, DIR.KEEP);
-              -- No direction? so run in opposite direction
-              else SetAction(oTarget, ACT.RUN, JOB.INDANGER, DIR.LR) end;
-            -- Object is not moving and direction set? Keep dir and set danger
-            elseif oTarget.D ~= DIR.NONE then
-              SetAction(oTarget, ACT.KEEP, JOB.INDANGER, DIR.KEEP);
-            -- No direction? so run in opposite direction of object
-            else SetAction(oTarget, ACT.RUN, JOB.INDANGER,
-              GetTargetDirection(oTarget, oObj)) end;
-          end
-        -- Else if object...
-        elseif oObj.F & OFL.DIGGER ~= 0 and  -- Object is Digger?
-           not oObj.FT and                   -- *and* has no fight target?
-               oTarget.F & OFL.BUSY == 0 and -- *and* target object not busy?
-               oObj.F & OFL.BUSY == 0 and    -- *and* source object not busy?
-               oObj.P ~= oTarget.P and       -- *and* not same owner?
-               oTarget.A ~= ACT.JUMP and     -- *and* target not jumping
-              (oObj.A == ACT.FIGHT or        -- *and* object is fighting?
-               oObj.AT >= 30) then           -- *or* > 1/2 sec action timer
-          -- Make us face the target
-          SetAction(oObj, ACT.FIGHT, JOB.INDANGER,
-            GetTargetDirection(oObj, oTarget));
-          -- Fight and set objects fight target
-          oObj.FT = oTarget;
-          -- Target isn't fighting?
-          if not oTarget.FT and oTarget.AT >= 30 then
-            -- Make target fight the object
-            SetAction(oTarget, ACT.FIGHT, JOB.INDANGER,
-              GetTargetDirection(oTarget, oObj));
-            -- Set targets fight target to this object
-            oTarget.FT = oObj;
-          end
-        end
-      -- Target is eaten? If object can phase the digger
-      elseif oObj.F & OFL.PHASEDIGGER ~= 0 then
-        -- Make eaten digger phase to some other object and troll it!
-        SetAction(oTarget, ACT.PHASE, JOB.PHASE, DIR.DR);
-      end
-    end
-  end
-  -- Fight target was found?
-  if oObj.FT then
-    -- Still fighting?
-    if oObj.A == ACT.FIGHT then
-      -- Punch sprite?
-      if oObj.ST == 1 then
-        -- Deal damage equal to my strength
-        AdjustObjectHealth(oObj.FT, oObj.STRP, oObj);
-        if random() < 0.25 then PlaySoundAtObject(oObj, oSfxData.PUNCH) end;
-      -- Kick sprite?
-      elseif oObj.ST == 4 then
-        -- Deal damage equal to my strength
-        AdjustObjectHealth(oObj.FT, oObj.STRK, oObj);
-        if random() < 0.25 then PlaySoundAtObject(oObj, oSfxData.KICK) end;
-      end
-      -- Make object run in opposite direction if object is...
-      if oObj.H < 10 and            -- ...low on health?
-         random() > oObj.IN then    -- *and* intelligent enough to run?
-        SetAction(oObj, ACT.RUN, JOB.INDANGER, DIR.OPPOSITE) end;
-    end
-    -- Clear fight target
-    oObj.FT = nil;
-  -- No more fight targets so stop fighting if...
-  elseif oObj.A == ACT.FIGHT and    -- ...object is fighting?
-        (oObj.F & OFL.DIGGER ~= 0 or -- *and* object is a Digger?
-         oObj.AT >= 360) then        -- *or* action time 360 frames?
-    SetAction(oObj, ACT.STOP, JOB.INDANGER, DIR.KEEP);
-  end
 end
 -- Object collides with an object which acts as terrain -------------------- --
 local function IsCollidePlatform(oObjSrc, iX, iY)
@@ -2576,11 +2135,8 @@ local function MoveY(oObj, iY)
 end
 -- Move object horizontally ------------------------------------------------ --
 local function MoveX(oObj, iX)
-  -- Get object flags and if object is...
-  local iFlags<const> = oObj.F;
-  if iFlags & OFL.JUMPRISE ~= 0 or     -- Jumping (rising)?
-     iFlags & OFL.JUMPFALL ~= 0 or     -- Jumping (falling)?
-     iFlags & OFL.FLOATING ~= 0 then   -- Floating (water)?
+  -- if object is jumping or floating?
+  if oObj.F & OFL.JUMPFLOAT ~= 0 then
     -- Object can move to next horizontal pixel? Move horizontally!
     if not IsCollideX(oObj, iX) then AdjustPosX(oObj, iX) end;
     -- Done
@@ -2636,30 +2192,27 @@ local function InitMoveOtherObjects()
   -- Return actual function
   return MoveOtherObjects;
 end
--- Process object jump logic ----------------------------------------------- --
-local function ProcessJumpLogic(oObj, aData, iLimit, iStep)
-  -- More pixels to jump?
-  local iActionTimer<const> = oObj.AT;
-  if iActionTimer < #aData then
-    -- Get amount to move by and ignore if not moving this frame
-    local iYMove<const> = aData[1 + iActionTimer];
-    if iYMove == 0 then return end;
-    -- Check each pixel whilst jumping
-    for iY = iYMove, iLimit, iStep do
-      -- No collision? Move and return to continue to next frame
-      if not IsCollideY(oObj, iY) then return AdjustPosY(oObj, iY) end;
-    end
-  end
-  -- Can't move anymore so tell caller that
-  return true;
-end
 -- Create object function initialiser -------------------------------------- --
 local function InitCreateObject()
+  -- Frequeently used variables -------------------------------------------- --
+  local iACreep<const>, iADying<const>, iAJump<const>, iAKeep<const>,
+     iAPhase<const>, iAStop<const>, iAWalk<const>, iDKeep<const>,
+     iDLeftRight<const>, iDNone<const>, iDOpposite<const>, iDRight<const>,
+     iJDig<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
+     iJPhase<const>, iJSearch<const>, iFBusy<const>, iFDelicate<const>,
+     iFFall<const>, iFInWater<const>, iFPhaseTarget<const>, iFSellable<const>,
+     iFTreasure<const>, iTFWater<const>, nTRoamDirChange<const>,
+     iTTargetChangeTime<const> =
+      ACT.CREEP, ACT.DYING, ACT.JUMP, ACT.KEEP, ACT.PHASE, ACT.STOP, ACT.WALK,
+      DIR.KEEP, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG, JOB.INDANGER,
+      JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, OFL.BUSY, OFL.DELICATE,
+      OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.SELLABLE, OFL.TREASURE,
+      oTileFlags.W, oTimerData.ROAMDIRCHANGE, oTimerData.TARGETTIME;
   -- Direction table for AIFindTarget -------------------------------------- --
   local aFindTargetData<const> = {
-    { DIR.UL,  DIR.U,  DIR.UR }, -- This is used for the AI.FIND(SLOW)
-    { DIR.L, DIR.NONE,  DIR.R }, -- AI procedure. It's a lookup table for
-    { DIR.DL,  DIR.D,  DIR.DR }  -- quick conversion from co-ordinates.
+    { DIR.UL, DIR.U,   DIR.UR }, -- This is used for the AI.FIND(SLOW)
+    { DIR.L,  iDNone, iDRight }, -- AI procedure. It's a lookup table for
+    { DIR.DL, DIR.D,   DIR.DR }  -- quick conversion from co-ordinates.
   };
   -- Picks a new target ---------------------------------------------------- --
   local function PickNewTarget(oObj)
@@ -2672,7 +2225,7 @@ local function InitCreateObject()
       for iDiggerId = 1, #aDiggers do
         -- Get digger object and insert it in target list if a valid target
         local oDigger<const> = aDiggers[iDiggerId];
-        if oDigger and oDigger.F & OFL.PHASETARGET ~= 0 then
+        if oDigger and oDigger.F & iFPhaseTarget ~= 0 then
           aTargets[1 + #aTargets] = oDigger;
         end
       end
@@ -2683,22 +2236,19 @@ local function InitCreateObject()
     local oTarget<const> = aTargets[random(#aTargets)];
     oObj.T = oTarget;
     -- Initially move in direction of target
-    SetAction(oObj, ACT.KEEP, JOB.KEEP, GetTargetDirection(oObj, oTarget));
+    SetAction(oObj, iAKeep, iJKeep, GetTargetDirection(oObj, oTarget));
     -- Return target
     return oTarget;
   end
-  -- Get target change time
-  local iTargetChangeTime<const> = oTimerData.TARGETTIME;
   -- Process find target logic --------------------------------------------- --
   local function AIFindTarget(oObj)
     -- Return if busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Get target and if set?
     local oTarget = oObj.T;
     if oTarget then
-      -- If target time elapsed?
-      if oObj.AT >= iTargetChangeTime or
-         oTarget.F & OFL.PHASETARGET == 0 then
+      -- If target time elapsed or target action not currently a phase target?
+      if oObj.AT >= iTTargetChangeTime or oTarget.F & iFPhaseTarget == 0 then
         -- Set a new target and if we got one?
         local oNewTarget<const> = PickNewTarget(oObj);
         if oNewTarget then
@@ -2739,8 +2289,7 @@ local function InitCreateObject()
     -- Direction changed? Change direction!
     local iDirection<const> = aFindTargetData[iYA][iXA]
     if oObj.D ~= iDirection then
-      SetAction(oObj, ACT.KEEP, JOB.KEEP, iDirection);
-    end
+      SetAction(oObj, iAKeep, iJKeep, iDirection) end;
   end
   -- Process find target logic (slow --------------------------------------- --
   local function AIFindTargetSlow(oObj)
@@ -2751,14 +2300,13 @@ local function InitCreateObject()
   local function ObjectHasValuables(oObj)
     -- Get object inventory and if we have items?
     local aInventory<const> = oObj.I;
-    if #aInventory > 0 then
-      -- Enumerate them...
-      for iInvIndex = 1, #aInventory do
-        -- Get object in inventory. If is sellable regardless of owner?
-        local oObjInv<const> = aInventory[iInvIndex];
-        if oObjInv.F & OFL.SELLABLE ~= 0 and CanSellGem(oObjInv.ID) then
-          return true end;
-      end
+    if #aInventory <= 0 then return false end;
+    -- Enumerate them...
+    for iInvIndex = 1, #aInventory do
+      -- Get object in inventory. If is sellable regardless of owner?
+      local oObjInv<const> = aInventory[iInvIndex];
+      if oObjInv.F & iFSellable ~= 0 and
+         CanSellGem(oObjInv.ID) then return true end;
     end
     -- Nothing to sell
     return false;
@@ -2768,37 +2316,31 @@ local function InitCreateObject()
     -- Reset last dig time
     oObj.LDT = iGameTicks;
     -- Teleport home
-    return SetAction(oObj, ACT.PHASE, JOB.PHASE, DIR.U);
+    return SetAction(oObj, iAPhase, iJPhase, DIR.U);
   end
   -- Simulate jumping function --------------------------------------------- --
   local function SimulateJumpLogic(oObj, iAdjX, iAnimAmount, aJumpData,
     iLimit, iStep)
-    -- Action timer for horizontal movement timing
-    local iActionTimer = 0;
-    -- Repeat...
-    repeat
-      -- Get amount to move by and test every pixel up to this one
-      local iY = aJumpData[1 + iActionTimer];
-      if iY ~= 0 then repeat
+    -- Repeat until we've run out of data
+    for iActionTimer = 0, #aJumpData - 1 do
+      -- Get amount to move by and if we do move?
+      local iYMove<const> = aJumpData[1 + iActionTimer];
+      if iYMove == 0 then goto lNoMove end;
+      -- Test every pixel up to this one
+      for iY = iYMove, iLimit, iStep do
         -- This jump process is abandoned if we're blocked by the ceiling
         if not IsCollideY(oObj, iY) then
           -- Move Y position but do not move Y again for now
           oObj.Y = oObj.Y + iY;
           break;
-        -- Collision so do not move at all anymore
-        else return end;
-        -- Try a different pixel
-        iY = iY + iStep;
-      -- Until we've tried all the pixels
-      until iY > iLimit end
+        end
+      end
+      -- Label to skip Y moving
+      ::lNoMove::
       -- Get action timer and move if it is time to move
       if iActionTimer % iAnimAmount == 0 and
-         not IsCollideX(oObj, iAdjX) then
-        oObj.X = oObj.X + iAdjX end;
-      -- Increment and set action timer for movement timing
-      iActionTimer = iActionTimer + 1;
-    -- ...until we've run out of data
-    until iActionTimer >= #aJumpData;
+         not IsCollideX(oObj, iAdjX) then oObj.X = oObj.X + iAdjX end;
+    end
   end
   -- Jump left check logic ------------------------------------------------- --
   --                              Move Timer/XAdj/Centre position for water
@@ -2808,15 +2350,15 @@ local function InitCreateObject()
   local aAIRunJumpGapRightData<const>  = { 1,  1,  8 }; -- ACT.RUN+DIR.R/DR/UR
   -- Jump logic ------------------------------------------------------------ --
   local oAIJumpLogic<const> = {
-    [ACT.WALK] = {
-      [DIR.UL] = aAIWalkJumpGapLeftData,  [DIR.L]  = aAIWalkJumpGapLeftData,
-      [DIR.UR] = aAIWalkJumpGapRightData, [DIR.DL] = aAIWalkJumpGapLeftData,
-      [DIR.R]  = aAIWalkJumpGapRightData, [DIR.DR] = aAIWalkJumpGapRightData
+    [iAWalk] = {
+      [DIR.UL]  = aAIWalkJumpGapLeftData,  [DIR.L]  = aAIWalkJumpGapLeftData,
+      [DIR.UR]  = aAIWalkJumpGapRightData, [DIR.DL] = aAIWalkJumpGapLeftData,
+      [iDRight] = aAIWalkJumpGapRightData, [DIR.DR] = aAIWalkJumpGapRightData
     },
     [ACT.RUN] = {
-      [DIR.UL] = aAIRunJumpGapLeftData,  [DIR.L]  = aAIRunJumpGapLeftData,
-      [DIR.UR] = aAIRunJumpGapRightData, [DIR.DL] = aAIRunJumpGapLeftData,
-      [DIR.R]  = aAIRunJumpGapRightData, [DIR.DR] = aAIRunJumpGapRightData
+      [DIR.UL]  = aAIRunJumpGapLeftData,  [DIR.L]  = aAIRunJumpGapLeftData,
+      [DIR.UR]  = aAIRunJumpGapRightData, [DIR.DL] = aAIRunJumpGapLeftData,
+      [iDRight] = aAIRunJumpGapRightData, [DIR.DR] = aAIRunJumpGapRightData
     }
   };
   -- AI jumping gap logic -------------------------------------------------- --
@@ -2831,22 +2373,21 @@ local function InitCreateObject()
     repeat
       -- Bad jump if we encountered water
       local iId<const> = GetLevelDataFromObject(oObj, iAdjXW, 14);
-      if iId and aTileData[1 + iId] & oTileFlags.W ~= 0 then break end;
+      if iId and aTileData[1 + iId] & iTFWater ~= 0 then break end;
       -- If we collide with the background if we go down more?
       if IsCollideY(oObj, 14) then
         -- Find absolute stable ground
         while not IsCollideY(oObj, 1) do oObj.Y = oObj.Y + 1 end;
-        -- If object landed equal or higher up level or the object would land
-        -- higher than gap bottom?
-        if oObj.Y <= iOldY or oObj.Y < iOldY + iYGap then
-          -- Restore original position adjusted and return if action was set
-          oObj.X, oObj.Y = iOldX, iOldY;
-          return SetAction(oObj, ACT.JUMP, JOB.KEEP, DIR.KEEP);
-        end
-        -- Not a valid jump
-        break;
+        -- Break signifying an invalid jump if object landed lower down and the
+        -- object would land lower than gap bottom.
+        if oObj.Y > iOldY and oObj.Y >= iOldY + iYGap then break end;
+        -- Return if gap between object and gap bottom not high enough.
+        if iYGap < 8 then return end;
+        -- Restore original position adjusted and return if action was set.
+        oObj.X, oObj.Y = iOldX, iOldY;
+        return SetAction(oObj, iAJump, iJKeep, iDKeep);
       end
-      -- Move object down
+      -- Move object down. Bitmask sprite is 14px high.
       oObj.Y = oObj.Y + 14;
     -- ...until too much health would be lost for this jump to work
     until (oObj.Y - iOldY) // 8 >= nHealthLimit
@@ -2868,7 +2409,7 @@ local function InitCreateObject()
           nHealthLimit                 -- Maximum amount of HP reduction
        = oDirData[1], oDirData[2], oDirData[3], oObj.H - 10;
     -- Double health limit if the object has more strength
-    if oObj.F & OFL.DELICATE == 0 then
+    if oObj.F & iFDelicate == 0 then
       nHealthLimit = nHealthLimit * 2.0 end;
     -- Save position, action timer and flags
     local iOldX<const>, iOldY<const> = oObj.X, oObj.Y;
@@ -2879,7 +2420,7 @@ local function InitCreateObject()
       -- Return if...
       if oObj.H < 10.0 or                   -- ...health too low or...
          random() < oObj.IN or              -- ...not intelligent enough...
-         oObj.J == JOB.DIG then return end; -- ...or about to dig.
+         oObj.J == iJDig then return end; -- ...or about to dig.
       -- Simulate rising and falling
       SimulateJumpLogic(oObj, iAdjX, iAnimAmount, aJumpRiseData, -1,  1);
       SimulateJumpLogic(oObj, iAdjX, iAnimAmount, aJumpFallData,  1, -1);
@@ -2887,7 +2428,7 @@ local function InitCreateObject()
       repeat
         -- Bad jump if we got a water block
         local iId<const> = GetLevelDataFromObject(oObj, iAdjXW, 14);
-        if iId and aTileData[1 + iId] & oTileFlags.W ~= 0 then break end;
+        if iId and aTileData[1 + iId] & iTFWater ~= 0 then break end;
         -- If we collide with the background if we go down more?
         if IsCollideY(oObj, 14) then
           -- Find a stable ground
@@ -2897,7 +2438,7 @@ local function InitCreateObject()
           if oObj.X ~= iOldX or oObj.Y ~= iOldY then
             -- Restore original position adjusted and return if action was set
             oObj.X, oObj.Y = iOldX, iOldY;
-            return SetAction(oObj, ACT.JUMP, JOB.KEEP, DIR.KEEP);
+            return SetAction(oObj, iAJump, iJKeep, iDKeep);
           end
           -- Landed at inappropriate position
           break;
@@ -2913,12 +2454,12 @@ local function InitCreateObject()
       return true;
     end
     -- If not in water?
-    if oObj.F & OFL.INWATER == 0 then
+    if oObj.F & iFInWater == 0 then
       -- Repeat virtual falling...
       repeat
         -- Bad fall if water block encountered
         local iId<const> = GetLevelDataFromObject(oObj, iAdjXW, 14);
-        if iId and aTileData[1 + iId] & oTileFlags.W ~= 0 then
+        if iId and aTileData[1 + iId] & iTFWater ~= 0 then
           -- Calculate bottom pixel position of gap
           local iYGap<const> = oObj.Y - iOldY;
           -- Reset position
@@ -2932,8 +2473,7 @@ local function InitCreateObject()
         -- If we found the bottom of the gap?
         if IsCollide(oObj, iAdjX, 14) then
           -- Check for absolute pixel of the bottom of ground
-          while not IsCollide(oObj, iAdjX, 1) do
-            oObj.Y = oObj.Y + 1 end;
+          while not IsCollide(oObj, iAdjX, 1) do oObj.Y = oObj.Y + 1 end;
           -- Calculate gap
           local iYGap<const> = oObj.Y - iOldY;
           -- Restore position
@@ -2954,8 +2494,7 @@ local function InitCreateObject()
         -- If we found the bottom of the gap?
         if IsCollide(oObj, iAdjX, 14) then
           -- Check for absolute pixel of the bottom of ground
-          while not IsCollide(oObj, iAdjX, 1) do
-            oObj.Y = oObj.Y + 1 end;
+          while not IsCollide(oObj, iAdjX, 1) do oObj.Y = oObj.Y + 1 end;
           -- Calculate gap
           local iYGap<const> = oObj.Y - iOldY;
           -- Restore position
@@ -2989,89 +2528,89 @@ local function InitCreateObject()
     -- Still in the timeframe? Reset anti-wriggle time to another 5 sec
     else oObj.AW, oObj.AWR = iGameTicks + 300, 0 end;
     -- This fall would kill cause the digger harm so evade the fall.
-    return SetAction(oObj, ACT.KEEP, JOB.KEEP, DIR.OPPOSITE);
+    return SetAction(oObj, iAKeep, iJKeep, iDOpposite);
   end
   -- Digger AI choices (Chances to change action per tick) ----------------- --
   local oAIData<const> = {
     -- Ai is stopped?
-    [ACT.STOP] = {
+    [iAStop] = {
       -- No job set?
-      [JOB.NONE] = { [DIR.UL] = 0.02,  [DIR.U]    = 0.1,  [DIR.UR] = 0.02,
-                     [DIR.L]  = 0.02,  [DIR.NONE] = 0.1,  [DIR.R]  = 0.02,
-                     [DIR.DL] = 0.02,  [DIR.D]    = 0.02, [DIR.DR] = 0.02 },
+      [iJNone] = { [DIR.UL] = 0.02,  [DIR.U]  = 0.1,  [DIR.UR]  = 0.02,
+                   [DIR.L]  = 0.02,  [iDNone] = 0.1,  [iDRight] = 0.02,
+                   [DIR.DL] = 0.02,  [DIR.D]  = 0.02, [DIR.DR]  = 0.02 },
       -- Job is to dig?
-      [JOB.DIG] = { [DIR.UL] = 0.02,  [DIR.U]    = 0.02, [DIR.UR] = 0.02,
-                    [DIR.L]  = 0.02,  [DIR.NONE] = 0.02, [DIR.R]  = 0.02,
-                    [DIR.DL] = 0.02,  [DIR.D]    = 0.02, [DIR.DR] = 0.02 },
+      [iJDig] = { [DIR.UL] = 0.02,  [DIR.U]  = 0.02, [DIR.UR]  = 0.02,
+                  [DIR.L]  = 0.02,  [iDNone] = 0.02, [iDRight] = 0.02,
+                  [DIR.DL] = 0.02,  [DIR.D]  = 0.02, [DIR.DR]  = 0.02 },
     -- Ai is walking?
-    }, [ACT.WALK] = {
+    }, [iAWalk] = {
       -- Job is bouncing around?
-      [JOB.BOUNCE] = { [DIR.UL] = 0.001, [DIR.UR] = 0.001,  [DIR.L] = 0.001,
-                       [DIR.R]  = 0.001, [DIR.DL] = 0.02,   [DIR.D] = 0.002,
-                       [DIR.DR] = 0.02 },
+      [JOB.BOUNCE] = { [DIR.UL]  = 0.001, [DIR.UR] = 0.001,  [DIR.L] = 0.001,
+                       [iDRight] = 0.001, [DIR.DL] = 0.02,   [DIR.D] = 0.002,
+                       [DIR.DR]  = 0.02 },
       -- Job is digging?
-      [JOB.DIG] = { [DIR.UL] = 0.002, [DIR.UR] = 0.002,  [DIR.L]  = 0.001,
-                    [DIR.R]  = 0.001, [DIR.DL] = 0.02,   [DIR.DR] = 0.05 },
+      [iJDig] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002,  [DIR.L]  = 0.001,
+                  [iDRight] = 0.001, [DIR.DL] = 0.02,   [DIR.DR] = 0.05 },
       -- Job is digging down? (Very narrow time frame)
       [JOB.DIGDOWN] = { [DIR.D] = 0.95 },
       -- Job is searching for treasure?
-      [JOB.SEARCH] = { [DIR.L] = 0.002, [DIR.R] = 0.002 },
+      [iJSearch] = { [DIR.L] = 0.002, [iDRight] = 0.002 },
     -- Ai is running?
     }, [ACT.RUN] = {
       -- Job is bouncing around?
-      [JOB.BOUNCE] = { [DIR.L] = 0.01, [DIR.R] = 0.01 },
+      [JOB.BOUNCE] = { [DIR.L] = 0.01, [iDRight] = 0.01 },
       -- Job is in danger?
-      [JOB.INDANGER] = { [DIR.L] = 0.002, [DIR.R] = 0.002 },
+      [iJInDanger] = { [DIR.L] = 0.002, [iDRight] = 0.002 },
     },
   };
   -- AI digger logic ------------------------------------------------------- --
   local function AIDiggerLogic(oObj)
     -- Return if...
-    if oObj.F & OFL.BUSY ~= 0 or    -- ...busy
-       oObj.F & OFL.FALL == 0 or    -- ...or not allowed to fall
+    if oObj.F & iFBusy ~= 0 or      -- ...busy
+       oObj.F & iFFall == 0 or      -- ...or not allowed to fall
        oObj.FD > 0 then return end; -- ...already falling
     -- Teleport home to rest and sell items if these conditions are met...
     if ObjectIsAtHome(oObj) and -- Object is at their home point? *and*
       (oObj.IW > 0 or           -- (Digger is carrying something? *or*
        oObj.H < 75) and         --  Health is under 75%) *and*
-       oObj.A == ACT.STOP and   -- Digger has stopped?
-       oObj.D ~= DIR.R then     -- Digger hasn't teleported yet?
-      return SetAction(oObj, ACT.PHASE, JOB.PHASE, DIR.R);
+       oObj.A == iAStop and     -- Digger has stopped?
+       oObj.D ~= iDRight then   -- Digger hasn't teleported yet?
+      return SetAction(oObj, iAPhase, iJPhase, iDRight);
     end
     -- Return if object jumped
     if ObjectJumped(oObj) then return end;
     -- Stop the Digger if needed so it can heal a bit if...
-    if random() < 0.001 and        -- Intelligent enough? (0.1%)
-       oObj.H <= 25 and            -- Below quarter health?
-       oObj.A ~= ACT.STOP and      -- Not stopped?
-       oObj.J ~= JOB.INDANGER then -- Not in danger?
-      return SetAction(oObj, ACT.STOP, JOB.NONE, DIR.NONE);
+    if random() < 0.001 and      -- Intelligent enough? (0.1%)
+       oObj.H <= 25 and          -- Below quarter health?
+       oObj.A ~= iAStop and      -- Not stopped?
+       oObj.J ~= iJInDanger then -- Not in danger?
+      return SetAction(oObj, iAStop, iJNone, iDNone);
     end
     -- If object...
     if (((random() <= 0.01 and            -- *and* (1% chance?
           oObj.H < 50) or                 -- *and* Health under 50%)
          (random() <= 0.001 and           -- *or* (0.1% chance?
           oObj.H >= 50)) and              -- *and* Health over 50%)
-        oObj.J == JOB.INDANGER and        -- Object is in danger?
-        oObj.A ~= ACT.STOP) or            -- *and* moving?
+        oObj.J == iJInDanger and          -- Object is in danger?
+        oObj.A ~= iAStop) or              -- *and* moving?
        (random() <= 0.001 and             -- *or* (0.1% chance?)
         oObj.IW >= oObj.MI and            -- *and* Digger has full inv?
         ObjectHasValuables(oObj)) or      -- *and* has sellable items?)
        (random() <= 0.01 and              -- *or* (1% chance?)
         iGameTicks - oObj.LDT >= 7200 and -- *and* Not dug for 2 mins?
-        oObj.A == ACT.STOP) then          -- *and* not moving?)
+        oObj.A == iAStop) then            -- *and* not moving?)
       PhaseHome(oObj);                    -- Phase home
     end
     -- Wait longer if health is needed
     if oObj.H < 50 and        -- Below half health?
-       oObj.A == ACT.STOP and -- Stopped?
+       oObj.A == iAStop and   -- Stopped?
        random() > 0.001 then  -- Very big chance? (0.1%)
       return;                 -- Do nothing else
     end
     -- Digger is walking?
-    if oObj.A == ACT.WALK then
+    if oObj.A == iAWalk then
       -- Every 1/2 sec and digger isn't searching? Pick up any treasure!
-      if iGameTicks % 30 == 0 and oObj.J ~= JOB.SEARCH then
+      if iGameTicks % 30 == 0 and oObj.J ~= iJSearch then
         PickupObjects(oObj, true);
       -- A 0.01% chance occurred each frame?
       elseif random() < 0.0001 then
@@ -3082,7 +2621,7 @@ local function InitCreateObject()
           for iInvIndex = 1, #aInventory do
             -- Get inventory object and if it is not treasure?
             local oObjInv<const> = aInventory[iInvIndex];
-            if oObjInv.F & OFL.TREASURE == 0 then
+            if oObjInv.F & iFTreasure == 0 then
               -- Drop it and do not drop anything else
               DropObject(oObj, oObjInv);
               break;
@@ -3103,43 +2642,41 @@ local function InitCreateObject()
            SetRandomJob(oObj);
   end
   -- AI random direction logic initialisation data ------------------------- --
-  local aAIRandomLogicInitData<const> = { DIR.U, DIR.D, DIR.L, DIR.R };
+  local aAIRandomLogicInitData<const> = { DIR.U, DIR.D, DIR.L, iDRight };
   -- AI random direction logic movement data ------------------------------- --
   local oAIRandomLogicMoveData<const> = {
-    -- --------------------------------------------------------------------- --
-    -- Try to move in these directions first...
-    --             TeX TeY     TeX TeY
-    --             \_/ \_/     \_/ \_/
-    -- --------------------------------------------------------------------- --
-    -- When blocked then an alternative list of directions is provided...
-    --   TeX TeY Direction  TeX TeY Direction  TeX TeY Direction
-    --   \_/ \_/   \_/      \_/ \_/   \_/      \_/ \_/   \_/
+    -- -- (1st line) Try to move in these directions first... -------------- --
+    --             TeX  TeY    TeX  TeY
+    --              \/  \/      \/  \/
+    -- -- (2nd line) When blocked then an alt list of directions provided... --
+    --   TeX  TeY Direction   TeX  TeY Direction   TeX  TeY Direction
+    --    \/  \/  \/           \/  \/  \/           \/  \/  \/
     -- --------------------------------------------------------------------- --
     [DIR.U] = { { {  0, -2 }, {  0, -1 } }, -- Going up?
-      { { -1, -1, DIR.U }, {  1, -1, DIR.U }, { -1,  0, DIR.L },
-        {  1,  0, DIR.R }, {  0,  1, DIR.D } } },
+      { { -1, -1, DIR.U   }, {  1, -1, DIR.U   }, { -1,  0, DIR.L },
+        {  1,  0, iDRight }, {  0,  1, DIR.D   } } },
     -- --------------------------------------------------------------------- --
     [DIR.D] = { { {  0,  2 }, {  0,  1 } }, -- Going down?
-      { {  0,  1, DIR.D }, { -1,  1, DIR.D }, {  1,  1, DIR.D },
-        { -1,  0, DIR.L }, {  1,  0, DIR.R }, {  0, -1, DIR.U } } },
+      { {  0,  1, DIR.D   }, { -1,  1, DIR.D   }, {  1,  1, DIR.D },
+        { -1,  0, DIR.L   }, {  1,  0, iDRight }, {  0, -1, DIR.U } } },
     -- --------------------------------------------------------------------- --
     [DIR.L] = { { { -2,  0 }, { -1,  0 } }, -- Going left?
-      { { -1,  0, DIR.L }, { -1, -1, DIR.L }, { -1,  1, DIR.L },
-        {  0, -1, DIR.U }, {  0,  1, DIR.D }, {  1,  0, DIR.R } } },
+      { { -1,  0, DIR.L   }, { -1, -1, DIR.L   }, { -1,  1, DIR.L   },
+        {  0, -1, DIR.U   }, {  0,  1, DIR.D   }, {  1,  0, iDRight } } },
     -- --------------------------------------------------------------------- --
-    [DIR.R] = { { {  2,  0 }, {  1,  0 } }, -- Going right?
-      { {  1,  0, DIR.R }, {  1, -1, DIR.R }, {  1,  1, DIR.R },
-        {  0, -1, DIR.U }, {  0,  1, DIR.D }, { -1,  0, DIR.L } } }
+    [iDRight] = { { {  2,  0 }, {  1,  0 } }, -- Going right?
+      { {  1,  0, iDRight }, {  1, -1, iDRight }, {  1,  1, iDRight },
+        {  0, -1, DIR.U   }, {  0,  1, DIR.D   }, { -1,  0, DIR.L   } } }
     -- --------------------------------------------------------------------- --
   };
   -- AI random direction logic --------------------------------------------- --
   local function AIRandomLogic(oObj)
     -- Return if busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Set new direction if object has no direction
     local iDirection = oObj.D;
-    if iDirection == DIR.NONE then
-      return SetAction(oObj, ACT.KEEP, JOB.KEEP,
+    if iDirection == iDNone then
+      return SetAction(oObj, iAKeep, iJKeep,
         aAIRandomLogicInitData[random(#aAIRandomLogicInitData)]) end;
     -- Get direction
     local aDData<const> = oAIRandomLogicMoveData[iDirection];
@@ -3168,22 +2705,22 @@ local function InitCreateObject()
       if not IsCollide(oObj, aPDData[1], aPDData[2]) then
         iDirection = aPDData[3];
       -- Can't even go back in the previous direction so this position is FAIL
-      else iDirection = DIR.NONE end
+      else iDirection = iDNone end
     end
     -- Pick a new direction from eligible directions
-    SetAction(oObj, ACT.KEEP, JOB.KEEP, iDirection);
+    SetAction(oObj, iAKeep, iJKeep, iDirection);
   end
   -- Bigfoot AI data ------------------------------------------------------- --
   local aAIBigFootData<const> = {
-    { ACT.WALK,  JOB.BOUNCE, DIR.L    }, -- Chance to walk left
-    { ACT.WALK,  JOB.BOUNCE, DIR.R    }, -- Chance to walk right
-    { ACT.PHASE, JOB.PHASE,  DIR.D    }, -- Chance to phase randomly
-    { ACT.STOP,  JOB.NONE,   DIR.NONE }, -- Chance to stop
+    { iAWalk,  JOB.BOUNCE, DIR.L   }, -- Chance to walk left
+    { iAWalk,  JOB.BOUNCE, iDRight }, -- Chance to walk right
+    { iAPhase, iJPhase,    DIR.D   }, -- Chance to phase randomly
+    { iAStop,  iJNone,     iDNone  }, -- Chance to stop
   };
   -- Bigfoot AI ------------------------------------------------------------ --
   local function AIBigfoot(oObj)
     -- Return if object is busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Jump if we can if we're not falling
     if oObj.FD <= 0 and ObjectJumped(oObj) then return end;
     -- Every 1/2 sec. Try to pick up anything
@@ -3197,55 +2734,55 @@ local function InitCreateObject()
   -- Basic AI roaming ------------------------------------------------------ --
   local function AIRoam(oObj)
     -- Return if busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Direction to go in
     local iAdjX;
     if oObj.D == DIR.L then iAdjX = -1 else iAdjX = 1 end;
     -- Move if object can move in its current direction, or the target
     -- time exceeds to create a sudden direction change.
-    if not IsCollideX(oObj, iAdjX) and random() > oTimerData.ROAMDIRCHANGE then
-      AdjustPosX(oObj, iAdjX);
+    if not IsCollideX(oObj, iAdjX) and
+       random() > nTRoamDirChange then AdjustPosX(oObj, iAdjX);
     -- Blocked so go in opposite direction
-    else SetAction(oObj, ACT.KEEP, JOB.KEEP, DIR.OPPOSITE) end;
+    else SetAction(oObj, iAKeep, iJKeep, iDOpposite) end;
   end
   -- Basic AI roaming (slow) ----------------------------------------------- --
   local function AIRoamSlow(oObj)
     -- Return if busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Move around every 4th frame
     if oObj.AT % 4 == 0 then AIRoam(oObj) end;
   end
   -- Basic AI roaming (normal) --------------------------------------------- --
   local function AIRoamNormal(oObj)
     -- Return if busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Move around every odd frame
     if oObj.AT % 2 == 0 then AIRoam(oObj) end;
   end
   -- Tunneller ------------------------------------------------------------- --
   local function AITunneller(oObj)
     -- Ignore if the tunneller is not stopped and a rare random value occurs
-    if random() >= 0.001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() >= 0.001 or oObj.F & iFBusy ~= 0 then return end;
     -- Pick a direction to tunnel in or stop
-    if random() < 0.5 then SetAction(oObj, ACT.WALK, JOB.DIG, DIR.LR);
-                      else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.NONE) end;
+    if random() < 0.5 then SetAction(oObj, iAWalk, iJDig, iDLeftRight);
+                      else SetAction(oObj, iAStop, iJNone, iDNone) end;
   end
   -- Corkscrew actions ----------------------------------------------------- --
   local oAICorkscrewActions<const> = {
-    [ACT.STOP] = { [JOB.NONE] = {
-      { 0.001, ACT.CREEP, JOB.NONE,    DIR.LR   },
-      { 0.001, ACT.CREEP, JOB.DIGDOWN, DIR.TCTR } }
+    [iAStop] = { [iJNone] = {
+      { 0.001, iACreep, iJNone,      iDLeftRight },
+      { 0.001, iACreep, JOB.DIGDOWN, DIR.TCTR    } }
     }, [ACT.DIG] = { [JOB.DIGDOWN] = {
-      { 0.01,  ACT.STOP,  JOB.NONE,    DIR.NONE },
-      { 0.001, ACT.CREEP, JOB.NONE,    DIR.LR   } }
-    }, [ACT.CREEP] = { [JOB.NONE] = {
-      { 0.001, ACT.STOP,  JOB.NONE,    DIR.LR   },
-      { 0.001, ACT.CREEP, JOB.DIGDOWN, DIR.TCTR } }
+      { 0.01,  iAStop,  iJNone,      iDNone },
+      { 0.001, iACreep, iJNone,      iDLeftRight } }
+    }, [iACreep] = { [iJNone] = {
+      { 0.001, iAStop,  iJNone,      iDLeftRight },
+      { 0.001, iACreep, JOB.DIGDOWN, DIR.TCTR    } }
     } };
   -- Corkscrew ------------------------------------------------------------- --
   local function AICorkscrew(oObj)
     -- Ignore if object is busy
-    if oObj.F & OFL.BUSY ~= 0 then return end;
+    if oObj.F & iFBusy ~= 0 then return end;
     -- Get data for current action
     local oAIActionData<const> = oAICorkscrewActions[oObj.A];
     if not oAIActionData then return end;
@@ -3264,7 +2801,7 @@ local function InitCreateObject()
   -- Exploder -------------------------------------------------------------- --
   local function AIExploder(oObj)
     -- Ignore if a rare random value occurs or object is busy
-    if random() > 0.001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() > 0.001 or oObj.F & iFBusy ~= 0 then return end;
     -- Get objects parent and return if there is none (should be impossible)
     local oParent<const> = oObj.P;
     if not oParent then return end;
@@ -3279,7 +2816,7 @@ local function InitCreateObject()
         local oParentTarget<const> = oTarget.P;
         if oParentTarget and oParentTarget ~= oParent then
           -- Set off the object exploding
-          SetAction(oObj, ACT.DYING, JOB.NONE, DIR.NONE);
+          SetAction(oObj, iADying, iJNone, iDNone);
         end
       end
     end
@@ -3287,41 +2824,41 @@ local function InitCreateObject()
   -- AI for train for rails ------------------------------------------------ --
   local function AITrain(oObj)
     -- Ignore if a rare random value occurs or object is busy
-    if random() > 0.001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() > 0.001 or oObj.F & iFBusy ~= 0 then return end;
     -- Go left, right or stop
-    if random() > 0.5 then SetAction(oObj, ACT.WALK, JOB.SEARCH, DIR.LR);
-                      else SetAction(oObj, ACT.STOP, JOB.SEARCH, DIR.NONE) end;
+    if random() > 0.5 then SetAction(oObj, iAWalk, iJSearch, iDLeftRight);
+                      else SetAction(oObj, iAStop, iJSearch, iDNone) end;
   end
   -- AI for lift ----------------------------------------------------------- --
   local function AILift(oObj)
     -- Ignore if a rare random value occurs or object is busy
-    if random() > 0.001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() > 0.001 or oObj.F & iFBusy ~= 0 then return end;
     -- Go up or down or stop
-    if random() > 0.5 then SetAction(oObj, ACT.CREEP, JOB.NONE, DIR.UD);
-                      else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.NONE) end;
+    if random() > 0.5 then SetAction(oObj, iACreep, iJNone, DIR.UD);
+                      else SetAction(oObj, iAStop, iJNone, iDNone) end;
   end
   -- AI for inflatable boat ------------------------------------------------ --
   local function AIBoat(oObj)
     -- Ignore if a rare random value occurs or object is busy
-    if random() > 0.001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() > 0.001 or oObj.F & iFBusy ~= 0 then return end;
     -- Go up or down or stop
-    if random() > 0.5 then SetAction(oObj, ACT.CREEP, JOB.NONE, DIR.LR);
-                      else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.NONE) end;
+    if random() > 0.5 then SetAction(oObj, iACreep, iJNone, iDLeftRight);
+                      else SetAction(oObj, iAStop, iJNone, iDNone) end;
   end
   -- AI for anything deployable -------------------------------------------- --
   local function AIDeploy(oObj)
     -- Ignore if a rare random value occurs or object is busy
-    if random() > 0.0001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() > 0.0001 or oObj.F & iFBusy ~= 0 then return end;
     -- Deploy the object
-    SetAction(oObj, ACT.DEPLOY, JOB.NONE, DIR.NONE);
+    SetAction(oObj, ACT.DEPLOY, iJNone, iDNone);
   end
   -- AI for flood gate ----------------------------------------------------- --
   local function AIGate(oObj)
     -- Ignore if a rare random value occurs or object is busy
-    if random() > 0.00001 or oObj.F & OFL.BUSY ~= 0 then return end;
+    if random() > 0.00001 or oObj.F & iFBusy ~= 0 then return end;
     -- Open or close the gate
-    if random() < 0.5 then SetAction(oObj, ACT.OPEN, JOB.NONE, DIR.NONE);
-                      else SetAction(oObj, ACT.CLOSE, JOB.NONE, DIR.NONE) end;
+    if random() < 0.5 then SetAction(oObj, ACT.OPEN, iJNone, iDNone);
+                      else SetAction(oObj, ACT.CLOSE, iJNone, iDNone) end;
   end
   -- AI id to function list ------------------------------------------------ --
   local aAIFuncs<const> = {
@@ -3333,7 +2870,8 @@ local function InitCreateObject()
     [AI.CORKSCREW]   = AICorkscrew,      [AI.TRAIN]    = AITrain,
     [AI.LIFT]        = AILift,           [AI.BOAT]     = AIBoat,
     [AI.DEPLOY]      = AIDeploy,         [AI.GATE]     = AIGate
-  }; ----------------------------------------------------------------------- --
+  };
+  -- Actual create object function ----------------------------------------- --
   local function CreateObject(iObjId, iX, iY, oParent)
     -- Check parameters
     if not UtilIsInteger(iObjId) then
@@ -3350,10 +2888,10 @@ local function InitCreateObject()
     if iY >= iLLPixH then
       error("Y coord "..iY.." limit is "..iLLPixH.."!") end;
     -- If too many objects? Put warning in console and return!
-    if #aObjs >= 100000 then
-      return CoreWrite("Warning! Too many objects creating "..iObjId..
-        " at X="..iX.." and Y="..iY.." with parent "..tostring(oParent).."!",
-        9);
+    if #aObjs >= 500 then
+      CoreWrite("Warning! Too many objects creating "..iObjId.." at X="..iX..
+        " and Y="..iY.." with parent "..tostring(oParent).."!", 9);
+      return false;
     end
     -- Get and test object information
     local oObjData<const> = oObjectData[iObjId];
@@ -3371,7 +2909,7 @@ local function InitCreateObject()
     iUniqueId = iUniqueId + 1;
     -- Build new object array
     local oObj<const> = {
-      A    = ACT.NONE,                   -- Object action (ACT.*
+      A    = false,                      -- Object action (ACT.*)
       AA   = false,                      -- Attachment action data
       AD   = { },                        -- Reference to action data
       AI   = iAI,                        -- Object AI procedure
@@ -3380,7 +2918,7 @@ local function InitCreateObject()
       AX   = 0,                          -- Tile X position clamped to 16
       AY   = 0,                          -- Tile Y position clamped to 16
       CS   = not not oObjData[ACT.STOP], -- Object can stop?
-      D    = oObjData.DIRECTION,         -- Direction object is going in
+      D    = false,                      -- Direction to go in (DIR.*)
       DA   = false,                      -- Attachment direction data
       DD   = { },                        -- Reference to direction data
       DID  = oObjData.DIGDELAY,          -- Digging delay
@@ -3389,15 +2927,17 @@ local function InitCreateObject()
       F    = oObjData.FLAGS or 0,        -- Object flags (OFL.*)
       FD   = 0,                          -- Amount the object has fallen by
       FDD  = DIR.NONE,                   -- Last failed dig direction
+      FN   = 0,                          -- Next time a fight hit can happen
       FS   = 1,                          -- Object falling speed
       GEM  = 0,                          -- Gems found
       H    = 100,                        -- Object health
       I    = { },                        -- Inventory for this object
       ID   = iObjId,                     -- Object id (TYP.*)
       IN   = oObjData.INTELLIGENCE,      -- Intelligence
+      IP   = false,                      -- Object carrying this object
       IS   = nil,                        -- Selected inventory item
       IW   = 0,                          -- Weight of inventory
-      J    = JOB.NONE,                   -- Object job (JOB.*)
+      J    = false,                      -- Object job (JOB.*)
       JD   = { },                        -- Reference to job data
       JT   = 0,                          -- Job timer
       LC   = oObjData.LUNGS,             -- Lung capacity
@@ -3420,8 +2960,6 @@ local function InitCreateObject()
       ST   = 0,                          -- Sprite animation timer
       STA  = oObjData.ATTACHMENT,        -- Object attachment id
       STR  = oObjData.STRENGTH,          -- Object strength
-      STRK = -ceil(oObjData.STRENGTH/4), -- Object damage on kick
-      STRP = -ceil(oObjData.STRENGTH/2), -- Object damage on punch
       SX   = iX,                         -- Object starting position
       SY   = iY,                         -- Object starting position
       TD   = { },                        -- Ignored teleport destinations
@@ -3432,6 +2970,8 @@ local function InitCreateObject()
       X    = 0,                          -- Absolute X position
       Y    = 0,                          -- Absolute Y position
     };
+    -- Add animated health value if our object
+    if oParent and oPlrActive == oParent then oObj.HA = oObj.H end;
     -- Is AI function specified and not a player controlled parent?
     if iAI ~= AI.NONE and (not oParent or oParent.AI) then
       -- Lookup AI function and check that it's a function
@@ -3448,43 +2988,276 @@ local function InitCreateObject()
     -- Insert into main object array
     aObjs[1 + #aObjs] = oObj;
     -- Log creation of item
-    CoreLog("Created object '"..sName.."'["..iObjId.."] at X:"..
-      iX..",Y:"..iY.." in position #"..#aObjs.."!");
+    CoreLog("Created object '"..sName.."'["..iObjId.."] at X:"..iX..
+      ",Y:"..iY.." in position #"..#aObjs.."!");
     -- Return object
     return oObj;
   end
   -- Return the actual function
   return CreateObject;
 end
--- Proc object floating ---------------------------------------------------- --
-local function CheckObjectFloating(oObj)
-  -- Ignore if object doesn't float
-  if oObj.F & OFL.FLOAT == 0 then return false end;
-  -- Get tile position and get tile id from level data and return if not water
-  if not CheckObjectInWater(oObj, 13) then
-    -- Floating if the pixel below is water
-    if not CheckObjectInWater(oObj, 14) then
-      -- Remove floating flag and all fall back
-      oObj.F = (oObj.F | OFL.FALL) & ~OFL.FLOATING;
-      -- Not floating so can fall
-      return false;
-    end
-   -- Tile is water?
-  else
-    -- Set floating flag and remove fall flag
-    oObj.F = (oObj.F | OFL.FLOATING) & ~OFL.FALL;
-    -- Rise
-    MoveY(oObj, -1);
-  end
-  -- Object is floating
-  return true;
+-- Buy an item ------------------------------------------------------------- --
+local function BuyItem(oObj, iItemId)
+  -- Get object data and value of object
+  local oObjData<const> = oObjectData[iItemId];
+  local iValue<const> = oObjData.VALUE;
+  -- Get objects owner and owner money
+  local oParent<const> = oObj.P;
+  local iParentMoney<const> = oParent.M;
+  -- Not enough money?
+  if iValue > iParentMoney then return 1 end;
+  -- Can't carry any more?
+  if oObj.IW + oObjData.WEIGHT > oObj.STR then return 2 end;
+  -- Create the object and return if we can't
+  local aObjInv<const> = CreateObject(iItemId, oObj.X, oObj.Y, oParent);
+  if not aObjInv then return 3 end;
+  -- Add to inventory and return if we can't
+  if not AddToInventory(oObj, aObjInv) then return 4 end;
+  -- Reduce money
+  oParent.M = iParentMoney - iValue;
+  -- Total purchases plus one
+  oParent.PUR = oParent.PUR + 1;
+  -- Log the purchase
+  CoreLog(oObj.OD.NAME.." "..oObj.DI.." purchased "..oObjData.NAME..
+    " for "..iValue.." Zogs ("..iParentMoney..">"..oParent.M..")!");
+  -- Success
+  return 5;
 end
--- Process phasing logic function ------------------------------------------ --
-local function PhaseLogic()
-  -- AI player entered trade centre logic
+-- Main logic tick procedures ---------------------------------------------- --
+local function GameProc()
+  -- Commonly accessed aliases --------------------------------------------- --
+  local iADeath<const>, iAEaten<const>, iAFight<const>, iAHide<const>,
+    iAKeep<const>, iAPhase<const>, iARun<const>, iAStop<const>, iDDown<const>,
+    iDDownRight<const>, iDKeep<const>, iDKeepMove<const>, iDLeftRight<const>,
+    iDNone<const>, iDOpposite<const>, iDRight<const>, iDUpRight<const>,
+    iFAquaLung<const>, iFBusy<const>, iFConsume<const>, iFDangerous<const>,
+    iFDelicate<const>, iFDigger<const>, iFFall<const>, iFFloat<const>,
+    iFFloating<const>, iFHealNearby<const>, iFHurtDigger<const>,
+    iFInWater<const>, iFiFall<const>, iFiFloating<const>, iFiInWater<const>,
+    iFiJumpFallBusy<const>, iFiJumpRise<const>, iFJumping<const>,
+    iFJumpFall<const>, iFJumpRise<const>, iFPhaseDigger<const>,
+    iFPhaseTarget<const>, iFPursueDigger<const>, iFRegenerate<const>,
+    iFStationary<const>, iFTPMaster<const>, iFWaterBased<const>,
+    iJDigDown<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
+    iJPhase<const>, iJSearch<const>, iSError<const>, iTAnimTerrain<const>,
+    iTDangerTimeout<const>, iTDeadWait<const>, iTPickupDelay<const>,
+    iTyFirstAid<const>, iTyTelepole<const>, iTFW<const>, iTFP<const>,
+    iTFEL<const>, iTFER<const>, iTFEB<const>, iTFET<const>,
+    iTFAnimateBegin<const>, iTFAnimateEnd<const> =
+      ACT.DEATH, ACT.EATEN, ACT.FIGHT, ACT.HIDE, ACT.KEEP, ACT.PHASE, ACT.RUN,
+      ACT.STOP, DIR.D, DIR.DR, DIR.KEEP, DIR.KEEPMOVE, DIR.LR, DIR.NONE,
+      DIR.OPPOSITE, DIR.R, DIR.UR, OFL.AQUALUNG, OFL.BUSY, OFL.CONSUME,
+      OFL.DANGEROUS, OFL.DELICATE, OFL.DIGGER, OFL.FALL, OFL.FLOAT,
+      OFL.FLOATING, OFL.HEALNEARBY, OFL.HURTDIGGER, OFL.INWATER, OFL.iFALL,
+      OFL.iFLOATING, OFL.iINWATER, OFL.iJUMPFALLBUSY, OFL.iJUMPRISE, OFL.JUMP,
+      OFL.JUMPFALL, OFL.JUMPRISE, OFL.PHASEDIGGER, OFL.PHASETARGET,
+      OFL.PURSUEDIGGER, OFL.REGENERATE, OFL.STATIONARY, OFL.TPMASTER,
+      OFL.WATERBASED, JOB.DIGDOWN, JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE,
+      JOB.SEARCH, oSfxData.ERROR, oTimerData.ANIMTERRAIN,
+      oTimerData.DANGERTIMEOUT, oTimerData.DEADWAIT, oTimerData.PICKUPDELAY,
+      TYP.FIRSTAID, TYP.TELEPOLE, oTileFlags.W, oTileFlags.P, oTileFlags.EL,
+      oTileFlags.ER, oTileFlags.EB, oTileFlags.ET, oTileFlags.AB,
+      oTileFlags.AE;
+  -- == TILE DIGGING LOGIC ================================================= --
+  -- Storage for certain positions and tile ids relative to the object
+  local iDP,   -- Vertical position at objects feet
+        iCP,   -- Vertical position at objects waist height
+        iTId,  -- Tile id the object is on now
+        iTIdA, -- Tile id above the object is on now
+        iTIdC, -- Tile id the object is on now (centre pixel position)
+        iTIdB, -- Tile id below the object is on now
+        iTIdL, -- Tile id left of the object is on now
+        iTIdR; -- Tile id right of the object is on now
+  -- Get dig tile data
+  local function GetDigTileData()
+    -- Get the tile id that the object is on now
+    iTIdC = aLvlData[1 + iCP];
+    -- Get the tile above and adjacent the object
+    if iDP >= iLLAbsW then
+      iTIdA = aLvlData[1 + (iDP - iLLAbsW)] else iTIdA = 0 end
+    -- Get the tile below and adjacent to the object
+    if iDP < iLLAbs - iLLAbsW then
+      iTIdB = aLvlData[1 + (iDP + iLLAbsW)] else iTIdB = 0 end;
+    -- Get the tile adjacent to the object
+    iTId = aLvlData[1 + iDP];
+    -- Get the tile left of the object
+    if iDP - 1 >= 0 then iTIdL = aLvlData[1 + (iDP - 1)] else iTIdL = 0 end;
+    -- Get the tile right of the object
+    if iDP + 1 < iLLAbs then iTIdR = aLvlData[1 + iDP + 1] else iTIdR = 0 end;
+  end
+  -- Moving left or up-left?
+  local function DigDirectionLeftOrUpleft(oObj)
+    -- Get tile at objects feet
+    iDP = GetLevelOffsetFromObject(oObj, 5, 15) or 0;
+    GetDigTileData();
+    local iFDL<const>, iFDT<const> =
+      aTileData[1 + iTIdL], aTileData[1 + iTIdA];
+    if iFDT & iTFP ~= 0 or
+      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
+    return true;
+  end
+  -- Moving left or up-left?
+  local function DigDirectionUpLeft(oObj)
+    -- Get tile at objects waist
+    iCP = GetLevelOffsetFromObject(oObj, 8, 15) or 0;
+    return DigDirectionLeftOrUpleft(oObj);
+  end
+  -- Digging left?
+  local function DigDirectionLeft(oObj)
+    -- Tile at objects waist not required
+    iCP = 0;
+    return DigDirectionLeftOrUpleft(oObj);
+  end
+  -- Digging down-left?
+  local function DigDirectionDownLeft(oObj)
+    -- Get tile at objects hands and feet
+    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1) or 0,
+               GetLevelOffsetFromObject(oObj, 5, 1) or 0;
+    GetDigTileData();
+    local iFDB<const>, iFDL<const>, iFDT<const> =
+      aTileData[1 + iTIdB], aTileData[1 + iTIdL], aTileData[1 + iTIdA];
+    if iFDT & iTFP ~= 0 or
+      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
+      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
+    return true;
+  end
+  -- Digging right or up-right?
+  local function DigDirectionRightOrUpright(oObj)
+    -- Get tile at objects feet
+    iDP = GetLevelOffsetFromObject(oObj, 10, 15) or 0;
+    GetDigTileData();
+    local iFDT<const>, iFDR<const> =
+      aTileData[1 + iTIdA], aTileData[1 + iTIdR];
+    if iFDT & iTFP ~= 0 or
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
+    return true;
+  end
+  -- Digging up-right
+  local function DigDirectionUpRight(oObj)
+    -- Get tile at objects waist
+    iCP = GetLevelOffsetFromObject(oObj, 8, 15) or 0;
+    return DigDirectionRightOrUpright(oObj);
+  end
+  -- Digging right or up-right?
+  local function DigDirectionRight(oObj)
+    -- Tile at objects waist not required
+    iCP = 0;
+    return DigDirectionRightOrUpright(oObj);
+  end
+  -- Digging down-right?
+  local function DigDirectionDownRight(oObj)
+    -- Get tile at objects waist and feet
+    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1) or 0,
+               GetLevelOffsetFromObject(oObj, 10, 1) or 0;
+    GetDigTileData();
+    local iFDB<const>, iFDR<const>, iFDT<const> =
+      aTileData[1 + iTIdB], aTileData[1 + iTIdR], aTileData[1 + iTIdA];
+    if iFDT & iTFP ~= 0 or
+      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
+    return true;
+  end
+  -- Digging down?
+  local function DigDirectionDown(oObj)
+    -- Get tile at objects waist and feet
+    iCP, iDP = 0, GetLevelOffsetFromObject(oObj, 8, 16) or 0;
+    GetDigTileData();
+    local iFDL<const>, iFDT<const>, iFDR<const>, iFDB<const> =
+      aTileData[1 + iTIdL], aTileData[1 + iTIdA], aTileData[1 + iTIdR],
+      aTileData[1 + iTIdB];
+    if iFDT & iTFP ~= 0 or
+      (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
+      (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) then return false end;
+    return true;
+  end
+  -- Do the dig
+  local function DoDig(oObj, aSubDigItem)
+    -- Terrain should change?
+    local iTOS<const>, iFlags<const> = aSubDigItem[4], aSubDigItem[7];
+    if iTOS then
+      -- Check ToOver and convert random shaft tiles
+      local aDugData<const> = oDugRandShaftData[iTOS];
+      if aDugData then iTId = aDugData[random(#aDugData)];
+      else iTId = iTOS end;
+      -- Successful dig should search for treasure and if successful?
+      -- Then increment the gem found counter for object and parent.
+      if iFlags & DF.OG ~= 0 and RollTheDice(oObj.X, oObj.Y) then
+        AdjObjParentStat(oObj, "GEM") end;
+    end
+    -- Set tiles if needed
+    local iTAS<const> = aSubDigItem[5];
+    if iTAS then iTIdA = iTAS end;
+    local iTBS<const> = aSubDigItem[6];
+    if iTBS then iTIdB = iTBS end;
+    -- Set digger flags if needed
+    if iFlags & DF.OB ~= 0 then oObj.F = oObj.F | OFL.BUSY end;
+    if iFlags & DF.OI ~= 0 then oObj.F = oObj.F & OFL.iBUSY end;
+    -- Update above tile if tile location if we can
+    if iDP >= iLLAbsW then UpdateLevel(iDP - iLLAbsW, iTIdA) end;
+    -- Update level
+    UpdateLevel(iDP, iTId);
+    -- Update below tile if tile location if we can
+    if iDP < iLLAbs - iLLAbsW then UpdateLevel(iDP + iLLAbsW, iTIdB) end;
+    -- Dig was successful
+    return true;
+  end
+  -- Direction possibilities
+  local oDirectionRequirements<const> = {
+    [DIR.UL]      = DigDirectionUpLeft,   [iDUpRight] = DigDirectionUpRight,
+    [DIR.L]       = DigDirectionLeft,     [iDRight]   = DigDirectionRight,
+    [DIR.DL]      = DigDirectionDownLeft, [iDDown]    = DigDirectionDown,
+    [iDDownRight] = DigDirectionDownRight
+  };
+  -- Actual dig tile function
+  local function DigTile(oObj)
+    -- Cache digging direction of object and if going left or up-left?
+    local iDirection<const> = oObj.D;
+    -- Return if no dig data for direction
+    local fcbDirection<const> = oDirectionRequirements[iDirection];
+    if not fcbDirection or not fcbDirection(oObj) then return false end;
+    -- Get digging data table
+    local aDigDataItem<const> = oDigData[iDirection];
+    if not aDigDataItem then return false end;
+    -- Walk through all the digger data structs to find info about current tile
+    for iDigDataIndex = 1, #aDigDataItem do
+      -- Get dig data and data about the specific tile to check for and if the
+      -- adjacent tile id the object is at matches?
+      local aDigItem<const> = aDigDataItem[iDigDataIndex];
+      if iTId ~= aDigItem[1] then goto lNextDdItem end;
+      -- Go through all the sub-possibilities
+      for iDigDataSubIndex = 2, #aDigItem do
+        -- Get sub-data, always assumed to be a table
+        local aSubDigItem<const> = aDigItem[iDigDataSubIndex];
+        -- Skip if the tile above the object isn't matched
+        local iMTIdA<const> = aSubDigItem[1];
+        if iMTIdA and iTIdA ~= iMTIdA then goto lNextSddItem end;
+        -- Skip if the tile below the object isn't matched
+        local iMTIdB<const> = aSubDigItem[2];
+        if iMTIdB and iTIdB ~= iMTIdB then goto lNextSddItem end;
+        -- Skip if the tile the object is on isn't matched
+        local iMTIdC<const> = aSubDigItem[3];
+        if iMTIdC and iTIdC ~= iMTIdC then goto lNextSddItem end;
+        -- We can dig now and return if successful.
+        if DoDig(oObj, aSubDigItem) then return true end;
+        -- Continue mark
+        ::lNextSddItem::
+      end
+      -- Continue mark
+      ::lNextDdItem::
+    end
+    -- Dig failed
+    return false;
+  end
+  -- == PHASE LOGIC ======================================================== --
+  -- AI player entered trade centre logic ---------------------------------- --
   local function AIEnterTradeCentreLogic(oObj)
     -- Hide the digger
-    SetAction(oObj, ACT.HIDE, JOB.PHASE, DIR.R);
+    SetAction(oObj, iAHide, iJPhase, iDRight);
     -- Number of items sold
     local iItemsSold = 0;
     -- Get object inventory and if inventory held
@@ -3523,16 +3296,14 @@ local function PhaseLogic()
       BuyItem(oObj, aShopData[random(#aShopData)]);
     end
     -- If items were sold? Check if any player won
-    if iItemsSold > 0 then EndConditionsCheck() end;
+    if iItemsSold > 0 and EndConditionsCheck() then return true end;
   end
-  -- Phasing home or to a Telepole logic
+  -- Phasing home or to a Telepole logic ----------------------------------- --
   local function PhaseHomeOrTelepoleLogic(oObj)
     -- Reduce health as a cost for teleporting
-    if oObj.F & OFL.TPMASTER == 0 then AdjustObjectHealth(oObj, -5) end;
+    local bIsTeleMaster<const> = oObj.F & iFTPMaster ~= 0;
     -- Go home?
     local bGoingHome = true;
-    -- Is teleport master?
-    local bIsTeleMaster<const> = oObj.F & OFL.TPMASTER ~= 0;
     -- Get current teleport destinations
     local aDestinations<const> = oObj.TD;
     -- For each object
@@ -3541,9 +3312,9 @@ local function PhaseLogic()
       local oTarget<const> = aObjs[iObjDestIndex];
       -- If object is a Telepole and object is owned by this object
       -- or object is a teleport master and Telepole status nominal?
-      if oTarget.ID == TYP.TELEPOLE and
+      if oTarget.ID == iTyTelepole and
         (oTarget.P == oObj.P or bIsTeleMaster) and
-         oTarget.A == ACT.STOP then
+         oTarget.A == iAStop then
         -- Ignore Telepole?
         local bIgnoreTelepole = false;
         -- Enumerate teleport destinations...
@@ -3556,8 +3327,10 @@ local function PhaseLogic()
         if not bIgnoreTelepole then
           -- Teleport to this device
           SetPosition(oObj, oTarget.X, oTarget.Y);
+          -- Take away health
+          if not bIsTeleMaster then AdjustObjectHealth(oObj, -5) end;
           -- Re-phase back into stance
-          SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.NONE);
+          SetAction(oObj, iAPhase, iJNone, iDNone);
           -- Add it to ignore teleport destinations list for next time.
           aDestinations[1 + #aDestinations] = oTarget;
           -- Don't go home
@@ -3567,31 +3340,32 @@ local function PhaseLogic()
         end
       end
     end
-    -- Going home?
-    if bGoingHome == true then
-      -- Clear objects ignore destination list
-      for iTDIndex = #aDestinations, 1, -1 do
-        remove(aDestinations, iTDIndex) end
-      -- Set position of object to player's home
-      SetPosition(oObj, oObj.P.HX, oObj.P.HY);
-      -- Re-phase back into stance
-      SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.KEEP);
-    end
+    -- Return if not going home
+    if not bGoingHome then return end;
+    -- Clear objects ignore destination list
+    for iTDIndex = #aDestinations, 1, -1 do
+      remove(aDestinations, iTDIndex) end;
+    -- Set position of object to player's home
+    SetPosition(oObj, oObj.P.HX, oObj.P.HY);
+    -- Take away health
+    if not bIsTeleMaster then AdjustObjectHealth(oObj, -5) end;
+    -- Re-phase back into stance
+    SetAction(oObj, iAPhase, iJNone, iDKeep);
   end
-  -- Player entering trade centre logic
+  -- Player entering trade centre logic ------------------------------------ --
   local function PlayerEnterTradeCentreLogic(oObj)
     -- Disable status screens
     SelectInfoScreen();
     -- Set new active object to this one if it isn't already
     SelectObject(oObj);
     -- Now in trade centre
-    SetAction(oObj, ACT.HIDE, JOB.PHASE, DIR.R);
+    SetAction(oObj, iAHide, iJPhase, iDUpRight);
     -- We don't want to hear sounds
     SetPlaySounds(false);
     -- Init lobby
     InitLobby(false, 1);
   end
-  -- Phase to a random target logic
+  -- Phase to a random target logic ---------------------------------------- --
   local function PhaseRandomTargetLogic(oObj)
     -- Walk objects list and find candidate objects to teleport to
     local aCandObjs<const> = { };
@@ -3599,7 +3373,7 @@ local function PhaseLogic()
       -- Get object and if the object isn't this object and object is
       -- a valid phase target? Insert into valid phase targets list.
       local aCandObj<const> = aObjs[iCandObjId];
-      if aCandObj ~= oObj and aCandObj.F & OFL.PHASETARGET ~= 0 then
+      if aCandObj ~= oObj and aCandObj.F & iFPhaseTarget ~= 0 then
         aCandObjs[1 + #aCandObjs] = aCandObj;
       end
     end
@@ -3610,156 +3384,137 @@ local function PhaseLogic()
       -- Set this objects position to the object
       SetPosition(oObj, aCandObj.X, aCandObj.Y);
       -- Re-phase back into stance
-      SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.KEEP);
+      SetAction(oObj, iAPhase, iJNone, iDKeep);
     -- Else if object has owner, teleport home
     elseif oObj.P then
       -- Set position of object to player's home
       SetPosition(oObj, oObj.P.HX, oObj.P.HY);
       -- Re-phase back into stance
-      SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.KEEP);
+      SetAction(oObj, iAPhase, iJNone, iDKeep);
     -- No owner = no home, just de-phase
-    else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.KEEP) end;
+    else SetAction(oObj, iAStop, iJNone, iDKeep) end;
   end
-  -- Functions base on direction
+  -- Functions base on direction ------------------------------------------- --
   local oFunctions<const> = {
-    [DIR.R]  = AIEnterTradeCentreLogic,
-    [DIR.U]  = PhaseHomeOrTelepoleLogic,
-    [DIR.UL] = PlayerEnterTradeCentreLogic,
-    [DIR.D]  = PhaseRandomTargetLogic,
-    [DIR.DR] = PhaseRandomTargetLogic
+    [iDRight]     = AIEnterTradeCentreLogic,
+    [DIR.U]       = PhaseHomeOrTelepoleLogic,
+    [DIR.UL]      = PlayerEnterTradeCentreLogic,
+    [iDDown]      = PhaseRandomTargetLogic,
+    [iDDownRight] = PhaseRandomTargetLogic
   };
-  -- New function
+  -- Phasing logic --------------------------------------------------------- --
   local function PhaseLogic(oObj)
+    -- Cache current direction as this direction controls where the object is
+    -- going to teleport to (see the above 'oFunctions' table).
+    local iDirection<const> = oObj.D;
     -- Object has finished phasing
-    if oObj.J ~= JOB.PHASE then
+    if oObj.J ~= iJPhase then
       -- Object was teleported eaten? Respawn as eaten!
-      if oObj.D == DIR.DR then SetAction(oObj, ACT.EATEN, JOB.NONE, DIR.LR);
+      if iDirection == iDDownRight then
+        SetAction(oObj, iAEaten, iJNone, iDLeftRight);
       -- Object not eaten?
-      else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.KEEP) end;
+      else SetAction(oObj, iAStop, iJNone, iDKeep) end;
       -- Done
       return;
     end
-    -- If not demo mode and this object is selected and not parent
-    if not bAIvsAI and oObjActive == oObj and
-      (not oObj.P or oObj.P ~= oPlrActive) then
-      -- Deselect it. Opponents are not allowed to see where they went!
-      SelectObject();
+    -- If not demo mode and this object is selected
+    if not bAIvsAI and oObjActive == oObj then
+      -- Not main players object? Deselect it so it cannot be tracked
+      local oPlr<const> = oObj.P;
+      if not oPlr or oPlr ~= oPlrActive then SelectObject() end;
     end
-    -- Get and check logic function for phasing.
-    local fcbPhaseLogic<const> = oFunctions[oObj.D];
-    if not UtilIsFunction(fcbPhaseLogic) then
-      error("Invalid phase logic function at "..oObj.D.."! "..
-        tostring(fcbPhaseLogic)) end;
     -- Execute the phase logic
-    fcbPhaseLogic(oObj);
+    return oFunctions[iDirection](oObj);
   end
-  -- Return actual function
-  return PhaseLogic;
-end
--- Apply object inventory perks -------------------------------------------- --
-local function ApplyObjectInventoryPerks(oObj);
-  -- Get objects inventory and return if no inventory
-  local aInventory<const> = oObj.I;
-  if #aInventory == 0 then return end;
-  -- Enumerate each one. Have to use 'while' as inventory can disappear
-  local iIndex = 1;
-  while iIndex <= #aInventory do
-    -- Get object in inventory and if item is first aid and holder is damaged?
-    local oItem<const> = aInventory[iIndex];
-    if oItem.ID == TYP.FIRSTAID and oObj.H < 100 then
-      -- Increase holder's health and decrease first aid health
-      AdjustObjectHealth(oObj, 1, oItem);
-      AdjustObjectHealth(oItem, -1, oObj);
-    end
-    -- Item has health or couldn't drop object? Enumerate next item!
-    if oItem.H > 0 or not DropObject(oObj, oItem) then
-      iIndex = iIndex + 1 end;
+  -- == MAIN OBJECT LOGIC ================================================== --
+  -- Object died? ---------------------------------------------------------- --
+  local function ACTDeath(oObj)
+    -- Return if not dead yet
+    if oObj.AT < iTDeadWait then return end;
+    -- Kill the object
+    oObj.K = true;
+    -- Skip object
+    return true;
   end
-end
--- Check if object is falling ---------------------------------------------- --
-local function CheckObjectFalling(oObj)
-  -- If object...
-  if not CheckObjectFloating(oObj) and -- ...is not floating?
-         oObj.F & OFL.FALL ~= 0 and    -- *and* is supposed to fall?
-     not IsCollideY(oObj, 1) then      -- *and* not blocked below?
-    -- Start from fall speed pixels and count down to 1
-    for iYAdj = oObj.FS, 1, -1 do
-      -- No collision found with terrain?
-      if not IsCollideY(oObj, iYAdj) then
-        -- Move Y position down
-        MoveY(oObj, iYAdj);
-        -- Increase fall speed and clamp maximum speed to half a tile
-        if oObj.FS < 8 then oObj.FS = oObj.FS + 1 end;
-        -- increase fall damage
-        oObj.FD = oObj.FD + 1;
-        -- Still falling
-        return true;
-      end
-      -- Collision detected, but we must find how many pixels exactly to fall
-      -- by, so reduce the pixel count and try to find the exact value.
-    end
+  -- Object phasing? ------------------------------------------------------- --
+  local function ACTPhase(oObj)
+    -- Return if not phase time yet
+    if oObj.AT < oObj.OD.TELEDELAY then return end;
+    -- Process phase logic and return if the game ended
+    PhaseLogic(oObj);
+    -- Skip object
+    return true;
   end
-  -- We were falling?
-  if oObj.FS > 1 then
-    -- Reset fall speed
-    oObj.FS = 1;
-    -- If fall damage is set then object fell and now we must reduce its
-    -- health
-    local iDamage = oObj.FD;
-    if iDamage > 0 then
-      -- Object still has fall flag set and object fell >= 16 pixels
-      if oObj.F & OFL.FALL ~= 0 and iDamage >= 5 then
-        -- Object is delicate? Remove more health
-        if oObj.F & OFL.DELICATE ~= 0 then iDamage = -iDamage;
-        else iDamage = -(iDamage // 2) end;
-        -- Reduce health
-        AdjustObjectHealth(oObj, iDamage);
-        -- Damage would reduce health < 10 %. Stop object moving
-        local iHealth<const> = oObj.H;
-        if iHealth > 0 and iHealth < 10 then
-          SetAction(oObj, ACT.STOP, JOB.INDANGER, DIR.NONE);
-        end
-      end
-      -- Reset fall damage;
-      oObj.FD = 0;
-    end
+  -- Hiding? (trade centre) ------------------------------------------------ --
+  local function ACTHide(oObj)
+    -- Return if job wasn't to phase
+    if oObj.J ~= iJPhase then return end;
+    -- Health at full?
+    if oObj.H >= 100 then
+      -- Re-appear the object if is not the player otherwise wait for the
+      -- real player to exit the trade centre.
+      if oObj.D ~= iDUpRight then
+        SetAction(oObj, iAPhase, iJNone, iDRight) end;
+    -- Health not full? Regenerate health
+    elseif oObj.AT % 10 == 0 then AdjustObjectHealth(oObj, 1) end;
+    -- Keep object from becoming impatient
+    oObj.JT = 0;
   end
-  -- Can't fall (anymore)
-  return false;
-end
--- Process object movement logic ------------------------------------------- --
-local function ProcessObjectMovement()
-  -- Move object functions
+  -- Eaten? ---------------------------------------------------------------- --
+  local function ACTEaten(oObj)
+    -- Return if not mutated into alien yet
+    if oObj.AT < oTimerData.MUTATEWAIT then return end;
+    -- Spawn alien and kill digger
+    local oAlien<const> = CreateObject(TYP.ALIEN, oObj.X, oObj.Y);
+    if oAlien then AdjustObjectHealth(oObj, -100, oAlien) end;
+  end
+  -- Dying? (explosion) ---------------------------------------------------- --
+  local function ACTDying(oObj)
+    -- Return if not time to reduce health yet
+    if oObj.AT % 6 ~= 0 then return end
+    -- Reduce health
+    AdjustObjectHealth(oObj, -1);
+  end
+  -- Move object functions ------------------------------------------------- --
   local function OBJMoveUp(oObj) MoveY(oObj, -1) end;
   local function OBJMoveDown(oObj) MoveY(oObj, 1) end;
   local function OBJMoveLeft(oObj) MoveX(oObj, -1) end;
   local function OBJMoveRight(oObj) MoveX(oObj, 1) end;
   -- Object move callbacks
   local oMoveFuncs<const> = {
-    [DIR.U]  = OBJMoveUp,    [DIR.D] = OBJMoveDown, [DIR.NONE] = BlankFunction,
-    [DIR.UL] = OBJMoveLeft,  [DIR.L] = OBJMoveLeft,  [DIR.DL] = OBJMoveLeft,
-    [DIR.UR] = OBJMoveRight, [DIR.R] = OBJMoveRight, [DIR.DR] = OBJMoveRight
+    [DIR.U]       = OBJMoveUp,     [iDDown]  = OBJMoveDown,
+    [iDNone]      = BlankFunction, [DIR.UL]  = OBJMoveLeft,
+    [DIR.L]       = OBJMoveLeft,   [DIR.DL]  = OBJMoveLeft,
+    [iDUpRight]   = OBJMoveRight,  [iDRight] = OBJMoveRight,
+    [iDDownRight] = OBJMoveRight
   };
-  -- Train move data
+  -- Train move data ------------------------------------------------------- --
   local oTrainMoveData<const> = {
-    [DIR.L] = { 7, -1 }, [DIR.R] = { 9, 1 }, [DIR.NONE] = { 0, 0 },
+    [DIR.L] = { 7, -1 }, [iDRight] = { 9, 1 }, [iDNone] = { 0, 0 },
   };
-  -- Actual function
-  local function ProcessObjectMovement(oObj)
+  -- Run procedure --------------------------------------------------------- --
+  local function ACTRun(oObj)
     -- Object wants to dig down and object X position is in the middle of
-    -- the tile? Make object dig down
-    if oObj.J == JOB.DIGDOWN and oObj.X % 16 == 0 then
-      SetAction(oObj, ACT.DIG, JOB.DIGDOWN, DIR.D);
+    -- the tile?
+    if oObj.J == iJDigDown and oObj.X % 16 == 0 then
+      -- Make object dig down
+      SetAction(oObj, ACT.DIG, iJDigDown, iDDown);
+      -- Done
+      return;
+    end
     -- Object wants to enter the trading centre? Stop object
-    elseif oObj.J == JOB.HOME and ObjectIsAtHome(oObj) then
+    if oObj.J == JOB.HOME and ObjectIsAtHome(oObj) then
       -- If object can't entre? Just stop it.
       if oObj.F & OFL.NOHOME ~= 0 then
-        SetAction(oObj, ACT.STOP, JOB.NONE, DIR.NONE);
+        SetAction(oObj, iAStop, iJNone, iDNone);
       -- Go into trade centre and if successful? Prevent diggers entering
-      elseif SetAction(oObj, ACT.PHASE, JOB.PHASE, DIR.UL) then
+      elseif SetAction(oObj, iAPhase, iJPhase, DIR.UL) then
         SetAllDiggersNoHome(oObj.P.D) end;
+      -- Done
+      return;
+    end
     -- Object is for rails only and train is not on track
-    elseif oObj.F & OFL.TRACK ~= 0 then
+    if oObj.F & OFL.TRACK ~= 0 then
       -- Get X pos adjust depending on direction
       local aTrainMoveItem<const> = oTrainMoveData[oObj.D];
       -- Get absolute tile position and if valid?
@@ -3769,137 +3524,431 @@ local function ProcessObjectMovement()
         if aTileData[1 + aLvlData[1 + iLoc]] & oTileFlags.T ~= 0 then
           MoveX(oObj, aTrainMoveItem[2]);
         -- Train not on track and was searching? Move in opposite direction.
-        elseif oObj.J == JOB.SEARCH and oObj.AT > 0 then
-          SetAction(oObj, ACT.KEEP, JOB.KEEP, DIR.OPPOSITE);
+        elseif oObj.J == iJSearch and oObj.AT > 0 then
+          SetAction(oObj, iAKeep, iJKeep, iDOpposite);
         -- Train was not moving so keep stopped
-        else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.NONE) end;
+        else SetAction(oObj, iAStop, iJNone, iDNone) end;
       end
-    -- No other properties match?
-    else
-      -- If timer goes over 1 second and object is busy
-      -- Unset busy flag as abnormal digging can make it stick
-      if oObj.AT >= 60 and oObj.F & OFL.BUSY ~= 0 then
-        oObj.F = oObj.F & ~OFL.BUSY end;
-      -- Get function associated with direction and move appropriately. It is
-      -- assumed that all directions are catered for thus no check required.
-      oMoveFuncs[oObj.D](oObj);
+      -- Done
+      return;
+    end
+    -- If timer goes over 1 second and object is busy
+    -- Unset busy flag as abnormal digging can make it stick
+    if oObj.AT >= 60 and oObj.F & iFBusy ~= 0 then
+      oObj.F = oObj.F & OFL.iBUSY end;
+    -- Get function associated with direction and move appropriately. It is
+    -- assumed that all directions are catered for thus no check required.
+    oMoveFuncs[oObj.D](oObj);
+  end
+  -- Walk procedure -------------------------------------------------------- --
+  local function ACTWalk(oObj)
+    -- Return if walk time not reached yet
+    if oObj.AT % 2 ~= 0 then return end;
+    -- Process movement
+    ACTRun(oObj);
+  end
+  -- Creep procedure ------------------------------------------------------- --
+  local function ACTCreep(oObj)
+    -- Return if creep time not reached yet
+    if oObj.AT % 4 ~= 0 then return end;
+    -- Process movement
+    ACTRun(oObj);
+  end
+  -- Digging procedure ----------------------------------------------------- --
+  local function ACTDig(oObj)
+    -- Return if digging time not reached yet
+    if oObj.AT < oObj.DID then return end;
+    -- Terrain dig was successful?
+    if DigTile(oObj) then
+      -- Get last dig action and if set?
+      local iLast<const> = oObj.LA;
+      if iLast then
+        -- Continue to move in the direction
+        SetAction(oObj, iLast, iJKeep, iDKeep);
+        -- Remove the last action
+        oObj.LA = nil;
+      -- Impossible but stop the object's actions completely
+      else SetAction(oObj, iAStop, iJNone, iDKeep) end;
+      -- Increase dig count
+      AdjObjParentStat(oObj, "DUG");
+      -- Update dig time for AI
+      oObj.LDT = iGameTicks;
+      return;
+    end
+    -- Remove the last action, update failed dig direction and set impatient
+    oObj.LA, oObj.FDD, oObj.JT = nil, oObj.D, oObj.PW;
+    -- Stop the object's actions completely
+    SetAction(oObj, iAStop, iJNone, iDKeep);
+  end
+  -- Action lookup table --------------------------------------------------- --
+  local oOnGroundActions<const> = {
+    [ACT.CREEP] = ACTCreep, [iADeath]   = ACTDeath, [ACT.DIG]   = ACTDig,
+    [ACT.DYING] = ACTDying, [iAEaten]   = ACTEaten, [iAHide]    = ACTHide,
+    [iAPhase]   = ACTPhase, [iARun]     = ACTRun,   [ACT.WALK]  = ACTWalk
+  };
+  -- Check object collision with another ----------------------------------- --
+  local function CheckObjInteraction(oObj, oTarget)
+    -- Return if target is me
+    if oTarget == oObj then return end;
+    -- Get target flags and return if...
+    local iTFlags<const> = oTarget.F;
+    if iTFlags & iFDigger == 0 or      -- ...target is not a digger?
+       iTFlags & iFWaterBased ~= 0 or  -- *or* target is water based?
+       oObj.H <= 0 or                  -- *or* source is dead?
+       oTarget.H <= 0 then return end; -- *or* target is dead?
+    -- Get target object flags and return if target teleporting or
+    -- target hidden
+    local iTAction<const> = oTarget.A;
+    if iTAction == iAPhase or iTAction == iAHide then return end;
+    -- Get source object action and return if...
+    local iAction<const> = oObj.A;
+    if iAction == iAEaten or  -- ...source object eaten?
+       not maskSpr:IsCollideEx( -- *or* target not collides source?
+         477, oObj.X, oObj.Y, maskSpr,
+         477, oTarget.X, oTarget.Y) then return end;
+    -- Get source object flags and if object can consume the object?
+    local iFlags<const> = oObj.F;
+    if iFlags & iFConsume ~= 0 then
+      -- Kill consumer
+      AdjustObjectHealth(oObj, -100, oTarget);
+      -- Eat digger and set it to busy
+      SetAction(oTarget, iAEaten, iJNone, iDKeep);
+      -- This digger is selected by the client? Unset control menu
+      if oObjActive == oTarget then SetContextMenu() end;
+      -- Don't need to test collision anymore since we killed the egg
+      return true;
+    end
+    -- If target object is not eaten?
+    if iTAction ~= iAEaten then
+      -- If object can phase the Digger?
+      if iFlags & iFPhaseDigger ~= 0 then
+        -- Phase target to another object and return to process next object
+        SetAction(oTarget, iAPhase, iJPhase, iDDown);
+        return;
+      end
+      -- If object can heal the Digger?
+      if iFlags & iFHealNearby ~= 0 then
+        -- Increase health and return to process next object
+        AdjustObjectHealth(oTarget, 1, oObj);
+        return;
+      end
+      -- If object can hurt the Digger?
+      if iFlags & iFHurtDigger ~= 0 then
+        -- Object is stationary? Make me fight and face the digger
+        if iFlags & iFStationary ~= 0 then
+          SetAction(oObj, iAFight, iJNone,
+            GetTargetDirection(oObj, oTarget));
+        -- Change to objects direction if object moving parallel to Digger
+        elseif iFlags & iFPursueDigger ~= 0 then
+          SetAction(oObj, iAKeep, iJKeep,
+            GetTargetDirection(oObj, oTarget)) end;
+        -- Target is not jumping?
+        if iTFlags & iFJumping == 0 then
+          -- Digger isn't running? Make him run!
+          if iTAction ~= iARun then
+            SetAction(oTarget, iARun, iJInDanger, iDLeftRight);
+          else SetAction(oTarget, iAKeep, iJInDanger, iDKeep) end;
+        -- Target in danger
+        else oTarget.J = iJInDanger end;
+        -- Reduce health
+        AdjustObjectHealth(oTarget, -1, oObj);
+        -- Return to process next object
+        return;
+      end
+      -- Object is dangerous and target is not jumping?
+      if iFlags & iFDangerous ~= 0 then
+        -- Return if target is jumping?
+        if iTFlags & iFJumping ~= 0 then return end;
+        -- Get target direction and if Digger isn't running?
+        if iTAction ~= iARun then
+          -- Digger not moving in any direction?
+          if oTarget.D ~= iDNone then
+            SetAction(oTarget, iARun, iJInDanger, iDKeep);
+          -- No direction? so run in opposite direction
+          else SetAction(oTarget, iARun, iJInDanger, iDLeftRight) end;
+        -- Object is not moving and direction set? Keep dir and set danger
+        elseif oTarget.D ~= iDNone then
+          SetAction(oTarget, iAKeep, iJInDanger, iDKeep);
+        -- No direction? so run in opposite direction of object
+        else SetAction(oTarget, iARun, iJInDanger,
+          GetTargetDirection(oTarget, oObj)) end;
+        -- Return to process next object
+        return;
+      end
+      -- Return if object...
+      if iFlags & iFDigger == 0 or      -- ...is not a Digger?
+         oObj.FT or                     -- *or* has a fight target?
+         iTFlags & iFBusy ~= 0 or       -- *or* target object busy?
+         iFlags & iFBusy ~= 0 or        -- *or* source object busy?
+         oObj.P == oTarget.P or         -- *or* same owner?
+         iTAction == iAJump or          -- *or* target jumping
+        (iAction ~= iAFight and         -- *or* object not fighting?
+         oObj.AT < 30) then return end; -- *and* < 1/2 sec action timer
+      -- Make us face the target
+      SetAction(oObj, iAFight, iJInDanger, GetTargetDirection(oObj, oTarget));
+      -- Fight and set objects fight target
+      oObj.FT = oTarget;
+      -- Return if target is fighting or not time to fight yet?
+      if oTarget.FT or oTarget.AT < 30 then return end;
+      -- Make target fight the object
+      SetAction(oTarget, iAFight, iJInDanger,
+        GetTargetDirection(oTarget, oObj));
+      -- Set targets fight target to this object
+      oTarget.FT = oObj;
+      -- Return to process next object
+      return;
+    end
+    -- Target is eaten  If object can phase the digger
+    if iFlags & iFPhaseDigger ~= 0 then
+      -- Make eaten digger phase to some other object and troll it!
+      SetAction(oTarget, iAPhase, iJPhase, iDDownRight);
     end
   end
-  -- Return new function
-  return ProcessObjectMovement;
-end
--- Process object logic ---------------------------------------------------- --
-local function ProcessObjects()
-  -- Enumerate through all objects (while/do because they could be deleted)
-  local iObjId = 1 while iObjId <= #aObjs do
-    -- Get object data
+  -- Fighting frame data (there's 5 frames in each fight animation) -------- --
+  local aFightData<const> = { [2] = oSfxData.KICK, [4] = oSfxData.PUNCH };
+  -- Process fighting ------------------------------------------------------ --
+  local function FightingLogic(oObj, oTObj)
+    -- Return and clear fight target if not fighting.
+    if oObj.A ~= iAFight or oObj.S == oObj.FN then return end;
+    -- This routine cant happen again in this sprite frame
+    oObj.FN = oObj.S;
+    -- Return if this frame is important or a chance to miss
+    local iSound<const> = aFightData[oObj.S % 5];
+    if not iSound or random() < 0.25 then return end;
+    -- Generate random damage relative to the strength of the digger
+    local iDamage = oObj.STRF - random(3);
+    -- If digger is intelligent enough and target isn't then double damage!
+    if random() > oObj.IN and
+       random() < oTObj.IN then iDamage = iDamage * 2 end;
+    -- Adjust health and play the sound with a random pitch
+    AdjustObjectHealth(oTObj, iDamage, oObj);
+    PlaySoundAtObject(oTObj, iSound, 0.9 + (random() % 0.1));
+    -- Return if object is acceptable health or not intelligent enough to run.
+    if oObj.H >= 10 or random() < oObj.IN then return end;
+    -- Run in opposite direction
+    SetAction(oObj, iARun, iJInDanger, iDOpposite);
+  end
+  -- Check object collision with other objects ----------------------------- --
+  local function CollideLogic(oObj)
+    -- Walk objects list and break if we found an ob
+    for iIndex = 1, #aObjs do
+      if CheckObjInteraction(oObj, aObjs[iIndex]) then return end;
+    end
+    -- Fight target was found? Process the fight and clear fight target
+    if oObj.FT then oObj.FT = FightingLogic(oObj, oObj.FT) return end;
+    -- Return if not fighting or object isn't a digger and timer under 6 sec
+    if oObj.A ~= iAFight or
+      (oObj.F & iFDigger == 0 and oObj.AT < 360) then return end;
+    -- Stop fighting
+    SetAction(oObj, iAStop, iJInDanger, iDKeep);
+  end
+  -- Apply object inventory perks ------------------------------------------ --
+  local function ApplyObjectInventoryPerks(oObj);
+    -- Get objects inventory and return if no inventory
+    local aObjInv<const> = oObj.I;
+    if #aObjInv == 0 then return end;
+    -- Repeat over each inventory item. Have to use repeat/until with deletions
+    local iObjInvItemIndex = 1 repeat
+      -- Get object in inventory and if item is first aid and holder damaged?
+      local oObjInvItem<const> = aObjInv[iObjInvItemIndex];
+      if oObjInvItem.ID == iTyFirstAid and oObj.H < 100 then
+        -- Increase holder's health and decrease first aid health
+        AdjustObjectHealth(oObj, 1, oObjInvItem);
+        AdjustObjectHealth(oObjInvItem, -1, oObj);
+      end
+      -- Item has health or couldn't drop object? Enumerate next item!
+      if oObjInvItem.H > 0 or not DropObject(oObj, oObjInvItem) then
+        iObjInvItemIndex = iObjInvItemIndex + 1 end;
+    -- Until there is no more inventory to process
+    until iObjInvItemIndex > #aObjInv;
+  end
+  -- Animate an object object ---------------------------------------------- --
+  local function AnimateObject(oObj)
+    -- If sprite timer and not reached speed limit?
+    if oObj.ST < oObj.ANT then oObj.ST = oObj.ST + 1 return end;
+    -- Reset sprite timer
+    oObj.ST = 0;
+    -- Sprite id not reached the limit yet? Next sprite and return
+    if oObj.S < oObj.S2 then oObj.S, oObj.SA = oObj.S+1, oObj.SA+1 return end;
+    -- Return if sprite can't reset
+    if oObj.F & OFL.NOANIMLOOP ~= 0 then return end;
+    -- Restart sprite number
+    oObj.S, oObj.SA = oObj.S1, oObj.S1A;
+    -- Return if we're not playing the sound for the animation reset
+    if oObj.F & OFL.SOUNDLOOP == 0 then return end;
+    -- Check if theres a sound to play and play sound if there is
+    local iSound = oObj.AD.SOUND;
+    if iSound then PlaySoundAtObject(oObj, iSound) return end;
+    -- Check if we have a sound with random pitch and if we do?
+    iSound = oObj.AD.SOUNDRP;
+    if iSound then
+      PlaySoundAtObject(oObj, iSound, 1.0 + (random() % 0.1 - 0.05)) end;
+  end
+  -- Process object jump logic --------------------------------------------- --
+  local function ProcessJumpLogic(oObj, aData, iLimit, iStep)
+    -- Return if there are no more pixels to move
+    local iActionTimer<const> = oObj.AT;
+    if iActionTimer >= #aData then return true end;
+    -- Return if we're not moving in this frame
+    local iYMove<const> = aData[1 + iActionTimer];
+    if iYMove == 0 then return end;
+    -- Check each pixel whilst jumping
+    for iY = iYMove, iLimit, iStep do
+      -- No collision? Move and return to continue to next frame
+      if not IsCollideY(oObj, iY) then AdjustPosY(oObj, iY) return end;
+    end
+    -- Rise or fall aborted so make sure caller knows
+    return true;
+  end
+  -- Check object is in water at specified pixel height -------------------- --
+  local function CheckObjectInWater(oObj, iY)
+    -- Get tile at the specified position from object and return if water
+    local iId<const> = GetLevelDataFromObject(oObj, 8, iY);
+    return iId and aTileData[1 + iId] & iTFW ~= 0;
+  end
+  -- Check if object is underwater ----------------------------------------- --
+  local function CheckObjectUnderwater(oObj)
+    -- Ignore if object isn't underwater
+    if oObj.F & iFAquaLung ~= 0 then return end;
+    -- If object is not in water
+    if not CheckObjectInWater(oObj, 2) then
+      -- Remove flag if set
+      if oObj.F & iFInWater ~= 0 then oObj.F = oObj.F & iFiInWater end
+      -- Done
+      return;
+    end
+    -- Add in water flag if not set.
+    if oObj.F & iFInWater == 0 then oObj.F = oObj.F | iFInWater end;
+    -- If object is a digger and it isn't in danger? Run!
+    if oObj.F & iFDigger ~= 0 and oObj.J ~= iJInDanger then
+      SetAction(oObj, iARun, iJInDanger, iDKeepMove) end;
+    -- Only reduce health once per four game ticks
+    if oObj.AT % oObj.LC == 0 then AdjustObjectHealth(oObj, -1) end;
+  end
+  -- Checks if object is floating ------------------------------------------ --
+  local function CheckObjectFloating(oObj)
+    -- Ignore if object doesn't float
+    if oObj.F & iFFloat == 0 then return false end;
+    -- Get tile position and get tile id from level and return if not water
+    if not CheckObjectInWater(oObj, 13) then
+      -- Floating if the pixel below is water
+      if not CheckObjectInWater(oObj, 14) then
+        -- Remove floating flag and all fall back
+        oObj.F = (oObj.F | iFFall) & iFiFloating;
+        -- Not floating so can fall
+        return false;
+      end
+      -- Object is still floating
+      return true;
+    end
+    -- Set floating flag and remove fall flag
+    oObj.F = (oObj.F | iFFloating) & iFiFall;
+    -- Rise
+    MoveY(oObj, -1);
+    -- Object is floating
+    return true;
+  end
+  -- Returns positive if object is still falling --------------------------- --
+  local function ProcessObjectFalling(oObj)
+    -- Return if object is floating or not falling.
+    if CheckObjectFloating(oObj) or
+       oObj.F & iFFall == 0 then goto lImpact end;
+    -- Start from fall speed pixels and count down to 1
+    for iYAdj = oObj.FS, 1, -1 do
+      -- No collision found with terrain?
+      if not IsCollideY(oObj, iYAdj) then
+        -- Move Y position down
+        MoveY(oObj, iYAdj);
+        -- Get fall speed
+        local iFallSpeed<const> = oObj.FS;
+        -- Increase fall speed and clamp maximum speed to half a tile
+        if iFallSpeed < 8 then oObj.FS = iFallSpeed + 1 end;
+        -- increase fall damage
+        oObj.FD = oObj.FD + iFallSpeed;
+        -- Still falling
+        return true;
+      end
+      -- Collision detected, but we must find how many pixels exactly to fall
+      -- by, so reduce the pixel count and try to find the exact value.
+    end
+    -- Label to end falling
+    ::lImpact::
+    -- Reset fall speed
+    oObj.FS = 1;
+    -- Get fall damage and return if none
+    local iDamage = oObj.FD;
+    if iDamage == 0 then return end;
+    -- Reset fall damage
+    oObj.FD = 0;
+    -- Damage is 1 per 8 pixels, return if still no damage
+    iDamage = iDamage // 8;
+    if iDamage == 0 then return end;
+    -- Return if object flags snuck in a fall flag during falling.
+    local iFlags<const> = oObj.F;
+    if iFlags & iFFall == 0 then return end;
+    -- Object is delicate? Remove more health
+    if iFlags & iFDelicate ~= 0 then iDamage = -iDamage;
+                                else iDamage = -(iDamage // 2) end;
+    -- Reduce health and return if object died or is above danger zone
+    if AdjustObjectHealth(oObj, iDamage) or oObj.H > 10 then return end;
+    -- Stop the object from moving
+    SetAction(oObj, iAStop, iJInDanger, iDNone);
+  end
+  -- Actual process object function ---------------------------------------- --
+  local function ProcessObjects()
+    -- Object index
+    local iObjId = 1;
+    -- Label for jumping straight back to processing the object index
+    ::lTop::
+    -- Get the object at the specified index
     local oObj<const> = aObjs[iObjId];
     -- If AI function set, not dying and not phasing then call AI function!
     local fcbAI<const> = oObj.AIF;
     if fcbAI then fcbAI(oObj) end;
-    -- If object can't fall or it finished falling and isn't floating?
-    if not CheckObjectFalling(oObj) then
+    -- Process object falling and we are on firm ground?
+    if not ProcessObjectFalling(oObj) then
       -- Object is jumping?
-      if oObj.F & OFL.JUMPRISE ~= 0 then
-        -- Test for rising and if object has finished jumping?
+      if oObj.F & iFJumpRise ~= 0 then
+        -- If object has finished jumping?
         if ProcessJumpLogic(oObj, aJumpRiseData, -1, 1) then
           -- Remove rising and set falling flags
-          oObj.F = (oObj.F | OFL.JUMPFALL) & ~OFL.JUMPRISE;
+          oObj.F = (oObj.F | iFJumpFall) & iFiJumpRise;
           -- Reset action timer
           oObj.AT = 0;
         end
-      -- Object is falling
-      elseif oObj.F & OFL.JUMPFALL ~= 0 then
-        -- Test for falling and if object has finished falling?
-        if ProcessJumpLogic(oObj, aJumpFallData, 1, -1) then
-          -- Let object fall normally now and remove busy and falling flags
-          oObj.F = (oObj.F | OFL.FALL) & ~(OFL.JUMPFALL | OFL.BUSY);
-          -- Thus little tweak makes sure the user can't jump again by just
-          -- modifying the fall speed as ACT.JUMP requires it to be 1.
-          oObj.FS = 2;
-        end
+      -- Object is falling and finished falling?
+      elseif oObj.F & iFJumpFall ~= 0 and
+             ProcessJumpLogic(oObj, aJumpFallData, 1, -1) then
+        -- Let object fall normally now and remove busy and falling flags
+        oObj.F = (oObj.F | iFFall) & iFiJumpFallBusy;
+        -- Thus little tweak makes sure the user can't jump again by just
+        -- modifying the fall speed as ACT.JUMP requires it to be 1.
+        oObj.FS = 2;
       end
-      -- Object is...
-      local iAction<const> = oObj.A;
-      if iAction == ACT.DEATH and                   -- ...dead?
-         oObj.AT >= oTimerData.DEADWAIT and         -- ...death timer exceeded?
-         DestroyObject(iObjId, oObj) then goto EOO; -- ...object destroyed?
-      -- Object is phasing and phase delay reached? Process phase destination
-      elseif iAction == ACT.PHASE and oObj.AT >= oObj.OD.TELEDELAY then
-        return PhaseLogic(oObj);
-      -- Object is hidden and object is in the trade-centre?
-      elseif iAction == ACT.HIDE and oObj.J == JOB.PHASE then
-        -- Health at full?
-        if oObj.H >= 100 then
-          -- Re-appear the object if is not the player otherwise wait for the
-          -- real player to exit the trade centre.
-          if bAIvsAI or oObj.P ~= oPlrActive then
-            SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.R) end;
-        -- Health not full? Regenerate health
-        elseif oObj.AT % 10 == 0 then AdjustObjectHealth(oObj, 1) end;
-        -- Keep object from becoming impatient
-        oObj.JT = 0;
-      -- Object has been eaten
-      elseif iAction == ACT.EATEN and oObj.AT >= oTimerData.MUTATEWAIT then
-        -- Spawn alien and kill digger
-        AdjustObjectHealth(oObj, -100,
-          CreateObject(TYP.ALIEN, oObj.X, oObj.Y));
-      -- Object is dying? Slowly drain it's health
-      elseif iAction == ACT.DYING and oObj.AT % 6 == 0 then
-        AdjustObjectHealth(oObj, -1);
-      -- Object is creeping, walking and running? Limit FPS depending on action
-      elseif (iAction == ACT.CREEP and oObj.AT % 4 == 0) or
-             (iAction == ACT.WALK and oObj.AT % 2 == 0) or
-              iAction == ACT.RUN then
-        -- Process object movement logic
-        ProcessObjectMovement(oObj);
-      -- Object is digging and digging delay reached?
-      elseif iAction == ACT.DIG and oObj.AT >= oObj.DID then
-        -- Terrain dig was successful?
-        if DigTile(oObj) then
-          -- Get last dig action and if set?
-          local iLast<const> = oObj.LA;
-          if iLast then
-            -- Continue to move in the direction
-            SetAction(oObj, iLast, JOB.KEEP, DIR.KEEP);
-            -- Remove the last action
-            oObj.LA = nil;
-          -- Impossible but stop the object's actions completely
-          else SetAction(oObj, ACT.STOP, JOB.NONE, DIR.KEEP) end;
-          -- Increase dig count
-          SetObjectAndParentCounter(oObj, "DUG");
-          -- Update dig time for AI
-          oObj.LDT = iGameTicks;
-        -- Not successful
-        else
-          -- Remove the last action if set
-          oObj.LA = nil;
-          -- Update failed dig direction
-          oObj.FDD = oObj.D;
-          -- Set impatient
-          oObj.JT = oObj.PW;
-          -- Stop the object's actions completely
-          SetAction(oObj, ACT.STOP, JOB.NONE, DIR.KEEP);
-        end;
+      -- Check action
+      local fcbAction<const> = oOnGroundActions[oObj.A];
+      if fcbAction and fcbAction(oObj) then
+        -- If object is to be destroyed then goto next object
+        if oObj.K and DestroyObject(iObjId, oObj) then goto lNextNoInc end;
+        -- Skip processing rest of objects
+        goto lNext;
       end
-      -- Post action job process. Object search for other objects to pickup?
-      if oObj.J == JOB.SEARCH and oObj.AT % oTimerData.PICKUPDELAY == 0 then
-        -- Pickup nearest treasure
-        PickupObjects(oObj, true);
-      -- Object is in danger and danger timeout is reached?
-      elseif oObj.J == JOB.INDANGER and
-             oObj.AT >= oTimerData.DANGERTIMEOUT then
-        -- Remove the objects job
-        SetAction(oObj, ACT.KEEP, JOB.NONE, DIR.KEEP);
+      -- Pickup objects if searching and proper action timer is reached
+      if oObj.J == iJSearch and
+         oObj.AT % iTPickupDelay == 0 then PickupObjects(oObj, true);
+      -- Unset job if object is in danger and danger timeout is reached?
+      elseif oObj.J == iJInDanger and
+        oObj.AT >= iTDangerTimeout then
+        SetAction(oObj, iAKeep, iJNone, iDKeep);
       end
-      -- Object can regenerate health? Regenerate health!
-      if oObj.F & OFL.REGENERATE ~= 0 and
+      -- Regenerate health if object regenerates hea;th
+      if oObj.F & iFRegenerate ~= 0 and
          oObj.AT % oObj.SM == oObj.SMM1 then AdjustObjectHealth(oObj, 1) end;
     end
     -- If object is not phasing or dying?
-    if oObj.A ~= ACT.PHASE and oObj.A ~= ACT.DEATH then
+    if oObj.A ~= iAPhase and oObj.A ~= iADeath then
       -- Check object fighting
-      CheckObjectCollision(oObj);
+      CollideLogic(oObj);
       -- Check if object is underwater
       CheckObjectUnderwater(oObj);
       -- Walk object's inventory
@@ -3909,667 +3958,184 @@ local function ProcessObjects()
     AnimateObject(oObj);
     -- Increase action and job timer
     oObj.AT, oObj.JT = oObj.AT + 1, oObj.JT + 1;
+    -- Label for when needing to jump to the next object
+    ::lNext::
     -- Process next object
     iObjId = iObjId + 1;
-    -- Label for skipping to next object
-    ::EOO::
+    -- Label for when needing to jump to the next object without incrementing
+    ::lNextNoInc::
+    -- Jump to the next object if theres still more
+    if iObjId <= #aObjs then goto lTop end;
   end
-end
--- Game tick function ------------------------------------------------------ --
-local function GameProc()
-  -- Ignore if we're in slowdown mode
-  if iGameTicks % iSlowDown ~= 0 then iGameTicks = iGameTicks + 1 return end;
-  -- Process terrain animation if the frame animation timer ticks
-  if iGameTicks % oTimerData.ANIMTERRAIN == 0 then
+  -- Animate the terrain tile ---------------------------------------------- --
+  local function AnimateTile(iPos)
+    -- Get tile id and if tile is valid? Note that we're doing an optimisation
+    -- here to prevent multiple '+1' due to Lua's 1-indexing arrays so
+    -- 'iTileId=1' really means tile zero (air) which we will ignore.
+    local iTileId<const> = 1 + aLvlData[iPos];
+    if iTileId == 1 then return end;
+    -- Get tile flags and if flags say we should animate to next tile?
+    local iFlags<const> = aTileData[iTileId];
+    if iFlags & iTFAnimateBegin ~= 0 then aLvlData[iPos] = iTileId;
+    -- Tile is end of animation so go back 3 sprites. This rule means
+    -- that all animated terrain tiles must be 4 sprites.
+    elseif iFlags & iTFAnimateEnd ~= 0 then aLvlData[iPos] = iTileId - 3 end;
+  end
+  -- Animate terrain tiles ------------------------------------------------- --
+  local function ProcAnimateTerrain()
     -- For each screen row we are looking at
     for iY = 0, iScrTilesHm1 do
-      -- Calculate the Y position to grab from the level data
-      local iYdest<const> = (iPosY + iY) * iLLAbsW;
+      -- Calculate the Y position to grab from the level data. The extra 1
+      -- takes care of the 1-indexed array limitation.
+      local iYdest<const> = (iAbsPosY + iY) * iLLAbsW + iAbsPosX + 1;
       -- For each screen column we are looking at
-      for iX = 0, iScrTilesWm1 do
-        -- Get absolute position on map
-        local iPos<const> = iYdest + iPosX + iX;
-        -- Get tile id and if tile is valid?
-        local iTileId<const> = aLvlData[1 + iPos];
-        if iTileId ~= 0 then
-          -- Get tile flags and if flags say we should animate to next tile?
-          local iFlags<const> = aTileData[1 + iTileId];
-          if iFlags & oTileFlags.AB ~= 0 then
-            aLvlData[1 + iPos] = iTileId + 1;
-          -- Tile is end of animation so go back 3 sprites. This rule means
-          -- that all animated terrain tiles must be 4 sprites.
-          elseif iFlags & oTileFlags.AE ~= 0 then
-            aLvlData[1 + iPos] = iTileId - 3 end;
-        end
-      end
+      for iX = 0, iScrTilesWm1 do AnimateTile(iYdest + iX) end
     end
   end
-  -- Process flood data if we have any flood data to process
-  if #aFloodData > 0 then
-    -- Until we've removed all the current entries
-    for iRemaining = #aFloodData, 1, -1 do
-      -- Get flood data and remove it from list
-      local aFloodItem<const> = aFloodData[1];
-      remove(aFloodData, 1);
-      iRemaining = iRemaining - 1;
-      -- Get position and flags of tile being flooded and if tile exposes left?
-      local iTilePos<const>, iTileFlags<const> = aFloodItem[1], aFloodItem[2];
-      if iTileFlags & oTileFlags.EL ~= 0 then
-        -- Get information about the tile on the left and if valid
-        local iPosition<const> = iTilePos - 1;
-        local iTileId<const> = GetLevelDataFromLevelOffset(iPosition);
-        if iTileId then
-          -- Get file flags and if is water and the right edge is exposed?
-          local iTileFlags = aTileData[1 + iTileId];
-          if iTileFlags & oTileFlags.W == 0 and
-             iTileFlags & oTileFlags.ER ~= 0 then
-            -- If the tile is a flood gate tile?
-            if iTileFlags & oTileFlags.G ~= 0 then
-              -- Get transformation information about this floodgate tile
-              local aFGDItem<const> = oFloodGateData[iTileId][1];
-              -- Update the flooded gate tile
-              aLvlData[1 + iPosition] = aFGDItem[1];
-              -- Continue flooding if needed
-              if aFGDItem[2] then
-                aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
-            -- Tile is not a flood gate tile?
-            else
-              -- Update tile to the same tile with water in it
-              aLvlData[1 + iPosition] = iTileId + 240;
-              -- Continue flooding if the left edge of the tile is exposed
-              if iTileFlags & oTileFlags.EL ~= 0 then
-                aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
-            end
-          end
-        end
-      end
-      -- If tile flags exposed right?
-      if iTileFlags & oTileFlags.ER ~= 0 then
-        -- Get information about the tile on the right and if valid
-        local iPosition<const> = iTilePos + 1;
-        local iTileId<const> = GetLevelDataFromLevelOffset(iPosition);
-        if iTileId then
-          -- Get file flags and if is water and the left edge is exposed?
-          local iTileFlags<const> = aTileData[1 + iTileId];
-          if iTileFlags & oTileFlags.W == 0 and
-             iTileFlags & oTileFlags.EL ~= 0 then
-            -- If the tile is a flood gate tile?
-            if iTileFlags & oTileFlags.G ~= 0 then
-              -- Get transformation information about this floodgate tile
-              local aFGDItem<const> = oFloodGateData[iTileId][2];
-              -- Update the flooded gate tile
-              aLvlData[1 + iPosition] = aFGDItem[1];
-              -- Continue flooding if data requests it
-              if aFGDItem[2] then
-                aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
-            -- Tile is not a flood gate tile?
-            else
-              -- Update tile to the same tile with water in it
-              aLvlData[1 + iPosition] = iTileId + 240;
-              -- Continue flooding if the left edge of the tile is exposed
-              if iTileFlags & oTileFlags.ER ~= 0 then
-                aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
-            end
-          end
-        end
-      end
-      -- If tile flags exposed down?
-      if iTileFlags & oTileFlags.EB ~= 0 then
-        -- Get information about the tile below and if valid
-        local iPosition<const> = iTilePos + iLLAbsW;
-        local iTileId<const> = GetLevelDataFromLevelOffset(iPosition);
-        if iTileId then
-          -- Get file flags and if is water and the left edge is exposed?
-          local iTileFlags<const> = aTileData[1 + iTileId];
-          if iTileFlags & oTileFlags.W == 0 and
-             iTileFlags & oTileFlags.ET ~= 0 then
-            -- Update tile to the same tile with water in it and continue
-            aLvlData[1 + iPosition] = iTileId + 240;
-            aFloodData[1 + #aFloodData] = { iPosition, iTileFlags };
-          end
-        end
-      end
+  -- Check exposed tile on left -------------------------------------------- --
+  local function CheckExposedLeft(iTilePos, iTileFlags)
+    -- Return if tile flags are not exposed left
+    if iTileFlags & oTileFlags.EL == 0 then return end;
+    -- Get information about the tile on the left and return if invalid
+    local iPosition<const> = iTilePos - 1;
+    local iTileId<const> = GetLevelDataFromLevelOffset(iPosition);
+    if not iTileId then return end;
+    -- Get file flags and return if is not water and right edge is not exposed
+    local iTileFlags = aTileData[1 + iTileId];
+    if iTileFlags & oTileFlags.W ~= 0 or
+       iTileFlags & oTileFlags.ER == 0 then return end;
+    -- If the tile is a flood gate tile?
+    if iTileFlags & oTileFlags.G ~= 0 then
+      -- Get transformation information about this floodgate tile
+      local aFGDItem<const> = oFloodGateData[iTileId][1];
+      -- Update the flooded gate tile
+      aLvlData[1 + iPosition] = aFGDItem[1];
+      -- Continue flooding if needed
+      if aFGDItem[2] then
+        aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
+      -- Done
+      return;
     end
+    -- Update tile to the same tile with water in it
+    aLvlData[1 + iPosition] = iTileId + 240;
+    -- Continue flooding if the left edge of the tile is exposed
+    if iTileFlags & oTileFlags.EL ~= 0 then
+      aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
   end
-  -- Process view port
-  ProcessViewPort();
-  -- Process object logic
-  ProcessObjects();
-  -- If a second has passed?
-  if iGameTicks % 60 == 0 then
+  -- Check exposed tile on right ------------------------------------------- --
+  local function CheckExposedRight(iTilePos, iTileFlags)
+    -- Return if tile flags are not exposed right
+    if iTileFlags & oTileFlags.ER == 0 then return end;
+    -- Get information about the tile on the right and return if invalid
+    local iPosition<const> = iTilePos + 1;
+    local iTileId<const> = GetLevelDataFromLevelOffset(iPosition);
+    if not iTileId then return end;
+    -- Get file flags and if is water and the left edge is exposed?
+    local iTileFlags<const> = aTileData[1 + iTileId];
+    if iTileFlags & oTileFlags.W ~= 0 or
+       iTileFlags & oTileFlags.EL == 0 then return end;
+    -- If the tile is a flood gate tile?
+    if iTileFlags & oTileFlags.G ~= 0 then
+      -- Get transformation information about this floodgate tile
+      local aFGDItem<const> = oFloodGateData[iTileId][2];
+      -- Update the flooded gate tile
+      aLvlData[1 + iPosition] = aFGDItem[1];
+      -- Continue flooding if data requests it
+      if aFGDItem[2] then
+        aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
+      -- Done
+      return;
+    end
+    -- Update tile to the same tile with water in it
+    aLvlData[1 + iPosition] = iTileId + 240;
+    -- Continue flooding if the left edge of the tile is exposed
+    if iTileFlags & oTileFlags.ER ~= 0 then
+      aFloodData[1 + #aFloodData] = { iPosition, iTileFlags } end;
+  end
+  -- Check exposed tile on bottom ------------------------------------------ --
+  local function CheckExposedBottom(iTilePos, iTileFlags)
+    -- Return if tile flags are not exposed down
+    if iTileFlags & oTileFlags.EB == 0 then return end;
+    -- Get information about the tile below and return if not valid
+    local iPosition<const> = iTilePos + iLLAbsW;
+    local iTileId<const> = GetLevelDataFromLevelOffset(iPosition);
+    if not iTileId then return end;
+    -- Get file flags and return if is not water or the top edge not exposed?
+    local iTileFlags<const> = aTileData[1 + iTileId];
+    if iTileFlags & oTileFlags.W ~= 0 or
+       iTileFlags & oTileFlags.ET == 0 then return end;
+    -- Update tile to the same tile with water in it and continue
+    aLvlData[1 + iPosition] = iTileId + 240;
+    aFloodData[1 + #aFloodData] = { iPosition, iTileFlags };
+  end
+  -- Process flood data array ---------------------------------------------- --
+  local function ProcFloodData()
+    -- Get flood item
+    local aFloodItem<const> = aFloodData[1];
+    -- Remove from global list
+    remove(aFloodData, 1);
+    -- Get position and flags of tile being flooded and if tile exposes left?
+    local iTilePos<const>, iTileFlags<const> = aFloodItem[1], aFloodItem[2];
+    -- Check if tile exposed on left, right or bottom
+    CheckExposedLeft(iTilePos, iTileFlags);
+    CheckExposedRight(iTilePos, iTileFlags);
+    CheckExposedBottom(iTilePos, iTileFlags);
+  end
+  -- Every one second procedure -------------------------------------------- --
+  local function EveryOneSecondLogic()
     -- Get player diggers and enumerate them
     local aDiggers<const> = oPlrActive.D;
     for iDiggerId = 1, #aDiggers do
       -- Play warning sound for any digger in danger
       local oDigger<const> = aDiggers[iDiggerId];
-      if oDigger and oDigger.J == JOB.INDANGER then
-        PlayInterfaceSound(oSfxData.ERROR);
+      if oDigger and oDigger.J == iJInDanger then
+        PlayInterfaceSound(iSError);
         break;
       end
     end
-    -- Rotate gems in bank every five minutes
-    if iGameTicks % 18000 == 0 then
-      -- Move first gem to last gem
-      aGemsAvailable[1 + #aGemsAvailable] = aGemsAvailable[1];
-      remove(aGemsAvailable, 1);
-    end
+    -- Return if not at a five minute interval
+    if iGameTicks % 18000 ~= 0 then return end;
+    -- Rotate gems in bank and move first gem to last gem
+    aGemsAvailable[1 + #aGemsAvailable] = aGemsAvailable[1];
+    remove(aGemsAvailable, 1);
   end
-  -- Increment game ticks processed count
-  iGameTicks = iGameTicks + 1;
-end
--- Select devices ---------------------------------------------------------- --
-local function SelectDevice()
-  -- For each object
-  for iId = 1, #aObjs do
-    -- Get object and if the object belongs to me and is device?
-    local oObj<const> = aObjs[iId];
-    if oPlrActive == oObj.P and oObj.F & OFL.DEVICE ~= 0 then
-      -- Remove and send to front of objects list
-      remove(aObjs, iId);
-      aObjs[1 + #aObjs] = oObj;
-      -- Set as active object
-      SelectObject(oObj);
-      -- Success!
-      return PlayInterfaceSound(oSfxData.CLICK);
-    end
+  -- Scroll the viewport smoothly ------------------------------------------ --
+  local function SmoothScrollViewport(fcbAVPFunc, iDifference)
+    -- Return if no difference was calculated
+    if iDifference == 0 then return end;
+    -- Smooth off the difference and scroll in the specified direction
+    fcbAVPFunc(UtilSign(iDifference) * ceil(abs(iDifference) / 16));
   end
-  -- Failed? Play sound
-  PlayInterfaceSound(oSfxData.ERROR);
-end
--- Pause the game ---------------------------------------------------------- --
-local function SelectPauseScreen() SelectInfoScreen() InitPause() end;
--- Show inventory screen --------------------------------------------------- --
-local function SelectInventoryScreen() SelectInfoScreen(1) end;
--- Show location screen ---------------------------------------------------- --
-local function SelectLocationScreen() SelectInfoScreen(2) end;
--- Show status screen ------------------------------------------------------ --
-local function SelectStatusScreen() SelectInfoScreen(3) end;
--- Init the book ----------------------------------------------------------- --
-local function SelectBook()
-  -- Enumerate diggers
-  local aDiggers<const> = oPlrActive.D;
-  for iDigger = 1, #aDiggers do
-    -- Get digger data and if it's teleporting home or going home?
-    local oDigger<const> = aDiggers[iDigger];
-    if oDigger.F & OFL.NOHOME ~= 0 or oDigger.J == JOB.HOME then
-      -- Play error sound effect and return
-      return PlayInterfaceSound(oSfxData.ERROR);
-    end
+  -- Main game tick function ----------------------------------------------- --
+  local function GameProc()
+    -- Scroll the viewport
+    SmoothScrollViewport(AdjustViewportX, iPixPosTargetX - iPixPosX);
+    SmoothScrollViewport(AdjustViewportY, iPixPosTargetY - iPixPosY);
+    -- Ignore if we're in slowdown mode
+    if iGameTicks % iSlowDown ~= 0 then iGameTicks = iGameTicks + 1 return end;
+    -- Process terrain animation if the frame animation timer ticks
+    if iGameTicks % iTAnimTerrain == 0 then ProcAnimateTerrain() end;
+    -- Process flood data if we have any flood data to process
+    if #aFloodData > 0 then ProcFloodData() end;
+    -- Process objects
+    if #aObjs > 0 then ProcessObjects() end;
+    -- If a second of game time has passed?
+    if iGameTicks % 60 == 0 then EveryOneSecondLogic() end;
+    -- Increment game ticks processed count
+    iGameTicks = iGameTicks + 1;
   end
-  -- Clear any information screens
-  SelectInfoScreen();
-  -- Play sound effect to show the player clicked it
-  PlayInterfaceSound(oSfxData.CLICK);
-  -- Remove play sound function
-  SetPlaySounds(false);
-  -- Init the book
-  InitBook(true);
-end
--- Load level -------------------------------------------------------------- --
-local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
-  fcbNLogic, fcbNRender, iNHotSpotId, iSM1, iSM2, bRespawn)
-  -- De-init/Reset current level
-  DeInitLevel();
-  -- Check and set default logic callback
-  if fcbNLogic ~= nil then
-    if not UtilIsFunction(fcbNLogic) then
-      error("Logic function invalid! "..tostring(fcbNLogic)) end;
-    fcbLogic = fcbNLogic;
-  else fcbLogic = GameProc end;
-  -- Check and set default render callback
-  if fcbNRender ~= nil then
-    if not UtilIsFunction(fcbNRender) then
-      error("Render function invalid! "..tostring(fcbNRender)) end;
-    fcbRender = fcbNRender;
-  else fcbRender = RenderAll end;
-  -- Initialise default hotspot id if not specified
-  if not iNHotSpotId then iNHotSpotId = iHotSpotId end;
-  -- Set default players if not set
-  if not iRace1 then iRace1 = oGlobalData.gSelectedRace or TYP.DIGRANDOM end;
-  if not bAI1 then bAI1 = false end;
-  if not iRace2 then iRace2 = TYP.DIGRANDOM end;
-  if not bAI2 then bAI2 = true end;
-  -- Set FBU callback
-  local function OnStageUpdated(...)
-    -- Set new stage bounds
-    iStageW, iStageH, iStageL, iStageT, iStageR, iStageB = ...;
-    -- Set new limits based on frame buffer size
-    iScrTilesW, iScrTilesH = ceil(iStageW // 16), ceil(iStageH // 16);
-    -- Used in game so calculate them now to prevent unnecessary math
-    iScrTilesWd2, iScrTilesHd2 = iScrTilesW // 2, iScrTilesH // 2;
-    iScrTilesWd2p1, iScrTilesHd2p1 = iScrTilesWd2 + 1, iScrTilesHd2 + 1;
-    iScrTilesWm1, iScrTilesHm1 = iScrTilesW - 1, iScrTilesH - 1;
-    -- Level width minus viewport size
-    iLLAbsWmVP, iLLAbsHmVP = iLLAbsW - iScrTilesW, iLLAbsH - iScrTilesH;
-    iLLPixWmVP, iLLPixHmVP = iLLAbsWmVP * 16, iLLAbsHmVP * 16;
-    -- Update viewport limits
-    AdjustViewPortX(0);
-    AdjustViewPortY(0);
-  end
-  RegisterFBUCallback("game", OnStageUpdated);
-  -- Set level number and get data for it.
-  local oLvlInfo;
-  if UtilIsTable(iLId) then iLvlId, oLvlInfo = 1, iLId;
-  elseif UtilIsInteger(iLId) then
-    iLvlId, oLvlInfo = iLId, aLevelsData[iLId];
-  else error("Invalid id '"..
-    tostring(iLId).."' of type '"..type(iLId).."'!") end;
-  if not UtilIsTable(oLvlInfo) then
-    error("Invalid level data! "..tostring(oLvlInfo)) end;
-  -- Get level type data and level type
-  local oLvlTypeData<const> = oLvlInfo.t;
-  local iLvlType<const> = oLvlTypeData.i;
-  -- Set level name and level type name
-  sLvlName, sLvlType = oLvlInfo.n, oLvlTypeData.n;
-  -- Set shroud colour
-  iShroudColour = oLvlTypeData.s;
-  -- Holds required assets to set template to music or no music
-  local aAssets;
-  if sMusic then aAssets, aAssetsMusic[4].F = aAssetsMusic, sMusic;
-  else aAssets = aAssetsNoMusic end;
-  -- Update asset filenames to load
-  local sFilePrefix<const> = "lvl/"..oLvlInfo.f;
-  aAssets[1].F = sFilePrefix..".dat";
-  aAssets[2].F = sFilePrefix;
-  aAssets[3].F = oLvlTypeData.f;
-  -- Level assets loaded function
-  local function OnLoaded(aResources)
-    -- Set texture handle
-    texLev = aResources[3];
-    -- Grab the background part
-    iTileBg = TileA(texLev, 0, 256, 512, 512);
-    -- Player starting positions
-    local aPlrStartData<const> = {
-      { 195, 198, iRace1, bAI1 },   -- Player 1 start data
-      { 199, 202, iRace2, bAI2 }    -- Player 2 start data
-    };
-    -- Create a blank mask
-    maskZone = MaskCreateZero(sFilePrefix, iLLPixW, iLLPixH);
-    -- Get minimum and maximum object id
-    local iMinObjId<const>, iMaxObjId<const> = TYP.JENNITE, TYP.MAX;
-    -- Player starting point data list
-    local aPlrsFound = { };
-    -- For each row in the data file
-    local binLevel<const> = aResources[1];
-    for iY = 0, iLLAbsHm1 do
-      -- Calculate precise Y position for object
-      local iPreciseY<const> = iY * 16;
-      -- Calculate row position in data file
-      local iDataY<const> = iY * iLLAbsW;
-      -- For each column in the data file
-      for iX = 0, iLLAbsWm1 do
-        -- Calculate position of tile
-        local iPosition<const> = (iDataY + iX) * 2;
-        -- Calculate precise X position for object
-        local iPreciseX<const> = iX * 16;
-        -- Get the 16-bit (little-endian) tile id from the terrain data at
-        -- the current position and if it is not a clear tile?
-        local iTerrainId<const> = binLevel:RU16LE(iPosition);
-        if iTerrainId >= 0 and iTerrainId < #aTileData then
-          -- Check if is a player
-          for iPlayer = 1, #aPlrStartData do
-            -- Get player data and check for player starting position
-            local aPlayerStartItem<const> = aPlrStartData[iPlayer];
-            if iTerrainId >= aPlayerStartItem[1] and
-               iTerrainId <= aPlayerStartItem[2] then
-              -- Get existing player data and if player exists?
-              local aPlayerFound<const> = aPlrsFound[iPlayer];
-              if aPlayerFound then
-                -- Show map maker in console that the player exists
-                CoreWrite("Warning! Player "..iPlayer..
-                  " already exists! X="..iX..", Y="..iY..", Abs="..
-                  iPosition..". Originally found at X="..aPlayerFound[1]..
-                  ", Y="..aPlayerFound[2]..".", 9);
-              -- Player doesn't exist? Set the new player
-              else aPlrsFound[iPlayer] =
-                { iX, iY, aPlayerStartItem[3], aPlayerStartItem[4] }
-              end
-            end
-          end
-          -- Draw the appropriate tile for the level bit mask
-          maskZone:Copy(maskLev, iTerrainId, iPreciseX, iPreciseY);
-          -- Insert into level data array
-          aLvlData[1 + #aLvlData] = iTerrainId;
-          -- Create entry for shroud data (sprite tile set number)
-          aShroudData[1 + #aShroudData] = { 1022, 0x0 };
-        -- Show error. Level could be corrupted
-        else error("Error! Invalid tile "..iTerrainId.."/"..#aTileData..
-          " at X="..iX..", Y="..iY..", Abs="..iPosition.."!") end;
-      end
-    end
-    -- Make sure we got the correct amount of level tiles
-    if #aLvlData < iLLAbs then
-      error("Only "..#aLvlData.."/"..iLLAbs.." level tiles!") end;
-    -- Make sure we found two players
-    if #aPlrsFound ~= 2 then
-      error("Only "..#aPlrsFound.."/2 players!") end;
-    -- Fill border with 1's to prevent objects leaving the playfield
-    maskZone:Fill(0, 0, iLLPixW, 1);
-    maskZone:Fill(0, 0, 1, iLLPixH);
-    maskZone:Fill(iLLPixWm1, 0, 1, iLLPixH);
-    maskZone:Fill(0, iLLPixHm1, iLLPixW, 1);
-    -- For each pre-defined object in level metadata
-    local aObjsPreDef<const> = aResources[2];
-    for iObjIndex = 1, #aObjsPreDef do
-      -- Get object id at position and if it's interesting?
-      local aObj<const> = aObjsPreDef[iObjIndex];
-      local iObjId<const>, iX<const>, iY<const> = aObj[1], aObj[2], aObj[3];
-      if iObjId < iMinObjId or iObjId >= iMaxObjId then
-        error("Warning! Object id invalid! Id="..iObjIndex..", Item="..iObjId..
-          ", X="..iX..", Y="..iY..", Max="..iMaxObjId..".");
-      -- Object id is valid? Create the object and log error if failed
-      elseif not CreateObject(iObjId, iX, iY) then
-        -- Show map maker in console that the object id is invalid
-        error("Warning! Couldn't create object! Id="..iObjIndex..
-          ", Item="..iObjId..", X="..iX..", Y="..iY..".");
-      end
-    end
-    -- If both players are AI?
-    if bAI1 and bAI2 then
-      -- A randomised version of randomised players
-      local aPlrsFoundRand<const> = { };
-      -- Repeat...
-      repeat
-        -- Get a random player
-        local iId<const> = random(#aPlrsFound);
-        -- Assign it to the randomised players list
-        aPlrsFoundRand[1 + #aPlrsFoundRand] = aPlrsFound[iId];
-        -- Remove original player
-        remove(aPlrsFound, iId);
-      -- ...until all players processed
-      until #aPlrsFound == 0;
-      -- Assign new players found
-      aPlrsFound = aPlrsFoundRand;
-    end
-    -- Prepare a modifiable table of races available for selection
-    local aRacesAvailable<const> = { };
-    for iI = 1, #aRacesData do
-      aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
-    -- Create players for players found
-    for iPlayerId = 1, #aPlrsFound do
-      -- Unpack saved player data
-      local aPlrFound<const> = aPlrsFound[iPlayerId];
-      local iX<const>, iY<const>, iPlayerId<const>, iRaceId, bIsAI<const> =
-        aPlrFound[1], aPlrFound[2], iPlayerId, aPlrFound[3],
-        aPlrFound[4];
-      -- Digger in races list picked
-      local iRacesId;
-      -- If random digger requested?
-      if iRaceId == TYP.DIGRANDOM then
-        -- Pick a random race from the races array
-        iRacesId = random(#aRacesAvailable);
-        -- Override the random race type with an actual race type
-        iRaceId = aRacesAvailable[iRacesId];
-      -- Actually specified specific race
-      else
-        -- For each available race
-        iRacesId = 1;
-        while iRacesId <= #aRacesAvailable do
-          -- Get race type id and if we matched requested race then break
-          if aRacesAvailable[iRacesId] == iRaceId then break end;
-          -- Try next races id
-          iRacesId = iRacesId + 1;
-        end
-        -- Wasn't able to remove anything? Show error
-        if iRacesId > #aRacesAvailable then
-          error("Race "..iRaceId.." not available!") end;
-      end
-      -- Remove the race from the table so it can't be duplicated
-      remove(aRacesAvailable, iRacesId);
-      -- Players diggers and number of diggers to create
-      local aDiggers<const>, iNumDiggers<const> = { }, 5;
-      -- Calculate home point
-      local iHomeX, iHomeY<const> = iX * 16 - 2, iY * 16 + 32;
-      -- Get object data for race
-      local aRaceData<const> = oObjectData[iRaceId];
-      if not UtilIsTable(aRaceData) then
-        error("Invalid race data for "..iRaceId.."! "..tostring(aRaceData)) end;
-      -- Build player data object
-      local oPlr<const> = {
-        AI  = bIsAI,                   -- Set AI status
-        D   = aDiggers,                -- List of diggers
-        DT  = iNumDiggers,             -- Diggers total
-        DC  = iNumDiggers,             -- Diggers count
-        DUG = 0,                       -- Dirt dug
-        EK  = 0,                       -- Enemies killed (OFL.ENEMY)
-        GEM = 0,                       -- Gems found
-        GS  = 0,                       -- Gems sold
-        PUR = 0,                       -- Purchases made
-        GI  = 0,                       -- Total income
-        M   = 100,                     -- Money
-        R   = iRaceId,                 -- Race type (TYP.*)
-        I   = iPlayerId,               -- Player index
-        LK  = 0,                       -- Lifeforms killedV (OFL.LIVING)
-        HX  = iHomeX,                  -- Home point X position
-        HY  = iHomeY,                  -- Home point Y position
-        SX  = (iX - 1) * 16,           -- Adjust home point X
-        SY  = (iY + 2) * 16,           -- Adjust home point Y
-        RD  = aRaceData                -- Race data
-      };
-      -- If this is player one?
-      if iPlayerId == 1 then
-        -- Set active player
-        oPlrActive = oPlr;
-        -- Is not AI?
-        if not bIsAI then
-          -- Set to un-shroud the players' objects
-          oPlr.US = true;
-          -- Add capital carried and reset its value
-          oPlrActive.M = oPlrActive.M + oGlobalData.gCapitalCarried;
-          oGlobalData.gCapitalCarried = 0;
-          -- Not demo mode
-          bAIvsAI = false;
-          -- Fast scrolling
-          iScrollRate = 16;
-        -- Not AI vs AI
-        else
-          -- Slow scrolling
-          iScrollRate = 32;
-          -- Demo mode
-          bAIvsAI = true;
-        end
-        -- Set viewpoint on this player and synchronise
-        ScrollViewPortTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
-        ForceViewport();
-      -- Set opponent player
-      else oPlrOpponent = oPlr end;
-      -- Adjust starting X co-ordinate for first Digger at the trade centre
-      iHomeX = iHomeX - 16;
-      -- Get weight of treasure
-      local iMaxInventory<const> = aRaceData.STRENGTH;
-      -- For each digger of the player
-      for iDiggerId = 1, iNumDiggers do
-        -- Create a new digger
-        local oDigger<const> = CreateObject(iRaceId, iHomeX, iHomeY, oPlr);
-        if oDigger then
-          -- Digger is not AI?
-          if not bIsAI then
-            -- Set patience AI for player controlled digger
-            oDigger.AI, oDigger.AIF = AI.PATIENCE, AIPatienceLogic;
-            -- Set and verify patience warning value
-            local iPatience = oDigger.OD.PATIENCE;
-            if not UtilIsInteger(iPatience) then
-              error("Digger "..iDiggerId.." of player "..oPlr.I..
-                "has no patience warning value!") end;
-            -- Randomise patience by +/- 25%
-            local iOffset = random(floor(iPatience * 0.25));
-            if random() < 0.5 then iOffset = -iOffset end;
-            iPatience = iPatience + iOffset;
-            oDigger.PW = iPatience;
-            -- Digger will stray between 30-60 seconds of indicated impatience
-            oDigger.PL = iPatience + 1800 + random(1800);
-          -- Is AI?
-          else
-            -- Set maximum treasure items to carry (for AI)
-            oDigger.MI = iMaxInventory;
-            -- Initialise Digger AI anti-wriggle system
-            oDigger.AW, oDigger.AWR = 0, 0;
-            -- Infinite patience
-            oDigger.PW, oDigger.PL = maxinteger, maxinteger;
-          end;
-          -- Set Digger id
-          oDigger.DI = iDiggerId;
-          -- Insert into Digger list
-          aDiggers[1 + #aDiggers] = oDigger;
-        -- Failed so show map maker in console that the object id is invalid
-        else CoreWrite("Warning! Digger "..iDiggerId..
-          " not created for player "..iPlayerId.."! Id="..iRaceId..", X="..iX..
-          ", Y="..iY..".", 9) end;
-        -- Increment home point X position
-        iHomeX = iHomeX + 5;
-      end
-      -- Add player data to players array
-      aPlayers[1 + #aPlayers] = oPlr;
-      -- Log creation of item
-      CoreLog("Created player "..iPlayerId.." as '"..oObjectData[iRaceId].NAME..
-        "'["..iRaceId.."] at AX:"..iX..",AY:"..iY.." in position #"..
-        #aPlayers.."!");
-    end
-    -- Set player race and level if not set (gam_test used)
-    if not oGlobalData.gSelectedRace then
-      oGlobalData.gSelectedRace = oPlrActive.R end;
-    if not oGlobalData.gSelectedLevel then
-      oGlobalData.gSelectedLevel = iLvlId end;
-    -- Reset gems available
-    local iGemStart<const> = random(#aDigTileData);
-    for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
-      aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
-    -- Play in-game music if requested
-    if sMusic then PlayMusic(aResources[4], 0) end;
-    -- Now we want to hear sounds if human player is set
-    if bAI1 == false then SetPlaySounds(true) end;
-    -- Respawn flag set?
-    if bRespawn then
-       -- Set auto-respawn on all objects death
-       for iI = 1, #aObjs do
-         local oObj<const> = aObjs[iI];
-         oObj.F = oObj.F | OFL.RESPAWN;
-       end
-    end
-    -- Set win limit (Credits will not set 'w' meaning no limit)
-    iWinLimit = oLvlInfo.w;
-    if iWinLimit then iWinLimit = iWinLimit.r + oGlobalData.gCapitalCarried;
-                 else iWinLimit = maxinteger end;
-    -- Do one tick at least or the fade will try to render with variables
-    -- that haven't been initialised yet
-    fcbLogic();
-    -- Do fade then set requested game callbacks
-    local function OnFadeIn()
-      -- Key bank requested?
-      if iKB then
-        -- Use default keybank? Use users slowdown value else don't slowdown
-        if iKB < 0 then iKB, iSlowDown = iKeyBankId, iSavedSlowDown;
-                   else iSlowDown = 1 end;
-        -- Set specified keybank
-        SetKeys(true, iKB);
-      -- No slow down
-      else iSlowDown = 1 end;
-      -- Set specified hot spot
-      SetHotSpot(iNHotSpotId);
-      -- Set requested callbacks
-      SetCallbacks(fcbLogic, fcbRender);
-      -- Add extra money if requested
-      if iSM1 then oPlrActive.M = oPlrActive.M + iSM1 end
-      if iSM2 then oPlrOpponent.M = oPlrOpponent.M + iSM2 end
-      -- Check for win (test end/post-morten)
-      EndConditionsCheck();
-    end
-    Fade(1, 0, 0.04, fcbRender, OnFadeIn, not not sMusic);
-  end
-  -- Load level graphics resources asynchronously
-  LoadResources(sLvlName, aAssets, OnLoaded);
-end
--- Continue game from book or lobby ---------------------------------------- --
-local function InitContinueGame(bMusic)
-  -- Post loaded
-  local function PostLoaded()
-    -- We want to hear sounds
-    SetPlaySounds(true);
-    -- Return control to main loop
-    SetCallbacks(fcbLogic, fcbRender);
-    -- Restore key bank keys and hot spots
-    SetKeys(true, iKeyBankId);
-    SetHotSpot(iHotSpotId);
-    -- If no object originally sent or is not hidden then we're done
-    if not oObjActive or oObjActive.A ~= ACT.HIDE then return end;
-    -- Get active parent players diggers and enumerate their diggers
-    local aDiggers<const> = oObjActive.P.D;
-    for iDiggerId = 1, #aDiggers do
-      -- Get digger object and set it to go home again
-      local oDigger<const> = aDiggers[iDiggerId];
-      if oDigger then oDigger.F = oDigger.F & ~OFL.NOHOME end;
-    end
-    -- Make it reappear
-    SetAction(oObjActive, ACT.PHASE, JOB.NONE, DIR.NONE);
-    -- Check end game conditions as might have won!
-    EndConditionsCheck();
-  end
-  -- Music loaded
-  local function OnLoaded(aResource)
-    -- Resume game music
-    PlayMusic(aResource[1], nil, 2);
-    -- Post loaded functions
-    PostLoaded();
-  end
-  -- If music reset required then load it
-  if bMusic then
-    return LoadResources("Continue", aAssetsContinue, OnLoaded) end;
-  -- Run post loaded functions
-  PostLoaded();
-end
--- ------------------------------------------------------------------------- --
-local function GetActiveObject() return oObjActive end;
--- ------------------------------------------------------------------------- --
-local function GetActivePlayer() return oPlrActive end;
--- ------------------------------------------------------------------------- --
-local function GetOpponentPlayer() return oPlrOpponent end;
--- ------------------------------------------------------------------------- --
-local function GetLevelInfo()
-  return iLvlId, sLvlName, sLvlType, iWinLimit;
-end
--- ------------------------------------------------------------------------- --
-local function GetViewportData()
-  return iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
-         iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW,
-         iViewportH;
+  -- Return actual game proc function
+  return GameProc;
 end
 -- When scripts have loaded ------------------------------------------------ --
-local function OnScriptLoaded(GetAPI)
+local function OnScriptLoaded(GetAPI, _, oAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData,
-    SetCursor;
-  -- Get imports
-  TYP, aLevelsData, LoadResources, oObjectData, ACT, JOB, DIR, oTimerData, AI,
-    OFL, aDigTileData, PlayMusic, aTileData, oTileFlags, Fade, BCBlit,
-    SetCallbacks, IsMouseInBounds, oDigData, BlitSLTRB, BlitSLT, DF, oSfxData,
-    aJumpRiseData, aJumpFallData, GetMouseX, GetMouseY, PlayStaticSound,
-    PlaySound, Print, PrintC, PrintR, oMenuData, MFL, MNU, InitBook,
-    RenderFade, InitWin, InitWinDead, InitLose, InitLoseDead, InitPause,
-    InitTNTMap, InitLobby, RegisterHotSpot, RegisterKeys, TileA, texSpr,
-    fontLarge, fontLittle, fontTiny, aDigBlockData, aExplodeDirData, SetCursor,
-    SetCursorPos, SetKeys, RegisterFBUCallback, GetTestMode, RenderShadow,
-    RenderTip, SetHotSpot, SetTip, aRacesData, oDugRandShaftData,
-    oFloodGateData, oTrainTrackData, oExplodeAboveData, maskLev, maskSpr,
-    oGlobalData, aShopData, oAssetsData, aAIChoicesData, oCursorIdData,
-    aShroudCircle, aShroudTileLookup =
-      GetAPI("oObjectTypes", "aLevelsData", "LoadResources", "oObjectData",
-        "oObjectActions", "oObjectJobs", "oObjectDirections", "oTimerData",
-        "aAITypesData", "aObjectFlags", "aDigTileData", "PlayMusic",
-        "aTileData", "oTileFlags", "Fade", "BCBlit", "SetCallbacks",
-        "IsMouseInBounds", "oDigData", "BlitSLTRB", "BlitSLT", "aDigTileFlags",
-        "oSfxData", "aJumpRiseData", "aJumpFallData", "GetMouseX", "GetMouseY",
-        "PlayStaticSound", "PlaySound", "Print", "PrintC", "PrintR",
-        "oMenuData", "oMenuFlags", "oMenuIds", "InitBook", "RenderFade",
-        "InitWin", "InitWinDead", "InitLose", "InitLoseDead", "InitPause",
-        "InitTNTMap", "InitLobby", "RegisterHotSpot", "RegisterKeys", "TileA",
-        "texSpr", "fontLarge", "fontLittle", "fontTiny", "aDigBlockData",
-        "aExplodeDirData", "SetCursor", "SetCursorPos", "SetKeys",
-        "RegisterFBUCallback", "GetTestMode", "RenderShadow", "RenderTip",
-        "SetHotSpot", "SetTip", "aRacesData", "oDugRandShaftData",
-        "oFloodGateData", "oTrainTrackData", "oExplodeAboveData", "maskLevel",
-        "maskSprites", "oGlobalData", "aShopData", "oAssetsData",
-        "aAIChoicesData", "oCursorIdData", "aShroudCircle",
-        "aShroudTileLookup");
+  local GetMouseX<const>, GetMouseY<const>,
+    InitPause<const>, IsMouseInBounds<const>, RegisterHotSpot<const>,
+    RegisterKeys<const>, SetCursor<const>, oCursorIdData<const> =
+      GetAPI("GetMouseX", "GetMouseY", "InitPause",
+        "IsMouseInBounds", "RegisterHotSpot", "RegisterKeys", "SetCursor",
+        "oCursorIdData");
   -- Make sure we have the correct number of level tiles
   local iMaskLev<const> = maskLev:Tiles();
   if iMaskLev ~= #aTileData then
@@ -4580,13 +4146,6 @@ local function OnScriptLoaded(GetAPI)
   if iMaskSpr ~= #aTileData then
     error("Got only "..iMaskSpr.." of "..#aTileData.." mask sprite tiles");
   end
-  -- Setup required assets
-  local oAssetTerrain<const>, oAssetObject<const>, oAssetTexture<const> =
-    oAssetsData.mapt, oAssetsData.mapo, oAssetsData.game;
-  aAssetsMusic, aAssetsNoMusic, aAssetsContinue =
-    { oAssetTerrain, oAssetObject, oAssetTexture, oAssetsData.gamem },
-    { oAssetTerrain, oAssetObject, oAssetTexture },
-    { oAssetsData.gamem };
   -- Get required sound effects
   local iSClick<const>, iSError<const>, iSSelect<const> =
     oSfxData.CLICK, oSfxData.ERROR, oSfxData.SELECT;
@@ -4727,8 +4286,8 @@ local function OnScriptLoaded(GetAPI)
   -- Returns current pixel tile under mouse cursor
   local function GetTileUnderMouse()
     return
-      UtilClampInt((iPosX * 16) + GetMouseX() - iStageL - 8, 0, iLLPixWm1),
-      UtilClampInt((iPosY * 16) + GetMouseY() - iStageT - 8, 0, iLLPixHm1);
+      UtilClampInt((iAbsPosX * 16) + GetMouseX() - iStageL - 8, 0, iLLPixWm1),
+      UtilClampInt((iAbsPosY * 16) + GetMouseY() - iStageT - 8, 0, iLLPixHm1);
   end
   -- Spawn Jennite? (Cheat)
   local function SpawnJennite()
@@ -4774,14 +4333,15 @@ local function OnScriptLoaded(GetAPI)
     -- Done
     return true;
   end
-  -- Register the variable
+  -- Register the variable and put it in API to stop it from being GC'd
   cvSlowDown = Variable.Register("gam_slowdown", 1,
     Variable.Flags.UINTEGERSAVE, OnSlowDown);
-  -- Put variable 'anywhere' to stop it being GC'd
-  oAssetTerrain.V = cvSlowDown;
+  oAPI.cvSlowDown = cvSlowDown;
   -- Move viewport
-  local function ScrollH(iX) AdjustViewPortX(iX) iPixPosTargetX = iPosX*16 end;
-  local function ScrollV(iY) AdjustViewPortY(iY) iPixPosTargetY = iPosY*16 end;
+  local function ScrollH(iX) AdjustViewportX(iX)
+    iPixPosTargetX = iAbsPosX*16 end;
+  local function ScrollV(iY) AdjustViewportY(iY)
+    iPixPosTargetY = iAbsPosY*16 end;
   local function ScrollUp() if GetTestMode() then ScrollV(-16) end end;
   local function ScrollDown() if GetTestMode() then ScrollV(16) end end;
   local function ScrollLeft() if GetTestMode() then ScrollH(-16) end end;
@@ -4795,6 +4355,54 @@ local function OnScriptLoaded(GetAPI)
     { oKeys.DELETE,    ScrollLeft,   "igmsl", "SCROLL MAP LEFT (DEBUG)"  },
     { oKeys.PAGE_DOWN, ScrollRight,  "igmsr", "SCROLL MAP RIGHT (DEBUG)" },
     { oKeys.O,         ShroudReveal, "igsr",  "SHROUD REVEAL (DEBUG)"    };
+  -- Select device
+  local function SelectDevice()
+    -- For each object
+    for iId = 1, #aObjs do
+      -- Get object and if the object belongs to me and is device?
+      local oObj<const> = aObjs[iId];
+      if oPlrActive == oObj.P and oObj.F & OFL.DEVICE ~= 0 then
+        -- Remove and send to front of objects list
+        remove(aObjs, iId);
+        aObjs[1 + #aObjs] = oObj;
+        -- Set as active object
+        SelectObject(oObj);
+        -- Success!
+        return PlayInterfaceSound(oSfxData.CLICK);
+      end
+    end
+    -- Failed? Play sound
+    PlayInterfaceSound(oSfxData.ERROR);
+  end
+  -- Pause the game
+  local function SelectPauseScreen() SelectInfoScreen() InitPause() end;
+  -- Show inventory screen
+  local function SelectInventoryScreen() SelectInfoScreen(1) end;
+  -- Show location screen
+  local function SelectLocationScreen() SelectInfoScreen(2) end;
+  -- Show status screen
+  local function SelectStatusScreen() SelectInfoScreen(3) end;
+  -- Init the book
+  local function SelectBook()
+    -- Enumerate diggers
+    local aDiggers<const> = oPlrActive.D;
+    for iDigger = 1, #aDiggers do
+      -- Get digger data and if it's teleporting home or going home?
+      local oDigger<const> = aDiggers[iDigger];
+      if oDigger.F & OFL.NOHOME ~= 0 or oDigger.J == JOB.HOME then
+        -- Play error sound effect and return
+        return PlayInterfaceSound(oSfxData.ERROR);
+      end
+    end
+    -- Clear any information screens
+    SelectInfoScreen();
+    -- Play sound effect to show the player clicked it
+    PlayInterfaceSound(oSfxData.CLICK);
+    -- Remove play sound function
+    SetPlaySounds(false);
+    -- Init the book
+    InitBook(true);
+  end
   -- Setup keybank
   iKeyBankId = RegisterKeys("IN-GAME", {
     [oStates.PRESS] = {
@@ -4840,6 +4448,41 @@ local function OnScriptLoaded(GetAPI)
   });
   -- Get cursor ids
   local iCSelect<const> = oCursorIdData.SELECT;
+  -- Update object menu position
+  local function UpdateMenuPosition(iX, iY)
+    -- Get menu size (reuse vars)
+    iMenuRight, iMenuBottom = aContextMenu[1] * 16, aContextMenu[2] * 16;
+    -- Update left and top co-ordinates
+    iMenuLeft, iMenuTop =
+      UtilClampInt(iX, iStageL, iStageR - iMenuRight),
+      UtilClampInt(iY, iStageT, iStageB - iMenuBottom - 32);
+    -- Update right and bottom co-ordinates
+    iMenuRight, iMenuBottom = iMenuRight + iMenuLeft, iMenuBottom + iMenuTop;
+    -- Get context menu item data
+    local aMData<const> = aContextMenu[3];
+    -- Start building context menu data to help with rendering
+    aContextMenuData = { };
+    -- Current position of title
+    local iX, iY = iMenuLeft, iMenuTop;
+    -- Walk through selected menu
+    for iMIndex = 1, #aMData do
+      -- Get menu item data
+      local aMItem<const> = aMData[iMIndex];
+      -- Build formatted item which helps processing more efficent
+      aContextMenuData[1 + #aContextMenuData] = {
+        aMItem,                    -- Actual data
+        aMItem[1],                 -- Menu tile id
+        aMItem[2] & MFL.BUSY ~= 0, -- Disabled if busy?
+        iX,                        -- Menu render position X
+        iY,                        -- Menu render position Y
+        iX + 16,                   -- Menu render position end X
+        iY + 16                    -- Menu render position end Y
+      };
+      -- Increment tile position and wrap the
+      iX = iX + 16;
+      if iX >= iMenuRight then iX, iY = iMenuLeft, iY + 16 end;
+    end
+  end
   -- Object released on screen
   local function SelectObjectOnScreenDrag(iButton, iX, iY)
     -- Return if not right mouse button
@@ -4848,7 +4491,7 @@ local function OnScriptLoaded(GetAPI)
     if aContextMenu then UpdateMenuPosition(iX, iY) end;
   end
   -- Left mouse button / Joystick button 1 pressed function
-  local function OnButton0Pressed()
+  local function OnButton0Pressed(iX, iY)
     -- We have context menu open and in bounds?
     if aContextMenuData and
        IsMouseInBounds(iMenuLeft, iMenuTop, iMenuRight, iMenuBottom) then
@@ -4867,7 +4510,8 @@ local function OnScriptLoaded(GetAPI)
             if aMData[3] ~= MNU.NONE then
               -- Set new menu and play sound
               PlayStaticSound(iSSelect);
-              SetContextMenu(aMData[3], false);
+              SetContextMenu(aMData[3]);
+              UpdateMenuPosition(iMenuLeft, iMenuTop);
             -- New action specified?
             elseif aMData[4] ~= 0 and aMData[5] ~= 0 and aMData[6] ~= 0 then
               -- Play the click sound
@@ -4887,13 +4531,13 @@ local function OnScriptLoaded(GetAPI)
       return;
     end
     -- Translate current mouse position to absolute level position
-    local nMouseX<const>, nMouseY<const> = GetAbsMousePos();
+    iX, iY = iViewportX + iX, iViewportY + iY;
     -- Walk through objects in backwards order. This is because objects are
     -- drawn from oldest to newest.
     for iIndex = #aObjs, 1, -1 do
       -- Get object, select object and return if mouse cursor touching it
       local oObj<const> = aObjs[iIndex];
-      if IsSpriteCollide(479, nMouseX, nMouseY, oObj.S, oObj.X, oObj.Y) then
+      if IsSpriteCollide(479, iX, iY, oObj.S, oObj.X, oObj.Y) then
         SelectObject(oObj);
         return PlayStaticSound(iSSelect);
       end
@@ -4902,9 +4546,9 @@ local function OnScriptLoaded(GetAPI)
     SelectObject();
   end
   -- Right mouse button / Joystick button 2 pressed function
-  local function OnButton1Pressed()
+  local function OnButton1Pressed(iX, iY)
     -- Right mouse button held down and menu open?
-    if aContextMenu then return UpdateMenuPositionAtMouseCursor() end;
+    if aContextMenu then return UpdateMenuPosition(iX, iY) end;
     -- Return if there is no active object or we can't open its menu
     if not oObjActive then return end;
     -- Get active objectmenu data
@@ -4918,19 +4562,20 @@ local function OnScriptLoaded(GetAPI)
       -- Object does belong to active player so play context menu sound and
       -- set the appropriate default menu for the object.
       PlayStaticSound(iSClick);
-      SetContextMenu(aObjContextMenu, true);
+      SetContextMenu(aObjContextMenu);
+      UpdateMenuPosition(iX, iY);
     -- Object does not belong to active player? Play error sound
     else PlayStaticSound(iSError) end
   end
   -- Button callbacks
-  local aButtonCallbacks<const> = {
+  local oButtonCallbacks<const> = {
     [0] = OnButton0Pressed, [1] = OnButton1Pressed, [9] = SelectPauseScreen,
   };
   -- Object released on screen
-  local function SelectObjectOnScreenPress(iButton)
+  local function SelectObjectOnScreenPress(iButton, ...)
     -- Find callback function
-    local fcbFunc<const> = aButtonCallbacks[iButton];
-    if fcbFunc then fcbFunc() end;
+    local fcbFunc<const> = oButtonCallbacks[iButton];
+    if fcbFunc then fcbFunc(...) end;
   end
   -- Mouse hovering
   local function OnHover()
@@ -5029,42 +4674,659 @@ local function OnScriptLoaded(GetAPI)
     { 0, 0, 0, 240, 3, 0, OnHover, OnScroll,
       { false, SelectObjectOnScreenPress, SelectObjectOnScreenDrag } },
   });
-  -- Pre-initialisations of functions
-  CreateObject = InitCreateObject();
-  MoveOtherObjects = InitMoveOtherObjects();
-  SetAction = InitSetAction();
-  ProcessObjectMovement = ProcessObjectMovement();
-  PhaseLogic = PhaseLogic();
-  SelectInfoScreen = SelectInfoScreen();
-  -- Register a console command to dump a level mask. I'm just going to sling
-  -- this cvar handle in the terrain asset table so it doesn't get gc'd.
+  -- Register a console command to dump level mask and keep it safe in API.
   local function DumpLevelMask(_, strFile)
     if maskZone then maskZone:Save(0, strFile or "mask") end;
   end
-  oAssetTerrain.C = Command.Register("dump", 1, 2, DumpLevelMask);
+  oAPI.cmdDump = Command.Register("dump", 1, 2, DumpLevelMask);
+end
+-- Pre-initialisation ------------------------------------------------------ --
+local function OnPreInitAPI(GetAPI)
+  -- Some core function aliases required in this scope
+  local unpack<const> = table.unpack;
+  -- Some engine function aliases required in the scope
+  local MaskCreateZero<const> = Mask.CreateZero;
+  -- Shared variables only needed in this scope
+  local Fade<const>, GetMouseX<const>, GetMouseY<const>, InitLose<const>,
+    InitLoseDead<const>, InitWin<const>, InitWinDead<const>,
+    LoadResources<const>, PlayMusic<const>, RegisterFBUCallback<const>,
+    SetCallbacks<const>, SetHotSpot<const>, SetKeys<const>, TileA<const>,
+    aPlrStartData<const>, oAssetsData<const> =
+      GetAPI("Fade", "GetMouseX", "GetMouseY", "InitLose", "InitLoseDead",
+        "InitWin", "InitWinDead", "LoadResources", "PlayMusic",
+        "RegisterFBUCallback", "SetCallbacks", "SetHotSpot", "SetKeys",
+        "TileA", "aPlrStartData", "oAssetsData");
+  -- Get and assign outer imports
+  TYP, aLevelsData, oObjectData, ACT, JOB, DIR, oTimerData, AI, OFL,
+    aDigTileData, aTileData, oTileFlags, oDigData, BlitSLTRB, BlitSLTWH,
+    BlitSLT, DF, GetTestMode, oSfxData, aJumpRiseData, aJumpFallData,
+    PlayStaticSound, PlaySound, Print, PrintC, PrintR, oMenuData, MFL, MNU,
+    InitBook, RenderFade, InitTNTMap, InitLobby, texSpr, fontLarge, fontLittle,
+    fontTiny, aDigBlockData, SetCursorPos, RenderShadow, RenderTip, SetTip,
+    aRacesData, oDugRandShaftData, oFloodGateData, oTrainTrackData, maskLev,
+    maskSpr, oGlobalData, aShopData, aAIChoicesData, aShroudCircle,
+    aShroudTileLookup =
+      GetAPI("oObjectTypes", "aLevelsData", "oObjectData", "oObjectActions",
+        "oObjectJobs", "oObjectDirections", "oTimerData", "aAITypesData",
+        "aObjectFlags", "aDigTileData", "aTileData", "oTileFlags",
+        "oDigData", "BlitSLTRB", "BlitSLTWH", "BlitSLT", "aDigTileFlags",
+        "GetTestMode", "oSfxData", "aJumpRiseData", "aJumpFallData",
+        "PlayStaticSound", "PlaySound", "Print", "PrintC", "PrintR",
+        "oMenuData", "oMenuFlags", "oMenuIds", "InitBook", "RenderFade",
+        "InitTNTMap", "InitLobby", "texSpr", "fontLarge", "fontLittle",
+        "fontTiny", "aDigBlockData", "SetCursorPos",
+        "RenderShadow", "RenderTip", "SetTip", "aRacesData",
+        "oDugRandShaftData", "oFloodGateData", "oTrainTrackData", "maskLevel",
+        "maskSprites", "oGlobalData", "aShopData", "aAIChoicesData",
+        "aShroudCircle", "aShroudTileLookup");
+  -- Setup required assets for LoadLevel() and InitContinueGame().
+  local oAssetTerrain<const>, oAssetObject<const>, oAssetTexture<const> =
+    oAssetsData.mapt, oAssetsData.mapo, oAssetsData.game;
+  local aAssetsMusic<const>, aAssetsNoMusic<const>, aAssetsContinue<const> =
+    { oAssetTerrain, oAssetObject, oAssetTexture, oAssetsData.gamem },
+    { oAssetTerrain, oAssetObject, oAssetTexture },
+    { oAssetsData.gamem };
+  -- Pre-initialisations of functions which required data from another module.
+  AdjustObjectHealth, CreateObject, GameProc, MoveOtherObjects,
+    SetAction =
+      AdjustObjectHealth(), InitCreateObject(), GameProc(),
+      InitMoveOtherObjects(), InitSetAction();
+  -- Get render functions
+  local RenderTerrain, RenderObjects, RenderShroud, RenderInterface;
+  RenderAll, RenderTerrain, RenderObjects, RenderShroud,
+    RenderInterface, SelectInfoScreen = RenderAll();
+  -- Lock viewport to top left --------------------------------------------- --
+  local function LockViewport() ScrollViewportTo(0, 0) ForceViewport() end;
+  -- Get mouse position on level ------------------------------------------- --
+  local function GetAbsMousePos()
+    return iViewportX + GetMouseX(), iViewportY + GetMouseY();
+  end
+  -- Return game ticks ----------------------------------------------------- --
+  local function GetGameTicks() return iGameTicks end;
+  -- Return the current active object -------------------------------------- --
+  local function GetActiveObject() return oObjActive end;
+  -- Return the current active player -------------------------------------- --
+  local function GetActivePlayer() return oPlrActive end;
+  -- Return the current opponent player ------------------------------------ --
+  local function GetOpponentPlayer() return oPlrOpponent end;
+  -- Return information about the loaded level ----------------------------- --
+  local function GetLevelInfo()
+    return iLvlId, sLvlName, sLvlType, iWinLimit;
+  end
+  -- Return information about the game viewport ---------------------------- --
+  local function GetViewportData()
+    return iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+           iPixCenPosY, iAbsPosX, iAbsPosY, iAbsCenPosX, iAbsCenPosY,
+           iViewportW, iViewportH, iViewportX, iViewportY;
+  end
+  -- AI player override patience logic (LoadLevel()) ----------------------- --
+  local iARest<const>, iDNone<const>, iJNone<const>, iFBusy<const> =
+    ACT.REST, DIR.NONE, JOB.NONE, OFL.BUSY;
+  local function AIPatienceLogic(oObj)
+    -- Return if...
+    if (oObj.F & iFBusy ~= 0 and -- Digger is busy? -AND-
+       oObj.A ~= iARest) or      -- Digger is NOT resting? -OR-
+       oObj.JT < oObj.PL then    -- Digger is not at impatience limit?
+      return end;
+    -- If have rest ability? (25% chance to execute). Use it and return
+    if oObj.OD[iARest] and random() < 0.25 then
+      return SetAction(oObj, iARest, iJNone, iDNone) end;
+    -- Do something casual
+    SetRandomJob(oObj, true);
+  end
+  -- Continue game from book or lobby -------------------------------------- --
+  local function InitContinueGame(bMusic)
+    -- Post loaded
+    local function PostLoaded()
+      -- We want to hear sounds
+      SetPlaySounds(true);
+      -- Return control to main loop
+      SetCallbacks(fcbLogic, fcbRender);
+      -- Restore key bank keys and hot spots
+      SetKeys(true, iKeyBankId);
+      SetHotSpot(iHotSpotId);
+      -- If no object originally sent or is not hidden then we're done
+      if not oObjActive or oObjActive.A ~= ACT.HIDE then return end;
+      -- Get active parent players diggers and enumerate their diggers
+      local aDiggers<const> = oObjActive.P.D;
+      for iDiggerId = 1, #aDiggers do
+        -- Get digger object and set it to go home again
+        local oDigger<const> = aDiggers[iDiggerId];
+        if oDigger then oDigger.F = oDigger.F & OFL.iNOHOME end;
+      end
+      -- Make it reappear. Direction prevents AI from re-entering
+      SetAction(oObjActive, ACT.PHASE, JOB.NONE, DIR.R);
+      -- Check end game conditions as might have won!
+      EndConditionsCheck();
+    end
+    -- Music loaded
+    local function OnLoaded(aResource)
+      -- Resume game music
+      PlayMusic(aResource[1], nil, 2);
+      -- Post loaded functions
+      PostLoaded();
+    end
+    -- If music reset required then load it
+    if bMusic then
+      return LoadResources("Continue", aAssetsContinue, OnLoaded) end;
+    -- Run post loaded functions
+    PostLoaded();
+  end
+  -- Sell all available items of specified type ---------------------------- --
+  local function SellSpecifiedItems(oObj, iItemId)
+    -- Check parameters
+    if not UtilIsInteger(iItemId) then
+      error("Item type not specified! "..tostring(iItemId)) end;
+    -- Get digger inventory and return if no items
+    local aObjInv<const> = oObj.I;
+    if #aObjInv == 0 then return -1 end;
+    -- Something sold?
+    local iItemsSold = 0;
+    local iInvId = 1 while iInvId <= #aObjInv do
+      -- Get object and if is a matching type and we can sell and we sold it?
+      local oObjInv<const> = aObjInv[iInvId];
+      local iTypeId<const> = oObjInv.ID;
+      if iTypeId == iItemId and
+         CanSellGem(iTypeId) and
+         SellItem(oObj, oObjInv) then
+        -- Sold something
+        iItemsSold = iItemsSold + 1;
+      -- Not sellable solid so increment inventory index
+      else iInvId = iInvId + 1 end;
+    end
+    -- Return if we sold something
+    return iItemsSold;
+  end
+  -- De-init the level ----------------------------------------------------- --
+  local function DeInitLevel()
+    -- Unset FBU callback
+    RegisterFBUCallback("game");
+    -- De-init information screen
+    SelectInfoScreen();
+    -- Dereference loaded assets for garbage collector
+    iTileBg, texLev, maskZone = nil, nil, nil;
+    -- Flush specified tables whilst keeping the actual table
+    local aTables<const> =
+      { aObjs, aPlayers, aFloodData, aGemsAvailable, aLvlData, aShroudData,
+        aDamageValues };
+    for iIndex = 1, #aTables do
+      local aTable<const> = aTables[iIndex];
+      while #aTable > 0 do remove(aTable) end;
+    end
+    -- Reset positions and other variables
+    iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iGameTicks,
+      iLvlId, iWinLimit, sMoney, iUniqueId, fcbLogic, fcbRender, fcbEnd =
+        0, 0, 0, 0, 0, nil, nil, nil, 0, nil, nil, nil;
+    -- Reset active objects, menus and players
+    oPlrActive, oPlrOpponent = nil, nil;
+    -- Remove active object and menu data
+    SelectObject();
+    -- We don't want to hear sounds
+    SetPlaySounds(false);
+  end
+  -- Set FBU callback ------------------------------------------------------ --
+  local function OnStageUpdated(...)
+    -- Set new stage bounds
+    iStageW, iStageH, iStageL, iStageT, iStageR, iStageB = ...;
+    -- Set new limits based on frame buffer size
+    iScrTilesW, iScrTilesH = ceil(iStageW / 16), ceil(iStageH / 16);
+    -- Used in game so calculate them now to prevent unnecessary math
+    iScrTilesWd2, iScrTilesHd2 = iScrTilesW // 2, iScrTilesH // 2;
+    iScrTilesWd2p1, iScrTilesHd2p1 = iScrTilesWd2 + 1, iScrTilesHd2 + 1;
+    iScrTilesWm1, iScrTilesHm1 = iScrTilesW - 1, iScrTilesH - 1;
+    -- Level width minus viewport size
+    iLLAbsWmVP, iLLAbsHmVP = iLLAbsW - iScrTilesW, iLLAbsH - iScrTilesH;
+    iLLPixWmVP, iLLPixHmVP = iLLAbsWmVP * 16, iLLAbsHmVP * 16;
+    -- Update viewport limits
+    AdjustViewportX(0);
+    AdjustViewportY(0);
+  end
+  -- Create a player ------------------------------------------------------- --
+  local function CreatePlayer(iPlrId, iX, iY, iRaceId, bIsAI)
+    -- Players diggers and number of diggers to create
+    local aDiggers<const>, iNumDiggers<const> = { }, 5;
+    -- Calculate home point
+    local iHomeX, iHomeY<const> = iX * 16 - 2, iY * 16 + 32;
+    -- Get object data for race
+    local aRaceData<const> = oObjectData[iRaceId];
+    if not UtilIsTable(aRaceData) then
+      error("Invalid race data for "..iRaceId.."! "..
+        tostring(aRaceData)) end;
+    -- Build player data object
+    local oPlr<const> = {
+      AI  = bIsAI,                 -- Set AI status
+      D   = aDiggers,              -- List of diggers
+      DT  = iNumDiggers,           -- Diggers total
+      DC  = iNumDiggers,           -- Diggers count
+      DUG = 0,                     -- Dirt dug
+      EK  = 0,                     -- Enemies killed (OFL.ENEMY)
+      GEM = 0,                     -- Gems found
+      GS  = 0,                     -- Gems sold
+      PUR = 0,                     -- Purchases made
+      GI  = 0,                     -- Total income
+      M   = 100,                   -- Money
+      R   = iRaceId,               -- Race type (TYP.*)
+      I   = iPlrId,                -- Player index
+      LK  = 0,                     -- Lifeforms killedV (OFL.LIVING)
+      HX  = iHomeX,                -- Home point X position
+      HY  = iHomeY,                -- Home point Y position
+      SX  = (iX - 1) * 16,         -- Adjust home point X
+      SY  = (iY + 2) * 16,         -- Adjust home point Y
+      RD  = aRaceData              -- Race data
+    };
+    -- If this is player one?
+    if iPlrId == 1 then
+      -- Set active player
+      oPlrActive = oPlr;
+      -- Is not AI?
+      if not bIsAI then
+        -- Set to un-shroud the players' objects
+        oPlr.US = true;
+        -- Add capital carried and reset its value
+        oPlrActive.M = oPlrActive.M + oGlobalData.gCapitalCarried;
+        oGlobalData.gCapitalCarried = 0;
+        -- Not demo mode
+        bAIvsAI = false;
+      -- Not AI vs AI
+      else bAIvsAI = true end;
+      -- Set viewpoint on this player and synchronise
+      ScrollViewportTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
+      ForceViewport();
+    -- Set opponent player
+    else oPlrOpponent = oPlr end;
+    -- Adjust starting X co-ordinate for first Digger at the trade centre
+    iHomeX = iHomeX - 16;
+    -- Get weight of treasure
+    local iMaxInventory<const> = aRaceData.STRENGTH;
+    -- For each digger of the player
+    for iDiggerId = 1, iNumDiggers do
+      -- Create a new digger
+      local oDigger<const> = CreateObject(iRaceId, iHomeX, iHomeY, oPlr);
+      if oDigger then
+        -- Add fighting value. The 2 is as we use random() to randomise it.
+        oDigger.STRF = -(oDigger.STR - 2);
+        -- Digger is not AI?
+        if not bIsAI then
+          -- Set patience AI for player controlled digger
+          oDigger.AI, oDigger.AIF = AI.PATIENCE, AIPatienceLogic;
+          -- Set and verify patience warning value
+          local iPatience = oDigger.OD.PATIENCE;
+          if not UtilIsInteger(iPatience) then
+            error("Digger "..iDiggerId.." of player "..oPlr.I..
+              "has no patience warning value!") end;
+          -- Randomise patience by +/- 25%
+          local iOffset = random(floor(iPatience * 0.25));
+          if random() < 0.5 then iOffset = -iOffset end;
+          iPatience = iPatience + iOffset;
+          oDigger.PW = iPatience;
+          -- Digger will stray between 30-60 seconds of impatience
+          oDigger.PL = iPatience + 1800 + random(1800);
+        -- Is AI?
+        else
+          -- Set maximum treasure items to carry (for AI)
+          oDigger.MI = iMaxInventory;
+          -- Initialise Digger AI anti-wriggle system
+          oDigger.AW, oDigger.AWR = 0, 0;
+          -- Infinite patience
+          oDigger.PW, oDigger.PL = maxinteger, maxinteger;
+        end;
+        -- Set Digger id
+        oDigger.DI = iDiggerId;
+        -- Insert into Digger list
+        aDiggers[1 + #aDiggers] = oDigger;
+      -- Failed so show map maker in console that the object id is invalid
+      else CoreWrite("Warning! Digger "..iDiggerId..
+        " not created for player "..iPlrId.."! Id="..iRaceId..", X="..iX..
+        ", Y="..iY..".", 9) end;
+      -- Increment home point X position
+      iHomeX = iHomeX + 5;
+    end
+    -- Add player data to players array
+    aPlayers[1 + #aPlayers] = oPlr;
+    -- Log creation of item
+    CoreLog("Created player "..iPlrId.." as '"..oObjectData[iRaceId].NAME..
+      "'["..iRaceId.."] at AX:"..iX..",AY:"..iY.." in position #"..
+      #aPlayers.."!");
+  end
+  -- Populate level with objects from metadata ----------------------------- --
+  local iMinObjId<const>, iMaxObjId<const> = TYP.JENNITE, TYP.MAX;
+  local function PopulateLevelWithObjects(aMetadata);
+    -- For each pre-defined object in level metadata
+    for iObjIndex = 1, #aMetadata do
+      -- Get object id at position and if it's interesting?
+      local aObj<const> = aMetadata[iObjIndex];
+      local iObjId<const>, iX<const>, iY<const> = aObj[1], aObj[2], aObj[3];
+      if iObjId < iMinObjId or iObjId >= iMaxObjId then
+        error("Warning! Object id invalid! Id="..iObjIndex..", Item="..
+          iObjId..", X="..iX..", Y="..iY..", Max="..iMaxObjId..".");
+      -- Object id is valid? Create the object and log error if failed
+      elseif not CreateObject(iObjId, iX, iY) then
+        -- Show map maker in console that the object id is invalid
+        error("Warning! Couldn't create object! Id="..iObjIndex..
+          ", Item="..iObjId..", X="..iX..", Y="..iY..".");
+      end
+    end
+  end
+  -- Build a level from asset and return players found --------------------- --
+  local function BuildLevel(asLevel)
+    -- Create a blank mask with the specified level name
+    maskZone = MaskCreateZero(asLevel:Name(), iLLPixW, iLLPixH);
+    -- Player starting point data list
+    local aPlrsFound<const> = { };
+    -- For each row in the data file
+    for iY = 0, iLLAbsHm1 do
+      -- Calculate precise Y position for object
+      local iPreciseY<const> = iY * 16;
+      -- Calculate row position in data file
+      local iDataY<const> = iY * iLLAbsW;
+      -- For each column in the data file
+      for iX = 0, iLLAbsWm1 do
+        -- Calculate position of tile
+        local iPosition<const> = (iDataY + iX) * 2;
+        -- Calculate precise X position for object
+        local iPreciseX<const> = iX * 16;
+        -- Get the 16-bit (little-endian) tile id from the terrain data at
+        -- the current position and show error if it is not a valid tile
+        local iTerrainId<const> = asLevel:RU16LE(iPosition);
+        if iTerrainId < 0 or iTerrainId >= #aTileData then
+          error("Error! Invalid tile "..iTerrainId.."/"..#aTileData..
+                    " at X="..iX..", Y="..iY..", Abs="..iPosition.."!") end;
+        -- Check if is a player
+        for iPlayer = 1, #aPlrStartData do
+          -- Get player data and check for player starting position
+          local aPlayerStartItem<const> = aPlrStartData[iPlayer];
+          if iTerrainId >= aPlayerStartItem[1] and
+             iTerrainId <= aPlayerStartItem[2] then
+            -- Get existing player data and show error if already exists
+            local aPlayerFound<const> = aPlrsFound[iPlayer];
+            if aPlayerFound then
+              error("Error! Player "..iPlayer..
+                " already exists! X="..iX..", Y="..iY..", Abs="..
+                iPosition..". Originally found at X="..aPlayerFound[1]..
+                ", Y="..aPlayerFound[2]..".") end;
+            -- Player doesn't exist? Set the new player
+            aPlrsFound[iPlayer] =
+              { iX, iY, aPlayerStartItem[3], aPlayerStartItem[4] };
+          end
+        end
+        -- Draw the appropriate tile for the level bit mask
+        maskZone:Copy(maskLev, iTerrainId, iPreciseX, iPreciseY);
+        -- Insert into level data array
+        aLvlData[1 + #aLvlData] = iTerrainId;
+        -- Create entry for shroud data (sprite tile set number)
+        aShroudData[1 + #aShroudData] = { 1022, 0x0 };
+      end
+    end
+    -- Make sure we got the correct amount of level tiles
+    if #aLvlData < iLLAbs then
+      error("Only "..#aLvlData.."/"..iLLAbs.." level tiles!") end;
+    -- Make sure we found two players
+    if #aPlrsFound ~= 2 then
+      error("Only "..#aPlrsFound.."/2 players!") end;
+    -- Fill border with 1's to prevent objects leaving the playfield
+    maskZone:Fill(0, 0, iLLPixW, 1);
+    maskZone:Fill(0, 0, 1, iLLPixH);
+    maskZone:Fill(iLLPixWm1, 0, 1, iLLPixH);
+    maskZone:Fill(0, iLLPixHm1, iLLPixW, 1);
+    -- Return players found
+    return aPlrsFound;
+  end
+  -- Reasons for game ending and their corresponding functions ------------- --
+  local aEndReasons<const> = {
+    InitWin,                           -- Player raised the money
+    InitWinDead,                       -- All the opponents digger died
+    InitLose,                          -- Opponent raised the money
+    InitLoseDead                       -- All the players diggers died
+  };
+  -- Trigger an ending procedure ------------------------------------------- --
+  local function TriggerEnd(iReason)
+    aEndReasons[iReason](iLvlId, oPlrActive, oPlrOpponent);
+  end
+  -- Load level ------------------------------------------------------------ --
+  local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
+    fcbNLogic, fcbNRender, fcbNEnd, iNHotSpotId, iSM1, iSM2, bRespawn)
+    -- De-init/Reset current level
+    DeInitLevel();
+    -- Setup player 1 parameters. We force the race that was originally
+    -- selected by the player if it is set.
+    if iRace1 == nil then
+      iRace1 = oGlobalData.gSelectedRace or TYP.DIGRANDOM end;
+    aPlrStartData[1][3] = iRace1;
+    if bAI1 == nil then bAI1 = false end;
+    if not UtilIsBoolean(bAI1) then
+      error("Player 1 AI boolean of type '"..type(bAI1).."' invalid!") end;
+    aPlrStartData[1][4] = bAI1;
+    -- Setup player 2 parameters
+    if iRace2 == nil then
+      iRace2 = TYP.DIGRANDOM end;
+    aPlrStartData[2][3] = iRace2;
+    if bAI2 == nil then bAI2 = true end;
+    if not UtilIsBoolean(bAI2) then
+      error("Player 2 AI boolean of type '"..type(bAI2).."' invalid!") end;
+    aPlrStartData[2][4] = bAI2;
+    -- Prepare a modifiable table of races available for selection
+    local aRacesAvailable<const>, oRacesTaken<const> = { }, { };
+    for iI = 1, #aRacesData do
+      aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
+    -- Resolve race ids for players requesting actual race ids first
+    for iPlrId = 1, #aPlrStartData do
+      -- Get player start data and requested start race and if not random?
+      local aPlrStartItem<const> = aPlrStartData[iPlrId];
+      local iTypeId = aPlrStartItem[3];
+      if iTypeId ~= TYP.DIGRANDOM then
+        -- Make sure id valid
+        if not UtilIsInteger(iTypeId) then
+          error("Player "..iPlrId.." race of type '"..type(iTypeId)..
+            "' invalid!") end;
+        if iTypeId < TYP.FTARG or iTypeId > TYP.QUARRIOR then
+          error("Invalid player "..iPlrId.." race id of "..iTypeId.."!") end;
+        -- Check to make sure the race id isnt taken
+        local iPlrTaken<const> = oRacesTaken[iTypeId];
+        if iPlrTaken then
+          error("Race "..iRaceId.." for player "..iPlrId.." already taken \z
+            by player "..iPlrTaken) end;
+        -- Check to make sure a race is available
+        if #aRacesAvailable == 0 then
+          error("No more races available for manual race selection of \z
+            player "..iPlrId.."!") end;
+        -- Repeat...
+        local iRaceId = 1;
+        repeat
+          -- If type in race id matches requested type id?
+          if aRacesAvailable[iRaceId] == iTypeId then
+            -- Remove type from races available
+            remove(aRacesAvailable, iRaceId);
+            -- Mark race as taken
+            oRacesTaken[iTypeId] = iPlrId;
+            -- Selection confirmed
+            aPlrStartItem[3] = iTypeId;
+            -- Done
+            goto lDone;
+          end
+          -- Next race id
+          iRaceId = iRaceId + 1;
+        -- ...until no more races available
+        until iRaceId > #aRacesAvailable;
+        -- Invalid type (impossible)
+        error("Type "..iTypeId.." not found for "..iPlrId.."!");
+        -- Continue point
+        ::lDone::
+      end
+    end
+    -- Resolve race ids for players requesting random race ids
+    for iPlrId = 1, #aPlrStartData do
+      -- Get player start data and requested start race and if random?
+      local aPlrStartItem<const> = aPlrStartData[iPlrId];
+      local iRaceId = aPlrStartItem[3];
+      if iRaceId == TYP.DIGRANDOM then
+        -- Check to make sure a race is available
+        if #aRacesAvailable == 0 then
+          error("No more races available for automatic selection!") end;
+        -- Pick a random race index
+        iRaceId = random(#aRacesAvailable);
+        -- Convert race index id to object type index id and check it
+        local iTypeIdSelected<const> = aRacesAvailable[iRaceId];
+        if not UtilIsInteger(iTypeIdSelected) then
+          error("Auto race selection "..iRaceId.." not available!") end;
+        -- Selection confirmed
+        aPlrStartItem[3] = iTypeIdSelected;
+        -- Remove the race available
+        remove(aRacesAvailable, iRaceId);
+        -- Mark race as taken
+        oRacesTaken[iTypeIdSelected] = iPlrId;
+      end
+    end
+    -- Check and set default logic callback
+    if fcbNLogic ~= nil then
+      if not UtilIsFunction(fcbNLogic) then
+        error("Logic function invalid! "..tostring(fcbNLogic)) end;
+      fcbLogic = fcbNLogic;
+    else fcbLogic = GameProc end;
+    -- Check and set default render callback
+    if fcbNRender ~= nil then
+      if not UtilIsFunction(fcbNRender) then
+        error("Render function invalid! "..tostring(fcbNRender)) end;
+      fcbRender = fcbNRender;
+    else fcbRender = RenderAll end;
+    -- Check end trigger function
+    if fcbNEnd ~= nil then
+      if not UtilIsFunction(fcbNEnd) then
+        error("Ending function invalid! "..tostring(fcbNEnd)) end;
+      fcbEnd = fcbNEnd;
+    else fcbEnd = TriggerEnd end;
+    -- Initialise default hotspot id if not specified
+    if not iNHotSpotId then iNHotSpotId = iHotSpotId end;
+    -- Set FBU callback
+    RegisterFBUCallback("game", OnStageUpdated);
+    -- Set level number and get data for it.
+    local oLvlInfo;
+    if UtilIsTable(iLId) then iLvlId, oLvlInfo = 1, iLId;
+    elseif UtilIsInteger(iLId) then
+      iLvlId, oLvlInfo = iLId, aLevelsData[iLId];
+    else error("Invalid id '"..
+      tostring(iLId).."' of type '"..type(iLId).."'!") end;
+    if not UtilIsTable(oLvlInfo) then
+      error("Invalid level data! "..tostring(oLvlInfo)) end;
+    -- Get level type data and level type
+    local oLvlTypeData<const> = oLvlInfo.t;
+    local iLvlType<const> = oLvlTypeData.i;
+    -- Set level name and level type name
+    sLvlName, sLvlType = oLvlInfo.n, oLvlTypeData.n;
+    -- Set shroud colour
+    iShroudColour = oLvlTypeData.s;
+    -- Holds required assets to set template to music or no music
+    local aAssets;
+    if sMusic then aAssets, aAssetsMusic[4].F = aAssetsMusic, sMusic;
+    else aAssets = aAssetsNoMusic end;
+    -- Update asset filenames to load
+    local sFilePrefix<const> = "lvl/"..oLvlInfo.f;
+    aAssets[1].F = sFilePrefix..".dat";
+    aAssets[2].F = sFilePrefix;
+    aAssets[3].F = oLvlTypeData.f;
+    -- Level assets loaded function
+    local function OnLoaded(aResources)
+      -- Set texture handle
+      texLev = aResources[3];
+      -- Grab the background part
+      iTileBg = TileA(texLev, 0, 256, 512, 512);
+      -- Build level mask and players list
+      local aPlrsFound = BuildLevel(aResources[1]);
+      -- Populate level with objects from table of metadata loaded externally
+      PopulateLevelWithObjects(aResources[2]);
+      -- If both players are AI?
+      if bAI1 and bAI2 then
+        -- A randomised version of randomised players
+        local aPlrsFoundRand<const> = { };
+        -- Repeat...
+        repeat
+          -- Get a random player
+          local iId<const> = random(#aPlrsFound);
+          -- Assign it to the randomised players list
+          aPlrsFoundRand[1 + #aPlrsFoundRand] = aPlrsFound[iId];
+          -- Remove original player
+          remove(aPlrsFound, iId);
+        -- ...until all players processed
+        until #aPlrsFound == 0;
+        -- Assign new players found
+        aPlrsFound = aPlrsFoundRand;
+      end
+      -- Create players and objects for players found
+      for iPlrId = 1, #aPlrsFound do
+        CreatePlayer(iPlrId, unpack(aPlrsFound[iPlrId])) end;
+      -- Set player race and level if not set (gam_test used)
+      if not oGlobalData.gSelectedRace then
+        oGlobalData.gSelectedRace = oPlrActive.R end;
+      if not oGlobalData.gSelectedLevel then
+        oGlobalData.gSelectedLevel = iLvlId end;
+      -- Play in-game music if requested
+      if sMusic then PlayMusic(aResources[4], 0) end;
+      -- Now we want to hear sounds if human player is set
+      if not bAI1 or not bAI2 then SetPlaySounds(true) end;
+      -- Set extra money if requested
+      if iSM1 then oPlrActive.M = oPlrActive.M + iSM1 end
+      if iSM2 then oPlrOpponent.M = oPlrOpponent.M + iSM2 end
+      -- Respawn flag set?
+      if bRespawn then
+         -- Set auto-respawn on all objects death
+         for iI = 1, #aObjs do
+           local oObj<const> = aObjs[iI];
+           oObj.F = oObj.F | OFL.RESPAWN;
+         end
+      end
+      -- Set win limit (Credits will not set 'w' meaning no limit)
+      iWinLimit = oLvlInfo.w;
+      if iWinLimit then iWinLimit = iWinLimit.r + oGlobalData.gCapitalCarried;
+                   else iWinLimit = maxinteger end;
+      -- Reset gems available
+      local iGemStart<const> = random(#aDigTileData);
+      for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
+        aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
+      -- Do one tick at least or the fade will try to render with variables
+      -- that haven't been initialised yet
+      fcbLogic();
+      -- Do fade then set requested game callbacks
+      local function OnFadeIn()
+        -- Key bank requested?
+        if iKB then
+          -- Use default keybank? Use users slowdown value else don't slowdown
+          if iKB < 0 then iKB, iSlowDown = iKeyBankId, iSavedSlowDown;
+                     else iSlowDown = 1 end;
+          -- Set specified keybank
+          SetKeys(true, iKB);
+        -- No slow down
+        else iSlowDown = 1 end;
+        -- Set specified hot spot
+        SetHotSpot(iNHotSpotId);
+        -- Set requested callbacks
+        SetCallbacks(fcbLogic, fcbRender);
+        -- Check for win (test end/post-morten)
+        EndConditionsCheck();
+      end
+      -- Fade in to main game
+      Fade(1.0, 0.0, 0.04, fcbRender, OnFadeIn, not not sMusic);
+    end
+    -- Load level graphics resources asynchronously
+    LoadResources(sLvlName, aAssets, OnLoaded);
+  end
+  -- Return rest of the API functions which needed external data
+  return { DeInitLevel = DeInitLevel, GameProc = GameProc,
+    GetAbsMousePos = GetAbsMousePos, GetActiveObject = GetActiveObject,
+    GetActivePlayer = GetActivePlayer, GetGameTicks = GetGameTicks,
+    GetLevelInfo = GetLevelInfo, GetOpponentPlayer = GetOpponentPlayer,
+    GetViewportData = GetViewportData, InitContinueGame = InitContinueGame,
+    LoadLevel = LoadLevel, LockViewport = LockViewport, RenderAll = RenderAll,
+    RenderInterface = RenderInterface, RenderObjects = RenderObjects,
+    RenderShroud = RenderShroud, RenderTerrain = RenderTerrain,
+    SellSpecifiedItems = SellSpecifiedItems, TriggerEnd = TriggerEnd };
 end
 -- Exports and imports ----------------------------------------------------- --
-return { F = OnScriptLoaded, A = { AdjustObjectHealth = AdjustObjectHealth,
-  AdjustViewPortX = AdjustViewPortX, AdjustViewPortY = AdjustViewPortY,
-  BCBlit = BCBlit, BuyItem = BuyItem, CreateObject = CreateObject,
-  DeInitLevel = DeInitLevel, DrawInfoFrameAndTitle = DrawInfoFrameAndTitle,
-  EndConditionsCheck = EndConditionsCheck, GameProc = GameProc,
-  GetAbsMousePos = GetAbsMousePos, GetActiveObject = GetActiveObject,
-  GetActivePlayer = GetActivePlayer, GetGameTicks = GetGameTicks,
-  GetLevelInfo = GetLevelInfo, GetOpponentPlayer = GetOpponentPlayer,
-  GetViewportData = GetViewportData, HaveZogsToWin = HaveZogsToWin,
-  InitContinueGame = InitContinueGame, IsSpriteCollide = IsSpriteCollide,
-  LoadLevel = LoadLevel, LockViewPort = LockViewPort,
-  ProcessViewPort = ProcessViewPort, RenderAll = RenderAll,
-  RenderInterface = RenderInterface, RenderObjects = RenderObjects,
-  RenderShroud = RenderShroud, RenderTerrain = RenderTerrain,
-  SelectObject = SelectObject, SellSpecifiedItems = SellSpecifiedItems,
-  SetPlaySounds = SetPlaySounds, TriggerEnd = TriggerEnd,
+return { F = OnScriptLoaded, I = OnPreInitAPI, A = {
+  AdjustViewportX = AdjustViewportX, AdjustViewportY = AdjustViewportY,
+  BuyItem = BuyItem, CreateObject = CreateObject,
+  DrawHealthBar = DrawHealthBar, EndConditionsCheck = EndConditionsCheck,
+  HaveZogsToWin = HaveZogsToWin, IsSpriteCollide = IsSpriteCollide,
+  SelectObject = SelectObject, SetPlaySounds = SetPlaySounds,
   UpdateShroud = UpdateShroud, aGemsAvailable = aGemsAvailable,
   aLvlData = aLvlData, aObjs = aObjs, aPlayers = aPlayers,
   aShroudData = aShroudData } };
--- ------------------------------------------------------------------------- --
-end                                    -- End of 'InternalsScope' namespace
--- ------------------------------------------------------------------------- --
-return HighPriorityVars();             -- Return high priority variables
 -- End-of-File ============================================================= --

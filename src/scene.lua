@@ -11,7 +11,7 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local UtilFormatNumber<const> = Util.FormatNumber;
--- M-Engine function aliases ----------------------------------------------- --
+-- Engine function aliases ------------------------------------------------- --
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, Fade, LoadLevel, LoadResources, PlayMusic, PrintC, SetCallbacks,
   oGlobalData, aLevelTypesData, aLevelsData, fontLarge;
@@ -28,13 +28,13 @@ local aAssetsScene,                    -- Scene assets required
 -- Render the zogs requirement callback ------------------------------------ --
 local function ProcRenderRequire()
   -- Draw appropriate background
-  BlitLT(texRequire, 72, 32);
+  BlitLT(texRequire, 72.0, 32.0);
   -- Draw the text to win
-  fontLarge:SetCRGBA(1, 1, 1, 1);
-  PrintC(fontLarge, 160, 192, sTextToWin);
+  fontLarge:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+  PrintC(fontLarge, 160.0, 192.0, sTextToWin);
 end
 -- Render the scene callback since we're using it multiple times ----------- --
-local function ProcRenderScene() BlitLT(texScene, 0, 20) end;
+local function ProcRenderScene() BlitLT(texScene, 0.0, 20.0) end;
 -- On required fade out? --------------------------------------------------- --
 local function OnFadeOutToGame()
   -- Release assets to garbage collector
@@ -50,7 +50,7 @@ local function ProcLogicRequired()
   iWaitCounter = iWaitCounter + 1;
   if iWaitCounter < 300 then return end;
   -- Fade out and then load the level
-  Fade(0, 1, 0.04, ProcRenderRequire, OnFadeOutToGame, true);
+  Fade(0.0, 1.0, 0.04, ProcRenderRequire, OnFadeOutToGame, true);
 end
 -- Required Zogs fade in proc ---------------------------------------------- --
 local function OnFadeInToRequired()
@@ -66,7 +66,7 @@ local function OnRequireAssetsLoaded(aResources)
     UtilFormatNumber(oLevelInfo.w.r + oGlobalData.gCapitalCarried, 0)..
     " ZOGS TO WIN";
   -- Fade in required scene
-  Fade(1, 0, 0.04, ProcRenderRequire, OnFadeInToRequired);
+  Fade(1.0, 0.0, 0.04, ProcRenderRequire, OnFadeInToRequired);
 end
 -- Scene fade out proc ----------------------------------------------------- --
 local function OnSceneFadedOut()
@@ -84,7 +84,7 @@ local function ProcLogicScene()
   iWaitCounter = iWaitCounter + 1;
   if iWaitCounter < 120 then return end;
   -- Set the gold scene
-  Fade(0, 1, 0.04, ProcRenderScene, OnSceneFadedOut);
+  Fade(0.0, 1.0, 0.04, ProcRenderScene, OnSceneFadedOut);
 end
 -- Fade in proc ------------------------------------------------------------ --
 local function OnSceneFadedIn()
@@ -100,7 +100,7 @@ local function OnSceneAssetsLoaded(aResources)
   -- Play scene music
   PlayMusic(aResources[2]);
   -- Fade in
-  Fade(1, 0, 0.04, ProcRenderScene, OnSceneFadedIn);
+  Fade(1.0, 0.0, 0.04, ProcRenderScene, OnSceneFadedIn);
 end
 -- Init scene function ----------------------------------------------------- --
 local function InitScene(iZoneId)
