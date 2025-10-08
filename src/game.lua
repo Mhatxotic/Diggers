@@ -3372,7 +3372,7 @@ local function InitCreateObject()
     iUniqueId = iUniqueId + 1;
     -- Build new object array
     local oObj<const> = {
-      A    = ACT.NONE,                   -- Object action (ACT.*
+      A    = false,                      -- Object action (ACT.*)
       AA   = false,                      -- Attachment action data
       AD   = { },                        -- Reference to action data
       AI   = iAI,                        -- Object AI procedure
@@ -3381,7 +3381,7 @@ local function InitCreateObject()
       AX   = 0,                          -- Tile X position clamped to 16
       AY   = 0,                          -- Tile Y position clamped to 16
       CS   = not not oObjData[ACT.STOP], -- Object can stop?
-      D    = oObjData.DIRECTION,         -- Direction object is going in
+      D    = false,                      -- Direction to go in (DIR.*)
       DA   = false,                      -- Attachment direction data
       DD   = { },                        -- Reference to direction data
       DID  = oObjData.DIGDELAY,          -- Digging delay
@@ -3398,7 +3398,7 @@ local function InitCreateObject()
       IN   = oObjData.INTELLIGENCE,      -- Intelligence
       IS   = nil,                        -- Selected inventory item
       IW   = 0,                          -- Weight of inventory
-      J    = JOB.NONE,                   -- Object job (JOB.*)
+      J    = false,                      -- Object job (JOB.*)
       JD   = { },                        -- Reference to job data
       JT   = 0,                          -- Job timer
       LC   = oObjData.LUNGS,             -- Lung capacity

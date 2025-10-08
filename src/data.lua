@@ -9,6 +9,65 @@
 -- ========================================================================= --
 -- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
+-- Actions ----------------------------------------------------------------- --
+local ACT<const> = { -- Object actions array (primary action)
+  -- Only one of these can be active at a time and have accompanying sprites...
+  -- Invisible          Standing still        Creeping (15fps)
+  HIDE    = 0x00000001, STOP    = 0x00000002, CREEP   = 0x00000003,
+  -- Walking (30fps)    Running (60fps)       Digging
+  WALK    = 0x00000004, RUN     = 0x00000005, DIG     = 0x00000006,
+  -- Teleporting        Dead                  Fighting
+  PHASE   = 0x00000007, DEATH   = 0x00000008, FIGHT   = 0x00000009,
+  -- Eaten (Egg)        Dying (Egg)           Jumping
+  EATEN   = 0x0000000a, DYING   = 0x0000000b, JUMP    = 0x0000000c,
+  -- Resting
+  REST    = 0x0000000d,
+  -- These are only commands for 'SetAction()' function...
+  -- Show (TNT map)                    Pickup item
+  MAP     = 0xfffffff7,                GRAB    = 0xfffffff8,
+  -- Drop item                         Select previous inventory
+  DROP    = 0xfffffff9,                PREV    = 0xfffffffa,
+  -- Select next inventory             Deploy purchased item
+  NEXT    = 0xfffffffb,                DEPLOY  = 0xfffffffc,
+  -- Open (flood gate)                 Close (flood gate)
+  OPEN    = 0xfffffffd,                CLOSE   = 0xfffffffe,
+  -- Keep previous action
+  KEEP    = 0xffffffff
+};
+-- Jobs -------------------------------------------------------------------- --
+local JOB<const> = { -- Job data array (secondary action)
+  -- Only one of these can be active at a time and doesn't need sprites...
+  -- No job                            Go opposite when blocked
+  NONE     = 0x00000001,               BOUNCE   = 0x00000002,
+  -- Dig when blocked                  Dig down when in centre of tile
+  DIG      = 0x00000003,               DIGDOWN  = 0x00000004,
+  -- Enter trade centre                In danger / low health
+  HOME     = 0x00000005,               INDANGER = 0x00000006,
+  -- Phasing out (dir = command)       Pickup treasure
+  PHASE    = 0x00000007,               SEARCH   = 0x00000008,
+  -- These are only commands for 'SetAction()' function...
+  -- Preserve job (don't dig down)     Keep current job
+  KNDD     = 0xfffffffe,               KEEP     = 0xffffffff,
+};
+-- Directions -------------------------------------------------------------- --
+local DIR<const> = {
+  -- Only one of these can be active at a time and have accompanying sprites...
+  -- Moving up-left      Moving up              Moving up-right
+  UL       = 0x00000001, U        = 0x00000002, UR       = 0x00000003,
+  -- Moving left         No direction           Moving right
+  L        = 0x00000004, NONE     = 0x00000005, R        = 0x00000006,
+  -- Moving down-left    Moving down            Moving down-right
+  DL       = 0x00000007, D        = 0x00000008, DR       = 0x00000009,
+  -- These are only commands for 'SetAction()' function...
+  -- Go up or down                     Go left or right
+  UD       = 0xfffffff9,               LR       = 0xfffffffa,
+  -- Go in opposite direction          Direction of centre tile
+  OPPOSITE = 0xfffffffb,               TCTR     = 0xfffffffc,
+  -- Keep if moving random if not      Direction towards home
+  KEEPMOVE = 0xfffffffd,               HOME     = 0xfffffffe,
+  -- Keep last direction               Randomise sprite tile
+  KEEP     = 0xffffffff
+};
 -- Menu data types array --------------------------------------------------- --
 local MNU<const> = {                   -- Menu ids
   -- No menu selected                  -- Main digger menu
@@ -31,46 +90,6 @@ local MNU<const> = {                   -- Menu ids
 -- Menu flags array -------------------------------------------------------- --
 local MFL<const> = {    -- Menu flags array
   BUSY   = 0x01; -- Block action if object is busy
-};
--- Actions ----------------------------------------------------------------- --
-local ACT<const> = {    -- Object actions array
-  HIDE    = 0x01, -- Object is invinsible
-  STOP    = 0x02, -- Object is standing still
-  CREEP   = 0x03, -- Object is creeping
-  WALK    = 0x04, -- Object is walking
-  RUN     = 0x05, -- Object is running
-  DIG     = 0x06, -- Object is digging
-  PHASE   = 0x07, -- Object is teleporting
-  DEATH   = 0x08, -- Object is dead
-  FIGHT   = 0x09, -- Object is fighting
-  EATEN   = 0x0A, -- Object is eaten by an alien egg
-  DYING   = 0x0B, -- Object is dying?
-  KEEP    = 0x0C, -- Object should preserve the current action
-  JUMP    = 0x0D, -- Object should jump
-  GRAB    = 0x0E, -- Object should grab the nearest object
-  DROP    = 0x0F, -- Object should drop the selected object
-  PREV    = 0x10, -- Object should cycle to the previous held item
-  NEXT    = 0x11, -- Object should cycle to the next held item
-  REST    = 0x12, -- Object should rest at the trade-centre
-  DEPLOY  = 0x13, -- Object should be deployed
-  OPEN    = 0x14, -- Object should open (flood gate)
-  CLOSE   = 0x15, -- Object should close (flood gate)
-  MAP     = 0x16, -- Object should show TNT map
-};
--- Jobs -------------------------------------------------------------------- --
-local JOB<const> = {     -- Job data array
-  NONE     = 0x1, -- No job
-  BOUNCE   = 0x2, -- The object bounces in the opposite direction when blocked
-  DIG      = 0x3, -- The object digs when it is blocked
-  DIGDOWN  = 0x4, -- The object digs down when in centre of tile
-  HOME     = 0x5, -- The object moves towards the home point
-  INDANGER = 0x6, -- The object is in danger
-  PHASE    = 0x7, -- The object is to teleport
-  SEARCH   = 0x8, -- The object walks around and picks up treasure
-  SPAWN    = 0x9, -- The object is spawning not teleporting (uses ACT_PHASE)
-  KEEP     = 0xA, -- Preserve the current job (SETACTION() Command)
-  REST     = 0xB, -- Object should rest
-  KNDD     = 0xC, -- Preserve current job, but disallow JOB.DIGDOWN
 };
 -- Object types array ------------------------------------------------------ --
 -- DO NOT MODIFY the order of these variables as it will screw up the level
@@ -128,14 +147,11 @@ local TYP<const> = {
 -- Races available list ---------------------------------------------------- --
 local aRacesData<const> =
   { TYP.FTARG, TYP.GRABLIN, TYP.HABBISH, TYP.QUARRIOR };
--- Tile ids that signify starting positions -------------------------------- --
-local aPlrStartData<const> = {
-  { 195, 198 }, -- Player 1 start data (Starting tile id and ending tile id)
-  { 199, 202 }  -- Player 2 start data (Starting tile id and ending tile id)
-};
+-- Tile ids that signify starting and ending tile positions ---------------- --
+local aPlrStartData<const> = { { 195, 198 }, { 199, 202 } };
 -- Race data --------------------------------------------------------------- --
 local aRaceStatData<const> = {
-  -- Object id -- STR STA DSP PAT ATP TEL ---------------------------------- --
+  -- Object id -- STR STA DIG PAT ATP INT ---------------------------------- --
   { TYP.FTARG,    25, 50, 37, 32, 35, 42 },
   { TYP.HABBISH,  42, 45, 27, 25, 42, 50 },
   { TYP.GRABLIN,  37, 35, 50, 35, 27, 38 },
@@ -220,26 +236,6 @@ local aJumpRiseData<const> =
 local aJumpFallData<const> =
   {  0,  0,  0,  0,   0,  0,  0,  1,   0,  0,  1,  0,   1,  0,  1,  1,
      1,  1,  1,  1,   1,  2,  2,  2 };
--- Directions -------------------------------------------------------------- --
-local DIR<const> = {
-  UL       = 0x01, -- Move left and dig up-left diagonally
-  U        = 0x02, -- Up direction but not used
-  UR       = 0x03, -- Move right and dig up-right diagonally
-  L        = 0x04, -- Move left and dig left
-  NONE     = 0x05, -- No direction
-  R        = 0x06, -- Move right and dig right
-  DL       = 0x07, -- Move left and dig down-left diagnoally
-  D        = 0x08, -- Dig down
-  DR       = 0x09, -- Move right and dig down-right diagonally
-  LR       = 0x0A, -- Go left or right
-  UD       = 0x0B, -- Go up or down
-  OPPOSITE = 0x0C, -- Move in the opposite direction (SETACTION() Command)
-  KEEP     = 0x0D, -- Preserve the current direction (SETACTION() Command)
-  KEEPMOVE = 0x0E, -- Keep direction if moving or move in random direction
-  HOME     = 0x0F, -- Direction to the player's home point (SETACTION() Cmd)
-  TCTR     = 0x10, -- Move into the centre of the tile (SETACTION() Command)
-  RNG      = 0x100 -- Randomise the sprite tile (FLAG!)
-};
 -- Actions when blocked ---------------------------------------------------- --
 local aDigBlockData<const> =
 { -- Job             Action    Job         Direction
@@ -251,9 +247,7 @@ local aDigBlockData<const> =
   [JOB.INDANGER] = { ACT.WALK, JOB.BOUNCE, DIR.OPPOSITE }, -- Danger
   [JOB.PHASE]    = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Other jobs
   [JOB.SEARCH]   = { ACT.KEEP, JOB.SEARCH, DIR.OPPOSITE }, -- Searching
-  [JOB.SPAWN]    = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Spawning
   [JOB.KEEP]     = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Keeping job
-  [JOB.REST]     = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Resting
   [JOB.KNDD]     = { ACT.STOP, JOB.NONE,   DIR.NONE     }, -- Preserve
 };
 -- Treasure spawning table ------------------------------------------------- --
@@ -685,7 +679,7 @@ local function MakeTreasureObject(iAB, iAE, iHS, iValue, sName)
     ACTION    = ACT.PHASE,             AITYPE    = AI.NONE,
     ANIMTIMER = TD.ANIMNORMAL,         DIRECTION = DIR.NONE,
     FLAGS     = OFL.SELLABLE|OFL.TREASURE|OFL.AQUALUNG,
-    HUDSPRITE = iHS,                   JOB       = JOB.SPAWN,
+    HUDSPRITE = iHS,                   JOB       = JOB.NONE,
     LONGNAME  = sName,                 NAME      = sName,
     STAMINA   = -1,                    STRENGTH  = 0,
     TELEDELAY = 200,                   VALUE     = iValue,
@@ -918,7 +912,7 @@ local oObjectData<const> = {           -- Objects data
  },
  ACTION    = ACT.PHASE,                AITYPE    = AI.NONE,
  ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.NONE,
- FLAGS     = OFL.ENEMY,                JOB       = JOB.SPAWN,
+ FLAGS     = OFL.ENEMY,                JOB       = JOB.NONE,
  LONGNAME  = "MYSTERIOUS EGG",         LUNGS     = 128,
  NAME      = "EGG",                    STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 3600,
