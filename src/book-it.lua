@@ -70,7 +70,7 @@ local aBookData<const> = {
     premendo i pulsanti corrispondenti.\n\z
     \n\z
     Per selezionare il capitolo che si vuole leggere basta posizionarsi sul \z
-    rispettivo titolo. Cin consente di accedere alla prima pagina del \z
+    rispettivo titolo. Ciò consente di accedere alla prima pagina del \z
     capitolo scelto.\n\z
     \n\z
     TNT\n\z
@@ -78,15 +78,70 @@ local aBookData<const> = {
     Il Libro di Zaro è fatto di una sostanza simile alla carta detta TNT \z
     (Transistor Neurali Testurizzati). Il"
   -- Page 5 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="processo di creazione di tale sostanza è cosi spaventosamente \z
+    complicato che può essere compreso appieno solo dagli Slorghi dotati di \z
+    tre cervelli che popolano la Grande Casa dei Mille Pensatori Mormoranti \z
+    sul pianeta Cerebralis; quindi non verrà tentata qui alcuna spiegazione \z
+    in merito. Basti sapere che, comunque venga creata, la TNT ha avuto \z
+    effetti impressionanti, o addirittura rivoluzionari, a detta di alcuni \z
+    (bisogna riconoscere, pern, che vi sono persone, solitamente con la \z
+    faccia ricoperta di peli sospetti e con un disco dimostrativo registrato \z
+    male in tasca, che vanno in giro raccontando cose strane), su tutti i \z
+    tipi di libri.\n\z
+    La TNT esercita tre effetti fondamentali facili da spiegare."
   -- Page 6 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="A. Un foglio di TNT può contenere un numero infinito di parole, il \z
+    che consente di ridurre lo spessore dei libri ad un'unica pagina.\n\z
+    \n\z
+    B. Quando il lettore tocca un foglio di TNT, il suo cervello viene \z
+    analizzato per valutarne le capacità elocutorie e di lettura. In una \z
+    frazione di nanosecondo, il testo viene presentato nella lingua \z
+    preferita del lettore.\n\z
+    \n\z
+    C. Se viene usato un inchiostro speciale per disegnare su una pagina \z
+    alla TNT, quando si apre il libro a tale pagina la figura si muove."
   -- Page 7 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="COME AVVIARE DIGGERS\n\z
+    \n\z
+    L'UFFICIO DEL CONTROLLORE\n\z
+    \n\z
+    Ogni volta che si inizia un nuovo gioco, si completa un livello o si \z
+    termina un gioco già avviato, si ritorna all'Ufficio del Controllore. Il \z
+    Controllore richiederà che sia selezionato un livello per dare inizio \z
+    alle operazioni di scavo o continuare quelle già intraprese con \z
+    successo.\n\z
+    \n\z
+    Prima di cominciare, si consiglia di leggere le sezioni riquardanti i \z
+    diversi tipi di ambienti in cui è possibile trovarsi. Ciò sarà utile per \z
+    organizzare gli spostamenti sul pianeta."
   -- Page 8 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="La prima volta in cui si comincia a giocare, vi saranno solo due \z
+    zone disponibili e occorrerà selezionarne una, \"DHOBBS\" o \"AZERG\", \z
+    per le operazioni preliminari.\n\z
+    Tali zone sono situate nell'angolo superiore sinistro della mappa. Se \z
+    uno di tali livelli viene portato a termine con successo, sarà possibile \z
+    estendere le operazioni di scavo in una zona adiacente, e iniziare, in \z
+    tal modo, a spostarsi sul pianeta.\n\z
+    \n\z
+    Dopo aver conquistato una zona intera, economicamente o annientando \z
+    l'avversario, una bandiera indicante la vittoria sarà innalzata in tale \z
+    zona.\n\z
+    \n\z
+    Dopo aver selezionato la zona desiderata, si ritorna all'Ufficio del \z
+    Controllore."
   -- Page 9 ---------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Se si sta per cominciare un nuovo gioco, il Controllore suggerirà \z
+    di scegliere una razza di scavatori in cui investire il proprio denaro.\n\z
+    \n\z
+    Ogni razza si distingue dalle altre per caratteristiche, obiettivi, \z
+    punti di forza e punti deboli. (Consultare il capitolo riguardante le \z
+    RAZZE più avanti nel Libro). Si consiglia di studiare le descrizioni \z
+    delle razze prima di effettuare la scelta, perché non è consentito \z
+    cambiare razza durante il gioco.\n\z
+    \n\z
+    Nell'area Seleziona Razza, è possibile consultare un riassunto delle \z
+    caratteristiche di ogni razza; le pagine contenenti tali Intormazioni \z
+    possono essere girate..."
   -- Page 10 --------------------------------------------------------------- --
   },{ T=""
   -- Page 11 --------------------------------------------------------------- --
