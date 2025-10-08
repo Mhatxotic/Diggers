@@ -39,6 +39,15 @@ local function InitDebugPlay(iId)
   RegisterFBUCallback("debug", OnStageUpdatedd);
   -- Player and digger ids for selection
   local iSelectedPlayerId, iSelectedDiggerId = 1, 1;
+  -- Select next digger
+  local function SelectNextDigger()
+    iSelectedDiggerId = iSelectedDiggerId + 1;
+    if iSelectedDiggerId > 5 then
+      iSelectedDiggerId = 1;
+      iSelectedPlayerId = iSelectedPlayerId + 1;
+      if iSelectedPlayerId > 2 then iSelectedPlayerId = 1 end;
+    end
+  end
   -- Infinite play tick callback
   local function OnTick()
     -- New object selected
@@ -67,25 +76,23 @@ local function InitDebugPlay(iId)
     end
     -- Switch object every 10 seconds
     if not oObj and GetGameTicks() % 600 == 0 then
+      -- Try again point
+      ::tryagain::
       -- Select a player
       local oPlayer<const> = aPlayers[iSelectedPlayerId];
       -- Get player diggers
       local aDiggers<const> = oPlayer.D;
       -- Find a digger from the specified player.
-      local aNewObj<const> = aDiggers[iSelectedDiggerId];
-      if aNewObj then oObj = aNewObj end;
+      oObj = aDiggers[iSelectedDiggerId];
+      -- Loop if we don't find a digger
+      if not oObj then SelectNextDigger() goto tryagain end;
     end
     -- New object selected?
     if oObj then
       -- Select the object and player if we got something!
       SelectObject(oObj);
       -- Next object
-      iSelectedDiggerId = iSelectedDiggerId + 1;
-      if iSelectedDiggerId > 5 then
-        iSelectedDiggerId = 1;
-        iSelectedPlayerId = iSelectedPlayerId + 1;
-        if iSelectedPlayerId > 2 then iSelectedPlayerId = 1 end;
-      end
+      SelectNextDigger();
     end
     -- Perform game procedure
     GameProc();
