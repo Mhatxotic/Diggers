@@ -1802,7 +1802,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1761605 Outside decoration only
   TF.NONE,                             -- 1771705 Outside decoration only
   TF.NONE,                             -- 1781805 Outside decoration only
-  TF.NONE,                             -- 179195 Outside decoration only
+  TF.NONE,                             -- 1791905 Outside decoration only
   TF.NONE,                             -- 1802005 Outside decoration only
   TF.NONE,                             -- 1812105 Outside decoration only
   TF.NONE,                             -- 1822205 Outside decoration only
