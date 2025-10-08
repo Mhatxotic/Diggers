@@ -128,6 +128,11 @@ local TYP<const> = {
 -- Races available list ---------------------------------------------------- --
 local aRacesData<const> =
   { TYP.FTARG, TYP.GRABLIN, TYP.HABBISH, TYP.QUARRIOR };
+-- Tile ids that signify starting positions -------------------------------- --
+local aPlrStartData<const> = {
+  { 195, 198 }, -- Player 1 start data (Starting tile id and ending tile id)
+  { 199, 202 }  -- Player 2 start data (Starting tile id and ending tile id)
+};
 -- Race data --------------------------------------------------------------- --
 local aRaceStatData<const> = {
   -- Object id -- STR STA DSP PAT ATP TEL ---------------------------------- --
@@ -2623,7 +2628,7 @@ return { F = Util.Blank, A = {         -- Sending API to main loader
   oSfxData = oSfxData, aShopData = aShopData, aShroudCircle = aShroudCircle,
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,
   oTileFlags = TF, oTimerData = TD, oTrainTrackData = oTrainTrackData,
-  aZoneData = aZoneData
+  aZoneData = aZoneData, aPlrStartData = aPlrStartData
   -- ----------------------------------------------------------------------- --
 } };                                   -- End of definitions to send to loader
 -- End-of-File ============================================================= --

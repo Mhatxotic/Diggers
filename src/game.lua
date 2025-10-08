@@ -12,9 +12,10 @@
 -- Core function aliases --------------------------------------------------- --
 local abs<const>, ceil<const>, error<const>, floor<const>, format<const>,
   max<const>, maxinteger<const>, min<const>, pairs<const>, random<const>,
-  remove<const>, tostring<const> =
+  remove<const>, tostring<const>, unpack<const> =
     math.abs, math.ceil, error, math.floor, string.format, math.max,
-    math.maxinteger, math.min, pairs, math.random, table.remove, tostring;
+    math.maxinteger, math.min, pairs, math.random, table.remove, tostring,
+    table.unpack;
 -- M-Engine function aliases ----------------------------------------------- --
 local CoreLog<const>, CoreWrite<const>, MaskCreateZero<const>,
   UtilClamp<const>, UtilClampInt<const>, UtilFormatNumber<const>,
@@ -34,10 +35,10 @@ local ACT, AI, BlitSLTRB, BlitSLT, DF, DIR, Fade, GetMouseX, GetMouseY,
   SetCursorPos, SetHotSpot, SetKeys, SetTip, TileA, TYP, aAIChoicesData,
   aDigBlockData, oDigData, aDigTileData, oDugRandShaftData, oExplodeAboveData,
   aExplodeDirData, oFloodGateData, oGlobalData, aJumpFallData, aJumpRiseData,
-  aLevelsData, oMenuData, oObjectData, oSfxData, aShopData, aShroudCircle,
-  aShroudTileLookup, aTileData, oTileFlags, oTimerData, oTrainTrackData,
-  iSlowDown, iSavedSlowDown, fontLarge, fontLittle, fontTiny, iPosX, iPosY,
-  texSpr;
+  aLevelsData, aPlrStartData, oMenuData, oObjectData, oSfxData, aShopData,
+  aShroudCircle, aShroudTileLookup, aTileData, oTileFlags, oTimerData,
+  oTrainTrackData, iSlowDown, iSavedSlowDown, fontLarge, fontLittle, fontTiny,
+  iPosX, iPosY, texSpr;
 -- High priority variables (because of MAXVARS limit) ---------------------- --
 local function HighPriorityVars()
 -- Prototype functions (assigned later) ------------------------------------ --
@@ -4110,6 +4111,95 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
   fcbNLogic, fcbNRender, iNHotSpotId, iSM1, iSM2, bRespawn)
   -- De-init/Reset current level
   DeInitLevel();
+  -- Setup player 1 parameters. We force the race that was originally
+  -- selected by the player if it is set.
+  if iRace1 == nil then
+    iRace1 = oGlobalData.gSelectedRace or TYP.DIGRANDOM end;
+  aPlrStartData[1][3] = iRace1;
+  if bAI1 == nil then bAI1 = false end;
+  if not UtilIsBoolean(bAI1) then
+    error("Player 1 AI boolean of type '"..type(bAI1).."' invalid!") end;
+  aPlrStartData[1][4] = bAI1;
+  -- Setup player 2 parameters
+  if iRace2 == nil then
+    iRace2 = TYP.DIGRANDOM end;
+  aPlrStartData[2][3] = iRace2;
+  if bAI2 == nil then bAI2 = true end;
+  if not UtilIsBoolean(bAI2) then
+    error("Player 2 AI boolean of type '"..type(bAI2).."' invalid!") end;
+  aPlrStartData[2][4] = bAI2;
+  -- Prepare a modifiable table of races available for selection
+  local aRacesAvailable<const>, oRacesTaken<const> = { }, { };
+  for iI = 1, #aRacesData do
+    aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
+  -- Resolve race ids for players requesting actual race ids first
+  for iPlrId = 1, #aPlrStartData do
+    -- Get player start data and requested start race and if not random?
+    local aPlrStartItem<const> = aPlrStartData[iPlrId];
+    local iTypeId = aPlrStartItem[3];
+    if iTypeId ~= TYP.DIGRANDOM then
+      -- Make sure id valid
+      if not UtilIsInteger(iTypeId) then
+        error("Player "..iPlrId.." race of type '"..type(iTypeId)..
+          "' invalid!") end;
+      if iTypeId < TYP.FTARG or iTypeId > TYP.QUARRIOR then
+        error("Invalid player "..iPlrId.." race id of "..iTypeId.."!") end;
+      -- Check to make sure the race id isnt taken
+      local iPlrTaken<const> = oRacesTaken[iTypeId];
+      if iPlrTaken then
+        error("Race "..iRaceId.." for player "..iPlrId.." already taken \z
+          by player "..iPlrTaken) end;
+      -- Check to make sure a race is available
+      if #aRacesAvailable == 0 then
+        error("No more races available for manual race selection of \z
+          player "..iPlrId.."!") end;
+      -- Repeat...
+      local iRaceId = 1;
+      repeat
+        -- If type in race id matches requested type id?
+        if aRacesAvailable[iRaceId] == iTypeId then
+          -- Remove type from races available
+          remove(aRacesAvailable, iRaceId);
+          -- Mark race as taken
+          oRacesTaken[iTypeId] = iPlrId;
+          -- Selection confirmed
+          aPlrStartItem[3] = iTypeId;
+          -- Done
+          goto done;
+        end
+        -- Next race id
+        iRaceId = iRaceId + 1;
+      -- ...until no more races available
+      until iRaceId > #aRacesAvailable;
+      -- Invalid type (impossible)
+      error("Type "..iTypeId.." not found for "..iPlrId.."!");
+      -- Continue point
+      ::done::
+    end
+  end
+  -- Resolve race ids for players requesting random race ids
+  for iPlrId = 1, #aPlrStartData do
+    -- Get player start data and requested start race and if random?
+    local aPlrStartItem<const> = aPlrStartData[iPlrId];
+    local iRaceId = aPlrStartItem[3];
+    if iRaceId == TYP.DIGRANDOM then
+      -- Check to make sure a race is available
+      if #aRacesAvailable == 0 then
+        error("No more races available for automatic selection!") end;
+      -- Pick a random race index
+      iRaceId = random(#aRacesAvailable);
+      -- Convert race index id to object type index id and check it
+      local iTypeIdSelected<const> = aRacesAvailable[iRaceId];
+      if not UtilIsInteger(iTypeIdSelected) then
+        error("Auto race selection "..iRaceId.." not available!") end;
+      -- Selection confirmed
+      aPlrStartItem[3] = iTypeIdSelected;
+      -- Remove the race available
+      remove(aRacesAvailable, iRaceId);
+      -- Mark race as taken
+      oRacesTaken[iTypeIdSelected] = iPlrId;
+    end
+  end
   -- Check and set default logic callback
   if fcbNLogic ~= nil then
     if not UtilIsFunction(fcbNLogic) then
@@ -4124,11 +4214,6 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
   else fcbRender = RenderAll end;
   -- Initialise default hotspot id if not specified
   if not iNHotSpotId then iNHotSpotId = iHotSpotId end;
-  -- Set default players if not set
-  if not iRace1 then iRace1 = oGlobalData.gSelectedRace or TYP.DIGRANDOM end;
-  if not bAI1 then bAI1 = false end;
-  if not iRace2 then iRace2 = TYP.DIGRANDOM end;
-  if not bAI2 then bAI2 = true end;
   -- Set FBU callback
   local function OnStageUpdated(...)
     -- Set new stage bounds
@@ -4178,11 +4263,6 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     texLev = aResources[3];
     -- Grab the background part
     iTileBg = TileA(texLev, 0, 256, 512, 512);
-    -- Player starting positions
-    local aPlrStartData<const> = {
-      { 195, 198, iRace1, bAI1 },   -- Player 1 start data
-      { 199, 202, iRace2, bAI2 }    -- Player 2 start data
-    };
     -- Create a blank mask
     maskZone = MaskCreateZero(sFilePrefix, iLLPixW, iLLPixH);
     -- Get minimum and maximum object id
@@ -4281,41 +4361,11 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       -- Assign new players found
       aPlrsFound = aPlrsFoundRand;
     end
-    -- Prepare a modifiable table of races available for selection
-    local aRacesAvailable<const> = { };
-    for iI = 1, #aRacesData do
-      aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
     -- Create players for players found
-    for iPlayerId = 1, #aPlrsFound do
+    for iPlrId = 1, #aPlrsFound do
       -- Unpack saved player data
-      local aPlrFound<const> = aPlrsFound[iPlayerId];
-      local iX<const>, iY<const>, iPlayerId<const>, iRaceId, bIsAI<const> =
-        aPlrFound[1], aPlrFound[2], iPlayerId, aPlrFound[3],
-        aPlrFound[4];
-      -- Digger in races list picked
-      local iRacesId;
-      -- If random digger requested?
-      if iRaceId == TYP.DIGRANDOM then
-        -- Pick a random race from the races array
-        iRacesId = random(#aRacesAvailable);
-        -- Override the random race type with an actual race type
-        iRaceId = aRacesAvailable[iRacesId];
-      -- Actually specified specific race
-      else
-        -- For each available race
-        iRacesId = 1;
-        while iRacesId <= #aRacesAvailable do
-          -- Get race type id and if we matched requested race then break
-          if aRacesAvailable[iRacesId] == iRaceId then break end;
-          -- Try next races id
-          iRacesId = iRacesId + 1;
-        end
-        -- Wasn't able to remove anything? Show error
-        if iRacesId > #aRacesAvailable then
-          error("Race "..iRaceId.." not available!") end;
-      end
-      -- Remove the race from the table so it can't be duplicated
-      remove(aRacesAvailable, iRacesId);
+      local iX<const>, iY<const>, iRaceId, bIsAI<const> =
+        unpack(aPlrsFound[iPlrId]);
       -- Players diggers and number of diggers to create
       local aDiggers<const>, iNumDiggers<const> = { }, 5;
       -- Calculate home point
@@ -4338,7 +4388,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
         GI  = 0,                       -- Total income
         M   = 100,                     -- Money
         R   = iRaceId,                 -- Race type (TYP.*)
-        I   = iPlayerId,               -- Player index
+        I   = iPlrId,               -- Player index
         LK  = 0,                       -- Lifeforms killedV (OFL.LIVING)
         HX  = iHomeX,                  -- Home point X position
         HY  = iHomeY,                  -- Home point Y position
@@ -4347,7 +4397,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
         RD  = aRaceData                -- Race data
       };
       -- If this is player one?
-      if iPlayerId == 1 then
+      if iPlrId == 1 then
         -- Set active player
         oPlrActive = oPlr;
         -- Is not AI?
@@ -4413,7 +4463,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
           aDiggers[1 + #aDiggers] = oDigger;
         -- Failed so show map maker in console that the object id is invalid
         else CoreWrite("Warning! Digger "..iDiggerId..
-          " not created for player "..iPlayerId.."! Id="..iRaceId..", X="..iX..
+          " not created for player "..iPlrId.."! Id="..iRaceId..", X="..iX..
           ", Y="..iY..".", 9) end;
         -- Increment home point X position
         iHomeX = iHomeX + 5;
@@ -4421,7 +4471,7 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       -- Add player data to players array
       aPlayers[1 + #aPlayers] = oPlr;
       -- Log creation of item
-      CoreLog("Created player "..iPlayerId.." as '"..oObjectData[iRaceId].NAME..
+      CoreLog("Created player "..iPlrId.." as '"..oObjectData[iRaceId].NAME..
         "'["..iRaceId.."] at AX:"..iX..",AY:"..iY.." in position #"..
         #aPlayers.."!");
     end
@@ -4430,14 +4480,13 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       oGlobalData.gSelectedRace = oPlrActive.R end;
     if not oGlobalData.gSelectedLevel then
       oGlobalData.gSelectedLevel = iLvlId end;
-    -- Reset gems available
-    local iGemStart<const> = random(#aDigTileData);
-    for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
-      aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
     -- Play in-game music if requested
     if sMusic then PlayMusic(aResources[4], 0) end;
     -- Now we want to hear sounds if human player is set
-    if bAI1 == false then SetPlaySounds(true) end;
+    if bAI1 == false or bAI2 == false then SetPlaySounds(true) end;
+    -- Set extra money if requested
+    if iSM1 then oPlrActive.M = oPlrActive.M + iSM1 end
+    if iSM2 then oPlrOpponent.M = oPlrOpponent.M + iSM2 end
     -- Respawn flag set?
     if bRespawn then
        -- Set auto-respawn on all objects death
@@ -4450,6 +4499,10 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     iWinLimit = oLvlInfo.w;
     if iWinLimit then iWinLimit = iWinLimit.r + oGlobalData.gCapitalCarried;
                  else iWinLimit = maxinteger end;
+    -- Reset gems available
+    local iGemStart<const> = random(#aDigTileData);
+    for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
+      aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
     -- Do one tick at least or the fade will try to render with variables
     -- that haven't been initialised yet
     fcbLogic();
@@ -4468,9 +4521,6 @@ local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
       SetHotSpot(iNHotSpotId);
       -- Set requested callbacks
       SetCallbacks(fcbLogic, fcbRender);
-      -- Add extra money if requested
-      if iSM1 then oPlrActive.M = oPlrActive.M + iSM1 end
-      if iSM2 then oPlrOpponent.M = oPlrOpponent.M + iSM2 end
       -- Check for win (test end/post-morten)
       EndConditionsCheck();
     end
@@ -4551,7 +4601,7 @@ local function OnScriptLoaded(GetAPI)
     RenderTip, SetHotSpot, SetTip, aRacesData, oDugRandShaftData,
     oFloodGateData, oTrainTrackData, oExplodeAboveData, maskLev, maskSpr,
     oGlobalData, aShopData, oAssetsData, aAIChoicesData, oCursorIdData,
-    aShroudCircle, aShroudTileLookup =
+    aShroudCircle, aShroudTileLookup, aPlrStartData =
       GetAPI("oObjectTypes", "aLevelsData", "LoadResources", "oObjectData",
         "oObjectActions", "oObjectJobs", "oObjectDirections", "oTimerData",
         "aAITypesData", "aObjectFlags", "aDigTileData", "PlayMusic",
@@ -4569,7 +4619,7 @@ local function OnScriptLoaded(GetAPI)
         "oFloodGateData", "oTrainTrackData", "oExplodeAboveData", "maskLevel",
         "maskSprites", "oGlobalData", "aShopData", "oAssetsData",
         "aAIChoicesData", "oCursorIdData", "aShroudCircle",
-        "aShroudTileLookup");
+        "aShroudTileLookup", "aPlrStartData");
   -- Make sure we have the correct number of level tiles
   local iMaskLev<const> = maskLev:Tiles();
   if iMaskLev ~= #aTileData then
