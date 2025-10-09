@@ -1328,7 +1328,7 @@ local oObjectData<const> = {           -- Objects data
  ACTION     = ACT.STOP,                AITYPE     = AI.LIFT,
  ANIMTIMER  = TD.ANIMNORMAL,           ATTACHMENT = TYP.LIFTC,
  DIRECTION  = DIR.D,
- FLAGS      = OFL.DEVICE|OFL.EXPLODE|OFL.AQUALUNG,
+ FLAGS      = OFL.DEVICE|OFL.AQUALUNG,
  JOB        = JOB.NONE,                LONGNAME   = "ELEVATOR",
  MENU       = MNU.LIFT,                NAME       = "ELEVATOR",
  STAMINA    = -1,                      STRENGTH   = 0,
@@ -1685,7 +1685,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.EA,                          -- 0592701
   TF.D|TF.EA,                          -- 0602801
   TF.D|TF.EA,                          -- 0612901
-  TF.ELRB,                             -- 0623001
+  TF.ELRB,                             -- 0623001 Elevator shaft top
   TF.F,                                -- 0633101
   TF.F,                                -- 0640002
   TF.NONE,                             -- 0650102
@@ -1812,8 +1812,8 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1862605 Outside decoration only
   TF.NONE,                             -- 1872705 Outside decoration only
   TF.NONE,                             -- 1882805 Outside decoration only
-  TF.EA|TF.E,                          -- 1892905 Elevator shaft wire
-  TF.NONE,                             -- 1903005 Elevator base
+  TF.D|TF.EA|TF.E,                     -- 1892905 Elevator shaft wire
+  TF.D,                                -- 1903005 Elevator base
   TF.NONE,                             -- 1913105 Trade centre top left
   TF.NONE,                             -- 1920006 Trade centre top right
   TF.NONE,                             -- 1930106 Trade centre bottom left
@@ -1925,7 +1925,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.W|TF.EA,                     -- 2991109 Flood cave ceil top-left
   TF.D|TF.W|TF.EA,                     -- 3001209 Flood cave ceil top-right
   TF.D|TF.W|TF.EA,                     -- 3011309 Flood cave floor bot-right
-  TF.D|TF.W|TF.ELRB,                   -- 3021409 Flood elevator ceiling
+  TF.D|TF.W|TF.ELRB,                   -- 3021409 Flood elevator top
   TF.F,                                -- 3031509 Outside top-right ceiling 1
   TF.F,                                -- 3041609 Outside top-right ceiling 2
   TF.F,                                -- 3051709 Outside ceiling
@@ -2137,28 +2137,6 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 5113115 Unused
 };
 assert(#aTileData == 512, "aTileData must only have 512 tiles!");
--- Explode directions data ------------------------------------------------- --
-local aExplodeDirData<const> = {
-  -- X -- Y -- Flags -----             -- Order is important!
-  {   0,  -1, TF.W|TF.EB },            -- [Up] Flood if above tile exposed
-  {  -1,   0, TF.W|TF.ER },            -- [Left] Flood if left tile exposed
-  {   0,   0, TF.W       },            -- [Centre] No flooding check needed
-  {   1,   0, TF.W|TF.EL },            -- [Right] Flood if right tile exposed
-  {   0,   1, TF.W|TF.ET },            -- [Down] Flood if below tile exposed
-};
--- Explode directions data ------------------------------------------------- --
-local oExplodeAboveData<const> = {
-  [ 88] =   7, -- Remove left end of track and set clear tile
-  [ 91] =   7, -- Remove right end of track and set clear tile
-  [149] = 150, -- Remove track from dug tile with light
-  [169] = 170, -- Remove track from dug tile with forward beam
-  [210] =   7, -- Remove track from dug tile beam backwards
-  [328] = 247, -- Remove watered right end of track and set to cleared water
-  [331] = 247, -- Remove watered left end of track and set to cleared water
-  [389] = 390, -- Remove watered light and set to watered light
-  [409] = 410, -- Remove watered beam forward and set to watered beam forward
-  [450] = 247, -- Remove watered clear track and set to clear
-};
 -- Train track data -------------------------------------------------------- --
 local oTrainTrackData<const> = {
   [  7] = 210, -- Dug tile to clear track tile
@@ -2610,14 +2588,14 @@ return { F = Util.Blank, A = {         -- Sending API to main loader
   aDigBlockData = aDigBlockData, oDigData = oDigData,
   aDigTileData = aDigTileData, aDigTileFlags = DF,
   oDugRandShaftData = oDugRandShaftData, oEndingData = oEndingData,
-  oExplodeAboveData = oExplodeAboveData, aExplodeDirData = aExplodeDirData,
-  oFloodGateData = oFloodGateData, aIntroSubTitles = aIntroSubTitles,
-  oKeyToLiteral = oKeyToLiteral, aJumpFallData = aJumpFallData,
-  aJumpRiseData = aJumpRiseData, aLevelTypesData = aLevelTypesData,
-  aLevelsData = aLevelsData, oMenuData = oMenuData, oMenuFlags = MFL,
-  oMenuIds = MNU, oObjectActions = ACT, oObjectData = oObjectData,
-  oObjectDirections = DIR, aObjectFlags = OFL, oObjectJobs = JOB,
-  oObjectTypes = TYP, aRaceStatData = aRaceStatData, aRacesData = aRacesData,
+  aExplodeDirData = aExplodeDirData, oFloodGateData = oFloodGateData,
+  aIntroSubTitles = aIntroSubTitles, oKeyToLiteral = oKeyToLiteral,
+  aJumpFallData = aJumpFallData, aJumpRiseData = aJumpRiseData,
+  aLevelTypesData = aLevelTypesData, aLevelsData = aLevelsData,
+  oMenuData = oMenuData, oMenuFlags = MFL, oMenuIds = MNU,
+  oObjectActions = ACT, oObjectData = oObjectData, oObjectDirections = DIR,
+  aObjectFlags = OFL, oObjectJobs = JOB, oObjectTypes = TYP,
+  aRaceStatData = aRaceStatData, aRacesData = aRacesData,
   aSetupButtonData = aSetupButtonData, aSetupOptionData = aSetupOptionData,
   oSfxData = oSfxData, aShopData = aShopData, aShroudCircle = aShroudCircle,
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,

@@ -33,8 +33,8 @@ local ACT, AI, BlitSLTRB, BlitSLT, DF, DIR, Fade, GetMouseX, GetMouseY,
   MNU, OFL, PlayMusic, PlaySound, PlayStaticSound, Print, PrintC, PrintR,
   RegisterFBUCallback, RenderFade, RenderShadow, RenderTip, SetCallbacks,
   SetCursorPos, SetHotSpot, SetKeys, SetTip, TileA, TYP, aAIChoicesData,
-  aDigBlockData, oDigData, aDigTileData, oDugRandShaftData, oExplodeAboveData,
-  aExplodeDirData, oFloodGateData, oGlobalData, aJumpFallData, aJumpRiseData,
+  aDigBlockData, oDigData, aDigTileData, oDugRandShaftData,
+  oFloodGateData, oGlobalData, aJumpFallData, aJumpRiseData,
   aLevelsData, aPlrStartData, oMenuData, oObjectData, oSfxData, aShopData,
   aShroudCircle, aShroudTileLookup, aTileData, oTileFlags, oTimerData,
   oTrainTrackData, iSlowDown, iSavedSlowDown, fontLarge, fontLittle, fontTiny,
@@ -737,22 +737,21 @@ local function UpdateShroud(iOX, iOY)
     -- Calculate adjusted position based on object
     local iX<const>, iY<const> =
       iOX + aShroudCircleItem[1], iOY + aShroudCircleItem[2];
-    -- If the co-ordinates are valid?
-    if iX >= 0 and iY >= 0 and iX < iLLAbsW and iY < iLLAbsH then
-      -- Get shroud flags and calc new flags data and if different?
-      local aShroudItem<const> = aShroudData[iY * iLLAbsW + iX + 1];
-      local iOldFlags<const> = aShroudItem[2];
-      local iNewFlags<const> = iOldFlags | aShroudCircleItem[3];
-      if iOldFlags ~= iNewFlags then
-        -- Lookup new tile id and if theres only one? Set first tile
-        local aTiles<const> = aShroudTileLookup[1 + iNewFlags];
-        if #aTiles == 1 then
-          aShroudItem[1], aShroudItem[2] = aTiles[1], iNewFlags;
-        -- More than one tile? Randomly select one
-        else aShroudItem[1], aShroudItem[2] =
-          aTiles[random(#aTiles)], iNewFlags end;
-      end
-    end
+    -- If the co-ordinates are not valid then skip
+    if iX < 0 or iY < 0 or iX >= iLLAbsW or iY >= iLLAbsH then goto skip end;
+    -- Get shroud flags and calc new flags data and continue skip if same
+    local aShroudItem<const> = aShroudData[iY * iLLAbsW + iX + 1];
+    local iOldFlags<const> = aShroudItem[2];
+    local iNewFlags<const> = iOldFlags | aShroudCircleItem[3];
+    if iOldFlags == iNewFlags then goto skip end;
+    -- Lookup new tile id and if theres only one? Set first tile
+    local aTiles<const> = aShroudTileLookup[1 + iNewFlags];
+    if #aTiles == 1 then aShroudItem[1], aShroudItem[2] = aTiles[1], iNewFlags;
+    -- More than one tile? Randomly select one
+    else aShroudItem[1], aShroudItem[2] =
+      aTiles[random(#aTiles)], iNewFlags end;
+    -- Next shroud tile
+    ::skip::
   end
 end
 -- Set object X position --------------------------------------------------- --
@@ -1068,20 +1067,17 @@ end
 -- Pickup Objects ---------------------------------------------------------- --
 local function PickupObjects(oObj, bOnlyTreasure)
   -- Look for objects that can be picked up
-  local iObj = 1 while iObj <= #aObjs do
+  for iObj = 1, #aObjs do
     -- Try to pickup specified object and return success if succeeded
     if PickupObject(oObj, aObjs[iObj], bOnlyTreasure) then return true end;
-    -- Try next object
-    iObj = iObj + 1;
   end
   -- Failed!
   return false;
 end
 -- Set a random action, job and direction ---------------------------------- --
 local function SetRandomJob(oObj, bUser)
-  -- Select a random choice
+  -- Select a random choice and failed direction matches?
   local aChoice = aAIChoicesData[random(#aAIChoicesData)];
-  -- Failed direction matches then try something else
   if aChoice[1] == oObj.FDD then aChoice = aChoice[2];
   -- We're not blocked from digging so try moving in that direction
   else aChoice = aChoice[3] end;
@@ -1097,22 +1093,15 @@ local function AIPatienceLogic(oObj)
     return end;
   -- If have rest ability? (25% chance to execute). Use it and return
   if oObj.OD[ACT.REST] and random() < 0.25 then
-    return SetAction(oObj, ACT.REST, JOB.NONE, DIR.NONE);
-  end
+    return SetAction(oObj, ACT.REST, JOB.NONE, DIR.NONE) end;
   -- Do something casual
   SetRandomJob(oObj, true);
 end
 -- Object is at home ------------------------------------------------------- --
 local function ObjectIsAtHome(oObj)
-  -- Check parameter is valid
-  if not UtilIsTable(oObj) then
-    error("Invalid object specified! "..tostring(oObj)) end;
-  -- Make sure object has an owner
-  local oPlr<const> = oObj.P;
-  if not UtilIsTable(oPlr) then
-    error("Object has invalid parent! "..tostring(oPlr)) end;
   -- Return if object is at the home point
-  return oObj.X == oPlr.HX and oObj.Y == oPlr.HY;
+  local oPlr<const> = oObj.P;
+  return oPlr and oObj.X == oPlr.HX and oObj.Y == oPlr.HY;
 end
 -- Cycle object inventory -------------------------------------------------- --
 local function CycleObjInventory(oObj, iDirection)
@@ -1124,9 +1113,8 @@ local function CycleObjInventory(oObj, iDirection)
     -- Get inventory object and if we got it
     local oObjInv<const> = aInv[iInvIndex];
     if oObjInv == oObj.IS then
-      -- Cycle object wrapping on low or high
+      -- Cycle object wrapping on low or high and return success
       oObj.IS = aInv[1 + (((iInvIndex - 1) + iDirection) % #aInv)];
-      -- Success
       return true;
     end
   end
@@ -1186,7 +1174,37 @@ local function InitSetAction()
     -- Failed
     return false;
   end
-  -- Deployment functions
+  -- Do actually deploy the lift
+  local function LiftFindTop(oObj, iLoc, iBottom)
+    -- Search for a buildable above ground surface
+    for iTop = iLoc, iLLAbsW, -iLLAbsW do
+      -- Get tile
+      local iId<const> = aLvlData[1 + iTop];
+      local iTileId<const> = aTileData[1 + iId];
+      -- Tile has not been dug
+      if iTileId & oTileFlags.AD == 0 then
+        -- Tile is firm buildable ground?
+        if iTileId & oTileFlags.F ~= 0 then
+          -- Height check and if ok and creating an object went ok?
+          -- Create lift object
+          if iTop >= iLLAbsW and iBottom - iTop >= 384 and
+            CreateObject(TYP.LIFTB, (oObj.X + 8) // 16 * 16,
+              (oObj.Y + 15) // 16 * 16, oObj.P) then
+            -- Draw cable from top to bottom
+            UpdateLevel(iTop, 62);
+            for iTop = iTop + iLLAbsW, iBottom - iLLAbsW, iLLAbsW do
+              UpdateLevel(iTop, 189) end;
+            UpdateLevel(iBottom, 190);
+            -- We are fully deployed now so set success
+            return true;
+          end
+        end
+        -- Done
+        break;
+      end
+    end
+  end
+  -- Deploy the lift
   local function DEPLOYLift(oObj)
     -- Calculate absolute location of object
     local iLoc<const> = GetLevelOffsetFromObject(oObj, 8, 0);
@@ -1197,41 +1215,10 @@ local function InitSetAction()
       local iTileId<const> = aTileData[1 + iId];
       -- Tile has not been dug
       if iTileId & oTileFlags.AD == 0 then
-        -- If we're on firm ground?
-        if iTileId & oTileFlags.F ~= 0 then
-          -- Search for a buildable above ground surface
-          for iTop = iLoc, iLLAbsW, -iLLAbsW do
-            -- Get tile
-            local iId<const> = aLvlData[1 + iTop];
-            local iTileId<const> = aTileData[1 + iId];
-            -- Tile has not been dug
-            if iTileId & oTileFlags.AD == 0 then
-              -- Tile is firm buildable ground?
-              if iTileId & oTileFlags.F ~= 0 then
-                -- Height check and if ok and creating an object went ok?
-                -- Create lift object
-                if iTop >= iLLAbsW and iBottom-iTop >= 384 and
-                  CreateObject(TYP.LIFTB,
-                    (oObj.X + 8) // 16 * 16,
-                    (oObj.Y + 15) // 16 * 16, oObj.P) then
-                  -- Update level data for top and bottom part of lift
-                  UpdateLevel(iTop, 62);
-                  UpdateLevel(iBottom, 190);
-                  -- Draw cable
-                  for iTop = iTop + iLLAbsW,
-                    iBottom - iLLAbsW, iLLAbsW do
-                    -- Update level data for bottom part of lift
-                    UpdateLevel(iTop, 189);
-                  end
-                  -- We are deploying now so set success
-                  return true;
-                end
-              end
-              -- Done
-              break;
-            end
-          end
-        end
+        -- If we're on firm ground? Check the shaft and return success if
+        -- shaft was successfully built.
+        if iTileId & oTileFlags.F ~= 0 and
+          LiftFindTop(oObj, iLoc, iBottom) then return true end;
         -- Done
         break;
       end
@@ -1873,50 +1860,182 @@ local function DigTile(...)
   DigTile = DoDigTile;
   return DoDigTile(...);
 end
--- Set object health ------------------------------------------------------- --
-local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
-  -- Calculate new health amount and if still alive?
-  local iNewHealth<const> = oObjVictim.H + iAmount;
-  if iNewHealth > 0 then
-    -- Clamp at a 100% if needed or update the objects new health
-    if iNewHealth > 100 then oObjVictim.H = 100
-                        else oObjVictim.H = iNewHealth end;
-    -- Do not do anything else
-    return;
-  end;
-  -- Object is dead so clamp health to zero or update the objects new health
-  if iNewHealth < 0 then oObjVictim.H = 0 else oObjVictim.H = iNewHealth end;
-  -- Kill object (Don't move this, for explosion stuff to work)
-  SetAction(oObjVictim, ACT.DEATH, JOB.INDANGER, DIR.NONE);
-  -- Remove jump and falling status from object
-  local iFlags<const> = oObjVictim.F & ~(OFL.JUMPRISE|OFL.JUMPFALL);
-  oObjVictim.F = iFlags;
-  -- Get victim name
-  local sVictim<const> = oObjVictim.OD.NAME..
-    "["..oObjVictim.U.."] at X:"..oObjVictim.X.." Y:"..oObjVictim.Y;
-  -- If caused by another object?
-  if oObjCause then
-    -- Get causer name
-    local sCauser<const> = oObjCause.OD.NAME..
-       "["..oObjCause.U.."] at X:"..oObjCause.X.." Y:"..oObjCause.Y;
-    -- Was victim a living thing?
-    if iFlags & OFL.LIVING ~= 0 then
-      -- increase their living kills count and log the kill
-      CoreLog(sCauser.." killed "..sVictim.."!");
-      SetObjectAndParentCounter(oObjCause, "LK");
-    -- Was victim an enemy?
-    elseif iFlags & OFL.ENEMY ~= 0 then
-      -- Increase their enemy kills count and log the kill
-      CoreLog(sCauser.." destroyed enemy "..sVictim.."!");
-      SetObjectAndParentCounter(oObjCause, "EK");
-    -- Anything else? Log the destruction
-    else CoreLog(sCauser.." destroyed "..sVictim.."!") end;
-  -- No killer and is living
-  elseif iFlags & OFL.LIVING ~= 0 then CoreLog(sVictim.." died!");
-  -- No killer? Log the destruction
-  else CoreLog(sVictim.." was destroyed!") end;
-  -- Object explodes on death?
-  if oObjVictim.F & OFL.EXPLODE ~= 0 then
+-- Set object health (properly initialised at script init) ----------------- --
+local function AdjustObjectHealth()
+  -- Commonly accessed aliases
+  local iActDeath<const>, iActPhase<const>, iTFWater<const>,
+    iTFDestructable<const>, iTFArtificial<const>, iTFProtected<const>,
+    iTFFirmGround<const>, iTypLiftB<const>, iTypFloodGate<const> =
+      ACT.DEATH, ACT.PHASE, oTileFlags.W, oTileFlags.D, oTileFlags.AD,
+      oTileFlags.P, oTileFlags.F, TYP.LIFTB, TYP.GATEB;
+  -- Actually kill object
+  local function KillObject(oTarget, oObjCause)
+    AdjustObjectHealth(oTarget, -100, oObjCause);
+  end
+  -- Kill surrounding objects
+  local function KillObjects(oObjVictim, oObjCause, iX, iY, iLoc)
+    -- Get position
+    local iPosX<const>, iPosY<const> = iX * 16, iY * 16;
+    -- Compare against all objects
+    for iObject = 1, #aObjs do
+      -- Get target object data and if not the same object?
+      local oTarget<const> = aObjs[iObject];
+      if oTarget ~= oObjVictim then
+        -- Get action and if target object...
+        local iAction<const> = oTarget.A;
+        if iAction ~= iActDeath and           -- ...is not dying?
+           iAction ~= iActPhase and           -- *and* not phasing?
+           IsSpriteCollide(476, iPosX, iPosY, -- *and* in explosion?
+             oTarget.S, oTarget.X + oTarget.OFX, oTarget.Y + oTarget.OFY) then
+          KillObject(oTarget, oObjCause) end;
+      end
+    end
+  end
+  -- Explode directions data
+  local aExplodeDirData<const> = {
+    -- X -- Y -- Flags -----                  -- Order is important!
+    {   0,  -1, iTFWater|oTileFlags.EB }, -- [Up] Flood if above exposed
+    {  -1,   0, iTFWater|oTileFlags.ER }, -- [Left] Flood if left exposed
+    {   0,   0, iTFWater               }, -- [Centre] No flooding check
+    {   1,   0, iTFWater|oTileFlags.EL }, -- [Right] Flood if right exposed
+    {   0,   1, iTFWater|oTileFlags.ET }, -- [Down] Flood if below exposed
+  };
+  -- Check for flooding surrounding the specified tile location
+  local function CheckSurroundingFlooding(iLoc)
+    -- Test for flooding around the cleared tile
+    for iFloodIndex = 1, #aExplodeDirData do
+      -- Get flood test data and calculate location to test
+      local aFloodTestItem<const> = aExplodeDirData[iFloodIndex];
+      local iTLoc<const> =
+        (iLoc + (aFloodTestItem[2] * iLLAbsW)) + aFloodTestItem[1];
+      -- Get tile id and if valid
+      local iId<const> = GetLevelDataFromLevelOffset(iTLoc);
+      if iId then
+        -- Get flags to test for and insert a new flood if found
+        local iTFFlags<const> = aFloodTestItem[3];
+        if aTileData[1 + iId] & iTFFlags == iTFFlags then
+          aFloodData[1 + #aFloodData] = { iTLoc, iTFFlags };
+        end
+      end
+    end
+  end
+  -- Lift tiles which cause cascading clear effect
+  local oLiftShaftTiles<const> = {
+    -- Top          Cable          Bottom
+    [ 62] = 7,      [189] = 7,     [190] = 7,
+    -- Top (Water)  Cable (Water)  Bottom (Water)
+    [302] = 247,    [429] = 247,   [430] = 247
+  };
+  -- Destroy lift shaft
+  local function DestroyLiftShaft(oObjCause, iLoc, iStep)
+    -- Restart point
+    ::tryagain::
+    -- Get tile id and return if invalid
+    local iId<const> = GetLevelDataFromLevelOffset(iLoc);
+    if not iId then return end;
+    -- Check to see if this is a lift tile and return if invalid
+    local iToTile<const> = oLiftShaftTiles[iId];
+    if not iToTile then return end;
+    -- Clear the shaft tile
+    UpdateLevel(iLoc, iToTile);
+    -- Find gate at that position
+    for iObjId = 1, #aObjs do
+      -- Get object and if it's a deployed lift? Get its absolute location,
+      -- and it's in the same place? Kill it if it's not killed already.
+      local oObjLift<const> = aObjs[iObjId];
+      if oObjLift.ID == iTypLiftB and
+         oObjLift.A ~= iActDeath and
+         GetLevelOffsetFromObject(oObjLift, 0, 0) == iLoc then
+        KillObject(oObjLift, oObjCause);
+      end
+    end
+    -- Goto next specified row
+    iLoc = iLoc + iStep;
+    -- Try again until we can check no more
+    goto tryagain;
+  end
+  -- Explode directions data
+  local oExplodeAboveData<const> = {
+    [ 88] =   7, -- Remove left end of track and set clear tile
+    [ 91] =   7, -- Remove right end of track and set clear tile
+    [149] = 150, -- Remove track from dug tile with light
+    [169] = 170, -- Remove track from dug tile with forward beam
+    [210] =   7, -- Remove track from dug tile beam backwards
+    [328] = 247, -- Remove watered right end of track and set to cleared water
+    [331] = 247, -- Remove watered left end of track and set to cleared water
+    [389] = 390, -- Remove watered light and set to watered light
+    [409] = 410, -- Remove watered beam forward and set to watered beam forward
+    [450] = 247, -- Remove watered clear track and set to clear
+  };
+  -- Start destroying terrain
+  local function DestroyTerrain(oObjVictim, iX, iY, iId, iLoc)
+    -- Get tile flags and return if tile is not destructible and been cleared?
+    local iTFlags<const> = aTileData[1 + iId];
+    if iTFlags & iTFDestructable == 0 or
+       iTFlags & iTFArtificial ~= 0 then return end;
+    -- If get tile above flags and return if below this tile is a protected
+    -- platform?
+    local iAId<const> = GetLevelDataFromAbsCoordinates(iX, iY - 1);
+    if iAId and aTileData[1 + iAId] & iTFProtected ~= 0 then return end;
+    -- Increase dug count
+    SetObjectAndParentCounter(oObjVictim, "DUG");
+    -- Roll the dice and spawn treasure and increase objects gem find
+    -- count if found and not protected ground.
+    if RollTheDice(iX * 16, iY * 16) then
+      SetObjectAndParentCounter(oObjVictim, "GEM") end;
+    -- If this was a lift tile?
+    if oLiftShaftTiles[iId] then
+      -- Destroy lift shaft upwards then downwards
+      DestroyLiftShaft(oObjCause, iLoc, -iLLAbsW);
+      DestroyLiftShaft(oObjCause, iLoc + iLLAbsW, iLLAbsW);
+    end
+    -- Tile blown does not contain water?
+    if iTFlags & iTFWater == 0 then
+      -- Set cleared dug tile
+      UpdateLevel(iLoc, 7);
+      -- Check for surrounding flooding
+      CheckSurroundingFlooding(iLoc);
+    -- Tile is in water
+    else
+      -- Set cleared water tile
+      UpdateLevel(iLoc, 247);
+      -- Test for flood here with all edges exposed
+      aFloodData[1 + #aFloodData] = { iLoc, iTFWater|oTileFlags.EA };
+    end
+    -- Return if tile blown was not firm ground
+    if iTFlags & iTFFirmGround == 0 then return end;
+    -- Get tile location above and return if not valid
+    local iTLoc<const> = iLoc - iLLAbsW;
+    local iId<const> = GetLevelDataFromLevelOffset(iTLoc);
+    if not iId then return end;
+    -- Get above tile flags and if is a gate?
+    local iATFlags<const> = aTileData[1 + iId];
+    if iATFlags & oTileFlags.G ~= 0 then
+      -- Find gate at that position
+      for iObjId = 1, #aObjs do
+        -- Get object and if it's a deployed gate? Get its absolute
+        -- location and if it's the same? Destroy the deployed
+        -- gate.
+        local oObjVictim<const> = aObjs[iObjId];
+        if oObjVictim.ID == iTypFloodGate and
+          GetLevelOffsetFromObject(oObjVictim, 0, 0) == iTLoc then
+            KillObject(oObjVictim, oObjCause) end;
+      end
+      -- Is watered gate? Set watered cleared tile else normal
+      -- clear
+      if iATFlags & iTFWater ~= 0 then
+        UpdateLevel(iTLoc, 247) else UpdateLevel(iTLoc, 7) end;
+      -- Check if removed gate would cause a flood
+      aFloodData[1 + #aFloodData] = { iTLoc, oTileFlags.EA };
+    -- Not a gate?
+    else
+      -- Is a supported tile that we should clear
+      local iToTile<const> = oExplodeAboveData[iId];
+      if iToTile then UpdateLevel(iTLoc, iToTile) end;
+    end
+  end
+  -- Process explosion logic
+  local function ProcessExplosion(oObjVictim, oObjCause)
     -- Enumerate possible destruct positions again. We can't have the TERRAIN
     -- destruction checks in the above enumeration because of the recursive
     -- nature of the OBJECT destruction which would cause problems.
@@ -1930,106 +2049,65 @@ local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
       -- Calculate locate of tile and if in valid bounds?
       local iId, iLoc<const> = GetLevelDataFromAbsCoordinates(iX, iY);
       if iId then
-        -- Get position
-        local iPosX<const>, iPosY<const> = iX*16, iY*16;
-        -- Compare against all objects
-        for iObject = 1, #aObjs do
-          -- Get target object data and if not the same object?
-          local oTarget<const> = aObjs[iObject];
-          if oTarget ~= oObjVictim then
-            -- Get action and if target object...
-            local iAction<const> = oTarget.A;
-            if iAction ~= ACT.DEATH and           -- ...is not dying?
-               iAction ~= ACT.PHASE and           -- *and* not phasing?
-               IsSpriteCollide(476, iPosX, iPosY, -- *and* in explosion?
-                 oTarget.S, oTarget.X+oTarget.OFX, oTarget.Y+oTarget.OFY) then
-              AdjustObjectHealth(oTarget, -100, oObjCause);
-            end
-          end
-        end
-        -- Get tile flags and if tile is destructible and not been cleared?
-        local iTFlags<const> = aTileData[1 + iId];
-        if iTFlags & oTileFlags.D ~= 0 and iTFlags & oTileFlags.AD == 0 then
-          -- If get tile above flags and if below this tile is a protected
-          -- platform?
-          local iAId<const> = GetLevelDataFromAbsCoordinates(iX, iY - 1);
-          if not iAId or aTileData[1 + iAId] & oTileFlags.P == 0 then
-            -- Increase dug count
-            SetObjectAndParentCounter(oObjVictim, "DUG");
-            -- Roll the dice and spawn treasure and increase objects gem find
-            -- count if found and not protected ground.
-            if RollTheDice(iX * 16, iY * 16) then
-              SetObjectAndParentCounter(oObjVictim, "GEM") end;
-            -- Tile blown does not contain water?
-            if iTFlags & oTileFlags.W == 0 then
-              -- Set cleared dug tile
-              UpdateLevel(iLoc, 7);
-              -- Test for flooding around the cleared tile
-              for iFloodIndex = 1, #aExplodeDirData do
-                -- Get flood test data and calculate location to test
-                local aFloodTestItem<const> = aExplodeDirData[iFloodIndex];
-                local iTLoc<const> = (iLoc + (aFloodTestItem[2] *
-                  iLLAbsW)) + aFloodTestItem[1];
-                -- Get tile id and if valid
-                iId = GetLevelDataFromLevelOffset(iTLoc);
-                if iId then
-                  -- Get flags to test for and insert a new flood if found
-                  local iTFFlags<const> = aFloodTestItem[3];
-                  if aTileData[1 + iId] & iTFFlags == iTFFlags then
-                    aFloodData[1 + #aFloodData] = { iTLoc, iTFFlags };
-                  end
-                end
-              end
-            -- Tile is in water
-            else
-              -- Set cleared water tile
-              UpdateLevel(iLoc, 247);
-              -- Test for flood here with all edges exposed
-              aFloodData[1 + #aFloodData] = { iLoc, oTileFlags.W|oTileFlags.EA };
-            end
-            -- Tile blown was firm ground?
-            if iTFlags & oTileFlags.F ~= 0 then
-              -- Get tile location above
-              local iTLoc<const> = iLoc - iLLAbsW;
-              -- Get tile id and if valid?
-              iId = GetLevelDataFromLevelOffset(iTLoc);
-              if iId then
-                -- Get above tile flags and if is a gate?
-                local iATFlags<const> = aTileData[1 + iId];
-                if iATFlags & oTileFlags.G ~= 0 then
-                  -- Find gate at that position
-                  for iObjId = 1, #aObjs do
-                    -- Get object and if it's a deployed gate? Get its absolute
-                    -- location and if it's the same? Destroy the deployed
-                    -- gate.
-                    local oObjVictim<const> = aObjs[iObjId];
-                    if oObjVictim.ID == TYP.GATEB and
-                      GetLevelOffsetFromObject(oObjVictim, 0, 0) == iTLoc then
-                        AdjustObjectHealth(oObjVictim, -100, oObjCause) end;
-                  end
-                  -- Is watered gate? Set watered cleared tile else normal
-                  -- clear
-                  if iATFlags & oTileFlags.W ~= 0 then
-                    UpdateLevel(iTLoc, 247) else UpdateLevel(iTLoc, 7) end;
-                  -- Check if removed gate would cause a flood
-                  aFloodData[1 + #aFloodData] = { iTLoc, oTileFlags.EA };
-                -- Not a gate?
-                else
-                  -- Is a supported tile that we should clear
-                  local iToTile<const> = oExplodeAboveData[iId];
-                  if iToTile then UpdateLevel(iTLoc, iToTile) end;
-                end
-              end
-            end
-          end
-        end
+        -- Kill objects in this vicinity
+        KillObjects(oObjVictim, oObjCause, iX, iY, iId, iLoc);
+        -- Check for flooding
+        DestroyTerrain(oObjVictim, iX, iY, iId, iLoc);
       end
     end
   end
-  -- Drop all objects
-  while oObjVictim.IS do DropObject(oObjVictim, oObjVictim.IS) end;
-  -- Disable menu if object is selected and menu open
-  if oObjActive == oObjVictim and aContextMenu then SetContextMenu() end;
+  -- Actual function that gets returned when initialised for first time
+  local function AdjustObjectHealth(oObjVictim, iAmount, oObjCause)
+    -- Calculate new health amount and if still alive?
+    local iNewHealth<const> = oObjVictim.H + iAmount;
+    if iNewHealth > 0 then
+      -- Clamp at a 100% if needed or update the objects new health
+      if iNewHealth > 100 then oObjVictim.H = 100
+                          else oObjVictim.H = iNewHealth end;
+      -- Do not do anything else
+      return;
+    end;
+    -- Object is dead so clamp health to zero or update the objects new health
+    if iNewHealth < 0 then oObjVictim.H = 0 else oObjVictim.H = iNewHealth end;
+    -- Kill object (Don't move this, for explosion stuff to work)
+    SetAction(oObjVictim, iActDeath, JOB.INDANGER, DIR.NONE);
+    -- Remove jump and falling status from object
+    local iFlags<const> = oObjVictim.F & ~(OFL.JUMPRISE|OFL.JUMPFALL);
+    oObjVictim.F = iFlags;
+    -- Get victim name
+    local sVictim<const> = oObjVictim.OD.NAME..
+      "["..oObjVictim.U.."] at X:"..oObjVictim.X.." Y:"..oObjVictim.Y;
+    -- If caused by another object?
+    if oObjCause then
+      -- Get causer name
+      local sCauser<const> = oObjCause.OD.NAME..
+         "["..oObjCause.U.."] at X:"..oObjCause.X.." Y:"..oObjCause.Y;
+      -- Was victim a living thing?
+      if iFlags & OFL.LIVING ~= 0 then
+        -- increase their living kills count and log the kill
+        CoreLog(sCauser.." killed "..sVictim.."!");
+        SetObjectAndParentCounter(oObjCause, "LK");
+      -- Was victim an enemy?
+      elseif iFlags & OFL.ENEMY ~= 0 then
+        -- Increase their enemy kills count and log the kill
+        CoreLog(sCauser.." destroyed enemy "..sVictim.."!");
+        SetObjectAndParentCounter(oObjCause, "EK");
+      -- Anything else? Log the destruction
+      else CoreLog(sCauser.." destroyed "..sVictim.."!") end;
+    -- No killer and is living
+    elseif iFlags & OFL.LIVING ~= 0 then CoreLog(sVictim.." died!");
+    -- No killer? Log the destruction
+    else CoreLog(sVictim.." was destroyed!") end;
+    -- Object explodes on death? Cause an explosion!
+    if oObjVictim.F & OFL.EXPLODE ~= 0 then
+      ProcessExplosion(oObjVictim, oObjCause) end;
+    -- Make victim drop all objects
+    while oObjVictim.IS do DropObject(oObjVictim, oObjVictim.IS) end;
+    -- Disable menu if object is selected and menu open
+    if oObjActive == oObjVictim and aContextMenu then SetContextMenu() end;
+  end
+  -- Return actual function
+  return AdjustObjectHealth;
 end
 -- Render terrain ---------------------------------------------------------- --
 local function RenderTerrain()
@@ -4588,10 +4666,10 @@ local function OnScriptLoaded(GetAPI)
     PlaySound, Print, PrintC, PrintR, oMenuData, MFL, MNU, InitBook,
     RenderFade, InitWin, InitWinDead, InitLose, InitLoseDead, InitPause,
     InitTNTMap, InitLobby, RegisterHotSpot, RegisterKeys, TileA, texSpr,
-    fontLarge, fontLittle, fontTiny, aDigBlockData, aExplodeDirData, SetCursor,
+    fontLarge, fontLittle, fontTiny, aDigBlockData, SetCursor,
     SetCursorPos, SetKeys, RegisterFBUCallback, GetTestMode, RenderShadow,
     RenderTip, SetHotSpot, SetTip, aRacesData, oDugRandShaftData,
-    oFloodGateData, oTrainTrackData, oExplodeAboveData, maskLev, maskSpr,
+    oFloodGateData, oTrainTrackData, maskLev, maskSpr,
     oGlobalData, aShopData, oAssetsData, aAIChoicesData, oCursorIdData,
     aShroudCircle, aShroudTileLookup, aPlrStartData =
       GetAPI("oObjectTypes", "aLevelsData", "LoadResources", "oObjectData",
@@ -4605,10 +4683,10 @@ local function OnScriptLoaded(GetAPI)
         "InitWin", "InitWinDead", "InitLose", "InitLoseDead", "InitPause",
         "InitTNTMap", "InitLobby", "RegisterHotSpot", "RegisterKeys", "TileA",
         "texSpr", "fontLarge", "fontLittle", "fontTiny", "aDigBlockData",
-        "aExplodeDirData", "SetCursor", "SetCursorPos", "SetKeys",
+        "SetCursor", "SetCursorPos", "SetKeys",
         "RegisterFBUCallback", "GetTestMode", "RenderShadow", "RenderTip",
         "SetHotSpot", "SetTip", "aRacesData", "oDugRandShaftData",
-        "oFloodGateData", "oTrainTrackData", "oExplodeAboveData", "maskLevel",
+        "oFloodGateData", "oTrainTrackData", "maskLevel",
         "maskSprites", "oGlobalData", "aShopData", "oAssetsData",
         "aAIChoicesData", "oCursorIdData", "aShroudCircle",
         "aShroudTileLookup", "aPlrStartData");
@@ -5078,6 +5156,7 @@ local function OnScriptLoaded(GetAPI)
   ProcessObjectMovement = ProcessObjectMovement();
   PhaseLogic = PhaseLogic();
   SelectInfoScreen = SelectInfoScreen();
+  AdjustObjectHealth = AdjustObjectHealth();
   -- Register a console command to dump a level mask. I'm just going to sling
   -- this cvar handle in the terrain asset table so it doesn't get gc'd.
   local function DumpLevelMask(_, strFile)
