@@ -798,15 +798,15 @@ local function HaveZogsToWin(oPlr) return oPlr.M >= iWinLimit end;
 -- Level end conditions check ---------------------------------------------- --
 local function EndConditionsCheck()
   -- No active player? (Playing a demo?) Just ignore
-  if bAIvsAI or PlaySoundAtObject == BlankFunction then return end;
+  if bAIvsAI or PlaySoundAtObject == BlankFunction then return false end;
   -- Player has enough Zogs?
-  if HaveZogsToWin(oPlrActive) then return TriggerEnd(InitWin) end;
+  if HaveZogsToWin(oPlrActive) then TriggerEnd(InitWin) return true end;
   -- All the opponents Diggers have died?
-  if oPlrOpponent.DC <= 0 then return TriggerEnd(InitWinDead) end;
+  if oPlrOpponent.DC <= 0 then TriggerEnd(InitWinDead) return true end;
   -- The opponent has enough Zogs?
-  if HaveZogsToWin(oPlrOpponent) then return TriggerEnd(InitLose) end;
+  if HaveZogsToWin(oPlrOpponent) then TriggerEnd(InitLose) return true end;
   -- All the players Diggers have died?
-  if oPlrActive.DC <= 0 then return TriggerEnd(InitLoseDead) end;
+  if oPlrActive.DC <= 0 then TriggerEnd(InitLoseDead) return true end;
 end
 -- Destroy object ---------------------------------------------------------- --
 local function DestroyObject(iObj, oObj)
@@ -1699,8 +1699,7 @@ local function DigTile(...)
     -- Get the tile left of the object
     if iDP - 1 >= 0 then iTIdL = aLvlData[1 + (iDP - 1)] else iTIdL = 0 end;
     -- Get the tile right of the object
-    if iDP + 1 < iLLAbs then
-      iTIdR = aLvlData[1 + iDP + 1] else iTIdR = 0 end;
+    if iDP + 1 < iLLAbs then iTIdR = aLvlData[1 + iDP + 1] else iTIdR = 0 end;
   end
   -- Moving left or up-left?
   local function DirectionLeftOrUpleft(oObj)
@@ -1711,8 +1710,7 @@ local function DigTile(...)
       aTileData[1 + iTIdL], aTileData[1 + iTIdA];
     if iFDT & iTFP ~= 0 or
       (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
     return true;
   end
   -- Moving left or up-left?
@@ -1738,8 +1736,7 @@ local function DigTile(...)
     if iFDT & iTFP ~= 0 or
       (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
       (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
     return true;
   end
   -- Digging right or up-right?
@@ -1751,8 +1748,7 @@ local function DigTile(...)
       aTileData[1 + iTIdA], aTileData[1 + iTIdR];
     if iFDT & iTFP ~= 0 or
       (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
     return true;
   end
   -- Digging up-right
@@ -1778,8 +1774,7 @@ local function DigTile(...)
     if iFDT & iTFP ~= 0 or
       (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
       (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) or
-      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then
-      return false end;
+      (iFDT & iTFW ~= 0 and iFDT & iTFEB ~= 0) then return false end;
     return true;
   end
   -- Digging down?
@@ -1793,8 +1788,7 @@ local function DigTile(...)
     if iFDT & iTFP ~= 0 or
       (iFDB & iTFW ~= 0 and iFDB & iTFET ~= 0) or
       (iFDL & iTFW ~= 0 and iFDL & iTFER ~= 0) or
-      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) then
-      return false end;
+      (iFDR & iTFW ~= 0 and iFDR & iTFEL ~= 0) then return false end;
     return true;
   end
   -- Do the dig
@@ -2054,8 +2048,7 @@ local function RenderTerrain()
     -- For each screen column to draw tile at, draw the tile from level data
     for iX = 0, iTilesWidth do
       BlitSLT(texLev, aLvlData[iYdest + iPosX + iX],
-        iXdraw + (iX * 16), iYdraw);
-    end
+        iXdraw + (iX * 16), iYdraw) end;
   end
 end
 -- Render shroud data ------------------------------------------------------ --
@@ -2075,8 +2068,7 @@ local function RenderShroud()
       -- Get shroud information at specified tile and draw it if theres data
       local aItem<const> = aShroudData[iYdest + iPosX + iX];
       if aItem[2] < 0xF then
-        BlitSLT(texSpr, aItem[1], iXdraw + (iX * 16), iYdraw);
-      end
+        BlitSLT(texSpr, aItem[1], iXdraw + (iX * 16), iYdraw) end;
     end
   end
   -- Restore shroud colour
@@ -2334,14 +2326,13 @@ local function CheckObjectUnderwater(oObj)
   -- If object is not in water
   if not CheckObjectInWater(oObj, 2) then
     -- Remove flag if set
-    if oObj.F & OFL.INWATER ~= 0 then
-      oObj.F = oObj.F & ~OFL.INWATER end
+    if oObj.F & OFL.INWATER ~= 0 then oObj.F = oObj.F & ~OFL.INWATER end
     -- Done
     return;
   end
   -- Add in water flag if not set.
   if oObj.F & OFL.INWATER == 0 then
-    oObj.F = oObj.F | OFL.INWATER end;
+ oObj.F = oObj.F | OFL.INWATER end;
   -- If object is a digger and it isn't in danger? Run!
   if oObj.F & OFL.DIGGER ~= 0 and oObj.J ~= JOB.INDANGER then
     SetAction(oObj, ACT.RUN, JOB.INDANGER, DIR.KEEPMOVE) end;
@@ -2351,11 +2342,9 @@ end
 -- Animate object ---------------------------------------------------------- --
 local function AnimateObject(oObj)
   -- If sprite timer and not reached speed limit?
-  if oObj.ST < oObj.ANT then
-    oObj.ST = oObj.ST + 1 return end;
+  if oObj.ST < oObj.ANT then oObj.ST = oObj.ST + 1 return end;
   -- Sprite id not reached the limit yet? Next sprite
-  if oObj.S < oObj.S2 then
-    oObj.S, oObj.SA = oObj.S+1, oObj.SA+1;
+  if oObj.S < oObj.S2 then oObj.S, oObj.SA = oObj.S+1, oObj.SA+1;
   -- Can sprite reset?
   elseif oObj.F & OFL.NOANIMLOOP == 0 then
     -- Restart sprite number
@@ -3524,7 +3513,7 @@ local function PhaseLogic()
       BuyItem(oObj, aShopData[random(#aShopData)]);
     end
     -- If items were sold? Check if any player won
-    if iItemsSold > 0 then EndConditionsCheck() end;
+    if iItemsSold > 0 and EndConditionsCheck() then return true end;
   end
   -- Phasing home or to a Telepole logic
   local function PhaseHomeOrTelepoleLogic(oObj)
@@ -3568,16 +3557,15 @@ local function PhaseLogic()
         end
       end
     end
-    -- Going home?
-    if bGoingHome == true then
-      -- Clear objects ignore destination list
-      for iTDIndex = #aDestinations, 1, -1 do
-        remove(aDestinations, iTDIndex) end
-      -- Set position of object to player's home
-      SetPosition(oObj, oObj.P.HX, oObj.P.HY);
-      -- Re-phase back into stance
-      SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.KEEP);
-    end
+    -- Return if not going home
+    if not bGoingHome then return end;
+    -- Clear objects ignore destination list
+    for iTDIndex = #aDestinations, 1, -1 do
+      remove(aDestinations, iTDIndex) end;
+    -- Set position of object to player's home
+    SetPosition(oObj, oObj.P.HX, oObj.P.HY);
+    -- Re-phase back into stance
+    SetAction(oObj, ACT.PHASE, JOB.NONE, DIR.KEEP);
   end
   -- Player entering trade centre logic
   local function PlayerEnterTradeCentreLogic(oObj)
@@ -3652,7 +3640,7 @@ local function PhaseLogic()
       error("Invalid phase logic function at "..oObj.D.."! "..
         tostring(fcbPhaseLogic)) end;
     -- Execute the phase logic
-    fcbPhaseLogic(oObj);
+    return fcbPhaseLogic(oObj);
   end
   -- Return actual function
   return PhaseLogic;
@@ -3827,7 +3815,11 @@ local function ProcessObjects()
          DestroyObject(iObjId, oObj) then goto EOO; -- ...object destroyed?
       -- Object is phasing and phase delay reached? Process phase destination
       elseif iAction == ACT.PHASE and oObj.AT >= oObj.OD.TELEDELAY then
-        return PhaseLogic(oObj);
+        -- Process phase logic and return if the game ended
+        if PhaseLogic(oObj) then return end;
+        -- Process next object
+        iObjId = iObjId + 1;
+        goto EOO;
       -- Object is hidden and object is in the trade-centre?
       elseif iAction == ACT.HIDE and oObj.J == JOB.PHASE then
         -- Health at full?
