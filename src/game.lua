@@ -4072,9 +4072,9 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
   -- Functions and variables used in this scope only
   local GetMouseX<const>, GetMouseY<const>, GetTestMode<const>,
     InitPause<const>, IsMouseInBounds<const>, RegisterHotSpot<const>,
-    RegisterKeys<const>, oCursorIdData<const>, SetCursor<const> =
+    RegisterKeys<const>, SetCursor<const>, oCursorIdData<const> =
       GetAPI("GetMouseX", "GetMouseY", "GetTestMode", "InitPause",
-        "IsMouseInBounds", "RegisterHotSpot", "RegisterKeys",
+        "IsMouseInBounds", "RegisterHotSpot", "RegisterKeys", "SetCursor",
         "oCursorIdData");
   -- Make sure we have the correct number of level tiles
   local iMaskLev<const> = maskLev:Tiles();
@@ -4621,38 +4621,38 @@ end
 -- Pre-initialisation ------------------------------------------------------ --
 local function OnPreInitAPI(GetAPI)
   -- Variables only needed in this scope
-  local Fade, GetMouseX, GetMouseY, LoadResources, PlayMusic,
-    RegisterFBUCallback, SetCallbacks, SetHotSpot, SetKeys, TileA,
-    aPlrStartData, oAssetsData;
+  local Fade<const>, GetMouseX<const>, GetMouseY<const>, LoadResources<const>,
+    PlayMusic<const>, RegisterFBUCallback<const>, SetCallbacks<const>,
+    SetHotSpot<const>, SetKeys<const>, TileA<const>, aPlrStartData<const>,
+    oAssetsData<const> =
+      GetAPI("Fade", "GetMouseX", "GetMouseY", "LoadResources", "PlayMusic",
+        "RegisterFBUCallback", "SetCallbacks", "SetHotSpot", "SetKeys",
+        "TileA", "aPlrStartData", "oAssetsData");
   -- Get and assign imports
-  TYP, aLevelsData, LoadResources, oObjectData, ACT, JOB, DIR, oTimerData, AI,
-    OFL, aDigTileData, PlayMusic, aTileData, oTileFlags, Fade, SetCallbacks,
-    IsMouseInBounds, oDigData, BlitSLTRB, BlitSLTWH, BlitSLT, DF, oSfxData,
-    aJumpRiseData, aJumpFallData, GetMouseX, GetMouseY, PlayStaticSound,
-    PlaySound, Print, PrintC, PrintR, oMenuData, MFL, MNU, InitBook,
-    RenderFade, InitWin, InitWinDead, InitLose, InitLoseDead, InitPause,
-    InitTNTMap, InitLobby, TileA, texSpr, fontLarge, fontLittle, fontTiny,
-    aDigBlockData, SetCursor, SetCursorPos, SetKeys, RegisterFBUCallback,
-    RenderShadow, RenderTip, SetHotSpot, SetTip, aRacesData,
-    oAssetsData, oDugRandShaftData, oFloodGateData, oTrainTrackData, maskLev,
+  TYP, aLevelsData, oObjectData, ACT, JOB, DIR, oTimerData, AI, OFL,
+    aDigTileData, aTileData, oTileFlags, IsMouseInBounds, oDigData, BlitSLTRB,
+    BlitSLTWH, BlitSLT, DF, oSfxData, aJumpRiseData, aJumpFallData,
+    PlayStaticSound, PlaySound, Print, PrintC, PrintR, oMenuData, MFL, MNU,
+    InitBook, RenderFade, InitWin, InitWinDead, InitLose, InitLoseDead,
+    InitPause, InitTNTMap, InitLobby, texSpr, fontLarge, fontLittle, fontTiny,
+    aDigBlockData, SetCursor, SetCursorPos, RenderShadow, RenderTip, SetTip,
+    aRacesData, oDugRandShaftData, oFloodGateData, oTrainTrackData, maskLev,
     maskSpr, oGlobalData, aShopData, aAIChoicesData, aShroudCircle,
-    aShroudTileLookup, aPlrStartData =
-      GetAPI("oObjectTypes", "aLevelsData", "LoadResources", "oObjectData",
-        "oObjectActions", "oObjectJobs", "oObjectDirections", "oTimerData",
-        "aAITypesData", "aObjectFlags", "aDigTileData", "PlayMusic",
-        "aTileData", "oTileFlags", "Fade", "SetCallbacks", "IsMouseInBounds",
-        "oDigData", "BlitSLTRB", "BlitSLTWH", "BlitSLT", "aDigTileFlags",
-        "oSfxData", "aJumpRiseData", "aJumpFallData", "GetMouseX", "GetMouseY",
+    aShroudTileLookup =
+      GetAPI("oObjectTypes", "aLevelsData", "oObjectData", "oObjectActions",
+        "oObjectJobs", "oObjectDirections", "oTimerData", "aAITypesData",
+        "aObjectFlags", "aDigTileData", "aTileData", "oTileFlags",
+        "IsMouseInBounds", "oDigData", "BlitSLTRB", "BlitSLTWH", "BlitSLT",
+        "aDigTileFlags", "oSfxData", "aJumpRiseData", "aJumpFallData",
         "PlayStaticSound", "PlaySound", "Print", "PrintC", "PrintR",
         "oMenuData", "oMenuFlags", "oMenuIds", "InitBook", "RenderFade",
         "InitWin", "InitWinDead", "InitLose", "InitLoseDead", "InitPause",
-        "InitTNTMap", "InitLobby", "TileA", "texSpr", "fontLarge",
-        "fontLittle", "fontTiny", "aDigBlockData", "SetCursor", "SetCursorPos",
-        "SetKeys", "RegisterFBUCallback", "RenderShadow",
-        "RenderTip", "SetHotSpot", "SetTip", "aRacesData", "oAssetsData",
+        "InitTNTMap", "InitLobby", "texSpr", "fontLarge", "fontLittle",
+        "fontTiny", "aDigBlockData", "SetCursor", "SetCursorPos",
+        "RenderShadow", "RenderTip", "SetTip", "aRacesData",
         "oDugRandShaftData", "oFloodGateData", "oTrainTrackData", "maskLevel",
         "maskSprites", "oGlobalData", "aShopData", "aAIChoicesData",
-        "aShroudCircle", "aShroudTileLookup", "aPlrStartData");
+        "aShroudCircle", "aShroudTileLookup");
   -- Setup required assets for LoadLevel() and InitContinueGame().
   local oAssetTerrain<const>, oAssetObject<const>, oAssetTexture<const> =
     oAssetsData.mapt, oAssetsData.mapo, oAssetsData.game;
