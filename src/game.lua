@@ -26,14 +26,14 @@ local CoreLog<const>, CoreWrite<const>, MaskCreateZero<const>,
     Util.IsString, Util.IsTable;
 -- Diggers shared functions and data --------------------------------------- --
 local ACT, AI, BlitSLT, BlitSLTRB, BlitSLTWH, DF, DIR, InitBook, InitLobby,
-  InitLose, InitLoseDead, InitTNTMap, InitWin, InitWinDead,
-  JOB, MFL, MNU, OFL, PlaySound, PlayStaticSound, Print, PrintC, PrintR,
-  RenderFade, RenderShadow, RenderTip, SetCursorPos, SetTip, TYP,
-  aAIChoicesData, aDigBlockData, aDigTileData, aJumpFallData, aJumpRiseData,
-  aLevelsData, aShopData, aShroudCircle, aShroudTileLookup, aTileData,
-  fontLarge, fontLittle, fontTiny, iSavedSlowDown, iSlowDown, oDigData,
-  oDugRandShaftData, oFloodGateData, oGlobalData, oMenuData, oObjectData,
-  oSfxData, oTileFlags, oTimerData, oTrainTrackData, texSpr;
+  InitLose, InitLoseDead, InitTNTMap, InitWin, InitWinDead, JOB, MFL, MNU, OFL,
+  PlaySound, PlayStaticSound, Print, PrintC, PrintR, RenderFade, RenderShadow,
+  RenderTip, SetCursorPos, SetTip, TYP, aAIChoicesData, aDigBlockData,
+  aDigTileData, aJumpFallData, aJumpRiseData, aLevelsData, aShopData,
+  aShroudCircle, aShroudTileLookup, aTileData, fontLarge, fontLittle, fontTiny,
+  iSavedSlowDown, iSlowDown, oDigData, oDugRandShaftData, oFloodGateData,
+  oGlobalData, oMenuData, oObjectData, oSfxData, oTileFlags, oTimerData,
+  oTrainTrackData, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aContextMenu;                    -- Currently open context menu
 local aContextMenuData;                -- Cached context menu positions data
@@ -4628,7 +4628,7 @@ local function OnPreInitAPI(GetAPI)
       GetAPI("Fade", "GetMouseX", "GetMouseY", "LoadResources", "PlayMusic",
         "RegisterFBUCallback", "SetCallbacks", "SetHotSpot", "SetKeys",
         "TileA", "aPlrStartData", "oAssetsData");
-  -- Get and assign imports
+  -- Get and assign outer imports
   TYP, aLevelsData, oObjectData, ACT, JOB, DIR, oTimerData, AI, OFL,
     aDigTileData, aTileData, oTileFlags, IsMouseInBounds, oDigData, BlitSLTRB,
     BlitSLTWH, BlitSLT, DF, oSfxData, aJumpRiseData, aJumpFallData,
