@@ -12,18 +12,16 @@
 -- Core function aliases --------------------------------------------------- --
 local abs<const>, ceil<const>, error<const>, floor<const>, format<const>,
   max<const>, maxinteger<const>, min<const>, pairs<const>, random<const>,
-  remove<const>, tostring<const>, unpack<const> =
+  remove<const>, tostring<const> =
     math.abs, math.ceil, error, math.floor, string.format, math.max,
-    math.maxinteger, math.min, pairs, math.random, table.remove, tostring,
-    table.unpack;
--- M-Engine function aliases ----------------------------------------------- --
-local CoreLog<const>, CoreWrite<const>, MaskCreateZero<const>,
-  UtilClamp<const>, UtilClampInt<const>, UtilFormatNumber<const>,
-  UtilIsBoolean<const>, UtilIsFunction<const>, UtilIsInteger<const>,
-  UtilIsString<const>, UtilIsTable<const> =
-    Core.Log, Core.WriteEx, Mask.CreateZero, Util.Clamp, Util.ClampInt,
-    Util.FormatNumber, Util.IsBoolean, Util.IsFunction, Util.IsInteger,
-    Util.IsString, Util.IsTable;
+    math.maxinteger, math.min, pairs, math.random, table.remove, tostring;
+-- Engine function aliases ------------------------------------------------- --
+local CoreLog<const>, CoreWrite<const>, UtilClamp<const>, UtilClampInt<const>,
+  UtilFormatNumber<const>, UtilIsBoolean<const>, UtilIsFunction<const>,
+  UtilIsInteger<const>, UtilIsString<const>, UtilIsTable<const> =
+    Core.Log, Core.WriteEx, Util.Clamp, Util.ClampInt, Util.FormatNumber,
+    Util.IsBoolean, Util.IsFunction, Util.IsInteger, Util.IsString,
+    Util.IsTable;
 -- Diggers shared functions and data --------------------------------------- --
 local ACT, AI, BlitSLT, BlitSLTRB, BlitSLTWH, DF, DIR, InitBook, InitLobby,
   InitLose, InitLoseDead, InitTNTMap, InitWin, InitWinDead, JOB, MFL, MNU, OFL,
@@ -4620,7 +4618,11 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
 end
 -- Pre-initialisation ------------------------------------------------------ --
 local function OnPreInitAPI(GetAPI)
-  -- Variables only needed in this scope
+  -- Some core function aliases required in this scope
+  local unpack<const> = table.unpack;
+  -- Some engine function aliases required in the scope
+  local MaskCreateZero<const> = Mask.CreateZero;
+  -- Shared variables only needed in this scope
   local Fade<const>, GetMouseX<const>, GetMouseY<const>, LoadResources<const>,
     PlayMusic<const>, RegisterFBUCallback<const>, SetCallbacks<const>,
     SetHotSpot<const>, SetKeys<const>, TileA<const>, aPlrStartData<const>,
