@@ -21,13 +21,13 @@ local UtilHex<const>, CoreCPUUsage<const>, CoreRAM<const>,
     Util.Hex, Core.CPUUsage, Core.RAM, Display.GPUFPS, Core.Uptime,
     Core.LUATime, Core.LUAUsage, Util.Duration;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTRB, Fade, GetGameTicks, GetMouseX, GetMouseY, aPlayers, aObjs,
-  RenderTerrain, RenderObjects, RenderShroud, BCBlit, texSpr, fontLarge,
-  fontLittle, fontTiny, SelectObject, GameProc, GetActiveObject,
-  GetActivePlayer, SetCallbacks, LoadLevel, PrintC, PrintCT, PrintT, PrintR,
-  Print, UpdateShroud, SetPlaySounds, HaveZogsToWin, GetOpponentPlayer,
-  RegisterFBUCallback, aLevelsData, GetViewportData, GetLevelInfo,
-  RenderInterface, JOB, ACT;
+local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
+  GetMouseX, GetMouseY, aPlayers, aObjs, RenderTerrain, RenderObjects,
+  RenderShroud, texSpr, fontLarge, fontLittle, fontTiny, SelectObject,
+  GameProc, GetActiveObject, GetActivePlayer, SetCallbacks, LoadLevel, PrintC,
+  PrintCT, PrintT, PrintR, Print, UpdateShroud, SetPlaySounds, HaveZogsToWin,
+  GetOpponentPlayer, RegisterFBUCallback, aLevelsData, GetViewportData,
+  GetLevelInfo, RenderInterface, JOB, ACT;
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
   -- Frame buffer updated function
@@ -124,25 +124,25 @@ local function InitDebugPlay(iId)
           iPixCenPosX<const>, iPixCenPosY<const>,
           iPosX<const>, iPosY<const>,
           iAbsCenPosX<const>, iAbsCenPosY<const>,
-          iViewportW<const>, iViewportH<const> = GetViewportData();
+          iViewportW<const>, iViewportH<const>,
+          iVPX<const>, iVPY<const> = GetViewportData();
     -- Get level information
     local iLevelId, sLevelName, sLevelType, iWinLimit = GetLevelInfo();
-    -- Calculate viewpoint position
-    local nVPX<const>, nVPY<const> = iPixPosX - iStageL, iPixPosY - iStageT;
     -- For each object
     for iObjId = 1, #aObjs do
       -- Get object data
       local oObj<const> = aObjs[iObjId];
       local iX<const>, iY<const> = oObj.X, oObj.Y;
-      -- Holds objects render position on-screen
-      local iXX, iYY = iX - nVPX + oObj.OFX, iY - nVPY + oObj.OFY;
-      -- If in bounds?
+      -- If in bounds of the viewport?
+      local iXX, iYY = iX - iVPX + oObj.OFX, iY - iVPY + oObj.OFY;
       if min(iXX + 16, iStageR) > max(iXX, iStageL) and
          min(iYY + 16, iStageB) > max(iYY, iStageT) then
         -- Draw the texture
-        BlitSLTRB(texSpr, oObj.S, iXX, iYY, iXX + 16, iYY + 16);
-        -- Get health
-        local iHealth<const> = oObj.H;
+        BlitSLT(texSpr, oObj.S, iXX, iYY);
+        -- Got an attachment? Draw that too!
+        if oObj.STA then
+          BlitSLT(texSpr, oObj.SA, iXX + oObj.OFXA, iYY + oObj.OFYA);
+        end
         -- Centre location of digger information
         local iXXC<const> = iXX + 8;
         -- Active object is a digger?
@@ -151,14 +151,11 @@ local function InitDebugPlay(iId)
           -- Is player one?
           if oObj.P == oPlrActive then
             -- Active object? Set brighter
-            if oObj == oObjActive then
-              fontTiny:SetCRGBA(1, 0.7, 0.8, 1);
+            if oObj == oObjActive then fontTiny:SetCRGBA(1, 0.7, 0.8, 1);
             -- Inactive object? Set dim
             else fontTiny:SetCRGBA(1, 0.6, 0.7, 0.75) end;
-          -- Is player two?
-          elseif oObj == oObjActive then
-            -- Active object? Set brighter
-            fontTiny:SetCRGBA(0.34, 0.9, 0.5, 1);
+          -- Is player two? Active object? Set brighter
+          elseif oObj == oObjActive then fontTiny:SetCRGBA(0.34, 0.9, 0.5, 1);
           -- Inactive object? Set dim
           else fontTiny:SetCRGBA(0.24, 0.8, 0.4, 0.75) end;
           -- Draw name and id of digger
@@ -202,24 +199,11 @@ local function InitDebugPlay(iId)
         PrintCT(fontTiny, iXXC, iYY + 17, iX.."x"..iY.."\n"..
           oObj.A..":"..oObj.J..":"..oObj.D.." "..oObj.AT.."\n"..
           UtilHex(oObj.F)..aTarget, texSpr);
-        -- Draw health bar background
-        local iYHealth<const> = iYY - 1;
-        local iYHealth2<const> = iYHealth - 1;
-        texSpr:SetCRGB(0, 0, 0)
-        BlitSLTRB(texSpr, 1022, iXX, iYHealth, iXX + 16, iYHealth2);
-        -- White to orange
-        if iHealth >= 50 then texSpr:SetCRGB(1, 1, (iHealth-50)/50)
-        -- Orange to red
-        elseif iHealth > 0 then texSpr:SetCRGB(1, iHealth/50, 0) end;
         -- Draw health bar
-        BlitSLTRB(texSpr, 1022,
-          iXX, iYHealth, iXX + iHealth / 6.25, iYHealth2);
-        texSpr:SetCRGB(1, 1 ,1);
-        -- Got an attachment? Draw it too!
-        if oObj.STA then
-          iXX, iYY = iXX + oObj.OFXA, iYY + oObj.OFYA;
-          BCBlit(oObj.SA, iXX, iYY, iXX + 16, iYY + 16);
-        end
+        local iYHealth<const> = iYY - 2;
+        texSpr:SetCRGB(0, 0, 0)
+        BlitSLTWH(texSpr, 1022, iXX, iYHealth, 16, 1);
+        DrawHealthBar(oObj.H, 6.25, iXX, iYHealth, 1);
       end
     end
     -- Render shroud
@@ -476,20 +460,20 @@ end
 -- Scripts have been loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI)
   -- Grab imports
-  BlitSLTRB, BCBlit, Fade, GameProc, GetActiveObject, GetActivePlayer,
-    GetGameTicks, GetLevelInfo, GetMouseX, GetMouseY, GetOpponentPlayer,
-    GetViewportData, HaveZogsToWin, LoadLevel, PrintC, PrintCT, PrintR,
-    Print, RegisterFBUCallback, RenderObjects, RenderShroud, RenderTerrain,
-    SelectObject, SetCallbacks, SetPlaySounds, UpdateShroud, aLevelsData,
-    aObjs, aPlayers, fontLarge, fontLittle, fontTiny, texSpr,
-    RenderInterface, JOB, ACT =
-      GetAPI("BlitSLTRB", "BCBlit", "Fade", "GameProc", "GetActiveObject",
-        "GetActivePlayer", "GetGameTicks", "GetLevelInfo", "GetMouseX",
-        "GetMouseY", "GetOpponentPlayer", "GetViewportData", "HaveZogsToWin",
-        "LoadLevel", "PrintC", "PrintCT", "PrintR", "Print",
-        "RegisterFBUCallback", "RenderObjects", "RenderShroud",
-        "RenderTerrain", "SelectObject", "SetCallbacks", "SetPlaySounds",
-        "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
+  BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GameProc,
+    GetActiveObject, GetActivePlayer, GetGameTicks, GetLevelInfo, GetMouseX,
+    GetMouseY, GetOpponentPlayer, GetViewportData, HaveZogsToWin, LoadLevel,
+    PrintC, PrintCT, PrintR, Print, RegisterFBUCallback, RenderObjects,
+    RenderShroud, RenderTerrain, SelectObject, SetCallbacks, SetPlaySounds,
+    UpdateShroud, aLevelsData, aObjs, aPlayers, fontLarge, fontLittle,
+    fontTiny, texSpr, RenderInterface, JOB, ACT =
+      GetAPI("BlitSLT", "BlitSLTRB", "BlitSLTWH", "DrawHealthBar", "Fade",
+        "GameProc", "GetActiveObject", "GetActivePlayer", "GetGameTicks",
+        "GetLevelInfo", "GetMouseX", "GetMouseY", "GetOpponentPlayer",
+        "GetViewportData", "HaveZogsToWin", "LoadLevel", "PrintC", "PrintCT",
+        "PrintR", "Print", "RegisterFBUCallback", "RenderObjects",
+        "RenderShroud", "RenderTerrain", "SelectObject", "SetCallbacks",
+        "SetPlaySounds", "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
         "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
         "oObjectJobs", "oObjectActions");
 end

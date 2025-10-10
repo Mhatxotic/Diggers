@@ -228,7 +228,16 @@ local OFL<const> = {          -- Max 64-bits
   CONSUME      = 0x400000000, -- Object consumes another object
   NOHOME       = 0x800000000, -- Object cannot enter home
 };
-OFL.JUMPMASK = OFL.JUMPRISE|OFL.JUMPFALL;
+-- Commonly used combinations
+OFL.JUMP         = OFL.JUMPRISE | OFL.JUMPFALL; -- Jumping (rising OR fallign)
+OFL.JUMPFLOAT    = OFL.JUMP | OFL.FLOATING;     -- Jumping and floating
+OFL.JUMPRISEBUSY = OFL.JUMPRISE | OFL.BUSY;     -- Jump rising and busy
+OFL.JUMPFALLBUSY = OFL.JUMPFALL | OFL.BUSY;     -- Jump falling and busy
+-- Commonly used combinations that are inverted for the '&' (AND) operator
+OFL.iBUSY, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER, OFL.iJUMP,
+  OFL.iJUMPRISE, OFL.iNOHOME, OFL.iJUMPFALLBUSY =
+    ~OFL.BUSY, ~OFL.FALL, ~OFL.FLOATING, ~OFL.INWATER, ~OFL.JUMP,
+    ~OFL.JUMPRISE, ~OFL.NOHOME, ~OFL.JUMPFALLBUSY;
 -- Jumping ----------------------------------------------------------------- --
 local aJumpRiseData<const> =
   { -2, -2, -2, -1,  -1, -1, -1, -1,  -1, -1,  0, -1,   0,  0, -1,  0,

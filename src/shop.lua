@@ -39,10 +39,10 @@ local aAssets,                         -- Assets required
       iKeyBankClosedId,                -- Closed key bank id
       iKeyBankOpenId,                  -- Opened key bank id
       iSHolo,                          -- Switch product sound effect id
-      iSError, iSFind, iSHoloHum,      -- Sound effect ids
-      iSOpen, iSSelect, iSTrade,       -- More sound effect ids
+      iSFind, iSHoloHum,               -- Sound effect ids
+      iSOpen, iSSelect,                -- More sound effect ids
       iSpeechTicks,                    -- Speech ticks left and shop open
-      oObjActive,                   -- Currently selected digger
+      oObjActive,                      -- Currently selected digger
       oBuyObject,                      -- Currently selected object data
       oDiggerInfo,                     -- Digger properties
       sLongName, sPrice, sDesc,        -- Long name and info of product
@@ -52,6 +52,14 @@ local aAssets,                         -- Assets required
 local iTileDoor<const> = 31;           local iTileFork<const> = 46;
 local iTileDoorMax     = iTileDoor + 14;   -- Maximum door tile id
 local iTileAnimMax     = iTileFork + 11;   -- Maximum forklift tile id
+-- BuyItem() function results ---------------------------------------------- --
+local aBuyItemResults<const> = {
+  { "YOU CAN'T AFFORD IT!",   false }, -- 1
+  { "TOO HEAVY FOR YOU!",     false }, -- 2
+  { "OUT OF STOCK!",          false }, -- 3
+  { "WHOOPS! DON'T DROP IT!", false }, -- 4
+  { "SOLD TO YOU NOW!",       false }, -- 5
+};
 -- Update price and carryable display -------------------------------------- --
 local function UpdateCarryable()
   sPrice = format("%03uz (%u)",
@@ -217,16 +225,9 @@ end
 local function GoLast() AdjustProduct(-1) end;
 local function GoNext() AdjustProduct(1) end;
 local function GoBuy()
-  -- Check weight and if can't carry this?
-  if oObjActive.IW + oBuyObject.WEIGHT > oDiggerInfo.STRENGTH then
-    SetSpeechSound("TOO HEAVY FOR YOU", iSError);
-  -- Try to buy it and if failed?
-  elseif BuyItem(oObjActive, iBuyObjTypeId) then
-    SetSpeechSound("SOLD TO YOU NOW!", iSTrade);
-    PlayStaticSound(iSTrade);
-    UpdateCarryable();
-  -- Can't afford it
-  else SetSpeechSound("YOU CAN'T AFFORD IT!", iSError) end;
+  -- Try to buy it and play error and show reason if failed?
+  local aData<const> = aBuyItemResults[BuyItem(oObjActive, iBuyObjTypeId)];
+  SetSpeechSound(aData[1], aData[2]);
 end
 -- Scroll wheel function --------------------------------------------------- --
 local function Scroll(nX, nY)
@@ -315,9 +316,14 @@ local function OnScriptLoaded(GetAPI)
     { oKeys.SPACE, GoBuy,  "zmtcsbp", "PURCHASE PRODUCT" },
   } });
   -- Set sound effect ids
-  iSError, iSFind, iSHolo, iSHoloHum, iSOpen, iSSelect, iSTrade =
-    oSfxData.ERROR, oSfxData.FIND, oSfxData.SSELECT, oSfxData.HOLOHUM,
-    oSfxData.SOPEN, oSfxData.SELECT, oSfxData.TRADE;
+  iSFind, iSHolo, iSHoloHum, iSOpen, iSSelect =
+    oSfxData.FIND, oSfxData.SSELECT, oSfxData.HOLOHUM,
+    oSfxData.SOPEN, oSfxData.SELECT;
+  -- Set BuyItem() result sound effects
+  local iSError<const> = oSfxData.ERROR;
+  aBuyItemResults[1][2], aBuyItemResults[2][2], aBuyItemResults[3][2],
+    aBuyItemResults[4][2], aBuyItemResults[5][2] =
+      iSError, iSError, iSError, iSError, oSfxData.TRADE;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitShop = InitShop }, F = OnScriptLoaded };

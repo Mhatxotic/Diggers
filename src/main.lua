@@ -38,6 +38,7 @@ local fFont<const> = Font.Console();   -- Main console class
 local fboMain<const> = Fbo.Main();     -- Main frame buffer object class
 local iTexScale;                       -- Texture scale
 local oAPI<const> = { };               -- API to send to other functions
+local iAPI = 0;                        -- Variables in API
 local oCache = { };                    -- File cache
 local oFrameBufferCbs<const> = { };    -- Frame buffer updated function
 -- Stage dimensions -------------------------------------------------------- --
@@ -94,19 +95,14 @@ function Debug(oData)
   -- Just a variable
   Print(0, type(oData).." = "..tostring(oData));
 end
--- Parse the return value of a script -------------------------------------- --
-local function ParseScriptResult(sName, oModData)
+-- Check and put functions in API ------------------------------------------ --
+local function PutAPI(sName, oModAPI)
   -- Check parameters
-  if not UtilIsString(sName) then error("Bad name: "..tostring(sName)) end;
-  if not UtilIsTable(oModData) then error(sName..": bad return!") end;
-  local fcbModCb<const> = oModData.F;
-  if not UtilIsFunction(fcbModCb) then error(sName..": bad callback!") end;
-  local aModAPI<const> = oModData.A;
-  if not UtilIsTable(aModAPI) then error(sName..": bad api!") end;
-  -- Set name of module
-  oModData.N = sName;
+  if not UtilIsTable(oModAPI) then error(sName..": bad api!") end;
+  -- How many functions registered?
+  local iFunctions = 0;
   -- Add functions to the api
-  for sKey, vVar in pairs(aModAPI) do
+  for sKey, vVar in pairs(oModAPI) do
     -- Check variable name
     if not UtilIsString(sKey) then
       error(sName.."["..tostring(sKey).."] bad key!") end;
@@ -117,7 +113,27 @@ local function ParseScriptResult(sName, oModData)
     if nil == vVar then error(sName.."["..sKey.."] bad variable!") end;
     -- Assign variable in internal API
     oAPI[sKey] = vVar;
+    -- API function added
+    iFunctions = iFunctions + 1;
   end
+  -- Add to total functions
+  iAPI = iAPI + iFunctions;
+  -- Log result
+  CoreLog("Module '"..sName.."' added "..iFunctions.." members (now "..
+    iAPI..") to the API.");
+end
+-- Parse the return value of a script -------------------------------------- --
+local function ParseScriptResult(sName, oModData)
+  -- Check parameters
+  if not UtilIsString(sName) then error("Bad name: "..tostring(sName)) end;
+  if not UtilIsTable(oModData) then error(sName..": bad return!") end;
+  local fcbModCb<const> = oModData.F;
+  if not UtilIsFunction(fcbModCb) then error(sName..": bad callback!") end;
+  local oModAPI<const> = oModData.A;
+  -- Set name of module
+  oModData.N = sName;
+  -- Put functions in API
+  PutAPI(sName, oModAPI);
   -- Put returned data in API for later when everything is loaded and we'll
   -- call the modules callback function with the fully loaded API.
   aModules[1 + #aModules] = oModData;
@@ -599,6 +615,22 @@ local function fcbTick()
     oAPI.cvTest = VariableRegister("gam_test", "", oCVF.STRING, fcbEmpty);
     -- ...and a CVar to force a different language
     oAPI.cvLang = VariableRegister("gam_lang", "", oCVF.STRINGSAVE, fcbEmpty);
+    -- Ask modules to grab needed functions from the API (first chance)
+    for iI = 1, #aModules do
+      local oModData<const> = aModules[iI];
+      local fcbFunc<const> = oModData.I;
+      if fcbFunc then PutAPI(oModData.N, fcbFunc(GetAPI)) end;
+    end
+    -- Assign loaded sound effects (audio.lua)
+    GetAPI("RegisterSounds")(aResources, iBaseSounds, #aBaseSounds);
+    -- Ask modules to grab needed functions from the API (last chance)
+    for iI = 1, #aModules do
+      local oModData<const> = aModules[iI];
+      local fcbFunc<const> = oModData.F;
+      if fcbFunc then fcbFunc(GetAPI, oModData, oAPI) end;
+    end
+    -- Get cursor render function (input.lua)
+    local CursorRender<const> = oAPI.CursorRender;
     -- Some library functions and variables only for this scope
     local InitBook, InitCon, InitCredits, InitTitleCredits, InitDebugPlay,
       InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
@@ -616,15 +648,6 @@ local function fcbTick()
           "InitTitle", "InitTitleCredits", "JoystickProc", "LoadLevel",
           "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
           "aLevelsData", "oObjectTypes", "aRacesData");
-    -- Assign loaded sound effects (audio.lua)
-    GetAPI("RegisterSounds")(aResources, iBaseSounds, #aBaseSounds);
-    -- Get cursor render function (input.lua)
-    local CursorRender<const> = oAPI.CursorRender;
-    -- Ask modules to grab needed functions from the API
-    for iI = 1, #aModules do
-      local oModData<const> = aModules[iI];
-      oModData.F(GetAPI, oModData, oAPI);
-    end
     -- Main procedure callback
     local function MainCallback()
       -- Poll joysticks (input.lua)

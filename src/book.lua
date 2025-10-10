@@ -253,7 +253,7 @@ local function InitBook(bFromInGame)
   LoadResources("Book", aAssets, OnAssetsLoaded, fcbProcCustomHandle);
 end
 -- Scripts have been loaded ------------------------------------------------ --
-local function OnScriptLoaded(GetAPI, aModData, aAPI)
+local function OnScriptLoaded(GetAPI, aModData, oAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData,
     cvLang;
@@ -280,7 +280,7 @@ local function OnScriptLoaded(GetAPI, aModData, aAPI)
       SelectLanguage("", true);
     end
     -- Get book language data and if it is there?
-    local aData<const> = aAPI["aBookData_"..sSelectedLang];
+    local aData<const> = oAPI["aBookData_"..sSelectedLang];
     if aData then
       -- Accepted
       aBookData = aData;
