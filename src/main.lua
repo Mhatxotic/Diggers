@@ -36,9 +36,9 @@ local aModules<const> = { };           -- Modules data
 local bTestMode = false;               -- Test mode enabled
 local fFont<const> = Font.Console();   -- Main console class
 local fboMain<const> = Fbo.Main();     -- Main frame buffer object class
+local iAPI = 0;                        -- Variables in API
 local iTexScale;                       -- Texture scale
 local oAPI<const> = { };               -- API to send to other functions
-local iAPI = 0;                        -- Variables in API
 local oCache = { };                    -- File cache
 local oFrameBufferCbs<const> = { };    -- Frame buffer updated function
 -- Stage dimensions -------------------------------------------------------- --
@@ -54,9 +54,9 @@ local iStageLeftO  = iStageLeft;       -- Left of stage (unscaled)
 local iStageTopO   = iStageTop;        -- Top of stage (unscaled)
 local iStageRightO = iStageRight;      -- Right of stage (unscaled)
 -- These could be called even though they aren't initialised yet ----------- --
-local DisableKeyHandlers, MainProcFunc, RestoreKeyHandlers, SetKeys,
-  SetHotSpot, SetTip = UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank,
-    UtilBlank;
+local CursorRender, DisableKeyHandlers, JoystickProc, MainProcFunc,
+  RestoreKeyHandlers, SetKeys, SetHotSpot, SetTip = UtilBlank, UtilBlank,
+    UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank;
 -- Constants for loader ---------------------------------------------------- --
 local oBFlags<const> = Image.FlagsPre;     -- Get bitmap loading flags
 local iPNG<const> = oBFlags.TOGPU|oBFlags.FCE_PNG;-- Get forced PNG format flag
@@ -456,6 +456,99 @@ local function RegisterFrameBufferUpdateCallback(sName, fCB)
 end
 -- Returns wether test mode is enabled ------------------------------------- --
 local function GetTestMode() return bTestMode end;
+-- Load the texture scale value -------------------------------------------- --
+local function LoadTextureScale()
+  -- Customised texture scale file exists?
+  local sScaleFile<const> = "tex/scale.txt";
+  if not Asset.FileExists(sScaleFile) then iTexScale = 1 return end;
+  -- Load the texture scale number from file and make sure it is valid
+  local nTexScale<const> = tonumber(Asset.File(sScaleFile, 0):ToString());
+  if not nTexScale then error("Erroneous texture scale '"..
+    tostring(nTexScale).."' in '"..sScaleFile.."'!") end;
+  if not UtilIsInteger(nTexScale) then error("Texture scale '"..
+    nTexScale.."' must be integral in '"..sScaleFile.."'!") end;
+  if nTexScale < 1 or nTexScale > 16 then
+    error("Scale '"..nTexScale.."' out of range in '"..sScaleFile.."'!") end;
+  -- Set new accepted scale
+  iTexScale = nTexScale;
+  -- Get maximum texture size and make sure guest's GPU supports it. 1024^2
+  -- is the maximum size texture we use at 1X scale.
+  local iMaxUsedTexSize<const> = 1024;
+  local iMaxSize<const> = Texture.MaxSize();
+  if iTexScale * iMaxUsedTexSize > iMaxSize then
+    local _<const>, _<const>, sDisplay<const> = Display.GPU();
+    error("Fatal error! The installed "..iTexScale.."X scale texture pack \z
+           is not supported on this rendering device ("..sDisplay..") as \z
+           it will only support a maximum scale of "..
+           (iMaxSize//iMaxUsedTexSize).."X ("..iMaxSize.."^2).");
+  end
+  -- Now we have to scale all relavant co-ordinates so for each asset
+  for sIdentifier, oAssetData in pairs(oAssetsData) do
+    -- Get type and if not valid show an error
+    local iType<const> = oAssetData.T;
+    if not UtilIsInteger(iType) then
+      error("Invalid type '"..tostring(iType).."' in "..
+        sIdentifier.."!") end;
+    -- Get type data and if not valid then show an error
+    local aTypeItem<const> = aTypes[iType];
+    if not UtilIsTable(aTypeItem) then
+      error("Invalid type data '"..tostring(aTypeItem).."' in "..
+        sIdentifier.."!") end;
+    -- Check that we have parameters to modify and if we do?
+    local aParamsToModify<const> = aTypeItem[7];
+    if UtilIsTable(aParamsToModify) then
+      -- Get and check function parameters
+      local aFuncParams<const> = oAssetData.P;
+      if not UtilIsTable(aFuncParams) then
+        error("Invalid func params data '"..tostring(aFuncParams)..
+          "' in data for type "..iType.." in "..sIdentifier.."!") end;
+      -- Walk through the parameters to modify
+      for iPMIndex = 1, #aParamsToModify do
+        -- Get and check the function param
+        local iFPIndex<const> = aParamsToModify[iPMIndex];
+        local vParam<const> = aFuncParams[iFPIndex];
+        if UtilIsTable(vParam) then
+          -- Scale all its values
+          for iPAIndex = 1, #vParam do
+            -- Get current value and make sure it is valid
+            local iValue<const> = vParam[iPAIndex];
+            if UtilIsInteger(iValue) then
+              vParam[iPAIndex] = iValue * iTexScale;
+            -- Invalid value type
+            else error("Invalid array param type '"..tostring(iValue)..
+              "' at '"..iPAIndex..":"..iFPIndex"' for type "..iType..
+              " in "..sIdentifier.."!") end;
+          end
+        -- Scale just the integer
+        elseif UtilIsInteger(vParam) then
+          aFuncParams[iFPIndex] = vParam * iTexScale;
+        -- Unknown format. This is an error
+        else error("Invalid param type '"..tostring(vParam).."' at '"..
+          iFPIndex"' for type "..iType.." in "..sIdentifier.."!") end;
+      end
+    -- Invalid parameters to modify data if not nil
+    elseif aParamsToModify ~= nil then
+      error("Invalid type param data '"..tostring(aParamsToModify)..
+        "' for type "..iType.." in "..sIdentifier.."!") end;
+  end
+  -- Resize frame buffer if texture scale different
+  local oVariables<const> = Variable.Internal;
+  Fbo.Resize(oVariables.vid_orwidth:Get() * iTexScale,
+             oVariables.vid_orheight:Get() * iTexScale);
+end
+-- Main procedure callback ------------------------------------------------- --
+local function MainCallback()
+  -- Poll joysticks (input.lua)
+  JoystickProc();
+  -- Execute logic tick
+  CBProc();
+  -- Render the scene
+  CBRender();
+  -- Render the cursor (input.lua)
+  CursorRender();
+  -- Draw screen at end of engine tick
+  FboDraw();
+end
 -- The first tick function ------------------------------------------------- --
 local function fcbTick()
   -- Load base assets data
@@ -465,83 +558,8 @@ local function fcbTick()
   oAssetsData, aBaseAssets, iBaseScripts, iBaseFonts, iBaseTextures,
     iBaseMasks, iBaseSounds, aBaseSounds =
       Asset.Parse(aScriptTypeData[3].."asset"..aScriptTypeData[4], 9);
-  -- Customised texture scale file exists?
-  local sScaleFile<const> = "tex/scale.txt";
-  if Asset.FileExists(sScaleFile) then
-    -- Load the texture scale number from file and make sure it is valid
-    local nTexScale<const> = tonumber(Asset.File(sScaleFile, 0):ToString());
-    if not nTexScale then error("Erroneous texture scale '"..
-      tostring(nTexScale).."' in '"..sScaleFile.."'!") end;
-    -- Round it down and check it incase it's not a valid integer and check it
-    iTexScale = floor(nTexScale);
-    if iTexScale ~= nTexScale or iTexScale > 16 then
-      error("Bad texture scale '"..nTexScale.."' in '"..sScaleFile.."'!") end;
-    -- Get maximum texture size and make sure guest's GPU supports it. 1024^2
-    -- is the maximum size texture we use at 1X scale.
-    local iMaxUsedTexSize<const> = 1024;
-    local iMaxSize<const> = Texture.MaxSize();
-    if iTexScale * iMaxUsedTexSize > iMaxSize then
-      local _<const>, _<const>, sDisplay<const> = Display.GPU();
-      error("Fatal error! The installed "..iTexScale.."X scale texture pack \z
-             is not supported on this rendering device ("..sDisplay..") as \z
-             it will only support a maximum scale of "..
-             (iMaxSize//iMaxUsedTexSize).."X ("..iMaxSize.."^2).");
-    end
-    -- Now we have to scale all relavant co-ordinates so for each asset
-    for sIdentifier, oAssetData in pairs(oAssetsData) do
-      -- Get type and if not valid show an error
-      local iType<const> = oAssetData.T;
-      if not UtilIsInteger(iType) then
-        error("Invalid type '"..tostring(iType).."' in "..
-          sIdentifier.."!") end;
-      -- Get type data and if not valid then show an error
-      local aTypeItem<const> = aTypes[iType];
-      if not UtilIsTable(aTypeItem) then
-        error("Invalid type data '"..tostring(aTypeItem).."' in "..
-          sIdentifier.."!") end;
-      -- Check that we have parameters to modify and if we do?
-      local aParamsToModify<const> = aTypeItem[7];
-      if UtilIsTable(aParamsToModify) then
-        -- Get and check function parameters
-        local aFuncParams = oAssetData.P;
-        if not UtilIsTable(aFuncParams) then
-          error("Invalid func params data '"..tostring(aFuncParams)..
-            "' in data for type "..iType.." in "..sIdentifier.."!") end;
-        -- Walk through the parameters to modify
-        for iPMIndex = 1, #aParamsToModify do
-          -- Get and check the function param
-          local iFPIndex = aParamsToModify[iPMIndex];
-          local vParam = aFuncParams[iFPIndex];
-          if UtilIsTable(vParam) then
-            -- Scale all its values
-            for iPAIndex = 1, #vParam do
-              -- Get current value and make sure it is valid
-              local iValue<const> = vParam[iPAIndex];
-              if UtilIsInteger(iValue) then
-                vParam[iPAIndex] = iValue * iTexScale;
-              -- Invalid value type
-              else error("Invalid array param type '"..tostring(iValue)..
-                "' at '"..iPAIndex..":"..iFPIndex"' for type "..iType..
-                " in "..sIdentifier.."!") end;
-            end
-          -- Scale just the integer
-          elseif UtilIsInteger(vParam) then
-            aFuncParams[iFPIndex] = vParam * iTexScale;
-          -- Unknown format. This is an error
-          else error("Invalid param type '"..tostring(vParam).."' at '"..
-            iFPIndex"' for type "..iType.." in "..sIdentifier.."!") end;
-        end
-      -- Invalid parameters to modify data if not nil
-      elseif aParamsToModify ~= nil then
-        error("Invalid type param data '"..tostring(aParamsToModify)..
-          "' for type "..iType.." in "..sIdentifier.."!") end;
-    end
-    -- Resize frame buffer if texture scale different
-    local oVariables<const> = Variable.Internal;
-    Fbo.Resize(oVariables.vid_orwidth:Get() * iTexScale,
-               oVariables.vid_orheight:Get() * iTexScale);
-  -- No scale file found so no texture scale by default
-  else iTexScale = 1 end;
+  -- Load texture scale
+  LoadTextureScale();
   -- Refresh viewport info and automatically when window size changes
   Fbo.OnRedraw(RefreshViewportInfo);
   RefreshViewportInfo();
@@ -572,15 +590,15 @@ local function fcbTick()
     -- the above loaded modules.
     local function GetAPI(...)
       -- Get functions and if there is only one then return it
-      local tFuncs<const> = { ... }
-      if #tFuncs == 0 then error("No functions specified to check") end;
+      local aFuncs<const> = { ... }
+      if #aFuncs == 0 then error("No functions specified to check") end;
       -- Functions already added
       local oAdded<const> = { };
       -- Find each function specified and return all of them
-      local tRets<const> = { };
-      for iI = 1, #tFuncs do
+      local aRets<const> = { };
+      for iI = 1, #aFuncs do
         -- Check parameter
-        local sMember<const> = tFuncs[iI];
+        local sMember<const> = aFuncs[iI];
         if not UtilIsString(sMember) then
           error("Function name at "..iI.." is invalid") end;
         -- Check if we already cached this member and if already have it?
@@ -598,10 +616,10 @@ local function fcbTick()
         -- Cache function so we can track duplicated
         oAdded[sMember] = iI;
         -- Add it to returns
-        tRets[1 + #tRets] = vMember;
+        aRets[1 + #aRets] = vMember;
       end
       -- Unpack returns table and return all the functions requested
-      return unpack(tRets);
+      return unpack(aRets);
     end
     -- Register file data CVar
     local oCVF<const> = Variable.Flags;
@@ -629,37 +647,23 @@ local function fcbTick()
       local fcbFunc<const> = oModData.F;
       if fcbFunc then fcbFunc(GetAPI, oModData, oAPI) end;
     end
-    -- Get cursor render function (input.lua)
-    local CursorRender<const> = oAPI.CursorRender;
     -- Some library functions and variables only for this scope
     local InitBook, InitCon, InitCredits, InitTitleCredits, InitDebugPlay,
       InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
-      InitRace, InitScene, InitScore, InitTitle, JoystickProc, LoadLevel,
-      aLevelsData, oObjectTypes, aRacesData;
+      InitRace, InitScene, InitScore, InitTitle, LoadLevel, aLevelsData,
+      oObjectTypes, aRacesData;
     -- Load dependecies we need on this module
-    DisableKeyHandlers, InitBook, InitCon, InitCredits, InitDebugPlay,
-      InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
-      InitRace, InitScene, InitScore, InitTitle, InitTitleCredits,
+    CursorRender, DisableKeyHandlers, InitBook, InitCon, InitCredits,
+      InitDebugPlay, InitEnding, InitFail, InitFile, InitIntro, InitMap,
+      InitNewGame, InitRace, InitScene, InitScore, InitTitle, InitTitleCredits,
       JoystickProc, LoadLevel, RestoreKeyHandlers, SetHotSpot, SetKeys, SetTip,
       aLevelsData, oObjectTypes, aRacesData =
-        GetAPI("DisableKeyHandlers", "InitBook", "InitCon", "InitCredits",
-          "InitDebugPlay", "InitEnding", "InitFail", "InitFile", "InitIntro",
-          "InitMap", "InitNewGame", "InitRace", "InitScene", "InitScore",
-          "InitTitle", "InitTitleCredits", "JoystickProc", "LoadLevel",
-          "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
+        GetAPI("CursorRender", "DisableKeyHandlers", "InitBook", "InitCon",
+          "InitCredits", "InitDebugPlay", "InitEnding", "InitFail", "InitFile",
+          "InitIntro", "InitMap", "InitNewGame", "InitRace", "InitScene",
+          "InitScore", "InitTitle", "InitTitleCredits", "JoystickProc",
+          "LoadLevel", "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
           "aLevelsData", "oObjectTypes", "aRacesData");
-    -- Main procedure callback
-    local function MainCallback()
-      -- Poll joysticks (input.lua)
-      JoystickProc();
-      -- Execute tick and render callbacks
-      CBProc();
-      CBRender();
-      -- Render the cursor (input.lua)
-      CursorRender();
-      -- Draw screen at end of LUA tick
-      FboDraw();
-    end
     -- Set main callback
     fcbTick = MainCallback;
     -- Init game counters so testing stuff quickly works properly
@@ -674,44 +678,48 @@ local function fcbTick()
       -- Get start level
       local iStartLevel<const> = tonumber(sTestValue) or 0;
       -- Test random level? (game.lua)
-      if iStartLevel == 0 then
-        return LoadLevel(random(#aLevelsData), "game", -1);
+      if iStartLevel == 0 then LoadLevel(random(#aLevelsData), "game", -1);
       -- Test a specific level (game.lua)
       elseif iStartLevel >= 1 and iStartLevel <= #aLevelsData then
-        return LoadLevel(iStartLevel, "game", -1);
+        LoadLevel(iStartLevel, "game", -1);
       -- Test a specific level with starting scene (scene.lua)
       elseif iStartLevel > #aLevelsData and iStartLevel <= #aLevelsData*2 then
-        return InitScene(iStartLevel-#aLevelsData, "game");
+        InitScene(iStartLevel - #aLevelsData, "game");
       -- Testing infinite play mode? (debug.lua)
-      elseif iStartLevel == -1 then return InitDebugPlay();
+      elseif iStartLevel == -1 then InitDebugPlay();
       -- Testing the fail screen (fail.lua)
-      elseif iStartLevel == -2 then return InitFail();
+      elseif iStartLevel == -2 then InitFail();
       -- Testing the game over (score.lua)
-      elseif iStartLevel == -3 then return InitScore();
+      elseif iStartLevel == -3 then InitScore();
       -- Testing the final credits (ending.lua)
-      elseif iStartLevel == -4 then return InitCredits(false);
+      elseif iStartLevel == -4 then InitCredits(false);
       -- Testing the final rolling credits (ending.lua)
-      elseif iStartLevel == -5 then return InitCredits(true);
+      elseif iStartLevel == -5 then InitCredits(true);
       -- Testing the title screen rolling credits (tcredits.lua)
-      elseif iStartLevel == -6 then return InitTitleCredits();
+      elseif iStartLevel == -6 then InitTitleCredits();
       -- Testing the controller screen (cntrl.lua)
-      elseif iStartLevel == -7 then return InitCon();
+      elseif iStartLevel == -7 then InitCon();
       -- Testing the book screen (book.lua)
-      elseif iStartLevel == -8 then return InitBook();
+      elseif iStartLevel == -8 then InitBook();
       -- Testing the race screen (race.lua)
-      elseif iStartLevel == -9 then return InitRace();
+      elseif iStartLevel == -9 then InitRace();
       -- Testing the map screen (map.lua)
-      elseif iStartLevel == -10 then return InitMap();
+      elseif iStartLevel == -10 then InitMap();
       -- Testing the file select screen (file.lua)
-      elseif iStartLevel == -11 then return InitFile();
+      elseif iStartLevel == -11 then InitFile();
       -- Testing a races ending (ending.lua)
       elseif iStartLevel > -16 and iStartLevel <= -12 then
-        return InitEnding(#aRacesData + (-16 - iStartLevel));
+        InitEnding(#aRacesData + (-16 - iStartLevel));
       -- Reserved for testing win and map post mortem (game/post.lua)
       elseif iStartLevel <= -16 and iStartLevel > -16 - #aLevelsData then
-        return LoadLevel(-iStartLevel-15, "game", -1, nil, nil, nil, nil, nil,
-          nil, nil, 17550);
-      end
+        LoadLevel(-iStartLevel-15, "game", -1, nil, nil, nil, nil, nil, nil,
+          nil, 17550);
+      -- Invalid test code so skip the below return
+      else goto invalid end;
+      -- Valid test code
+      do return end;
+      -- Invalid test mode label
+      ::invalid::
     end
     -- If being run for first time
     if 0 == tonumber(oAPI.cvSetup:Get()) then
@@ -750,14 +758,14 @@ local function fcbTick()
     if nPercent == nLastPercentage then return end;
     nLastPercentage = nPercent;
     -- Draw progress bar
-    fSolid:SetCRGBA(1, 0, 0, 1);        -- Border
+    fSolid:SetCRGBA(1.0, 0.0, 0.0, 1.0); -- Border
     fSolid:BlitLTRB(iX, iY, iXBack, iYBack);
-    fSolid:SetCRGBA(0.25, 0, 0, 1);     -- Backdrop
+    fSolid:SetCRGBA(0.25, 0.0, 0.0, 1.0); -- Backdrop
     fSolid:BlitLTRB(iXPlus1, iYPlus1, iXBack2, iYBack2);
-    fSolid:SetCRGBA(1, 1, 1, 1);        -- Progress
+    fSolid:SetCRGBA(1.0, 1.0, 1.0, 1.0); -- Progress
     fSolid:BlitLTRB(iXPlus1, iYPlus1, iXPlus1+(nPercent*iWidth), iYBack2);
     fFont:SetSize(iTexScale);
-    fFont:SetCRGBA(1, 1, 1, 1);         -- Filename & percentage
+    fFont:SetCRGBA(1.0, 1.0, 1.0, 1.0); -- Filename & percentage
     fFont:PrintU(iX, iYText, sFile);
     fFont:PrintUR(iXText, iYText, format("%.f%% Completed", nPercent * 100));
     -- Catchup accumulator (we don't care about it);
