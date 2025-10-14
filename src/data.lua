@@ -148,11 +148,14 @@ local TYP<const> = {
 -- Races available list ---------------------------------------------------- --
 local aRacesData<const> =
   { TYP.FTARG, TYP.GRABLIN, TYP.HABBISH, TYP.QUARRIOR };
--- Tile ids that signify starting and ending tile positions ---------------- --
-local aPlrStartData<const> = { { 195, 198 }, { 199, 202 } };
+-- Tile ids that signify player ids for each tile -------------------------- --
+local oTileIdToPlayer<const> = {
+  [195]=1, [196]=1, [197]=1, [198]=1, -- Player 1 tiles (pink)
+  [199]=2, [200]=2, [201]=2, [202]=2, -- Player 2 tiles (green)
+};
 -- Race data --------------------------------------------------------------- --
 local aRaceStatData<const> = {
-  -- Object id -- STR - STA - DIG - PAT - ATP - INT ---------------------------------- --
+  -- Object id -- STR - STA - DIG - PAT - ATP - INT ------------------------ --
   { TYP.FTARG,    25.0, 50.0, 37.0, 32.0, 35.0, 42.0 },
   { TYP.HABBISH,  42.0, 45.0, 27.0, 25.0, 42.0, 50.0 },
   { TYP.GRABLIN,  37.0, 35.0, 50.0, 35.0, 27.0, 38.0 },
@@ -228,6 +231,7 @@ local OFL<const> = {          -- Max 64-bits
   HEALNEARBY   = 0x200000000, -- Object heals nearby Diggers
   CONSUME      = 0x400000000, -- Object consumes another object
   NOHOME       = 0x800000000, -- Object cannot enter home
+  INVULNERABLE = 0x000000000, -- Object cannot ever take damage
 };
 -- Commonly used combinations
 OFL.JUMP         = OFL.JUMPRISE | OFL.JUMPFALL; -- Jumping (rising OR fallign)
@@ -2081,9 +2085,9 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4341813 Flood Gate (No water)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4351913 Flood Gate (Water left)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4362013 Flood Gate (Water right)
-  TF.D|TF.W|TF.P|TF.EL|TF.ER|TF.G,     -- 4372113 Flood Gate (All water)
+  TF.D|TF.P|TF.EL|TF.ER|TF.G|TF.W,     -- 4372113 Flood Gate (All water)
   TF.D|TF.P|TF.EL|TF.ER|TF.G,          -- 4382213 Flood Gate open (No water)
-  TF.D|TF.W|TF.P|TF.EL|TF.ER|TF.G,     -- 4392313 Flood Gate open (Water)
+  TF.D|TF.P|TF.EL|TF.ER|TF.G|TF.W,     -- 4392313 Flood Gate open (Water)
   TF.NONE,                             -- 4402413 Desert crystal 1
   TF.NONE,                             -- 4412513 Desert crystal 2
   TF.NONE,                             -- 4422613 Unused
@@ -2621,7 +2625,7 @@ return { F = Util.Blank, A = {         -- Sending API to main loader
   oSfxData = oSfxData, aShopData = aShopData, aShroudCircle = aShroudCircle,
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,
   oTileFlags = TF, oTimerData = TD, oTrainTrackData = oTrainTrackData,
-  aZoneData = aZoneData, aPlrStartData = aPlrStartData
+  aZoneData = aZoneData, oTileIdToPlayer = oTileIdToPlayer
   -- ----------------------------------------------------------------------- --
 } };                                   -- End of definitions to send to loader
 -- End-of-File ============================================================= --

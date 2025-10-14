@@ -32,8 +32,8 @@ local ClearStates, IsMouseInBounds, MusicVolume, SetCallbacks, SetHotSpot,
 local fcbFading = false;               -- Fading callback
 local fontLittle,                      -- Little font
       nLoadX, nLoadY,                  -- Loader position
-      nStageB, nStageL,        -- Stage bottom and left co-ord
-      nStageR, nStageT,          -- Stage right and top co-ord
+      nStageB, nStageL,                -- Stage bottom and left co-ord
+      nStageR, nStageT,                -- Stage right and top co-ord
       nTexScale,                       -- Texture scale
       sTip,                            -- Current tip and bounds
       texSpr;                          -- Sprites texture
@@ -293,7 +293,7 @@ local function OnScriptLoaded(GetAPI)
       GetAPI("ClearStates", "IsMouseInBounds", "MusicVolume",
         "RegisterFBUCallback", "SetCallbacks", "SetHotSpot", "SetKeys",
         "fontLittle", "iTexScale", "texSpr");
-  -- Convert to number
+  -- Convert texture scale to number
   nTexScale = nTexScale + 0.0;
   -- Set frame buffer update callback (always active)
   RegisterFBUCallback("blit", OnStageUpdated);

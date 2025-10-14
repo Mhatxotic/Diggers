@@ -22,12 +22,12 @@ local UtilHex<const>, CoreCPUUsage<const>, CoreRAM<const>, CoreUptime<const>,
     Core.LUAUsage, Util.Duration, Display.GPUFPS;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
-  GetMouseX, GetMouseY, aPlayers, aObjs, RenderTerrain, RenderObjects,
-  RenderShroud, texSpr, fontLarge, fontLittle, fontTiny, SelectObject,
-  GameProc, GetActiveObject, GetActivePlayer, SetCallbacks, LoadLevel, PrintC,
-  PrintCT, PrintT, PrintR, Print, UpdateShroud, SetPlaySounds, HaveZogsToWin,
-  GetOpponentPlayer, RegisterFBUCallback, aLevelsData, GetViewportData,
-  GetLevelInfo, RenderInterface, JOB, ACT;
+  GetMouseX, GetMouseY, GetTileUnderMouse, aPlayers, aObjs, RenderTerrain,
+  RenderObjects, RenderShroud, texSpr, fontLarge, fontLittle, fontTiny,
+  SelectObject, GameProc, GetActiveObject, GetActivePlayer, SetCallbacks,
+  LoadLevel, PrintC, PrintCT, PrintT, PrintR, Print, UpdateShroud,
+  SetPlaySounds, HaveZogsToWin, GetOpponentPlayer, RegisterFBUCallback,
+  aLevelsData, GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
   -- Frame buffer updated function
@@ -187,8 +187,7 @@ local function InitDebugPlay(iId)
           aTarget = "\n";
           -- Add pursuers
           for iUId, aPursuer in pairs(oObj.TL) do
-            aTarget = aTarget..format("\rt%08x%u", aPursuer.S, aPursuer.U);
-          end
+            aTarget = aTarget..format("\rt%08x%u", aPursuer.S, aPursuer.U) end;
           -- Remove text if no pursuers
           if #aTarget <= 1 then aTarget = "" end;
         end
@@ -233,13 +232,14 @@ local function InitDebugPlay(iId)
       %.3f %% RAMS\n\n\z  %s GAMT\n\z       %s LUAT\n\z
       %s ENGT\n\n\z       %d/%4d VPXC\n\z   %d/%4d VPXT\n\z
       %d/%4d VCPX\n\z     %d/%4d APOS\n\z   %d/%4d ACPS\n\z
-      %d/%4d AMAX\n\z     %d/%4d MPOS",
+      %d/%4d AMAX\n\z     %d/%4d MPOS\n\z   %d/%4d MPLP",
         GetGameTicks(), DisplayGPUFPS(), nCpu, nProc / 1048576,
         nPeak / 1048576, CoreLUAUsage() / 1048576, nSys, nPerc,
         UtilDuration(GetGameTicks() / 60, 0), UtilDuration(CoreLUATime(), 0),
         UtilDuration(CoreUptime(), 0), iPixPosX, iPixPosY, iPixPosTargetX,
         iPixPosTargetY, iPixCenPosX, iPixCenPosY, iPosX, iPosY, iAbsCenPosX,
-        iAbsCenPosY, iViewportW, iViewportH, GetMouseX(), GetMouseY()));
+        iAbsCenPosY, iViewportW, iViewportH, GetMouseX(), GetMouseY(),
+        GetTileUnderMouse()));
     -- Restore font alpha as a lot of modules expect it to be 1.
     fontTiny:SetCA(1.0);
     -- Render interface
@@ -259,22 +259,26 @@ local function InitDebugPlay(iId)
   end
   -- Callbacks to use
   local fcbTCallback, fcbRCallback;
-  -- Infinite play tick callback
+  -- Infinite play tick callback. Note that 'InitContinueGame()' will call
+  -- this every time.
   local function OnTickRandomInitialise()
-    -- For each player...
-    for iPlayerId = 1, #aPlayers do
-      -- Get player
-      local oPlayer<const> = aPlayers[iPlayerId];
-      -- Set remove shroud mode
-      oPlayer.US = true;
-      -- Get and enumerate player diggers
-      local aDiggers<const> = oPlayer.D;
-      for iDiggerId = 1, #aDiggers do
-        -- Get digger
-        local oDigger<const> = aDiggers[iDiggerId];
+    -- If the first frame?
+    if GetGameTicks() == 0 then
+      -- For each player...
+      for iPlayerId = 1, #aPlayers do
+        -- Get player
+        local oPlayer<const> = aPlayers[iPlayerId];
         -- Set remove shroud mode
-        oDigger.US = true;
-        UpdateShroud(oDigger.AX, oDigger.AY);
+        oPlayer.US = true;
+        -- Get and enumerate player diggers
+        local aDiggers<const> = oPlayer.D;
+        for iDiggerId = 1, #aDiggers do
+          -- Get digger
+          local oDigger<const> = aDiggers[iDiggerId];
+          -- Set remove shroud mode
+          oDigger.US = true;
+          UpdateShroud(oDigger.AX, oDigger.AY);
+        end
       end
     end
     -- Store mouse position
@@ -318,20 +322,21 @@ local function OnScriptLoaded(GetAPI)
   -- Grab imports
   BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GameProc,
     GetActiveObject, GetActivePlayer, GetGameTicks, GetLevelInfo, GetMouseX,
-    GetMouseY, GetOpponentPlayer, GetViewportData, HaveZogsToWin, LoadLevel,
-    PrintC, PrintCT, PrintR, Print, RegisterFBUCallback, RenderObjects,
-    RenderShroud, RenderTerrain, SelectObject, SetCallbacks, SetPlaySounds,
-    UpdateShroud, aLevelsData, aObjs, aPlayers, fontLarge, fontLittle,
-    fontTiny, texSpr, RenderInterface, JOB, ACT =
+    GetMouseY, GetOpponentPlayer, GetTileUnderMouse, GetViewportData,
+    HaveZogsToWin, LoadLevel, PrintC, PrintCT, PrintR, Print,
+    RegisterFBUCallback, RenderObjects, RenderShroud, RenderTerrain,
+    SelectObject, SetCallbacks, SetPlaySounds, UpdateShroud, aLevelsData,
+    aObjs, aPlayers, fontLarge, fontLittle, fontTiny, texSpr, RenderInterface,
+    JOB, ACT =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitSLTWH", "DrawHealthBar", "Fade",
         "GameProc", "GetActiveObject", "GetActivePlayer", "GetGameTicks",
         "GetLevelInfo", "GetMouseX", "GetMouseY", "GetOpponentPlayer",
-        "GetViewportData", "HaveZogsToWin", "LoadLevel", "PrintC", "PrintCT",
-        "PrintR", "Print", "RegisterFBUCallback", "RenderObjects",
-        "RenderShroud", "RenderTerrain", "SelectObject", "SetCallbacks",
-        "SetPlaySounds", "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
-        "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
-        "oObjectJobs", "oObjectActions");
+        "GetTileUnderMouse", "GetViewportData", "HaveZogsToWin", "LoadLevel",
+        "PrintC", "PrintCT", "PrintR", "Print", "RegisterFBUCallback",
+        "RenderObjects", "RenderShroud", "RenderTerrain", "SelectObject",
+        "SetCallbacks", "SetPlaySounds", "UpdateShroud", "aLevelsData",
+        "aObjs", "aPlayers", "fontLarge", "fontLittle", "fontTiny", "texSpr",
+        "RenderInterface", "oObjectJobs", "oObjectActions");
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitDebugPlay = InitDebugPlay } };
