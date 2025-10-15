@@ -1710,7 +1710,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.EA,                          -- 0592701
   TF.D|TF.EA,                          -- 0602801
   TF.D|TF.EA,                          -- 0612901
-  TF.ELRB,                             -- 0623001 Elevator shaft top
+  TF.F|TF.ELRB,                        -- 0623001 Elevator shaft top
   TF.F,                                -- 0633101
   TF.F,                                -- 0640002
   TF.NONE,                             -- 0650102
@@ -1838,7 +1838,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 1872705 Outside decoration only
   TF.NONE,                             -- 1882805 Outside decoration only
   TF.D|TF.EA|TF.E,                     -- 1892905 Elevator shaft wire
-  TF.D,                                -- 1903005 Elevator base
+  TF.D|TF.F,                           -- 1903005 Elevator foundation
   TF.NONE,                             -- 1913105 Trade centre top left
   TF.NONE,                             -- 1920006 Trade centre top right
   TF.NONE,                             -- 1930106 Trade centre bottom left
@@ -1950,7 +1950,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.D|TF.W|TF.EA,                     -- 2991109 Flood cave ceil top-left
   TF.D|TF.W|TF.EA,                     -- 3001209 Flood cave ceil top-right
   TF.D|TF.W|TF.EA,                     -- 3011309 Flood cave floor bot-right
-  TF.D|TF.W|TF.ELRB,                   -- 3021409 Flood elevator top
+  TF.D|TF.W|TF.ELRB|TF.F,              -- 3021409 Flood elevator top
   TF.F,                                -- 3031509 Outside top-right ceiling 1
   TF.F,                                -- 3041609 Outside top-right ceiling 2
   TF.F,                                -- 3051709 Outside ceiling
@@ -2078,7 +2078,7 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.F,                                -- 4271113 Outside ceil U/R straight
   TF.NONE,                             -- 4281213 Vertical dug leads outside
   TF.D|TF.W|TF.E|TF.EA,                -- 4291313 Elevator wire (water)
-  TF.NONE,                             -- 4301413 Elevator foundation
+  TF.F,                                -- 4301413 Elevator foundation (water)
   TF.NONE,                             -- 4311513 Out half ceil D/R corner
   TF.F,                                -- 4321613 Out half ceil L/R straight
   TF.NONE,                             -- 4331713 Out half ceil R/U corner

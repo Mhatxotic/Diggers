@@ -238,13 +238,10 @@ end
 -- Get tile at specified object offset pixels ------------------------------ --
 local function GetLevelOffsetFromObject(oObj, iPixX, iPixY)
   -- Adjust pixel parameters to where the object is
-  iPixX = iPixX + oObj.X + oObj.OFX;
-  iPixY = iPixY + oObj.Y + oObj.OFY;
-  -- Return if the specified pixel location adjacend to the object is invalid
-  if iPixX < 0 or iPixX >= iLLPixW or
-     iPixY < 0 or iPixY >= iLLPixH then return end;
-  -- Return absolute location of tile at specified pixel position
-  return (iPixY // 16 * iLLAbsW) + (iPixX // 16);
+  iPixX, iPixY = iPixX + oObj.X + oObj.OFX, iPixY + oObj.Y + oObj.OFY;
+  -- Return location if the pixel location adjacent to the object is valid
+  if iPixX >= 0 and iPixX < iLLPixW and iPixY >= 0 and iPixY < iLLPixH then
+    return (iPixY // 16 * iLLAbsW) + (iPixX // 16) end;
 end
 -- Get zero based tile id at specified object ------------------------------ --
 local function GetLevelDataFromObject(oObj, iPixX, iPixY)
@@ -266,8 +263,9 @@ local function UpdateLevel(iLoc, iTid)
   -- This part will keep the 1 pixel barrier around the level
   if iLoc < iLLAbsW then
     -- Keep top-left corner barrier to stop objects going off screen
-    if iLoc == 0 then maskZone:Fill(0, 0, 16, 1);
-                      maskZone:Fill(0, 0, 1, 16);
+    if iLoc == 0 then
+      maskZone:Fill(0, 0, 16, 1);
+      maskZone:Fill(0, 0, 1, 16);
     -- Keep top-right corner barrier to stop objects going off screen
     elseif iLoc == iLLAbsWm1 then
       maskZone:Fill(iX - 16, 0, 16, 1);
@@ -316,12 +314,13 @@ local function UpdateShroud(iOX, iOY)
     local iX<const>, iY<const> =
       iOX + aShroudCircleItem[1], iOY + aShroudCircleItem[2];
     -- If the co-ordinates are not valid then skip
-    if iX < 0 or iY < 0 or iX >= iLLAbsW or iY >= iLLAbsH then goto lSkip end;
+    if iX < 0 or iY < 0 or iX >= iLLAbsW or iY >= iLLAbsH then
+      goto lContinue end;
     -- Get shroud flags and calc new flags data and continue skip if same
     local aShroudItem<const> = aShroudData[iY * iLLAbsW + iX + 1];
     local iOldFlags<const> = aShroudItem[2];
     local iNewFlags<const> = iOldFlags | aShroudCircleItem[3];
-    if iOldFlags == iNewFlags then goto lSkip end;
+    if iOldFlags == iNewFlags then goto lContinue end;
     -- Lookup new tile id and if theres only one? Set first tile
     local aTiles<const> = aShroudTileLookup[1 + iNewFlags];
     if #aTiles == 1 then aShroudItem[1], aShroudItem[2] = aTiles[1], iNewFlags;
@@ -329,7 +328,7 @@ local function UpdateShroud(iOX, iOY)
     else aShroudItem[1], aShroudItem[2] =
       aTiles[random(#aTiles)], iNewFlags end;
     -- Next shroud tile
-    ::lSkip::
+    ::lContinue::
   end
 end
 -- Set object X position --------------------------------------------------- --
@@ -476,24 +475,26 @@ local function AddToInventory(oObjOwner, oObjTake, bOnlyTreasure)
     -- We cannot pickup this object!
     return false;
   end
-  -- Find object in objects array and when we find it?
+  -- For each visible object
   for iObj = 1, #aObjs do
-    if aObjs[iObj] == oObjTake then
-      -- Remove object and add requested object to owners inventory
-      remove(aObjs, iObj);
-      local oObjOwnInv<const> = oObjOwner.I;
-      oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
-      -- Add weight and set active inventory object to this object
-      oObjOwner.IW, oObjOwner.IS = oObjOwner.IW + oObjTake.W, oObjTake;
-      -- Set object that is now carrying this
-      oObjTake.IP = oObjActive;
-      -- Stop the taken object for inventory preview purposes
-      SetAction(oObjTake, ACT.STOP, JOB.NONE, DIR.NONE);
-      -- If item picked up was the active object then deselect it and its menu
-      if oObjActive == oObjTake then SelectObject() end;
-      -- Success
-      return true;
-    end
+    -- Continue searching if this is not our object
+    if aObjs[iObj] ~= oObjTake then goto lContinue end;
+    -- Remove object and add requested object to owners inventory
+    remove(aObjs, iObj);
+    local oObjOwnInv<const> = oObjOwner.I;
+    oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
+    -- Add weight and set active inventory object to this object
+    oObjOwner.IW, oObjOwner.IS = oObjOwner.IW + oObjTake.W, oObjTake;
+    -- Set object that is now carrying this
+    oObjTake.IP = oObjActive;
+    -- Stop the taken object for inventory preview purposes
+    SetAction(oObjTake, ACT.STOP, JOB.NONE, DIR.NONE);
+    -- If item picked up was the active object then deselect it and its menu
+    if oObjActive == oObjTake then SelectObject() end;
+    -- Success
+    do return true end;
+    -- Continue point
+    ::lContinue::
   end
   -- This shouldn't happen! The object should be in the objects list!
   return false;
@@ -502,27 +503,29 @@ end
 local function DropObject(oObjOwner, oObjDrop)
   -- Return if object to drop is not specified
   if not oObjDrop then return end;
-  -- Get object inventory and enumerate it until we find the object
+  -- For each object in inventory...
   local oObjOwnInv<const> = oObjOwner.I;
   for iIndex = 1, #oObjOwnInv do
-    if oObjOwnInv[iIndex] == oObjDrop then
-      -- Remove object from owner inventory
-      remove(oObjOwnInv, iIndex);
-      -- Set new position of object
-      SetPosition(oObjDrop, oObjOwner.X, oObjOwner.Y);
-      -- Add back to playfield
-      aObjs[1 + #aObjs] = oObjDrop;
-      -- Reduce carrying weight
-      oObjOwner.IW = oObjOwner.IW - oObjDrop.W;
-      -- Select next object
-      oObjOwner.IS = oObjOwnInv[iIndex];
-      -- Remove object inventory owner
-      oObjOwnInv.IP = false;
-      -- If now invalid select first object
-      if not oObjOwner.IS then oObjOwner.IS = oObjOwnInv[1] end;
-      -- Success!
-      return true;
-    end
+    -- Return if this is not the object we're supposed to drop
+    if oObjOwnInv[iIndex] ~= oObjDrop then goto lContinue end;
+    -- Remove object from owner inventory
+    remove(oObjOwnInv, iIndex);
+    -- Set new position of object
+    SetPosition(oObjDrop, oObjOwner.X, oObjOwner.Y);
+    -- Add back to playfield
+    aObjs[1 + #aObjs] = oObjDrop;
+    -- Reduce carrying weight
+    oObjOwner.IW = oObjOwner.IW - oObjDrop.W;
+    -- Select next object
+    oObjOwner.IS = oObjOwnInv[iIndex];
+    -- Remove object inventory owner
+    oObjOwnInv.IP = false;
+    -- If now invalid select first object
+    if not oObjOwner.IS then oObjOwner.IS = oObjOwnInv[1] end;
+    -- Success!
+    do return true end;
+    -- Continue point
+    ::lContinue::
   end
   -- Failed to drop object
   return false;
@@ -682,47 +685,46 @@ local function InitSetAction()
       -- Get tile
       local iId<const> = aLvlData[1 + iTop];
       local iTileId<const> = aTileData[1 + iId];
-      -- Tile has not been dug
-      if iTileId & oTileFlags.AD == 0 then
-        -- Tile is firm buildable ground?
-        if iTileId & oTileFlags.F ~= 0 then
-          -- Height check and if ok and creating an object went ok?
-          -- Create lift object
-          if iTop >= iLLAbsW and iBottom - iTop >= 384 and
-            CreateObject(TYP.LIFTB, (oObj.X + 8) // 16 * 16,
-              (oObj.Y + 15) // 16 * 16, oObj.P) then
-            -- Draw cable from top to bottom
-            UpdateLevel(iTop, 62);
-            for iTop = iTop + iLLAbsW, iBottom - iLLAbsW, iLLAbsW do
-              UpdateLevel(iTop, 189) end;
-            UpdateLevel(iBottom, 190);
-            -- We are fully deployed now so set success
-            return true;
-          end
-        end
-        -- Done
-        break;
-      end
+      -- Try next tile if already been dug out
+      if iTileId & oTileFlags.AD ~= 0 then goto lContinue end;
+      -- Break if tile is not firm buildable ground
+      if iTileId & oTileFlags.F == 0 then break end;
+      -- Height check and if ok and creating an object went ok?
+      -- Create lift object
+      if iTop < iLLAbsW or iBottom - iTop < 384 or
+        not CreateObject(TYP.LIFTB, (oObj.X + 8) // 16 * 16,
+          (oObj.Y + 15) // 16 * 16, oObj.P) then break end;
+      -- Draw cable from top to bottom
+      UpdateLevel(iTop, 62);
+      for iTop = iTop + iLLAbsW, iBottom - iLLAbsW, iLLAbsW do
+        UpdateLevel(iTop, 189) end;
+      UpdateLevel(iBottom, 190);
+      -- We are fully deployed now so set success
+      do return true end;
+      -- Continue point
+      ::lContinue::
     end
   end
   -- Deploy the lift
   local function DEPLOYLift(oObj)
     -- Calculate absolute location of object
     local iLoc<const> = GetLevelOffsetFromObject(oObj, 8, 0);
+    if not iLoc then return false end;
     -- Search for a buildable ground surface
     for iBottom = iLoc, iLLAbsMLW, iLLAbsW do
       -- Get tile
       local iId<const> = aLvlData[1 + iBottom];
       local iTileId<const> = aTileData[1 + iId];
       -- Tile has not been dug
-      if iTileId & oTileFlags.AD == 0 then
-        -- If we're on firm ground? Check the shaft and return success if
-        -- shaft was successfully built.
-        if iTileId & oTileFlags.F ~= 0 and
-          LiftFindTop(oObj, iLoc, iBottom) then return true end;
-        -- Done
-        break;
-      end
+      if iTileId & oTileFlags.AD ~= 0 then goto lContinue end;
+      -- Return failure if we're not on firm ground or checking the shaft
+      -- upto the top couldn't be satisfied and built.
+      if iTileId & oTileFlags.F == 0 or
+        not LiftFindTop(oObj, iLoc, iBottom) then break end;
+      -- Success
+      do return true end;
+      -- Continue point
+      ::lContinue::
     end
     -- Failed to deploy
     return false;
@@ -1220,9 +1222,9 @@ local function AdjustObjectHealth()
   -- Lift tiles which cause cascading clear effect
   local oLiftShaftTiles<const> = {
     -- Top          Cable          Bottom
-    [ 62] = 7,      [189] = 7,     [190] = 7,
+    [ 62] = 62,     [189] = 7,     [190] = 190,
     -- Top (Water)  Cable (Water)  Bottom (Water)
-    [302] = 247,    [429] = 247,   [430] = 247
+    [302] = 302,    [429] = 247,   [430] = 430
   };
   -- Destroy lift shaft
   local function DestroyLiftShaft(oObjCause, iLoc, iStep)
@@ -3089,7 +3091,7 @@ local function GameProc()
   -- Moving left or up-left?
   local function DigDirectionLeftOrUpleft(oObj)
     -- Get tile at objects feet
-    iDP = GetLevelOffsetFromObject(oObj, 5, 15);
+    iDP = GetLevelOffsetFromObject(oObj, 5, 15) or 0;
     GetDigTileData();
     local iFDL<const>, iFDT<const> =
       aTileData[1 + iTIdL], aTileData[1 + iTIdA];
@@ -3113,8 +3115,8 @@ local function GameProc()
   -- Digging down-left?
   local function DigDirectionDownLeft(oObj)
     -- Get tile at objects hands and feet
-    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1),
-               GetLevelOffsetFromObject(oObj, 5, 1);
+    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1) or 0,
+               GetLevelOffsetFromObject(oObj, 5, 1) or 0;
     GetDigTileData();
     local iFDB<const>, iFDL<const>, iFDT<const> =
       aTileData[1 + iTIdB], aTileData[1 + iTIdL], aTileData[1 + iTIdA];
@@ -3139,7 +3141,7 @@ local function GameProc()
   -- Digging up-right
   local function DigDirectionUpRight(oObj)
     -- Get tile at objects waist
-    iCP = GetLevelOffsetFromObject(oObj, 8, 15);
+    iCP = GetLevelOffsetFromObject(oObj, 8, 15) or 0;
     return DigDirectionRightOrUpright(oObj);
   end
   -- Digging right or up-right?
@@ -3151,8 +3153,8 @@ local function GameProc()
   -- Digging down-right?
   local function DigDirectionDownRight(oObj)
     -- Get tile at objects waist and feet
-    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1),
-               GetLevelOffsetFromObject(oObj, 10, 1);
+    iCP, iDP = GetLevelOffsetFromObject(oObj, 8, 1) or 0,
+               GetLevelOffsetFromObject(oObj, 10, 1) or 0;
     GetDigTileData();
     local iFDB<const>, iFDR<const>, iFDT<const> =
       aTileData[1 + iTIdB], aTileData[1 + iTIdR], aTileData[1 + iTIdA];
@@ -3165,7 +3167,7 @@ local function GameProc()
   -- Digging down?
   local function DigDirectionDown(oObj)
     -- Get tile at objects waist and feet
-    iCP, iDP = 0, GetLevelOffsetFromObject(oObj, 8, 16);
+    iCP, iDP = 0, GetLevelOffsetFromObject(oObj, 8, 16) or 0;
     GetDigTileData();
     local iFDL<const>, iFDT<const>, iFDR<const>, iFDB<const> =
       aTileData[1 + iTIdL], aTileData[1 + iTIdA], aTileData[1 + iTIdR],
@@ -3520,16 +3522,15 @@ local function GameProc()
       local aTrainMoveItem<const> = oTrainMoveData[oObj.D];
       -- Get absolute tile position and if valid?
       local iLoc<const> = GetLevelOffsetFromObject(oObj, aTrainMoveItem[1], 0);
-      if iLoc then
-        -- Train on track? Move the train!
-        if aTileData[1 + aLvlData[1 + iLoc]] & oTileFlags.T ~= 0 then
-          MoveX(oObj, aTrainMoveItem[2]);
-        -- Train not on track and was searching? Move in opposite direction.
-        elseif oObj.J == iJSearch and oObj.AT > 0 then
-          SetAction(oObj, iAKeep, iJKeep, iDOpposite);
-        -- Train was not moving so keep stopped
-        else SetAction(oObj, iAStop, iJNone, iDNone) end;
-      end
+      if not iLoc then return end;
+      -- Train on track? Move the train!
+      if aTileData[1 + aLvlData[1 + iLoc]] & oTileFlags.T ~= 0 then
+        MoveX(oObj, aTrainMoveItem[2]);
+      -- Train not on track and was searching? Move in opposite direction.
+      elseif oObj.J == iJSearch and oObj.AT > 0 then
+        SetAction(oObj, iAKeep, iJKeep, iDOpposite);
+      -- Train was not moving so keep stopped
+      else SetAction(oObj, iAStop, iJNone, iDNone) end;
       -- Done
       return;
     end
@@ -5160,7 +5161,7 @@ local function OnPreInitAPI(GetAPI)
             -- Selection confirmed
             aPlrStartItem[3] = iTypeId;
             -- Done
-            goto lDone;
+            goto lContinue;
           end
           -- Next race id
           iRaceId = iRaceId + 1;
@@ -5169,7 +5170,7 @@ local function OnPreInitAPI(GetAPI)
         -- Invalid type (impossible)
         error("Type "..iTypeId.." not found for "..iPlrId.."!");
         -- Continue point
-        ::lDone::
+        ::lContinue::
       end
     end
     -- Resolve race ids for players requesting random race ids
