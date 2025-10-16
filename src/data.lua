@@ -2416,11 +2416,6 @@ local aCreditsXData<const> = {
 };
 -- Setup buttons data ------------------------------------------------------ --
 local aSetupButtonData<const> = {
-  -- -- Legend ------------------------------------------------------------- --
-  -- [*1] Unique hot spot template.    [!2] Unique tip id.
-  -- [*3] X text position.             [*4] Y text position.
-  -- [!5] Button text.                 [!6] Scrolling text information tip.
-  -- ! = static, * = Filled in at setup.lua > OnScriptLoaded() function.
   -- ----------------------------------------------------------------------- --
   { { nil, nil, nil, nil, 0, CID.EXIT, false, false, false }, 101, nil, nil,
     "CLOSE", "CLOSE THIS CONFIGURATION DIALOG AND RETURN TO THE GAME. YOU \z
@@ -2441,12 +2436,6 @@ local aSetupButtonData<const> = {
     "ABOUT", "CLICK TO VIEW THE ACKNOWLEDGEMENTS FOR THIS GAME" },
 };-- Setup options data ---------------------------------------------------- --
 local aSetupOptionData<const> = {
-  -- -- Legend ------------------------------------------------------------- --
-  -- [*1] Unique hot spot template.    [*2] Update text value [7] callback.
-  -- [*3] Y position of text line.     [*4] X position of left justified text.
-  -- [!5] Category text.               [*6] X position of right justified text.
-  -- [*7] Value text.                  [!8] Scrolling text information tip.
-  -- ! = static, * = Filled in at setup.lua > OnScriptLoaded() function.
   -- ----------------------------------------------------------------------- --
   { { nil, nil, nil, nil, 0, CID.SELECT, false, false, false },
     false, 0, 0, "Monitor",         0, "",

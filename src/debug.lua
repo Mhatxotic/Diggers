@@ -208,7 +208,7 @@ local function InitDebugPlay(iId)
     local nCpu<const>, nSys<const> = CoreCPUUsage();
     local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- Draw engine info
-    fontTiny:SetCRGBA(1.0, 1.0, 1.0, 0.5);
+    fontTiny:SetCRGBA(1.0, 1.0, 1.0, 0.75);
     -- Draw game information
     Print(fontTiny, iStageL + 5.0, 5.0, format("\z
       %s [%02u]\n\z     %s\n\z           %u TO WIN\n\z

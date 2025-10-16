@@ -1236,8 +1236,9 @@ local function AdjustObjectHealth()
     -- Check to see if this is a lift tile and return if invalid
     local iToTile<const> = oLiftShaftTiles[iId];
     if not iToTile then return end;
-    -- Clear the shaft tile
-    UpdateLevel(iLoc, iToTile);
+    -- Clear the shaft tile if tile is different. We won't clear the top or
+    -- foundation to prevent escaping from blocked parts of the map.
+    if iId ~= iToTile then UpdateLevel(iLoc, iToTile) end;
     -- Find gate at that position
     for iObjId = 1, #aObjs do
       -- Get object and if it's a deployed lift? Get its absolute location,
@@ -1583,7 +1584,7 @@ local function RenderAll()
     PrintR(fontLittle, 304.0, 56.0, "OPERATIONS TIME");
     local iPDiggers<const> = oPlrActive.DC;
     PrintC(fontLittle, 160.0, 88.0, "YOU HAVE "..iPDiggers.." OF "..
-      oPlrActive.DT.." DIGGERS REMAINING");
+      #oPlrActive.D.." DIGGERS REMAINING");
     -- Draw who has the most diggers
     local iODiggers<const>, sDiggers = oPlrOpponent.DC;
     if iPDiggers > iODiggers then
@@ -2918,8 +2919,8 @@ local function InitCreateObject()
       AI   = iAI,                        -- Object AI procedure
       ANT  = oObjData.ANIMTIMER,         -- Animation timer
       AT   = 0,                          -- Action timer
-      AX   = 0,                          -- Tile X position clamped to 16
-      AY   = 0,                          -- Tile Y position clamped to 16
+      AX   = 0,                          -- Tile X position
+      AY   = 0,                          -- Tile Y position
       CS   = not not oObjData[ACT.STOP], -- Object can stop?
       D    = false,                      -- Direction to go in (DIR.*)
       DA   = false,                      -- Attachment direction data
@@ -4915,7 +4916,6 @@ local function OnPreInitAPI(GetAPI)
     local oPlr<const> = {
       AI  = bIsAI,                 -- Set AI status
       D   = aDiggers,              -- List of diggers
-      DT  = iNumDiggers,           -- Diggers total
       DC  = iNumDiggers,           -- Diggers count
       DUG = 0,                     -- Dirt dug
       EK  = 0,                     -- Enemies killed (OFL.ENEMY)
@@ -5027,7 +5027,7 @@ local function OnPreInitAPI(GetAPI)
     end
   end
   -- Build a level from asset and return players found --------------------- --
-  local aPlrRaceData<const> = { };
+  local aPlrExpected<const> = { };
   local function BuildLevel(asLevel)
     -- Create a blank mask with the specified level name
     maskZone = MaskCreateZero(asLevel:Name(), iLLPixW, iLLPixH);
@@ -5062,7 +5062,7 @@ local function OnPreInitAPI(GetAPI)
               iPosition..". Originally found at X="..aPlayerFound[1]..
               ", Y="..aPlayerFound[2]..".") end;
           -- Player doesn't exist? Set the new player
-          local aPlrRaceItem<const> = aPlrRaceData[iPlayer];
+          local aPlrRaceItem<const> = aPlrExpected[iPlayer];
           aPlrsFound[iPlayer] = { iX, iY, aPlrRaceItem[1], aPlrRaceItem[2] };
         -- Is a flood gate?
         elseif iTerrainId >= 434 and iTerrainId <= 439 then
@@ -5095,10 +5095,10 @@ local function OnPreInitAPI(GetAPI)
   end
   -- Reasons for game ending and their corresponding functions ------------- --
   local aEndReasons<const> = {
-    InitWin,                           -- Player raised the money
-    InitWinDead,                       -- All the opponents digger died
-    InitLose,                          -- Opponent raised the money
-    InitLoseDead                       -- All the players diggers died
+    -- [1] Player raised the money    [2] All the opponents digger died
+    InitWin,                          InitWinDead,
+    -- [3] Opponent raised the money  [4] All the players diggers died
+    InitLose,                         InitLoseDead
   };
   -- Trigger an ending procedure ------------------------------------------- --
   local function TriggerEnd(iReason)
@@ -5116,22 +5116,22 @@ local function OnPreInitAPI(GetAPI)
     if bAI1 == nil then bAI1 = false end;
     if not UtilIsBoolean(bAI1) then
       error("Player 1 AI boolean of type '"..type(bAI1).."' invalid!") end;
-    aPlrRaceData[1] = { iRace1, bAI1 };
+    aPlrExpected[1] = { iRace1, bAI1 };
     -- Setup player 2 parameters
     if iRace2 == nil then
       iRace2 = TYP.DIGRANDOM end;
     if bAI2 == nil then bAI2 = true end;
     if not UtilIsBoolean(bAI2) then
       error("Player 2 AI boolean of type '"..type(bAI2).."' invalid!") end;
-    aPlrRaceData[2] = { iRace2, bAI2 };
+    aPlrExpected[2] = { iRace2, bAI2 };
     -- Prepare a modifiable table of races available for selection
     local aRacesAvailable<const>, oRacesTaken<const> = { }, { };
     for iI = 1, #aRacesData do
       aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
     -- Resolve race ids for players requesting actual race ids first
-    for iPlrId = 1, #aPlrRaceData do
+    for iPlrId = 1, #aPlrExpected do
       -- Get player start data and requested start race and if not random?
-      local aPlrStartItem<const> = aPlrRaceData[iPlrId];
+      local aPlrStartItem<const> = aPlrExpected[iPlrId];
       local iTypeId<const> = aPlrStartItem[1];
       if iTypeId ~= TYP.DIGRANDOM then
         -- Make sure id valid
@@ -5174,9 +5174,9 @@ local function OnPreInitAPI(GetAPI)
       end
     end
     -- Resolve race ids for players requesting random race ids
-    for iPlrId = 1, #aPlrRaceData do
+    for iPlrId = 1, #aPlrExpected do
       -- Get player start data and requested start race and if random?
-      local aPlrStartItem<const> = aPlrRaceData[iPlrId];
+      local aPlrStartItem<const> = aPlrExpected[iPlrId];
       local iRaceId = aPlrStartItem[1];
       if iRaceId == TYP.DIGRANDOM then
         -- Check to make sure a race is available
