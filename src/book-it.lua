@@ -301,41 +301,210 @@ local aBookData<const> = {
     4. Allo scopo di promuovere una sana concorrenza, due razze di scavatori \z
        sono autorizzate a scavare in ogni area del pianeta."
   -- Page 21 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="DESCRIZIONE DELLE RAZZE\n\z
+    \n\z
+    Habbish. Si tratta di una razza\n\z
+    enigmatica ed introversa i cui\n\z
+    componenti pare siano assai\n\z
+    intelligenti; si dice che abbiano\n\z
+    sviluppato poteri speciali di\n\z
+    transporto via telpalo. Queste\n\z
+    creature incappucciate sono la razza\n\z
+    piò debole e benché siano in grado di scavare a lungo, sono assai \z
+    impazienti e si stufano rapidamente di scavare preferendo, non appena \z
+    possibile, rubacchiare i preziosi rinvenuti da altri.",
+    I={ 6, 210.0, 36.0 }
   -- Page 22 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Gli Habbish rappresentano un ordine mistico guidato dal Capo \z
+    Supremo di nome Habborg, un esaltato che ha ordinato ai suoi seguaci di \z
+    costruire in suo onore un tempio favoloso, costellato di oro e pietre \z
+    preziose. Gli Habbish hanno iniziato i lavori, ma il denaro sta per \z
+    venire meno. Devono trovare piò pietre preziose possibile per portare a \z
+    termine la costruzione del tempio e ripagare il loro creditore \z
+    galattico, il terribile Thungurs cho brandisce la mazza da baseball."
   -- Page 23 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Grablin\n\z\n\z
+    Si tratta di una razza nata per\n\z
+    scavare. Sono in grado di scavare\n\z
+    molto velocemente e a lungo, senza\n\z
+    mai fermarsi. La loro corporatura\n\z
+    minuta li rende molto agili \n\z
+    all'interno delle miniere,\n\z
+    consentendo loro di penetrare in\n\z
+    passaggi assai stretti e lavorare in tunnel molto bassi. Per quanto \z
+    forti, non sono ottimi lottatori e possono facilmente essere sconfitti \z
+    dal Quarrior.",
+    I={ 7, 200.0, 24.0 }
   -- Page 24 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="L'unica debolezza dei Grablin è il fatto che non possono rinunciare \z
+    ad una bevanda micidiale chiamata Grok.\n\z
+    Benché si dica che abbia un \"sapore disgustoso\" e un odore \"peggiore \z
+    di quello dell'alito dello Scabrosauro sputafuoco che vive negli stagni \z
+    di viscidume vorticoso di Sulfuria\" e che sarebbe \"piò utile come \z
+    scudo di difesa contro un attacco termonucleare che come bevanda\", i \z
+    Grablin non possono farne a meno.\n\z
+    \n\z
+    Purtroppo, dal momento che oli ingredienti che compongono il Grok \z
+    (troppo disgustosi per essere..."
   -- Page 25 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="...menzionati) sono estremamente costosi, i Grablin hanno \z
+    costantemente bisogno di soldi. Il loro fine ultimo è di accumulare \z
+    abbastanza ricchezza per costruire una distilleria propria. Tuttavia, \z
+    dati gli sgradevoli effetti collaterali derivanti dalla distillazione \z
+    della bevanda, dovranno prima acquistare un pianeta deserto su cui \z
+    costruire la distilleria."
   -- Page 26 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Quarrior\n\z
+    \n\z
+    Si tratta di una razza bellicosa\n\z
+    paragonabile a veri diamanti grezzi.\n\z
+    I Quarrior iniziarono a a cercare\n\z
+    minerali nelle cave di pietre prima di\n\z
+    intraprendere scavi nelle minere e in\n\z
+    superficie.\n\z
+    \n\z
+    I Quarrior, che sono la razza piò forte, sono anche sabotatori provetti \z
+    e molto esperti nell'uso della dinamite. Tuttavia, non si sono ancora \z
+    abituati alle scomode condizioni di lavoro; si affaticano rapidamente e \z
+    scavano lentamente. Sono estremamente fidati e pazienti, ma privi di \z
+    iniziativa.",
+    I={ 8, 210.0, 32.0 }
   -- Page 27 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="I Quarrior sono completamente al verde, poiché sono stati \z
+    recentemente truffati da un venditore di armi di seconda mano. La loro \z
+    ambizione consiste nel costruire un accampamento fortificato in cui \z
+    possano allenarsi nel tiro e migliorare la loro capacità di scavare, al \z
+    sicuro dai nemici."
   -- Page 28 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Fitaro\n\z
+    \n\z
+    Si tratta di una razza di agili\n\z
+    scavatori estremamente curiosi e\n\z
+    collezionisti di pezzi di metallo.\n\z
+    Hanno un desiderio insaziabile di\n\z
+    costruire oggetti con i rottami che\n\z
+    raccolgono in continuazione. Di\n\z
+    conseguenza, le loro construzioni e\n\z
+    macchine sono tutte rattoppate e\n\z
+    dalla linea non ben definita.",
+    I={ 9, 210.0, 20.0 }
   -- Page 29 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="I fitarg sono gli scavatori piò veloci dopo i Grablin, ma sono in \z
+    grado di scavare piò a lungo di tutti gli altri. Scavano volentieri, ma \z
+    vengono facilmente distratti da...oggetti in grado di attirare la loro \z
+    attenzione. Al di fuori delle minere, si cacciano spesso nei guai a \z
+    causa del loro desiderio di collezionare. Non sono particolarmente \z
+    aggressivi né capaci di lottare, ma se vengono feriti impiegano la metà \z
+    del tempo a guarire rispetto a tutti gli altri.\n\z
+    \n\z
+    L'ambizione dei Fitarg consiste nell'accumulare abbastanza denaro per \z
+    costruire il Museo delle Meraviglie di Metallo (soprannominato \z
+    malignamente il Rottamaio), in cui intendono conservare rottami storici \z
+    e sculture di natura insolita e istruttiva."
   -- Page 30 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Flimmer. Rimangono pochissimi segni di questa razza di scavatori \z
+    timidi e amanti della pace che scomparve senza lasciare traccia dalla \z
+    faccia del pianeta. Ricordati come i migliori scavatori in assoluto, si \z
+    narra che i Flimmer abbiano deciso di smettere di scavare dopo che il \z
+    loro entusiasmo per tale attività si spense in seguito ad una stagione \z
+    particolarmente estenuante. Dopo essersi recati per l'ultima volta alla \z
+    Banca di Zaro, dove rinunciarono a tutti i beni terreni, e dopo aver \z
+    gettato i loro averi oltre il bancone, provocando una corsa ai diamanti \z
+    che sconvolse il mercato galattico, si dispersero per il pianeta ... e \z
+    scomparvero.\n\z
+    \n\z
+    Dove si trovino attualmente i Flimmer rimane un..."
   -- Page 31 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="...mistero, benché i vecchi racconti dei minatori narrino di \z
+    sguardi fugaci di timide creature che assomigliano ai Flimmer. Molte di \z
+    tali storie sono frutto di dosi eccessive di Grok, ma si crede ancora \z
+    che in un angolo remoto del pianeta, molti metri al di sotto della \z
+    superficie, vivano i discendenti di tali scavatori. Si consiglia di \z
+    tenere gli occhi ben aperti scavando. Chissà, quell'ombra fugace, quello \z
+    sguardo appena intravisto in un tunnel buio, sarà forse un Flimmer?"
   -- Page 32 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="DESCRIZIONE DELLE ZONE\n\z
+    \n\z
+    Prateria Zona pianeggiante con fiumi che solcano i prati verdeggianti. \z
+    Nel sottosuolo vi sono altri fiumi, caverne e piccole quantità di rocce \z
+    impenetrabili. Studi recenti hanno rivelato la presenza di resti \z
+    fossilizzati di grandi creature di origine sconosciuta.\n\z
+    \n\z
+    Foresta/Giungla Zona prevalentemente pianeggiante caratterizzata da \z
+    fiumi sinuosi e piccoli laghi. Il suolo è molto fertile e consente la \z
+    crescita di alberi giganteschi e altissimi. Le radici di tali alberi \z
+    raggiungono lunghezze eccezionali e penetrano in profondità. Una volta \z
+    che tali radici sono cresciute le une intorno alle altre, formano..."
   -- Page 33 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="...spessi grovigli che è impossibile rimuovere o penetrare \z
+    scavando.\n\z
+    \n\z
+    Le bocche delle miniere dovrebbero essere situate it punti abbastanzi \z
+    lontani dagli alberi in modo da evitare di incontrare tall radici. In \z
+    questa zona adbondano strane storie riguardanti la vita delle piante, ma \z
+    non sono ancora state trovate prove che ne confermino l'autenticità.\n\z
+    \n\z
+    Deserto Arida zona di Zarg caratterizzata da sabbie mobili e dune. Sono \z
+    evidenti gli effetti dell'erosione. Enormi formazioni rocciose sono \z
+    state sepolte dalla sabbia e compresse in modo da formare terreni \z
+    impervi."
   -- Page 34 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Al di sotto della sabbia si estendono enormi strutture cristalline \z
+    dal colori brillianti. Esistono anche laghi e sorgenti d'acqua \z
+    sotterranei.\n\z
+    \n\z
+    Ghiacci Zona freddissima caratterizzata da mari glaciali costellati da \z
+    iceberg. Occorre essere estremamente prudenti quando si scava a tali \z
+    livelli a causa del pericolo di inondazioni, specialmente in presenza di \z
+    iceberg.\n\z
+    \n\z
+    Isole Zona formata da un vasto arcipelago di isole che circondano un \z
+    grande oceano. Tutte le isole si congiungono nelle profondità marine per \z
+    formare un'enorme catena montuosa sottomarina."
   -- Page 35 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Montagne Zona caratterizzata da cime frastagliate e pendii rocciosi \z
+    poco sicuri che offrono scarsi spazi adatti per scavare. Tuttavia, tra \z
+    le montagne vi sono ampie grotte che offrono opportunità migliori.\n\z
+    \n\z
+    Al di sotto della superficie rocciosa vi sono depositi di pietre dure \z
+    che rendono gli scavi impossibili in alcune zone. E' anche possibile \z
+    trovare sorgenti d'acqua sotterranee.\n\z
+    \n\z
+    Terreno roccioso Zona che assomiglia al Grand Canyon, caratterizzata da \z
+    numerosi strapiombi, precipizi e formazioni rocciose precarie. Al di \z
+    sotto della superficie vi sono vaste aree di roccia impenetrabile. In \z
+    prossimità..."
   -- Page 36 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="...della superficie l'acqua scarseggia, ma piò in profondità \z
+    abbondano caverne ricche d'acqua. I corsi di fiumi prosciugati da lungo \z
+    tempo hanno creato una serie di grotte e passaggi tra i vari strati di \z
+    roccia. Si crede che in tale livello vi siano città perdute, forse \z
+    abitate dal fantasmi dei precedenti occupanti."
   -- Page 37 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="FLORA E FAUNA\n\z
+    \n\z
+    In seguito alla scomparsa dell'intera spedizione del '95, guidata da \z
+    Frinklin, gli studi antropologici e botanici sul pianeta Zarg sono \z
+    stati, purtroppo, interrotti. Di conseguenza, non esistono resoconti \z
+    esaurienti circa la flora e la fauna di Zarg (gli appunti e le \z
+    fotografie che seguono sono il frutto di resoconti di professionisti e \z
+    di testimonianze raccolte) e sicuramente esistono altre specie animali e \z
+    vegetali sul pianeta. Chiunque disponesse di ulteriori informazioni è \z
+    pregato di scrivere al Professor S. Trepitoso, Torre dei Rampicanti, \z
+    Istituto di Vegetazione Galattica di Angelpiero."
   -- Page 38 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Triffidus Carnivorus\n\z
+    \n\z
+    Vive nella giungla e nelle foreste\n\z
+    alberi e piante. Pianta carnivora\n\z
+    pericolosissima, dall'appetito\n\z
+    insaziabile. E'facilmente\n\z
+    riconoscibile per l'insolito\n\z
+    colore delle foglie. Dopo essere\n\z
+    stato catturato ed esaminato mediante raggi infrarossi la guida di un \z
+    esemplare rivelò contenere la guida di un principiante e un paio di \z
+    occhiali simili a quelli del Dr. Frinklin.",
+    I={ 10, 200.0, 15.0 }
   -- Page 39 --------------------------------------------------------------- --
   },{ T=""
   -- Page 40 --------------------------------------------------------------- --
