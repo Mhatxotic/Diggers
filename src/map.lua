@@ -253,8 +253,8 @@ local function GoScrollDown() AdjustMapViewY(8) OnHover() end;
 -- Cursor drag event ------------------------------------------------------- --
 local function OnDrag(_, _, _, iMoveX, iMoveY)
   -- Move the map to how the mouse is dragging
-  AdjustMapViewX(iMoveX);
-  AdjustMapViewY(iMoveY);
+  AdjustMapViewX(-iMoveX);
+  AdjustMapViewY(-iMoveY);
   -- Keep arrow shown
   SetCursor(iCArrow)
 end

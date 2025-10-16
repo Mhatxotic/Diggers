@@ -14,13 +14,13 @@
 local UtilTableSize<const>, UtilIsInteger<const> =
   Util.TableSize, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLT, AdjustViewportX, AdjustViewportY, DeInitLevel, Fade,
-  GetAbsMousePos, InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan,
-  IsMouseXLessThan, IsMouseYGreaterEqualThan, IsMouseYLessThan,
-  IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
-  RegisterFBUCallback, RenderFade, RenderObjects, RenderTerrain, SelectObject,
-  SetCallbacks, SetCursor, SetHotSpot, SetKeys, oGlobalData, aLevelsData,
-  aObjectFlags, aObjs, fontSpeech;
+local BlitSLT, AdjustViewportNoScroll, DeInitLevel, Fade, GetAbsMousePos,
+  InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan, IsMouseXLessThan,
+  IsMouseYGreaterEqualThan, IsMouseYLessThan, IsSpriteCollide, LoadResources,
+  PlayMusic, PlayStaticSound, PrintC, RegisterFBUCallback, RenderFade,
+  RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
+  SetHotSpot, SetKeys, oGlobalData, aLevelsData, aObjectFlags, aObjs,
+  fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       iCLeft, iCRight, iCTop, iCExit,  -- Cursor ids
@@ -147,8 +147,7 @@ local function OnRelease() SetCallbacks(nil, ProcRenderPostMortem) end;
 -- Cursor drag event ------------------------------------------------------- --
 local function OnDrag(_, _, _, iMoveX, iMoveY)
   -- Move the level to how the mouse is dragging
-  AdjustViewportX(iMoveX);
-  AdjustViewportY(iMoveY);
+  AdjustViewportNoScroll(iMoveX, iMoveY);
   -- Keep arrow shown
   SetCursor(iCArrow)
 end
@@ -221,7 +220,7 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Imports
-  AdjustViewportX, AdjustViewportY, BlitSLT, DeInitLevel, Fade, GetAbsMousePos,
+  AdjustViewportNoScroll, BlitSLT, DeInitLevel, Fade, GetAbsMousePos,
     InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan,
     IsMouseXLessThan, IsMouseYGreaterEqualThan, IsMouseYLessThan,
     IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
@@ -229,7 +228,7 @@ local function OnScriptLoaded(GetAPI)
     RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
     SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData, aLevelsData,
     aObjectFlags, aObjs, oSfxData, fontSpeech =
-      GetAPI("AdjustViewportX", "AdjustViewportY", "BlitSLT", "DeInitLevel",
+      GetAPI("AdjustViewportNoScroll", "BlitSLT", "DeInitLevel",
         "Fade", "GetAbsMousePos", "InitEnding", "InitFail", "InitLobby",
         "IsMouseXGreaterEqualThan", "IsMouseXLessThan",
         "IsMouseYGreaterEqualThan", "IsMouseYLessThan", "IsSpriteCollide",

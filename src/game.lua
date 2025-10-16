@@ -4133,11 +4133,12 @@ end
 -- When scripts have loaded ------------------------------------------------ --
 local function OnScriptLoaded(GetAPI, _, oAPI)
   -- Functions and variables used in this scope only
-  local GetTileUnderMouse<const>, InitPause<const>, IsMouseInBounds<const>,
-    RegisterHotSpot<const>, RegisterKeys<const>, SetCursor<const>,
-    oCursorIdData<const> =
-      GetAPI("GetTileUnderMouse", "InitPause", "IsMouseInBounds",
-        "RegisterHotSpot", "RegisterKeys", "SetCursor", "oCursorIdData");
+  local AdjustViewportNoScroll<const>, GetTileUnderMouse<const>,
+    InitPause<const>, IsMouseInBounds<const>, RegisterHotSpot<const>,
+    RegisterKeys<const>, SetCursor<const>, oCursorIdData<const> =
+      GetAPI("AdjustViewportNoScroll", "GetTileUnderMouse", "InitPause",
+        "IsMouseInBounds", "RegisterHotSpot", "RegisterKeys", "SetCursor",
+        "oCursorIdData");
   -- Make sure we have the correct number of level tiles
   local iMaskLev<const> = maskLev:Tiles();
   if iMaskLev ~= #aTileData then
@@ -4490,8 +4491,7 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     -- Return if not test mode
     if not GetTestMode() then return end;
     -- Move the level to how the mouse is dragging
-    AdjustViewport(iDragX, iDragY);
-    iPixPosTargetX, iPixPosTargetY = iPixPosX, iPixPosY;
+    AdjustViewportNoScroll(iDragX, iDragY);
   end
   -- Left mouse button / Joystick button 1 pressed function
   local function OnButton0Pressed(iX, iY)
@@ -5328,8 +5328,14 @@ local function OnPreInitAPI(GetAPI)
     -- Load level graphics resources asynchronously
     LoadResources(sLvlName, aAssets, OnLoaded);
   end
-  -- Return rest of the API functions which needed external data
-  return { DeInitLevel = DeInitLevel, GameProc = GameProc,
+  -- Ajust viewport and don't scroll to it --------------------------------- --
+  local function AdjustViewportNoScroll(iX, iY)
+    AdjustViewport(-iX, -iY);
+    iPixPosTargetX, iPixPosTargetY = iPixPosX, iPixPosY;
+  end
+  -- Return rest of the API functions which needed external data ----------- --
+  return { AdjustViewportNoScroll = AdjustViewportNoScroll,
+    DeInitLevel = DeInitLevel, GameProc = GameProc,
     GetAbsMousePos = GetAbsMousePos, GetActiveObject = GetActiveObject,
     GetActivePlayer = GetActivePlayer, GetGameTicks = GetGameTicks,
     GetLevelInfo = GetLevelInfo, GetOpponentPlayer = GetOpponentPlayer,
