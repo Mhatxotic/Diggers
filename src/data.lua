@@ -1035,10 +1035,10 @@ local oObjectData<const> = {           -- Objects data
  ANIMTIMER    = TD.ANIMNORMAL,         DIRECTION = DIR.LR,
  FLAGS        = OFL.AQUALUNG|OFL.LIVING|OFL.TPMASTER,
  INTELLIGENCE = 0.5,                   JOB       = JOB.BOUNCE,
- LONGNAME  = "TROLL",                  NAME      = "TROLL",
- STAMINA   = 60,                       STRENGTH  = 100,
- TELEDELAY = 100,                      VALUE     = 0,
- WEIGHT    = 100,
+ LONGNAME     = "TROLL",               NAME      = "TROLL",
+ STAMINA      = 60,                    STRENGTH  = 100,
+ TELEDELAY    = 100,                   VALUE     = 0,
+ WEIGHT       = 100,
 -- Devices ----------------------------------------------------------------- --
 }, [TYP.STUNNEL] = {
  [ACT.DEATH] = oGenericActDeathData,
