@@ -2201,23 +2201,24 @@ end
 local function InitCreateObject()
   -- Frequeently used variables -------------------------------------------- --
   local iACreep<const>, iADying<const>, iAJump<const>, iAKeep<const>,
-     iAPhase<const>, iAStop<const>, iAWalk<const>, iDKeep<const>,
-     iDLeftRight<const>, iDNone<const>, iDOpposite<const>, iDRight<const>,
-     iJDig<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
-     iJPhase<const>, iJSearch<const>, iFBusy<const>, iFDelicate<const>,
-     iFFall<const>, iFInWater<const>, iFPhaseTarget<const>, iFSellable<const>,
-     iFTreasure<const>, iTFWater<const>, nTRoamDirChange<const>,
-     iTTargetChangeTime<const> =
+     iAPhase<const>, iAStop<const>, iAWalk<const>, iDDown<const>,
+     iDKeep<const>, iDKeepMoving<const>, iDLeftRight<const>, iDNone<const>, iDOpposite<const>,
+     iDRight<const>, iJDig<const>, iJInDanger<const>, iJKeep<const>,
+     iJNone<const>, iJPhase<const>, iJSearch<const>, iFBusy<const>,
+     iFDelicate<const>, iFFall<const>, iFInWater<const>, iFPhaseTarget<const>,
+     iFSellable<const>, iFTreasure<const>, iTFWater<const>,
+     nTRoamDirChange<const>, iTTargetChangeTime<const> =
       ACT.CREEP, ACT.DYING, ACT.JUMP, ACT.KEEP, ACT.PHASE, ACT.STOP, ACT.WALK,
-      DIR.KEEP, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG, JOB.INDANGER,
-      JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, OFL.BUSY, OFL.DELICATE,
-      OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.SELLABLE, OFL.TREASURE,
-      oTileFlags.W, oTimerData.ROAMDIRCHANGE, oTimerData.TARGETTIME;
+      DIR.D, DIR.KEEP, DIR.KEEPMOVING, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG,
+      JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, OFL.BUSY,
+      OFL.DELICATE, OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.SELLABLE,
+      OFL.TREASURE, oTileFlags.W, oTimerData.ROAMDIRCHANGE,
+      oTimerData.TARGETTIME;
   -- Direction table for AIFindTarget -------------------------------------- --
   local aFindTargetData<const> = {
     { DIR.UL, DIR.U,   DIR.UR }, -- This is used for the AI.FIND(SLOW)
     { DIR.L,  iDNone, iDRight }, -- AI procedure. It's a lookup table for
-    { DIR.DL, DIR.D,   DIR.DR }  -- quick conversion from co-ordinates.
+    { DIR.DL, iDDown,  DIR.DR }  -- quick conversion from co-ordinates.
   };
   -- Picks a new target ---------------------------------------------------- --
   local function PickNewTarget(oObj)
@@ -2483,7 +2484,7 @@ local function InitCreateObject()
         if iId and aTileData[1 + iId] & iTFWater ~= 0 then
           -- Try to see if we can jump the gap
           if TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit, iOldX,
-            iOldY) then return true end;
+            iOldY, true) then return true end;
           -- Avoid the gap and turn around
           break;
         end
@@ -2493,7 +2494,7 @@ local function InitCreateObject()
           while not IsCollide(oObj, iAdjX, 1) do oObj.Y = oObj.Y + 1 end;
           -- Try to see if we can jump the gap
           return TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit,
-            iOldX, iOldY);
+            iOldX, iOldY, false);
         end
         -- Increase Y position and fall damage. We go at 14 pixels each time as
         -- the bitmask sprite is 14 pixels high.
@@ -2512,7 +2513,7 @@ local function InitCreateObject()
           while not IsCollide(oObj, iAdjX, 1) do oObj.Y = oObj.Y + 1 end;
           -- Try to see if we can jump the gap
           return TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit,
-            iOldX, iOldY);
+            iOldX, iOldY, true);
         end
         -- Increase Y position and fall damage. We go at 14 pixels each time as
         -- the bitmask sprite is 14 pixels high.
@@ -2530,8 +2531,9 @@ local function InitCreateObject()
       if iAntiWriggleRemain >= 10 then
         -- Reset anti-wriggle timeframe to another 5 seconds
         oObj.AW, oObj.AWR = iGameTicks + 300, 0;
-        -- Phase home
-        PhaseHome(oObj);
+        -- Phase home if have parent else go to a random object
+        if oObj.P then PhaseHome(oObj) else
+          SetAction(oObj, iAPhase, iJPhase, iDDown) end;
         -- Do not execute any more AI code this frame.
         return true;
       -- Set new wriggle count
@@ -2548,11 +2550,11 @@ local function InitCreateObject()
       -- No job set?
       [iJNone] = { [DIR.UL] = 0.02,  [DIR.U]  = 0.1,  [DIR.UR]  = 0.02,
                    [DIR.L]  = 0.02,  [iDNone] = 0.1,  [iDRight] = 0.02,
-                   [DIR.DL] = 0.02,  [DIR.D]  = 0.02, [DIR.DR]  = 0.02 },
+                   [DIR.DL] = 0.02,  [iDDown] = 0.02, [DIR.DR]  = 0.02 },
       -- Job is to dig?
       [iJDig] = { [DIR.UL] = 0.02,  [DIR.U]  = 0.02, [DIR.UR]  = 0.02,
                   [DIR.L]  = 0.02,  [iDNone] = 0.02, [iDRight] = 0.02,
-                  [DIR.DL] = 0.02,  [DIR.D]  = 0.02, [DIR.DR]  = 0.02 },
+                  [DIR.DL] = 0.02,  [iDDown] = 0.02, [DIR.DR]  = 0.02 },
     -- Ai is walking?
     }, [iAWalk] = {
       -- Job is bouncing around?
@@ -2574,18 +2576,14 @@ local function InitCreateObject()
       [iJInDanger] = { [DIR.L] = 0.002, [iDRight] = 0.002 },
     },
   };
-  -- AI pickup/drop objects logic ------------------------------------------ --
-  local function AIManageInventory(oObj)
-    -- If we're not searching, try to pickup objects as well as treasure.
-    if oObj.J ~= iJSearch then return PickupObjects(oObj, false) end;
-    -- Return if not 1% chance occurred.
-    if random() < 0.01 then return end;
+  -- Drop a random object -------------------------------------------------- --
+  local function AIDropRandomObject(oObj, bAndTreasure)
     -- Get digger inventory and return if no inventory.
     local aObjInvList<const> = oObj.I;
     if #aObjInvList == 0 then return end;
     -- Pick a random object and return if its treasure.
     local oObjInv<const> = aObjInvList[random(#aObjInvList)];
-    if oObjInv.F & iFTreasure ~= 0 then return end;
+    if not bAndTreasure and oObjInv.F & iFTreasure ~= 0 then return end;
     -- Return if we dropped the object
     return DropObject(oObj, oObjInv);
   end
@@ -2628,12 +2626,16 @@ local function InitCreateObject()
       PhaseHome(oObj);                    -- Phase home
     end
     -- Return if...
-    if oObj.H < 50 and                   -- ...Below half health? *and*
-       oObj.A == iAStop and              -- Stopped? *and*
-       random() > 0.001 then return end; -- Very big chance? (0.1%)
-    -- Digger is walking and every half-game second?
-    if oObj.A == iAWalk and
-       iGameTicks % 30 == 0 and AIManageInventory(oObj) then return end;
+    if (oObj.H < 50 and          -- ...Below half health? *and*
+        oObj.A == iAStop and     -- Stopped? *and*
+        random() > 0.001) or     -- Very big chance? (0.1%) *or*
+       (oObj.A == iAWalk and     -- Digger is walking *and*
+        iGameTicks % 30 == 0 and -- Once every 30 frames *and*
+        oObj.J ~= iJSearch and   -- Digger not searching? *and
+        (PickupObjects(oObj,     -- Pick up obj or device
+           random() >= 0.05) or  -- (devices have 5% chance) *or*
+         (random() <= 0.01 and   -- 1% chance and dropped an object.
+          AIDropRandomObject(oObj, false)))) then return end;
     -- Return if no data for current action
     local oAIDataAction<const> = oAIData[oObj.A];
     if not oAIDataAction then return end;
@@ -2646,31 +2648,31 @@ local function InitCreateObject()
            SetRandomJob(oObj);
   end
   -- AI random direction logic initialisation data ------------------------- --
-  local aAIRandomLogicInitData<const> = { DIR.U, DIR.D, DIR.L, iDRight };
+  local aAIRandomLogicInitData<const> = { DIR.U, iDDown, DIR.L, iDRight };
   -- AI random direction logic movement data ------------------------------- --
   local oAIRandomLogicMoveData<const> = {
     -- -- (1st line) Try to move in these directions first... -------------- --
-    --             TeX  TeY    TeX  TeY
-    --              \/  \/      \/  \/
+    --              TeX  TeY    TeX  TeY
+    --               \/  \/      \/  \/
     -- -- (2nd line) When blocked then an alt list of directions provided... --
     --   TeX  TeY Direction   TeX  TeY Direction   TeX  TeY Direction
     --    \/  \/  \/           \/  \/  \/           \/  \/  \/
     -- --------------------------------------------------------------------- --
-    [DIR.U] = { { {  0, -2 }, {  0, -1 } }, -- Going up?
+    [DIR.U]  = { { {  0, -2 }, {  0, -1 } }, -- Going up?
       { { -1, -1, DIR.U   }, {  1, -1, DIR.U   }, { -1,  0, DIR.L },
-        {  1,  0, iDRight }, {  0,  1, DIR.D   } } },
+        {  1,  0, iDRight }, {  0,  1, iDDown  } } },
     -- --------------------------------------------------------------------- --
-    [DIR.D] = { { {  0,  2 }, {  0,  1 } }, -- Going down?
-      { {  0,  1, DIR.D   }, { -1,  1, DIR.D   }, {  1,  1, DIR.D },
+    [iDDown] = { { {  0,  2 }, {  0,  1 } }, -- Going down?
+      { {  0,  1, iDDown  }, { -1,  1, iDDown  }, {  1,  1, iDDown },
         { -1,  0, DIR.L   }, {  1,  0, iDRight }, {  0, -1, DIR.U } } },
     -- --------------------------------------------------------------------- --
     [DIR.L] = { { { -2,  0 }, { -1,  0 } }, -- Going left?
       { { -1,  0, DIR.L   }, { -1, -1, DIR.L   }, { -1,  1, DIR.L   },
-        {  0, -1, DIR.U   }, {  0,  1, DIR.D   }, {  1,  0, iDRight } } },
+        {  0, -1, DIR.U   }, {  0,  1, iDDown  }, {  1,  0, iDRight } } },
     -- --------------------------------------------------------------------- --
     [iDRight] = { { {  2,  0 }, {  1,  0 } }, -- Going right?
       { {  1,  0, iDRight }, {  1, -1, iDRight }, {  1,  1, iDRight },
-        {  0, -1, DIR.U   }, {  0,  1, DIR.D   }, { -1,  0, DIR.L   } } }
+        {  0, -1, DIR.U   }, {  0,  1, iDDown  }, { -1,  0, DIR.L   } } }
     -- --------------------------------------------------------------------- --
   };
   -- AI random direction logic --------------------------------------------- --
@@ -2714,25 +2716,29 @@ local function InitCreateObject()
     -- Pick a new direction from eligible directions
     SetAction(oObj, iAKeep, iJKeep, iDirection);
   end
-  -- Bigfoot AI data ------------------------------------------------------- --
-  local aAIBigFootData<const> = {
-    { iAWalk,  JOB.BOUNCE, DIR.L   }, -- Chance to walk left
-    { iAWalk,  JOB.BOUNCE, iDRight }, -- Chance to walk right
-    { iAPhase, iJPhase,    DIR.D   }, -- Chance to phase randomly
-    { iAStop,  iJNone,     iDNone  }, -- Chance to stop
+  -- Troll AI data --------------------------------------------------------- --
+  local aAITrollActionData<const> = {
+    { iAWalk,  JOB.BOUNCE, iDLeftRight }, -- Chance to walk left or right
+    { ACT.RUN, JOB.BOUNCE, iDLeftRight }, -- Chance to run left or right
+    { iAPhase, iJPhase,    iDDown      }, -- Chance to phase randomly
+    { iAStop,  iJNone,     iDNone      }, -- Chance to just stop and chill
   };
-  -- Bigfoot AI ------------------------------------------------------------ --
-  local function AIBigfoot(oObj)
+  -- Troll AI -------------------------------------------------------------- --
+  local function AITroll(oObj)
     -- Return if object is busy
     if oObj.F & iFBusy ~= 0 then return end;
     -- Jump if we can if we're not falling
     if oObj.FD <= 0 and ObjectJumped(oObj) then return end;
-    -- Every 1/2 sec. Try to pick up anything
-    if iGameTicks % 30 == 0 then return PickupObjects(oObj, false) end;
+    -- Every 30 game frames (half of a second). Try to pick up treasure with a
+    -- 25% chance to pickup devices as well and if no objects were picked up
+    -- then theres a 5% chance to try to drop one.
+    if iGameTicks % 60 == 0 and
+       (PickupObjects(oObj, random() >= 0.25) or
+        (random() < 0.05 and AIDropRandomObject(oObj, true))) then return end;
     -- If ADHD hasn't set in yet? Just return
     if random() > 0.001 then return end;
     -- Get and set a random action
-    local oActionData<const> = aAIBigFootData[random(#aAIBigFootData)];
+    local oActionData<const> = aAITrollActionData[random(#aAITrollActionData)];
     SetAction(oObj, oActionData[1], oActionData[2], oActionData[3]);
   end
   -- Basic AI roaming ------------------------------------------------------ --
@@ -2869,7 +2875,7 @@ local function InitCreateObject()
     [AI.NONE]        = false,            [AI.DIGGER]   = AIDiggerLogic,
     [AI.RANDOM]      = AIRandomLogic,    [AI.FIND]     = AIFindTarget,
     [AI.FINDSLOW]    = AIFindTargetSlow, [AI.CRITTER]  = AIRoamNormal,
-    [AI.CRITTERSLOW] = AIRoamSlow,       [AI.BIGFOOT]  = AIBigfoot,
+    [AI.CRITTERSLOW] = AIRoamSlow,       [AI.TROLL]    = AITroll,
     [AI.TUNNELER]    = AITunneller,      [AI.EXPLODER] = AIExploder,
     [AI.CORKSCREW]   = AICorkscrew,      [AI.TRAIN]    = AITrain,
     [AI.LIFT]        = AILift,           [AI.BOAT]     = AIBoat,
@@ -2920,6 +2926,8 @@ local function InitCreateObject()
       ANT  = oObjData.ANIMTIMER,         -- Animation timer
       AT   = 0,                          -- Action timer
       AX   = 0,                          -- Tile X position
+      AW   = 0,                          -- Anti-wriggle timeout
+      AWR  = 0,                          -- Anti-wriggle remain
       AY   = 0,                          -- Tile Y position
       CS   = not not oObjData[ACT.STOP], -- Object can stop?
       D    = false,                      -- Direction to go in (DIR.*)
@@ -3032,7 +3040,7 @@ local function GameProc()
   -- Commonly accessed aliases --------------------------------------------- --
   local iADeath<const>, iAEaten<const>, iAFight<const>, iAHide<const>,
     iAKeep<const>, iAPhase<const>, iARun<const>, iAStop<const>, iDDown<const>,
-    iDDownRight<const>, iDKeep<const>, iDKeepMove<const>, iDLeftRight<const>,
+    iDDownRight<const>, iDKeep<const>, iDKeepMoving<const>, iDLeftRight<const>,
     iDNone<const>, iDOpposite<const>, iDRight<const>, iDUpRight<const>,
     iFAquaLung<const>, iFBusy<const>, iFConsume<const>, iFDangerous<const>,
     iFDelicate<const>, iFDigger<const>, iFFall<const>, iFFloat<const>,
@@ -3350,7 +3358,8 @@ local function GameProc()
     for iTDIndex = #aDestinations, 1, -1 do
       remove(aDestinations, iTDIndex) end;
     -- Set position of object to player's home
-    SetPosition(oObj, oObj.P.HX, oObj.P.HY);
+    local oPlrParent<const> = oObj.P;
+    if oPlrParent then SetPosition(oObj, oPlrParent.HX, oPlrParent.HY) end;
     -- Take away health
     if not bIsTeleMaster then AdjustObjectHealth(oObj, -5) end;
     -- Re-phase back into stance
@@ -3671,7 +3680,7 @@ local function GameProc()
           else SetAction(oTarget, iARun, iJInDanger, iDLeftRight) end;
         -- Object is not moving and direction set? Keep dir and set danger
         elseif oTarget.D ~= iDNone then
-          SetAction(oTarget, iAKeep, iJInDanger, iDKeep);
+          SetAction(oTarget, iAKeep, iJInDanger, iDKeepMoving);
         -- No direction? so run in opposite direction of object
         else SetAction(oTarget, iARun, iJInDanger,
           GetTargetDirection(oTarget, oObj)) end;

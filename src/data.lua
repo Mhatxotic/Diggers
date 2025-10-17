@@ -122,7 +122,7 @@ local TYP<const> = {
   STEGO     = 0x17, -- Main part of a slow moving stegosaurus
   STEGOB    = 0x18, -- Attachment part of TYP.STEGMAIN
   TURTLE    = 0x19, -- Turtle. Just swims left and right (Unused)
-  BIGFOOT   = 0x1A, -- A fast moving = 0x intelligent monster (Unused)
+  TROLL     = 0x1A, -- A fast moving intelligent monster (Unused)
   STUNNEL   = 0x1B, -- Small tunneler
   LTUNNEL   = 0x1C, -- Large tunneler
   LTUNNELB  = 0x1D, -- Attachment for large tunneler
@@ -276,7 +276,7 @@ local AI<const> = {
   FIND        = 0x05, -- Object speedily homes in on a digger
   FINDSLOW    = 0x06, -- Object slowly homes in on a digger
   RANDOM      = 0x07, -- Object moves in 4 directions finding a digger
-  BIGFOOT     = 0x08, -- Object moves around like a digger and steals items
+  TROLL       = 0x08, -- Object moves around like a digger and steals items
   TUNNELER    = 0x09, -- Object moves around and tunnels.
   CORKSCREW   = 0x0A, -- Object moves left and right and digs down.
   EXPLODER    = 0x0B, -- Object explodes when the enemy comes near.
@@ -1012,7 +1012,7 @@ local oObjectData<const> = {           -- Objects data
  STRENGTH  = 0,                        TELEDELAY = 200,
  VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
-}, [TYP.BIGFOOT] = {
+}, [TYP.TROLL] = {
  [ACT.DEATH] = oGenericActDeathData,
  [ACT.PHASE] = oDiggerActPhaseData,
  [ACT.HIDE] = oGenericActHideData,
@@ -1020,20 +1020,26 @@ local oObjectData<const> = {           -- Objects data
   [DIR.UL] = { 329, 331 }, [DIR.U]    = { 329, 331 }, [DIR.UR] = { 329, 331 },
   [DIR.L]  = { 329, 331 }, [DIR.NONE] = { 329, 331 }, [DIR.R]  = { 329, 331 },
   [DIR.DL] = { 329, 331 }, [DIR.D]    = { 329, 331 }, [DIR.DR] = { 329, 331 },
-  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET
+  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS
  }, [ACT.WALK] = {
   [DIR.UL] = { 321, 324 }, [DIR.U]    = { 321, 324 }, [DIR.UR] = { 325, 328 },
   [DIR.L]  = { 321, 324 }, [DIR.NONE] = { 321, 324 }, [DIR.R]  = { 325, 328 },
   [DIR.DL] = { 321, 324 }, [DIR.D]    = { 321, 324 }, [DIR.DR] = { 325, 328 },
-  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET
+  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS
+ }, [ACT.RUN] = {
+  [DIR.UL] = { 321, 324 }, [DIR.U]    = { 321, 324 }, [DIR.UR] = { 325, 328 },
+  [DIR.L]  = { 321, 324 }, [DIR.NONE] = { 321, 324 }, [DIR.R]  = { 325, 328 },
+  [DIR.DL] = { 321, 324 }, [DIR.D]    = { 321, 324 }, [DIR.DR] = { 325, 328 },
+  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS
  },
- ACTION    = ACT.STOP,                 AITYPE    = AI.BIGFOOT,
- ANIMTIMER = TD.ANIMNORMAL,            DIRECTION = DIR.LR,
- FLAGS     = OFL.AQUALUNG|OFL.LIVING,  JOB       = JOB.BOUNCE,
- LONGNAME  = "SKINWALKER",             NAME      = "BIGFOOT",
- STAMINA   = -1,                       STRENGTH  = 100,
+ ACTION       = ACT.STOP,              AITYPE    = AI.TROLL,
+ ANIMTIMER    = TD.ANIMNORMAL,         DIRECTION = DIR.LR,
+ FLAGS        = OFL.AQUALUNG|OFL.LIVING|OFL.TPMASTER,
+ INTELLIGENCE = 0.5,                   JOB       = JOB.BOUNCE,
+ LONGNAME  = "TROLL",                  NAME      = "TROLL",
+ STAMINA   = 60,                       STRENGTH  = 100,
  TELEDELAY = 100,                      VALUE     = 0,
- WEIGHT    = 100
+ WEIGHT    = 100,
 -- Devices ----------------------------------------------------------------- --
 }, [TYP.STUNNEL] = {
  [ACT.DEATH] = oGenericActDeathData,
