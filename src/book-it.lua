@@ -506,31 +506,160 @@ local aBookData<const> = {
     occhiali simili a quelli del Dr. Frinklin.",
     I={ 10, 200.0, 15.0 }
   -- Page 39 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Fungus Kaleidoscopus\n\z
+    \n\z
+    Questi funghi, che possono essere\n\z
+    trovati in superficie in diversi\n\z
+    luoghi, crescono in grossi grappoli.\n\z
+    Sono facilmente individuabili a causa\n\z
+    della grande cappella rossa a punti\n\z
+    bianchi.\n\z
+    \n\z
+    I risultati di uno studio scientifico hanno dimostrato che gli effetti \z
+    provocati dairingestione ol tale Tungo possono variare da individuo a \z
+    individuo. Alcuni muoiono semplicemente, altri raddoppiano la propria \z
+    forza, mentre altri ancora sembrano frastornati e parlano contusamente \z
+    or olratte rosa.",
+    I={ 11, 200.0, 32.0 }
   -- Page 40 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Stegosauro\n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    Grande dinosauro che vive in caverne sotterranee. E' dotato di pelle \z
+    color sabbia e di due corni. Di indole generalmente docile, gli \z
+    stegosauri attaccano se provocati o se si sentono in pericolo. Nei \z
+    tunnel stretti, lo stegosauro è in grado di annientare i nemici.",
+    I={ 12, 96.0, 15.0 }
   -- Page 41 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Rotorisauro\n\z
+    \n\z
+    Particolare tipo di dinosauro che vive nei livelli sotterranei, ma che \z
+    di tanto in tanto vaga sulla superficie del pianeta. Benché sia \z
+    generalmente piuttosto mansueto, se provocato o aggredito è in grado di \z
+    infliggere gravi danni agli aggressori.\n\z
+    \n\z
+    Velocirapitor\n\z
+    \n\z
+    Dinosauro sorprendentemente feroce che attacca anche senza essere \z
+    provocato. Detesta la vista di quasi ogni altra creatura e, nonostante \z
+    non raggiunga dimensioni imponenti, è in grado di colpire con la forza \z
+    di uno stegosauro."
   -- Page 42 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Occorre evitarlo ad ogni costo. Se lo si incontra, è opportuno \z
+    scappare il piò velocemente possibile o attirarlo verso le miniere degli \z
+    avversari e fuggire."
   -- Page 43 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Ouus Horribilis\n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    Di origine sconosciuta. Le uniche notizie che se ne hanno sono state \z
+    fornite da un minatore, ora in pensione. Ecco il suo resoconto:",
+    I={ 13, 96.0, 32.0 }
   -- Page 44 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="\"E' stato terrificante. Il Capo ci aveva detto di scavare in quel \z
+    pezzo di roccia. Ebbene, non mi vergogno a dirlo, non mi piaceva neanche \z
+    un po'. C'era qualcosa di strano, sapete... Comunque, cominciammo a \z
+    scavare e ci ritrovammo all'interno di una caverna. Mi guardai intorno \z
+    facendo luce con la torcia, ma sembrava vuota. \"Andiamo, Bolbo\", \z
+    dissi. \"Beviamoci un sorso di Grok\". Ma lui non venne, aveva visto \z
+    quell'uovo orribile. \"Lascialo stare\", gli dissi, ma non mi diede \z
+    retta. Lo tirò su e quell'essere gli saltò addosso, ooh che cosc \z
+    spaventosa, e lo assorbì dentro di sè. Non avevo il coraggio di \z
+    guardare. Mi voltai e corsi via. Fu una cosa tremenda, dov'è quella \z
+    bottiglia..?\""
   -- Page 45 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Mammiferi lanuti\n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    Grande mammiferi che si ritiene vivessero su su Zarg circa un milione \z
+    di anni fa. I resti congelati di un esemplare sono stati ritrovati un \z
+    anno fa e altri potrebbero essere rinvenuti allo stato fossile nelle \z
+    zone dei ghiacci.",
+    I={ 14, 96.0, 32.0 }
   -- Page 46 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="La carne dei mammiferi lanuti è stata mangiata dagli esploratori \z
+    della regione Artica in preda alla fame:\n\z
+    \n\z
+    \"Mnmn, un attimo solo ... che smetto di mnmnmn... masticare...\"\n\z
+    \"Penso che il vegetarianismo stia per acquisire un nuovo seguace.\"\n\z
+    \"Hommm, hommm, Capo Habborg, hommm, hommm.\""
   -- Page 47 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Pesci\n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    Si crede che esistano molte specie di pesci. Tuttavia, le storie dei \z
+    pescatori non sembrano corrispondere alla realtà. Ben pochi esemplari \z
+    sono stati portati all'istituto ed è stato impossibile fare stime \z
+    accurate delle dimensioni di tali animali.",
+    I={ 15, 96.0, 15.0 }
   -- Page 48 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Anche quanto si narra a proposito del feroce \"picosauro\" deve \z
+    essere preso con le molle (forse coltello e forchetta sarebbero piò \z
+    comodi)."
   -- Page 49 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Lombrichi di terra\n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    \n\z
+    Grossi animali di genere oscuro. Si pensa che tali creature timide \z
+    vivano nelle pianeta: è possibile verdele solo di rado e non si conosce \z
+    granchè circa il loro comportamento. Qui di seguito è riportato il \z
+    resoconto di un Quarrior che ha avuto occasione di incontrare un \z
+    lombrico di terra.",
+    I={ 16, 96.0, 32.0 }
   -- Page 50 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="\"Ci stavamo occupando del nostro lavoro, scavando senza far rumore \z
+    (beh, per quanto ciò sia possibile quando si usa la dinamite), e \z
+    all'improvviso la terra iniziò a spostarsi sotto ai nostri piedi. Devo \z
+    confessare che, per un attimo, mi sentii confuso; ebbi appena il tempo \z
+    di pesare prima di cadere all'indietro e battere la testa. Per fortuna, \z
+    ciò sembrò essere di quegli ernomi vermi. Sia chiaro che non avevo \z
+    paura; afferrai una pala e stavo per affrontarlo... 'Avanti', lo incitai \z
+    ma strisciò via verso il tunnel e scomparve. Comunque, penso siano dei \z
+    gran fifoni...\""
   -- Page 51 --------------------------------------------------------------- --
-  },{ T=""
+  },{ T="Avvistamenti misteriosi!\n\z
+    \n\z
+    Nel corso degli anni, sono circolate voci circa strani esseri eterei che \z
+    popolano le grotte nelle viscere del pianeta Zarg. I minatori che sono \z
+    riusciti a risalire in superticie e che hanno avuto modo di raccontare \z
+    le loro storie, parlano di fantomatiche apparizioni che si muovevano \z
+    lentamente attaccando il gruppo e uccidendo gli uomini. Altri racconti \z
+    narrano di creature simili a scavatori dai movimenti rapidissimi che \z
+    piombavano giò dai soffitti di grandi grotte e uccidevano con destrezza. \z
+    Secondo le storie che vengono raccontate nel numerosi bar del pianeta, \z
+    si tratta dei fantasmi dei minatori che furono lasciati morire, mentre \z
+    gli Zombi sono li risultato..."
   -- Page 52 --------------------------------------------------------------- --
   },{ T=""
   -- Page 53 --------------------------------------------------------------- --
