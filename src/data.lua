@@ -231,7 +231,6 @@ local OFL<const> = {          -- Max 64-bits
   HEALNEARBY   = 0x200000000, -- Object heals nearby Diggers
   CONSUME      = 0x400000000, -- Object consumes another object
   NOHOME       = 0x800000000, -- Object cannot enter home
-  INVULNERABLE = 0x000000000, -- Object cannot ever take damage
 };
 -- Commonly used combinations
 OFL.JUMP         = OFL.JUMPRISE | OFL.JUMPFALL; -- Jumping (rising OR fallign)

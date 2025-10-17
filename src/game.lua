@@ -2202,14 +2202,14 @@ local function InitCreateObject()
   -- Frequeently used variables -------------------------------------------- --
   local iACreep<const>, iADying<const>, iAJump<const>, iAKeep<const>,
      iAPhase<const>, iAStop<const>, iAWalk<const>, iDDown<const>,
-     iDKeep<const>, iDKeepMoving<const>, iDLeftRight<const>, iDNone<const>, iDOpposite<const>,
+     iDKeep<const>, iDLeftRight<const>, iDNone<const>, iDOpposite<const>,
      iDRight<const>, iJDig<const>, iJInDanger<const>, iJKeep<const>,
      iJNone<const>, iJPhase<const>, iJSearch<const>, iFBusy<const>,
      iFDelicate<const>, iFFall<const>, iFInWater<const>, iFPhaseTarget<const>,
      iFSellable<const>, iFTreasure<const>, iTFWater<const>,
      nTRoamDirChange<const>, iTTargetChangeTime<const> =
       ACT.CREEP, ACT.DYING, ACT.JUMP, ACT.KEEP, ACT.PHASE, ACT.STOP, ACT.WALK,
-      DIR.D, DIR.KEEP, DIR.KEEPMOVING, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG,
+      DIR.D, DIR.KEEP, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG,
       JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, OFL.BUSY,
       OFL.DELICATE, OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.SELLABLE,
       OFL.TREASURE, oTileFlags.W, oTimerData.ROAMDIRCHANGE,
@@ -2378,7 +2378,7 @@ local function InitCreateObject()
   };
   -- AI jumping gap logic -------------------------------------------------- --
   local function TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit,
-    iOldX, iOldY)
+    iOldX, iOldY, bGapIsWater)
     -- Calculate bottom Y pixel of fall and reset object position
     local iYGap = oObj.Y - iOldY;
     oObj.X, oObj.Y = iOldX, iOldY;
@@ -2396,8 +2396,8 @@ local function InitCreateObject()
       if IsCollideY(oObj, 14) then
         -- Find absolute stable ground
         while not IsCollideY(oObj, 1) do oObj.Y = oObj.Y + 1 end;
-        -- If object would land on lower ground?
-        if oObj.Y > iOldY then
+        -- If object would land on lower ground and gap isn't water?
+        if oObj.Y > iOldY and not bGapIsWater then
           -- Calculate bottom pixel of gap and abort jump if we landed lower
           -- than the gap bottom or the gap between where we'd land if we just
           -- fell and the place where we just jumped to is <= eight pixels.
@@ -3833,7 +3833,7 @@ local function GameProc()
     if oObj.F & iFInWater == 0 then oObj.F = oObj.F | iFInWater end;
     -- If object is a digger and it isn't in danger? Run!
     if oObj.F & iFDigger ~= 0 and oObj.J ~= iJInDanger then
-      SetAction(oObj, iARun, iJInDanger, iDKeepMove) end;
+      SetAction(oObj, iARun, iJInDanger, iDKeepMoving) end;
     -- Only reduce health once per four game ticks
     if oObj.AT % oObj.LC == 0 then AdjustObjectHealth(oObj, -1) end;
   end
