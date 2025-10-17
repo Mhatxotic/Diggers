@@ -4563,21 +4563,17 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     if aContextMenu then return UpdateMenuPosition(iX, iY) end;
     -- Return if there is no active object or we can't open its menu
     if not oObjActive then return end;
-    -- Get active objectmenu data
+    -- Get active objectmenu data and return if object doesn't have a menu,
+    -- isn't our object, is dead or eaten.
     local aObjContextMenu<const> = oObjActive.OD.MENU;
-    -- Object has menu and object belongs to active player and object isn't
-    -- dead or eaten?
-    if aObjContextMenu and
-       oObjActive.P == oPlrActive and
-       oObjActive.A ~= ACT.DEATH and
-       oObjActive.A ~= ACT.EATEN then
-      -- Object does belong to active player so play context menu sound and
-      -- set the appropriate default menu for the object.
-      PlayStaticSound(iSClick);
-      SetContextMenu(aObjContextMenu);
-      UpdateMenuPosition(iX, iY);
-    -- Object does not belong to active player? Play error sound
-    else PlayStaticSound(iSError) end
+    if not aObjContextMenu or oObjActive.P ~= oPlrActive or
+       oObjActive.A == ACT.DEATH or oObjActive.A == ACT.EATEN then
+         return end;
+    -- Object does belong to active player so play context menu sound and
+    -- set the appropriate default menu for the object.
+    PlayStaticSound(iSClick);
+    SetContextMenu(aObjContextMenu);
+    UpdateMenuPosition(iX, iY);
   end
   -- Button callbacks
   local oButtonCallbacks<const> = {
