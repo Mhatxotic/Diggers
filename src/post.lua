@@ -14,13 +14,13 @@
 local UtilTableSize<const>, UtilIsInteger<const> =
   Util.TableSize, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLT, AdjustViewportNoScroll, DeInitLevel, Fade, GetAbsMousePos,
-  InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan, IsMouseXLessThan,
-  IsMouseYGreaterEqualThan, IsMouseYLessThan, IsSpriteCollide, LoadResources,
-  PlayMusic, PlayStaticSound, PrintC, RegisterFBUCallback, RenderFade,
-  RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
-  SetHotSpot, SetKeys, oGlobalData, aLevelsData, aObjectFlags, aObjs,
-  fontSpeech;
+local BlitSLT, AdjustViewportX, AdjustViewportY, AdjustViewportNoScroll,
+  DeInitLevel, Fade, GetAbsMousePos, InitEnding, InitFail, InitLobby,
+  IsMouseXGreaterEqualThan, IsMouseXLessThan, IsMouseYGreaterEqualThan,
+  IsMouseYLessThan, IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound,
+  PrintC, RegisterFBUCallback, RenderFade, RenderObjects, RenderTerrain,
+  SelectObject, SetCallbacks, SetCursor, SetHotSpot, SetKeys, oGlobalData,
+  aLevelsData, aObjectFlags, aObjs, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       iCLeft, iCRight, iCTop, iCExit,  -- Cursor ids
@@ -220,24 +220,24 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Imports
-  AdjustViewportNoScroll, BlitSLT, DeInitLevel, Fade, GetAbsMousePos,
-    InitEnding, InitFail, InitLobby, IsMouseXGreaterEqualThan,
-    IsMouseXLessThan, IsMouseYGreaterEqualThan, IsMouseYLessThan,
-    IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound, PrintC,
-    RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderFade,
-    RenderObjects, RenderTerrain, SelectObject, SetCallbacks, SetCursor,
-    SetHotSpot, SetKeys, oAssetsData, oCursorIdData, oGlobalData, aLevelsData,
-    aObjectFlags, aObjs, oSfxData, fontSpeech =
-      GetAPI("AdjustViewportNoScroll", "BlitSLT", "DeInitLevel",
-        "Fade", "GetAbsMousePos", "InitEnding", "InitFail", "InitLobby",
-        "IsMouseXGreaterEqualThan", "IsMouseXLessThan",
-        "IsMouseYGreaterEqualThan", "IsMouseYLessThan", "IsSpriteCollide",
-        "LoadResources", "PlayMusic", "PlayStaticSound", "PrintC",
-        "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
-        "RenderObjects", "RenderTerrain", "SelectObject", "SetCallbacks",
-        "SetCursor", "SetHotSpot", "SetKeys", "oAssetsData", "oCursorIdData",
-        "oGlobalData", "aLevelsData", "aObjectFlags", "aObjs", "oSfxData",
-        "fontSpeech");
+  AdjustViewportX, AdjustViewportY, AdjustViewportNoScroll, BlitSLT,
+    DeInitLevel, Fade, GetAbsMousePos, InitEnding, InitFail, InitLobby,
+    IsMouseXGreaterEqualThan, IsMouseXLessThan, IsMouseYGreaterEqualThan,
+    IsMouseYLessThan, IsSpriteCollide, LoadResources, PlayMusic,
+    PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
+    RegisterKeys, RenderFade, RenderObjects, RenderTerrain, SelectObject,
+    SetCallbacks, SetCursor, SetHotSpot, SetKeys, oAssetsData, oCursorIdData,
+    oGlobalData, aLevelsData, aObjectFlags, aObjs, oSfxData, fontSpeech =
+      GetAPI("AdjustViewportX", "AdjustViewportY", "AdjustViewportNoScroll",
+        "BlitSLT", "DeInitLevel", "Fade", "GetAbsMousePos", "InitEnding",
+        "InitFail", "InitLobby", "IsMouseXGreaterEqualThan",
+        "IsMouseXLessThan", "IsMouseYGreaterEqualThan", "IsMouseYLessThan",
+        "IsSpriteCollide", "LoadResources", "PlayMusic", "PlayStaticSound",
+        "PrintC", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
+        "RenderFade", "RenderObjects", "RenderTerrain", "SelectObject",
+        "SetCallbacks", "SetCursor", "SetHotSpot", "SetKeys", "oAssetsData",
+        "oCursorIdData", "oGlobalData", "aLevelsData", "aObjectFlags", "aObjs",
+        "oSfxData", "fontSpeech");
   -- Setup required assets
   aAssets = { oAssetsData.post, oAssetsData.postm };
   -- Register keybinds

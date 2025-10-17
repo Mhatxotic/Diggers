@@ -3675,7 +3675,7 @@ local function GameProc()
         if iTAction ~= iARun then
           -- Digger not moving in any direction?
           if oTarget.D ~= iDNone then
-            SetAction(oTarget, iARun, iJInDanger, iDKeep);
+            SetAction(oTarget, iARun, iJInDanger, iDKeepMoving);
           -- No direction? so run in opposite direction
           else SetAction(oTarget, iARun, iJInDanger, iDLeftRight) end;
         -- Object is not moving and direction set? Keep dir and set danger
