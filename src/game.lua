@@ -3559,6 +3559,9 @@ local function GameProc()
   local function ACTPhase(oObj)
     -- Return if not phase time yet
     if oObj.AT < oObj.OD.TELEDELAY then return end;
+    -- Reset object action timer since phasing again won't reset it and will
+    -- instantly respawn the object
+    oObj.AT = 0;
     -- Process phase logic and return if the game ended
     PhaseLogic(oObj);
     -- Skip object
