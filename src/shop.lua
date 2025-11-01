@@ -58,12 +58,11 @@ local aBuyItemResults<const> = {
   { "YOU CAN'T AFFORD IT!",   false, false }, -- 1 (Speech, SfxId, Success)
   { "TOO HEAVY FOR YOU!",     false, false }, -- 2
   { "OUT OF STOCK!",          false, false }, -- 3
-  { "WHOOPS! DON'T DROP IT!", false, false }, -- 4
-  { "SOLD TO YOU NOW!",       false, true  }, -- 5
+  { "SOLD TO YOU NOW!",       false, true  }, -- 4
 };
 -- Update price and carryable display -------------------------------------- --
 local function UpdateCarryable()
-  sPrice = format("%03uz (%u)",
+  sPrice = format("$%03u (%u)",
     oBuyObject.VALUE,
     (oDiggerInfo.STRENGTH - oObjActive.IW) // oBuyObject.WEIGHT)
 end
@@ -324,8 +323,7 @@ local function OnScriptLoaded(GetAPI)
   -- Set BuyItem() result sound effects
   local iSError<const> = oSfxData.ERROR;
   aBuyItemResults[1][2], aBuyItemResults[2][2], aBuyItemResults[3][2],
-    aBuyItemResults[4][2], aBuyItemResults[5][2] =
-      iSError, iSError, iSError, iSError, oSfxData.TRADE;
+    aBuyItemResults[4][2] = iSError, iSError, iSError, oSfxData.TRADE;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitShop = InitShop }, F = OnScriptLoaded };

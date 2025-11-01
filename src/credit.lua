@@ -134,7 +134,8 @@ local function InitRollingCredits(strMusic)
   nRollingCreditY = nStageB;
   -- When faded out to title? Load demo level
   LoadLevel(aEndLevelData, strMusic, nil, nil, true, oObjectTypes.DIGRANDOM,
-    true, ExtraProc, RenderExtra, BlankFunction, 0, nil, nil, true);
+    true, ExtraProc, RenderExtra, BlankFunction, 0, nil, nil, true,
+    LockViewport);
 end
 -- Main render function ---------------------------------------------------- --
 local function ProcCreditsRender()
@@ -171,13 +172,6 @@ local function OnLevelFadedOut() LoadDemoLevel(1 + iCreditId) end;
 local function ProcCreditsLogic()
   -- Process game functions
   GameProc();
-  -- Set a random object in the level
-  if iActionTimer == 0 then
-    -- Select a random object and not a digger! The last objects in
-    -- the list are always the diggers so we can just crop them out.
-    -- If we get an object then select and focus on the object!
-    SelectObject(aObjs[random(#aObjs - (#aPlayers[1].D * 2))], true);
-  end
   -- Should we change level?
   iActionTimer = iActionTimer + 1;
   if iActionTimer < 600 then return end;
@@ -216,9 +210,17 @@ local function DoLoadDemoLevel(iLCreditId, strMusic)
   -- Pick which way to render the credits
   if #aLevels % 2 == 0 then fcbCreditsRender = RenderCreditsTopRight;
                        else fcbCreditsRender = RenderCreditsBottomLeft end;
+  -- Init function
+  local function OnInit()
+    -- Select a random object and not a digger! The last objects in-- the list are always the diggers so we can just crop them out.
+    -- If we get an object then select and focus on the object!
+    if bRandObject then SelectObject(aObjs[random(#aObjs -
+      (#aPlayers[1].D * 2))], true) end;
+  end
   -- Load demo level
   LoadLevel(iLevelId, strMusic, nil, nil, true, oObjectTypes.DIGRANDOM, true,
-    ProcCreditsLogic, fcbCreditsRender, BlankFunction, 0, nil, nil, true);
+    ProcCreditsLogic, fcbCreditsRender, BlankFunction, 0, nil, nil, true,
+    OnInit);
 end
 LoadDemoLevel = DoLoadDemoLevel;
 -- When the opengl viewport has changed ------------------------------------ --

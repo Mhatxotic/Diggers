@@ -17,7 +17,7 @@ local CoreTime<const>, UtilFormatNTime<const> = Core.Time, Util.FormatNTime;
 local BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, PlayMusic,
   PlayStaticSound, PrintC, RegisterFBUCallback, RenderAll, RenderFade,
   RenderTip, SetCallbacks, SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd,
-  tKeyBankCats, fontLittle, fontTiny;
+  tKeyBankCats, fontLarge, fontTiny;
 -- Statics ------------------------------------------------------------------ --
 local nPauseX<const> = 160.0;                    -- Pause text X position
 local nPauseY<const> = 72.0;                     -- Pause text Y position
@@ -92,12 +92,12 @@ local function RenderPause()
   texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Write text informations
   local nTime<const> = CoreTime();
-  fontLittle:SetCRGBA(1.0, 1.0, 1.0,
+  fontLarge:SetCRGBA(1.0, 1.0, 1.0,
     0.1 + (0.5 + (sin(nTime) * cos(nTime) * 0.9)));
-  PrintC(fontLittle, nPauseX, nInstructionY, sInstruction);
+  PrintC(fontLarge, nPauseX, nInstructionY, sInstruction);
   fontTiny:SetCRGBA(0.5, 0.5, 0.5, 1.0);
   PrintC(fontTiny, nPauseX, nSmallTipsY, sSmallTips);
-  fontLittle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+  fontLarge:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Get and print local time
   RenderTip();
 end
@@ -156,7 +156,7 @@ local function OnScriptLoaded(GetAPI)
     PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
     RegisterKeys, RenderAll, RenderFade, RenderTip, SetCallbacks, SetHotSpot,
     SetKeys, SetTip, StopMusic, TriggerEnd, oCursorIdData, tKeyBankCats,
-    oSfxData, fontLittle, fontTiny, texSpr =
+    oSfxData, fontLarge, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "GetCallbacks", "GetHotSpot", "GetKeyBank",
         "GetMusic", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",

@@ -26,12 +26,19 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   RenderObjects, RenderShroud, texSpr, fontLarge, fontLittle, fontTiny,
   SelectObject, GameProc, GetActiveObject, GetActivePlayer, SetCallbacks,
   LoadLevel, PrintC, PrintCT, PrintT, PrintR, Print, UpdateShroud,
-  SetPlaySounds, HaveZogsToWin, GetOpponentPlayer, RegisterFBUCallback,
-  aLevelsData, GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
+  SetPlaySounds, GetOpponentPlayer, RegisterFBUCallback, aLevelsData,
+  GetViewportData, RenderAll, RenderInterface, JOB, ACT;
+-- Locals ------------------------------------------------------------------ --
+local bHud = true;                     -- Show hud?
+local iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+  iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW, iViewportH,
+  iVPX, iVPY, oPlrActive, oObjActive, oPlrOpponent;
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
+  -- Set random level if not set
+  if not iId then iId = random(#aLevelsData) end;
   -- Frame buffer updated function
-  local iStageL, iStageT, iStageR, iStageB;;
+  local iStageL, iStageT, iStageR, iStageB;
   local function OnStageUpdatedd(...)
     local _ _, _, iStageL, iStageT, iStageR, iStageB = ...;
   end
@@ -48,89 +55,25 @@ local function InitDebugPlay(iId)
       if iSelectedPlayerId > 2 then iSelectedPlayerId = 1 end;
     end
   end
-  -- Infinite play tick callback
-  local function OnTick()
-    -- New object selected
-    local oObj;
-    -- For each player
-    for iPlayer = 1, #aPlayers do
-      -- Get player diggers and enumerate them
-      local aDiggers<const> = aPlayers[iPlayer].D;
-      for iDigger = 1, #aDiggers do
-        -- Get digger object and if it is in danger?
-        local oDigger<const> = aDiggers[iDigger];
-        if oDigger and
-           oDigger.J == JOB.INDANGER and
-           oDigger.A ~= ACT.DEATH and
-          (oDigger.A ~= ACT.FIGHT or
-           oDigger.P == oPlrActive) then
-          -- It is selected
-          iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
-          oObj = oDigger;
-          -- Do not check any more diggers
-          break;
-        end
-      end
-      -- Break if we got a digger
-      if oObj then break end;
-    end
-    -- Switch object every 10 seconds
-    if not oObj and GetGameTicks() % 600 == 0 then
-      -- Try again point
-      ::tryagain::
-      -- Select a player
-      local oPlayer<const> = aPlayers[iSelectedPlayerId];
-      -- Get player diggers
-      local aDiggers<const> = oPlayer.D;
-      -- Find a digger from the specified player.
-      oObj = aDiggers[iSelectedDiggerId];
-      -- Loop if we don't find a digger
-      if not oObj then SelectNextDigger() goto tryagain end;
-    end
-    -- New object selected?
-    if oObj then
-      -- Select the object and player if we got something!
-      SelectObject(oObj);
-      -- Next object
-      SelectNextDigger();
-    end
-    -- Perform game procedure
-    GameProc();
-  end
-  -- Infinite play render callback
-  local function OnRender()
-    -- Render terrain
-    RenderTerrain();
-    -- Render game objects
-    RenderObjects();
-    -- Render interface
-    RenderInterface();
-  end
+  -- Level information
+  local iLevelId, sLevelName, sLevelType, iWinLimit;
   -- Render function
-  local function OnRenderRandom()
+  local function OnRender()
+    -- Hud not enabled?
+    if not bHud then return RenderAll() end;
     -- Render terrain
     RenderTerrain();
-    -- Get active player object and opponent player
-    local oPlrActive<const> = GetActivePlayer();
-    local oObjActive<const> = GetActiveObject();
-    local oPlrOpponent<const> = GetOpponentPlayer();
-    -- Get viewport information
-    local iPixPosX<const>, iPixPosY<const>,
-          iPixPosTargetX<const>, iPixPosTargetY<const>,
-          iPixCenPosX<const>, iPixCenPosY<const>,
-          iPosX<const>, iPosY<const>,
-          iAbsCenPosX<const>, iAbsCenPosY<const>,
-          iViewportW<const>, iViewportH<const>,
-          iVPX<const>, iVPY<const> = GetViewportData();
-    -- Get level information
-    local iLevelId, sLevelName, sLevelType, iWinLimit = GetLevelInfo();
+    -- Get system information
+    local nCpu<const>, nSys<const> = CoreCPUUsage();
+    local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- For each object
     for iObjId = 1, #aObjs do
       -- Get object data
       local oObj<const> = aObjs[iObjId];
       local iX<const>, iY<const> = oObj.X, oObj.Y;
       -- If in bounds of the viewport?
-      local iXX, iYY = iX - iVPX + oObj.OFX, iY - iVPY + oObj.OFY;
+      local iXX<const>, iYY<const> =
+        iX - iVPX + oObj.OFX, iY - iVPY + oObj.OFY;
       if min(iXX + 16, iStageR) > max(iXX, iStageL) and
          min(iYY + 16, iStageB) > max(iYY, iStageT) then
         -- Draw the texture
@@ -202,29 +145,26 @@ local function InitDebugPlay(iId)
         DrawHealthBar(oObj.H, 6.25, iXX, iYHealth, 1);
       end
     end
-    -- Render shroud
+    -- Render shroud and interface
     RenderShroud();
-    -- Get system information
-    local nCpu<const>, nSys<const> = CoreCPUUsage();
-    local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- Draw engine info
     fontTiny:SetCRGBA(1.0, 1.0, 1.0, 0.75);
     -- Draw game information
     Print(fontTiny, iStageL + 5.0, 5.0, format("\z
-      %s [%02u]\n\z     %s\n\z           %u TO WIN\n\z
-      %u OBJECTS\n\n\z  1: %s\n\z        ZOGS %5u/%u\n\z
-      DUG  %5u/%u\n\z   KO   %5u/%u\n\z  TRDE %5u/%u\n\n\z
-      2: %s\n\z         ZOGS %5u/%u\n\z  DUG  %5u/%u\n\z
-      KO   %5u/%u\n\z   TRDE %5u/%u",
+      %s [%02u]\n\z     %s\n\z          %u TO WIN\n\z
+      %u OBJECTS\n\n\z  %d@%d%9s\n\z    ZOGS%6u/%u\n\z
+      DUG%7u/%u\n\z     KO%8s/%u\n\z    TRDE%6u/%u\n\n\z
+      %d@%d%9s\n\z      ZOGS%6u/%u\n\z  DUG%7u/%u\n\z
+      KO%8s/%u\n\z      TRDE%6u/%u",
         sLevelName, iLevelId, sLevelType, iWinLimit, #aObjs,
-        oPlrActive.RD.LONGNAME, oPlrActive.M, oPlrActive.GI, oPlrActive.DUG,
-        oPlrActive.GEM, oPlrActive.EK, oPlrActive.DC, oPlrActive.GS,
-        oPlrActive.PUR, oPlrOpponent.RD.LONGNAME, oPlrOpponent.M,
-        oPlrOpponent.GI, oPlrOpponent.DUG, oPlrOpponent.GEM, oPlrOpponent.EK,
-        oPlrOpponent.DC, oPlrOpponent.GS, oPlrOpponent.PUR));
-    -- Draw debug mode
-    if GetGameTicks() % 120 < 60 then
-      PrintC(fontTiny, 160.0, 5.0, "DEBUG MODE") end;
+        oPlrActive.I, oPlrActive.RI, oPlrActive.RD.LONGNAME, oPlrActive.M,
+        oPlrActive.GI, oPlrActive.DUG, oPlrActive.GEM,
+        format("%u/%u", oPlrActive.LK, oPlrActive.EK), oPlrActive.DC,
+        oPlrActive.GS, oPlrActive.PUR, oPlrOpponent.I, oPlrOpponent.RI,
+        oPlrOpponent.RD.LONGNAME, oPlrOpponent.M, oPlrOpponent.GI,
+        oPlrOpponent.DUG, oPlrOpponent.GEM,
+        format("%u/%u", oPlrOpponent.LK, oPlrOpponent.EK), oPlrOpponent.DC,
+        oPlrOpponent.GS, oPlrOpponent.PUR));
     -- Draw system information
     PrintR(fontTiny, iStageR - 5.0, 5.0, format("\z
       %u/%u S FRAM\n\z    %.3f %% CPUP\n\z  %.3f M RAMP\n\z
@@ -246,7 +186,7 @@ local function InitDebugPlay(iId)
     RenderInterface();
   end
   -- Finished playing this zone
-  local function Finish()
+  local function OnFinish()
     -- When level has faded out?
     local function OnFadeOut()
       -- Unregister frame buffer update event
@@ -255,88 +195,166 @@ local function InitDebugPlay(iId)
       InitDebugPlay();
     end
     -- Fade out to load a new level
-    Fade(0.0, 1.0, 0.04, OnRenderRandom, OnFadeOut);
+    Fade(0.0, 1.0, 0.04, OnRender, OnFadeOut);
   end
-  -- Callbacks to use
-  local fcbTCallback, fcbRCallback;
-  -- Infinite play tick callback. Note that 'InitContinueGame()' will call
-  -- this every time.
-  local function OnTickRandomInitialise()
-    -- If the first frame?
-    if GetGameTicks() == 0 then
-      -- For each player...
-      for iPlayerId = 1, #aPlayers do
-        -- Get player
-        local oPlayer<const> = aPlayers[iPlayerId];
-        -- Set remove shroud mode
-        oPlayer.US = true;
-        -- Get and enumerate player diggers
-        local aDiggers<const> = oPlayer.D;
-        for iDiggerId = 1, #aDiggers do
-          -- Get digger
-          local oDigger<const> = aDiggers[iDiggerId];
-          -- Set remove shroud mode
-          oDigger.US = true;
-          UpdateShroud(oDigger.AX, oDigger.AY);
+  -- Store mouse position
+  local iX, iY, iPPX, iPPY, iNextObjectPoll, iRate,
+    iRateM1, aPlayerAtHumanStart = GetMouseX(), GetMouseY(), 0, 0, 0;
+  -- Debug mode initialisation function
+  local function OnInit(...)
+    -- Get viewport information
+    iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+      iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW,
+      iViewportH, iVPX, iVPY = GetViewportData();
+    -- Store level information
+    iLevelId, sLevelName, sLevelType, iWinLimit = ...;
+    -- Get active player object and opponent player
+    oPlrActive = GetActivePlayer();
+    oObjActive = GetActiveObject();
+    oPlrOpponent = GetOpponentPlayer();
+    -- Set remove shroud mode
+    oPlrOpponent.US = true;
+    -- Get and enumerate player diggers
+    local aDiggers<const> = oPlrOpponent.D;
+    for iDiggerId = 1, #aDiggers do
+      -- Get digger
+      local oDigger<const> = aDiggers[iDiggerId];
+      -- Set remove shroud mode
+      oDigger.US = true;
+      UpdateShroud(oDigger.AX, oDigger.AY);
+    end
+    -- Set money tick rate
+    iRate = 216000 // iWinLimit;
+    iRateM1 = iRate - 1;
+    -- Identify the player at the 'human player' start location as we'll give
+    -- a handicap to the AI starting at the human start position since most
+    -- human player start locations are not helpful the AI.
+    for iI = 1, #aPlayers do
+      local aPlayer<const> = aPlayers[iI];
+      if aPlayer.RI == 1 then aPlayerAtHumanStart = aPlayer break end;
+    end
+  end
+  -- Set real function
+  local function OnTick()
+    -- Get viewport information
+    iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+      iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW,
+      iViewportH, iVPX, iVPY = GetViewportData();
+    -- Add 1 Zog to what would be main player every so often. This eventually
+    -- gives the player a lead. They might eventually purchase something, and
+    -- the game will end eventually.
+    if GetGameTicks() % iRate == iRateM1 then
+      aPlayerAtHumanStart.M = aPlayerAtHumanStart.M + 1;
+      if aPlayerAtHumanStart.M >= iWinLimit then OnFinish() end;
+    end
+    -- If we're blocked from polling objects then don't
+    if GetGameTicks() < iNextObjectPoll then GameProc() return end
+    -- Mouse position or viewport changed?
+    iNewX, iNewY = GetMouseX(), GetMouseY();
+    if iNewX ~= iX or iNewY ~= iY or iPixPosX ~= iPPX or iPixPosY ~= iPPY then
+      -- Update new position and block time for 10 seconds
+      iX, iY, iNextObjectPoll, iPPX, iPPY = iNewX, iNewY, GetGameTicks() + 600,
+        iPixPosX, iPixPosY;
+      -- Don't cycle objects
+      GameProc();
+      -- Done
+      return
+    end
+    -- New object selected
+    local oObj;
+    -- For each player
+    for iPlayer = 1, #aPlayers do
+      -- Get player diggers and enumerate them
+      local aDiggers<const> = aPlayers[iPlayer].D;
+      for iDigger = 1, #aDiggers do
+        -- Get digger object and if it is in danger?
+        local oDigger<const> = aDiggers[iDigger];
+        if oDigger and
+           oDigger.J == JOB.INDANGER and
+           oDigger.A ~= ACT.DEATH and
+          (oDigger.A ~= ACT.FIGHT or
+           oDigger.P == oPlrActive) then
+          -- It is selected
+          iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
+          oObj = oDigger;
+          -- Do not check any more diggers
+          break;
         end
       end
+      -- Break if we got a digger
+      if oObj then break end;
     end
-    -- Store mouse position
-    local iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
-    -- Set real function
-    local function OnTickRandom()
-      -- Switch level after an hour
-      if GetGameTicks() >= 216000 then return Finish() end;
-      -- If we're blocked from polling objects then don't
-      if GetGameTicks() < iNextObjectPoll then GameProc();
-      -- Not blocked from selecting new objects?
-      else
-        -- Mouse position changed?
-        local iNewX<const>, iNewY<const> = GetMouseX(), GetMouseY();
-        if iNewX ~= iX or iNewY ~= iY then
-          -- Update new position and block time for 10 seconds
-          iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
-          -- Don't cycle objects
-          GameProc();
-        -- Mouse position still same so cycle objects
-        else OnTick() end;
-      end
+    -- Switch object every 10 seconds
+    if not oObj and GetGameTicks() % 600 == 0 then
+      -- Try again point
+      ::tryagain::
+      -- Select a player
+      local oPlayer<const> = aPlayers[iSelectedPlayerId];
+      -- Get player diggers
+      local aDiggers<const> = oPlayer.D;
+      -- Find a digger from the specified player.
+      oObj = aDiggers[iSelectedDiggerId];
+      -- Loop if we don't find a digger
+      if not oObj then SelectNextDigger() goto tryagain end;
     end
-    -- Set real function
-    SetCallbacks(OnTickRandom, fcbRCallback);
-  end
-  if iId then
-    fcbTCallback, fcbRCallback = OnTick, OnRender;
-  else
-    iId, fcbTCallback, fcbRCallback =
-      random(#aLevelsData), OnTickRandomInitialise, OnRenderRandom;
+    -- New object selected?
+    if oObj then
+      -- Select the object and player if we got something!
+      SelectObject(oObj);
+      -- Next object
+      SelectNextDigger();
+    end
+    -- Execute a game tick
+    GameProc();
   end
   -- Load infinite play (AI vs AI)
-  LoadLevel(iId, "game", -1, nil, true, nil, true, fcbTCallback, fcbRCallback,
-    Finish);
+  LoadLevel(iId, "game", -1, nil, true, nil, true, OnTick, OnRender, OnFinish,
+    nil, nil, nil, true, OnInit);
   -- Play sound effects
   SetPlaySounds(true);
 end
 -- Scripts have been loaded ------------------------------------------------ --
-local function OnScriptLoaded(GetAPI)
+local function OnScriptLoaded(GetAPI, oAPI)
   -- Grab imports
   BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GameProc,
-    GetActiveObject, GetActivePlayer, GetGameTicks, GetLevelInfo, GetMouseX,
+    GetActiveObject, GetActivePlayer, GetGameTicks, GetMouseX,
     GetMouseY, GetOpponentPlayer, GetTileUnderMouse, GetViewportData,
-    HaveZogsToWin, LoadLevel, PrintC, PrintCT, PrintR, Print,
-    RegisterFBUCallback, RenderObjects, RenderShroud, RenderTerrain,
-    SelectObject, SetCallbacks, SetPlaySounds, UpdateShroud, aLevelsData,
-    aObjs, aPlayers, fontLarge, fontLittle, fontTiny, texSpr, RenderInterface,
-    JOB, ACT =
+    LoadLevel, PrintC, PrintCT, PrintR, Print, RegisterFBUCallback,
+    RenderObjects, RenderShroud, RenderTerrain, SelectObject, SetCallbacks,
+    SetPlaySounds, UpdateShroud, aLevelsData, aObjs, aPlayers, fontLarge,
+    fontLittle, fontTiny, texSpr, RenderAll, RenderInterface, JOB, ACT =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitSLTWH", "DrawHealthBar", "Fade",
         "GameProc", "GetActiveObject", "GetActivePlayer", "GetGameTicks",
-        "GetLevelInfo", "GetMouseX", "GetMouseY", "GetOpponentPlayer",
-        "GetTileUnderMouse", "GetViewportData", "HaveZogsToWin", "LoadLevel",
-        "PrintC", "PrintCT", "PrintR", "Print", "RegisterFBUCallback",
-        "RenderObjects", "RenderShroud", "RenderTerrain", "SelectObject",
-        "SetCallbacks", "SetPlaySounds", "UpdateShroud", "aLevelsData",
-        "aObjs", "aPlayers", "fontLarge", "fontLittle", "fontTiny", "texSpr",
-        "RenderInterface", "oObjectJobs", "oObjectActions");
+        "GetMouseX", "GetMouseY", "GetOpponentPlayer", "GetTileUnderMouse",
+        "GetViewportData", "LoadLevel", "PrintC", "PrintCT", "PrintR", "Print",
+        "RegisterFBUCallback", "RenderObjects", "RenderShroud",
+        "RenderTerrain", "SelectObject", "SetCallbacks", "SetPlaySounds",
+        "UpdateShroud", "aLevelsData", "aObjs", "aPlayers", "fontLarge",
+        "fontLittle", "fontTiny", "texSpr", "RenderAll", "RenderInterface",
+        "oObjectJobs", "oObjectActions");
+  -- Toggle hud
+  local function ToggleHud(sValue)
+    -- No parameter
+    if not sValue then bHud = not bHud return end;
+    -- Parameter specified
+    bHud = tonumber(sValue) ~= 0;
+  end
+  -- Debug commands
+  local aCommands<const> = {
+    ["hud"] = ToggleHud
+  };
+  -- Register a console command to dump level mask and keep it safe in API.
+  local CommandRegister<const> = Command.Register;
+  local function ConCmdSetLevel(_, sValue, ...)
+    -- If is a command?
+    local fcbFunc<const> = aCommands[sValue]
+    if fcbFunc then return fcbFunc(...) end;
+    -- On faded out
+    local function OnFadeOut() InitDebugPlay(tonumber(sValue)) end;
+    -- Fade out to load a new level
+    Fade(0.0, 1.0, 0.04, RenderAll, OnFadeOut);
+  end
+  oAPI.cmdDebug = CommandRegister("debug", 1, 3, ConCmdSetLevel);
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitDebugPlay = InitDebugPlay } };

@@ -18,8 +18,8 @@ local UtilBlank<const>, CoreTime<const>, UtilIsInteger<const> =
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitSLTRB, BlitLT, Fade, GetCallbacks, InitSetup, InitTitle,
   LoadResources, PrintC, RegisterFBUCallback, RenderFade, RenderShadow,
-  SetCallbacks, SetHotSpot, SetVLTRB, VideoPlay, VideoStop, aIntroSubTitles,
-  fontLittle, texSpr, SetKeys;
+  SetCallbacks, SetCursorPos, SetHotSpot, SetVLTRB, VideoPlay, VideoStop,
+  aIntroSubTitles, fontLittle, texSpr, SetKeys;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets data to load
       aSubTitle,                       -- Active subtitle to wait for
@@ -234,6 +234,8 @@ local function OnFadeInGoSetup()
   SetupVideo()
   -- Show the setup screen
   InitSetup(1);
+  -- Force the mouse to a position so they can read the intro text
+  SetCursorPos(10, 220);
 end
 -- When intro resources have loaded? --------------------------------------- --
 local function OnAssetsLoaded(aResources, bAndSetup)
@@ -320,15 +322,15 @@ local function OnScriptLoaded(GetAPI)
   -- Get imports
   BlitSLT, BlitSLTRB, BlitLT, Fade, GetCallbacks, InitSetup, InitTitle,
     LoadResources, PrintC, RegisterFBUCallback, RegisterHotSpot, RegisterKeys,
-    RenderFade, RenderShadow, SetCallbacks, SetHotSpot, SetKeys, SetVLTRB,
-    VideoPlay, VideoStop, oAssetsData, aIntroSubTitles, fontLittle, texSpr,
-    iTexScale =
+    RenderFade, RenderShadow, SetCallbacks, SetCursorPos, SetHotSpot, SetKeys,
+    SetVLTRB, VideoPlay, VideoStop, oAssetsData, aIntroSubTitles, fontLittle,
+    texSpr, iTexScale =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitLT", "Fade", "GetCallbacks",
         "InitSetup", "InitTitle", "LoadResources", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
-        "RenderShadow", "SetCallbacks", "SetHotSpot", "SetKeys", "SetVLTRB",
-        "VideoPlay", "VideoStop", "oAssetsData", "aIntroSubTitles",
-        "fontLittle", "texSpr", "iTexScale");
+        "RenderShadow", "SetCallbacks", "SetCursorPos", "SetHotSpot",
+        "SetKeys", "SetVLTRB", "VideoPlay", "VideoStop", "oAssetsData",
+        "aIntroSubTitles", "fontLittle", "texSpr", "iTexScale");
   -- Build assets to load
   aAssets = { oAssetsData.title, oAssetsData.intro };
   -- Get font size and padding

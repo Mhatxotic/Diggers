@@ -280,7 +280,6 @@ Basic support for scaled textures is supported. To use, you add a text file call
 | --- | --- |
 | **Complete conversion** | By *Mhat* of *Mhatxotic Design*. |
 | **Lobby music** | *Nugem B.* ([with permission](https://youtu.be/GFsHnxVRI8s)). |
-| **Setup music** | *Super Stardust - Special Mission 1* by *PowerTrace*. |
 | **Credits music** | *4U 07:00 V2001* by *Enuo*. |
 | **Game over music loop** | *1000 Years Of Funk* by *Dimitri D. L.*. |
 | **Special thanks** | [ModArchive.Org](https://www.modarchive.org) and [AmigaRemix.Com](https://www.amigaremix.com). |
