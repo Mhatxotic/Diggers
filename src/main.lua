@@ -649,20 +649,21 @@ local function fcbTick()
     end
     -- Some library functions and variables only for this scope
     local InitBook, InitCon, InitCredits, InitTitleCredits, InitDebugPlay,
-      InitEnding, InitFail, InitFile, InitIntro, InitMap, InitNewGame,
-      InitRace, InitScene, InitScore, InitTitle, LoadLevel, aLevelsData,
-      oObjectTypes, aRacesData;
+      InitEditor, InitEnding, InitFail, InitFile, InitIntro, InitMap,
+      InitNewGame, InitRace, InitScene, InitScore, InitTitle, LoadLevel,
+      aLevelsData, oObjectTypes, aRacesData;
     -- Load dependecies we need on this module
     CursorRender, DisableKeyHandlers, InitBook, InitCon, InitCredits,
-      InitDebugPlay, InitEnding, InitFail, InitFile, InitIntro, InitMap,
-      InitNewGame, InitRace, InitScene, InitScore, InitTitle, InitTitleCredits,
-      JoystickProc, LoadLevel, RestoreKeyHandlers, SetHotSpot, SetKeys, SetTip,
-      aLevelsData, oObjectTypes, aRacesData =
+      InitDebugPlay, InitEditor, InitEnding, InitFail, InitFile, InitIntro,
+      InitMap, InitNewGame, InitRace, InitScene, InitScore, InitTitle,
+      InitTitleCredits, JoystickProc, LoadLevel, RestoreKeyHandlers,
+      SetHotSpot, SetKeys, SetTip, aLevelsData, oObjectTypes, aRacesData =
         GetAPI("CursorRender", "DisableKeyHandlers", "InitBook", "InitCon",
-          "InitCredits", "InitDebugPlay", "InitEnding", "InitFail", "InitFile",
-          "InitIntro", "InitMap", "InitNewGame", "InitRace", "InitScene",
-          "InitScore", "InitTitle", "InitTitleCredits", "JoystickProc",
-          "LoadLevel", "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
+          "InitCredits", "InitDebugPlay", "InitEditor", "InitEnding",
+          "InitFail", "InitFile", "InitIntro", "InitMap", "InitNewGame",
+          "InitRace", "InitScene", "InitScore", "InitTitle",
+          "InitTitleCredits", "JoystickProc", "LoadLevel",
+          "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
           "aLevelsData", "oObjectTypes", "aRacesData");
     -- Set main callback
     fcbTick = MainCallback;
@@ -687,32 +688,34 @@ local function fcbTick()
         InitScene(iStartLevel - #aLevelsData, "game");
       -- Testing infinite play mode? (debug.lua)
       elseif iStartLevel == -1 then InitDebugPlay();
+      -- Testing the level editor (editor.lua)
+      elseif iStartLevel == -2 then InitEditor();
       -- Testing the fail screen (fail.lua)
-      elseif iStartLevel == -2 then InitFail();
+      elseif iStartLevel == -3 then InitFail();
       -- Testing the game over (score.lua)
-      elseif iStartLevel == -3 then InitScore();
+      elseif iStartLevel == -4 then InitScore();
       -- Testing the final credits (ending.lua)
-      elseif iStartLevel == -4 then InitCredits(false);
+      elseif iStartLevel == -5 then InitCredits(false);
       -- Testing the final rolling credits (ending.lua)
-      elseif iStartLevel == -5 then InitCredits(true);
+      elseif iStartLevel == -6 then InitCredits(true);
       -- Testing the title screen rolling credits (tcredits.lua)
-      elseif iStartLevel == -6 then InitTitleCredits();
+      elseif iStartLevel == -7 then InitTitleCredits();
       -- Testing the controller screen (cntrl.lua)
-      elseif iStartLevel == -7 then InitCon();
+      elseif iStartLevel == -8 then InitCon();
       -- Testing the book screen (book.lua)
-      elseif iStartLevel == -8 then InitBook();
+      elseif iStartLevel == -9 then InitBook();
       -- Testing the race screen (race.lua)
-      elseif iStartLevel == -9 then InitRace();
+      elseif iStartLevel == -10 then InitRace();
       -- Testing the map screen (map.lua)
-      elseif iStartLevel == -10 then InitMap();
+      elseif iStartLevel == -11 then InitMap();
       -- Testing the file select screen (file.lua)
-      elseif iStartLevel == -11 then InitFile();
+      elseif iStartLevel == -12 then InitFile();
       -- Testing a races ending (ending.lua)
-      elseif iStartLevel > -16 and iStartLevel <= -12 then
-        InitEnding(#aRacesData + (-16 - iStartLevel));
+      elseif iStartLevel > -17 and iStartLevel <= -13 then
+        InitEnding(#aRacesData + (-17 - iStartLevel));
       -- Reserved for testing win and map post mortem (game/post.lua)
-      elseif iStartLevel <= -16 and iStartLevel > -16 - #aLevelsData then
-        LoadLevel(-iStartLevel-15, "game", -1, nil, nil, nil, nil, nil, nil,
+      elseif iStartLevel <= -17 and iStartLevel > -17 - #aLevelsData then
+        LoadLevel(-iStartLevel-16, "game", -1, nil, nil, nil, nil, nil, nil,
           nil, nil, 17550);
       -- Invalid test code so skip the below return
       else goto invalid end;
