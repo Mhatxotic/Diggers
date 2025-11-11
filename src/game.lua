@@ -1395,8 +1395,8 @@ local function AdjustObjectHealth()
   end
   -- Process explosion logic ----------------------------------------------- --
   local function ProcessExplosion(oObjVictim, oObjCause)
-    -- Destroy the object AFTER we're done with it
-    oObjVictim.AT = maxinteger;
+    -- Do not play the objects death animation
+    oObjVictim.AT = 0xFFFF;
     -- Enumerate possible destruct positions again. We can't have the TERRAIN
     -- destruction checks in the above enumeration because of the recursive
     -- nature of the OBJECT destruction which would cause problems.
