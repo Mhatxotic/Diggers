@@ -690,7 +690,7 @@ local function MakeTreasureObject(iAB, iAE, iHS, iValue, sName)
     HUDSPRITE = iHS,                   JOB       = JOB.NONE,
     LONGNAME  = sName,                 NAME      = sName,
     STAMINA   = -1,                    STRENGTH  = 0,
-    TELEDELAY = 200,                   VALUE     = iValue,
+    TELEDELAY = 60,                    VALUE     = iValue,
     WEIGHT    = 1,
   }
 end
