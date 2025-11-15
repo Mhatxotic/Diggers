@@ -2611,33 +2611,38 @@ local function InitCreateObject()
     -- Ai is stopped?
     [iAStop] = {
       -- No job set?
-      [iJNone] = { [DIR.UL] = 0.02,  [DIR.U]  = 0.1,  [DIR.UR]  = 0.02,
-                   [DIR.L]  = 0.02,  [iDNone] = 0.1,  [iDRight] = 0.02,
-                   [DIR.DL] = 0.02,  [iDDown] = 0.02, [DIR.DR]  = 0.02 },
+      [iJNone] = { [DIR.UL] = 0.02, [DIR.U]  = 0.1,  [DIR.UR]  = 0.02,
+                   [DIR.L]  = 0.02, [iDNone] = 0.1,  [iDRight] = 0.02,
+                   [DIR.DL] = 0.02, [iDDown] = 0.02, [DIR.DR]  = 0.02 },
       -- Job is to dig?
-      [iJDig] = { [DIR.UL] = 0.02,  [DIR.U]  = 0.02, [DIR.UR]  = 0.02,
-                  [DIR.L]  = 0.02,  [iDNone] = 0.02, [iDRight] = 0.02,
-                  [DIR.DL] = 0.02,  [iDDown] = 0.02, [DIR.DR]  = 0.02 },
+      [iJDig] = { [DIR.UL] = 0.02, [DIR.U]  = 0.02, [DIR.UR]  = 0.02,
+                  [DIR.L]  = 0.02, [iDNone] = 0.02, [iDRight] = 0.02,
+                  [DIR.DL] = 0.02, [iDDown] = 0.02, [DIR.DR]  = 0.02 },
     -- Ai is walking?
     }, [iAWalk] = {
       -- Job is bouncing around?
-      [JOB.BOUNCE] = { [DIR.UL]  = 0.001, [DIR.UR] = 0.001,  [DIR.L] = 0.001,
-                       [iDRight] = 0.001, [DIR.DL] = 0.02,   [DIR.D] = 0.002,
+      [JOB.BOUNCE] = { [DIR.UL]  = 0.001, [DIR.UR] = 0.001, [DIR.L] = 0.001,
+                       [iDRight] = 0.001, [DIR.DL] = 0.02,  [DIR.D] = 0.002,
                        [DIR.DR]  = 0.02 },
       -- Job is digging?
-      [iJDig] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002,  [DIR.L]  = 0.001,
-                  [iDRight] = 0.001, [DIR.DL] = 0.02,   [DIR.DR] = 0.05 },
+      [iJDig] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002, [DIR.L]  = 0.001,
+                  [iDRight] = 0.001, [DIR.DL] = 0.02,  [DIR.DR] = 0.05 },
       -- Job is digging down? (Very narrow time frame)
       [JOB.DIGDOWN] = { [DIR.D] = 0.95 },
       -- Job is searching for treasure?
-      [iJSearch] = { [DIR.L] = 0.002, [iDRight] = 0.002 },
+      [iJSearch] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002, [DIR.L] = 0.002,
+                     [iDRight] = 0.002, [DIR.DL] = 0.002, [DIR.D] = 0.002,
+                     [DIR.DR]  = 0.002 },
     -- Ai is running?
     }, [ACT.RUN] = {
       -- Job is bouncing around?
-      [JOB.BOUNCE] = { [DIR.L] = 0.01, [iDRight] = 0.01 },
+      [JOB.BOUNCE] = { [DIR.UL]  = 0.01, [DIR.UR] = 0.01, [DIR.L] = 0.01,
+                       [iDRight] = 0.01, [DIR.DL] = 0.01, [DIR.D] = 0.02,
+                       [DIR.DR]  = 0.01 },
       -- Job is in danger?
-      [iJInDanger] = { [DIR.L] = 0.002, [iDRight] = 0.002 },
-    -- Ai is resting?
+      [iJInDanger] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002, [DIR.L] = 0.002,
+                       [iDRight] = 0.002, [DIR.DL] = 0.002, [DIR.D] = 0.002,
+                       [DIR.DR]  = 0.002 },
     }
   };
   -- Drop a random object -------------------------------------------------- --
@@ -5137,6 +5142,8 @@ local function OnPreInitAPI(GetAPI)
     CoreLog("Created player "..iPlrId.." as '"..oObjectData[iRaceId].NAME..
       "'["..iRaceId.."] at AX:"..iX..",AY:"..iY.." in position #"..
       #aPlayers.."!");
+    -- Return the player
+    return oPlr;
   end
   -- Populate level with objects from metadata ----------------------------- --
   local iMinObjId<const>, iMaxObjId<const> = TYP.JENNITE, TYP.MAX;
@@ -5194,7 +5201,8 @@ local function OnPreInitAPI(GetAPI)
               ", Y="..aPlayerFound[2]..".") end;
           -- Player doesn't exist? Set the new player
           local aPlrRaceItem<const> = aPlrExpected[iPlayer];
-          aPlrsFound[iPlayer] = { iX, iY, aPlrRaceItem[1], aPlrRaceItem[2] };
+          aPlrsFound[iPlayer] = { iX, iY, aPlrRaceItem[1],
+            aPlrRaceItem[2], iPlayer };
         -- Is a flood gate?
         elseif iTerrainId >= 434 and iTerrainId <= 439 then
           -- Create a flood gate here with no owner
@@ -5403,7 +5411,14 @@ local function OnPreInitAPI(GetAPI)
       end
       -- Create players and objects for players found
       for iPlrId = 1, #aPlrsFound do
-        CreatePlayer(iPlrId, unpack(aPlrsFound[iPlrId])) end;
+        -- Get player found
+        local aPlrFound<const> = aPlrsFound[iPlrId];
+        -- Extract real player id
+        local iRealId<const> = aPlrFound[#aPlrFound];
+        remove(aPlrFound, #aPlrFound);
+        -- Create the player and set the real player id
+        CreatePlayer(iPlrId, unpack(aPlrFound)).RI = iRealId;
+      end
       -- Set player race and level if not set (gam_test used)
       if not oGlobalData.gSelectedRace then
         oGlobalData.gSelectedRace = oPlrActive.R end;
