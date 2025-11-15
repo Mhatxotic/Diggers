@@ -48,6 +48,8 @@ local function InitDebugPlay(iId)
       if iSelectedPlayerId > 2 then iSelectedPlayerId = 1 end;
     end
   end
+  -- Level information
+  local iLevelId, sLevelName, sLevelType, iWinLimit;
   -- Infinite play tick callback
   local function OnTick()
     -- New object selected
@@ -122,8 +124,6 @@ local function InitDebugPlay(iId)
           iAbsCenPosX<const>, iAbsCenPosY<const>,
           iViewportW<const>, iViewportH<const>,
           iVPX<const>, iVPY<const> = GetViewportData();
-    -- Get level information
-    local iLevelId, sLevelName, sLevelType, iWinLimit = GetLevelInfo();
     -- For each object
     for iObjId = 1, #aObjs do
       -- Get object data
@@ -224,7 +224,7 @@ local function InitDebugPlay(iId)
         oPlrOpponent.DC, oPlrOpponent.GS, oPlrOpponent.PUR));
     -- Draw debug mode
     if GetGameTicks() % 120 < 60 then
-      PrintC(fontTiny, 160.0, 5.0, "DEBUG MODE") end;
+      PrintC(fontTiny, 160.0, 5.0, "DEMO MODE") end;
     -- Draw system information
     PrintR(fontTiny, iStageR - 5.0, 5.0, format("\z
       %u/%u S FRAM\n\z    %.3f %% CPUP\n\z  %.3f M RAMP\n\z
@@ -283,24 +283,39 @@ local function InitDebugPlay(iId)
     end
     -- Store mouse position
     local iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
+    -- Get level information
+    iLevelId, sLevelName, sLevelType, iWinLimit = GetLevelInfo();
+    -- Set money tick rate
+    local iRate<const> = 216000 // iWinLimit;
+    local iRateM1<const> = iRate - 1;
+    -- Identify the player at the 'human player' start location as we'll give
+    -- a handicap to the AI starting at the human start position since most
+    -- human player start locations are not helpful the AI.
+    local aPlayerAtHumanStart;
+    for iI = 1, #aPlayers do
+      local aPlayer<const> = aPlayers[iI];
+      if aPlayer.RI == 1 then aPlayerAtHumanStart = aPlayer break end;
+    end
     -- Set real function
     local function OnTickRandom()
-      -- Switch level after an hour
-      if GetGameTicks() >= 216000 then return Finish() end;
-      -- If we're blocked from polling objects then don't
-      if GetGameTicks() < iNextObjectPoll then GameProc();
-      -- Not blocked from selecting new objects?
-      else
-        -- Mouse position changed?
-        local iNewX<const>, iNewY<const> = GetMouseX(), GetMouseY();
-        if iNewX ~= iX or iNewY ~= iY then
-          -- Update new position and block time for 10 seconds
-          iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
-          -- Don't cycle objects
-          GameProc();
-        -- Mouse position still same so cycle objects
-        else OnTick() end;
+      -- Add 1 Zog to what would be main player every so often. This eventually
+      -- gives the player a lead. They might eventually purchase something, and
+      -- the game will end eventually.
+      if GetGameTicks() % iRate == iRateM1 then
+        aPlayerAtHumanStart.M = aPlayerAtHumanStart.M + 1;
+        if aPlayerAtHumanStart.M >= iWinLimit then Finish() end;
       end
+      -- If we're blocked from polling objects then don't
+      if GetGameTicks() < iNextObjectPoll then GameProc() return end
+      -- Mouse position changed?
+      local iNewX<const>, iNewY<const> = GetMouseX(), GetMouseY();
+      if iNewX ~= iX or iNewY ~= iY then
+        -- Update new position and block time for 10 seconds
+        iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
+        -- Don't cycle objects
+        GameProc();
+      -- Mouse position still same so cycle objects
+      else OnTick() end;
     end
     -- Set real function
     SetCallbacks(OnTickRandom, fcbRCallback);
