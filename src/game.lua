@@ -3526,30 +3526,6 @@ local function GameProc()
     [iDDown]      = PhaseRandomTargetLogic,
     [iDDownRight] = PhaseRandomTargetLogic
   };
-  -- Phasing logic --------------------------------------------------------- --
-  local function PhaseLogic(oObj)
-    -- Cache current direction as this direction controls where the object is
-    -- going to teleport to (see the above 'oFunctions' table).
-    local iDirection<const> = oObj.D;
-    -- Object has finished phasing
-    if oObj.J ~= iJPhase then
-      -- Object was teleported eaten? Respawn as eaten!
-      if iDirection == iDDownRight then
-        SetAction(oObj, iAEaten, iJNone, iDLeftRight);
-      -- Object not eaten?
-      else SetAction(oObj, iAStop, iJNone, iDKeep) end;
-      -- Done
-      return;
-    end
-    -- If not demo mode and this object is selected
-    if not bAIvsAI and oObjActive == oObj then
-      -- Not main players object? Deselect it so it cannot be tracked
-      local oPlr<const> = oObj.P;
-      if not oPlr or oPlr ~= oPlrActive then SelectObject() end;
-    end
-    -- Execute the phase logic
-    return oFunctions[iDirection](oObj);
-  end
   -- == MAIN OBJECT LOGIC ================================================== --
   -- Object died? ---------------------------------------------------------- --
   local function ACTDeath(oObj)
@@ -3567,10 +3543,27 @@ local function GameProc()
     -- Reset object action timer since phasing again won't reset it and will
     -- instantly respawn the object
     oObj.AT = 0;
-    -- Process phase logic and return if the game ended
-    PhaseLogic(oObj);
-    -- Skip object
-    return true;
+    -- Cache current direction as this direction controls where the object is
+    -- going to teleport to (see the above 'oFunctions' table).
+    local iDirection<const> = oObj.D;
+    -- Object has finished phasing
+    if oObj.J ~= iJPhase then
+      -- Object was teleported eaten? Respawn as eaten!
+      if iDirection == iDDownRight then
+        SetAction(oObj, iAEaten, iJNone, iDLeftRight);
+      -- Object not eaten?
+      else SetAction(oObj, iAStop, iJNone, iDKeep) end;
+      -- Done
+      return false;
+    end
+    -- If not demo mode and this object is selected
+    if not bAIvsAI and oObjActive == oObj then
+      -- Not main players object? Deselect it so it cannot be tracked
+      local oPlr<const> = oObj.P;
+      if not oPlr or oPlr ~= oPlrActive then SelectObject() end;
+    end
+    -- Run function
+    return oFunctions[iDirection](oObj);
   end
   -- Hiding? (trade centre) ------------------------------------------------ --
   local function ACTHide(oObj)
@@ -3635,7 +3628,7 @@ local function GameProc()
     end
     -- Object wants to enter the trading centre? Stop object
     if oObj.J == JOB.HOME and ObjectIsAtHome(oObj) then
-      -- If object can't entre? Just stop it.
+      -- If object can't enter? Just stop it.
       if oObj.F & OFL.NOHOME ~= 0 then
         SetAction(oObj, iAStop, iJNone, iDNone);
       -- Go into trade centre and if successful? Prevent diggers entering
@@ -5079,10 +5072,7 @@ local function OnPreInitAPI(GetAPI)
         -- Add capital carried and reset its value
         oPlrActive.M = oPlrActive.M + oGlobalData.gCapitalCarried;
         oGlobalData.gCapitalCarried = 0;
-        -- Not demo mode
-        bAIvsAI = false;
-      -- Not AI vs AI
-      else bAIvsAI = true end;
+      end
       -- Set viewpoint on this player and synchronise
       ScrollViewportTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
       ForceViewport();
@@ -5394,6 +5384,8 @@ local function OnPreInitAPI(GetAPI)
       PopulateLevelWithObjects(aResources[2]);
       -- If both players are AI?
       if bAI1 and bAI2 then
+        -- AI vs AI mode
+        bAIvsAI = true;
         -- A randomised version of randomised players
         local aPlrsFoundRand<const> = { };
         -- Repeat...
@@ -5408,7 +5400,8 @@ local function OnPreInitAPI(GetAPI)
         until #aPlrsFound == 0;
         -- Assign new players found
         aPlrsFound = aPlrsFoundRand;
-      end
+      -- Not AI vs AI mode
+      else bAIvsAI = false end;
       -- Create players and objects for players found
       for iPlrId = 1, #aPlrsFound do
         -- Get player found
@@ -5426,8 +5419,16 @@ local function OnPreInitAPI(GetAPI)
         oGlobalData.gSelectedLevel = iLvlId end;
       -- Play in-game music if requested
       if sMusic then PlayMusic(aResources[4], 0) end;
-      -- Now we want to hear sounds if human player is set
-      if not bAI1 or not bAI2 then SetPlaySounds(true) end;
+      -- If AI vs AI is set?
+      if bAIvsAI then
+        -- Add respawn to all level defined objects
+        local iFRespawn<const> = OFL.RESPAWN;
+        for iObjId = 1, #aObjs do
+          local oObj<const> = aObjs[iObjId];
+          oObj.F = oObj.F | iFRespawn;
+        end
+      -- We want to hear sounds if a human player is set
+      else SetPlaySounds(true) end;
       -- Set extra money if requested
       if iSM1 then oPlrActive.M = oPlrActive.M + iSM1 end
       if iSM2 then oPlrOpponent.M = oPlrOpponent.M + iSM2 end
