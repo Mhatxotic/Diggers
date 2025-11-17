@@ -241,8 +241,8 @@ OFL.JUMPFLOAT    = OFL.JUMP | OFL.FLOATING;     -- Jumping and floating
 OFL.JUMPRISEBUSY = OFL.JUMPRISE | OFL.BUSY;     -- Jump rising and busy
 OFL.JUMPFALLBUSY = OFL.JUMPFALL | OFL.BUSY;     -- Jump falling and busy
 -- Commonly used combinations that are inverted for the '&' (AND) operator
-OFL.iBUSY, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER, OFL.iJUMP,
-  OFL.iJUMPRISE, OFL.iNOHOME, OFL.iJUMPFALLBUSY, OFL.iNOSOUND =
+OFL.iBUSY, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER, OFL.iJUMP, OFL.iJUMPRISE,
+  OFL.iNOHOME, OFL.iJUMPFALLBUSY, OFL.iNOSOUND =
     ~OFL.BUSY, ~OFL.FALL, ~OFL.FLOATING, ~OFL.INWATER, ~OFL.JUMP,
     ~OFL.JUMPRISE, ~OFL.NOHOME, ~OFL.JUMPFALLBUSY, ~OFL.NOSOUND;
 -- Jumping ----------------------------------------------------------------- --
@@ -415,20 +415,17 @@ local aShroudCircle<const> = {
   { 1, 6,ixT },{ 2, 6,ixT },{ 3, 6,ixT },{ 4, 6,ixT },{ 5, 6,ixTL}
 };
 -- Level data types -------------------------------------------------------- --
-local aLevelTypeDesert<const> =
-  -- Type  Filename    Name             Shroud colour (0xAARRGGBB)
-  { i=0, f="desert",   n="DESERTOUS",   s=0xF8AA6651 };
-local aLevelTypeGrass<const> =
-  { i=1, f="grass",    n="TEMPERATE",   s=0xF8804331 };
-local aLevelTypeIslands<const> =
-  { i=2, f="islands",  n="COASTAL",     s=0xF8BC5700 };
-local aLevelTypeJungle<const> =
-  { i=3, f="jungle",   n="TROPICAL",    s=0xF8290600 };
-local aLevelTypeMountain<const> =
-  { i=4, f="mountain", n="MOUNTAINOUS", s=0xF8CC6666 };
-local aLevelTypeRock<const> =
-  { i=5, f="rock",     n="BARRENOUS",   s=0xF8743423 };
-local aLevelTypeWinter<const> =
+local aLevelTypeDesert<const>,  aLevelTypeGrass<const>,
+      aLevelTypeIslands<const>, aLevelTypeJungle<const>,
+      aLevelTypeMountain<const>, aLevelTypeRock<const>,
+      aLevelTypeWinter<const> =
+  -- Type - Filename ------- Name ----- Shroud colour (0xAARRGGBB) --------- --
+  { i=0, f="desert",   n="DESERTOUS",   s=0xF8AA6651 },
+  { i=1, f="grass",    n="TEMPERATE",   s=0xF8804331 },
+  { i=2, f="islands",  n="COASTAL",     s=0xF8BC5700 },
+  { i=3, f="jungle",   n="TROPICAL",    s=0xF8290600 },
+  { i=4, f="mountain", n="MOUNTAINOUS", s=0xF8CC6666 },
+  { i=5, f="rock",     n="BARRENOUS",   s=0xF8743423 },
   { i=6, f="snow",     n="WINTEROUS",   s=0xF8666699 };
 -- Level data types array -------------------------------------------------- --
 local aLevelTypesData<const> = {
@@ -440,15 +437,13 @@ local aSkillLevels<const> = {
   { r= 600, n="VERY EASY" }, { r=1000, n="EASY" }, { r=1300, n="AVERAGE" },
   { r=1500, n="HARD" }, { r=2100, n="VERY HARD" }
 };
-local aSkillEasiest<const>, aSkillEasy<const>,
-      aSkillMedium<const>,  aSkillHard<const>,
-      aSkillHardest<const> =
-        aSkillLevels[1], aSkillLevels[2],
-        aSkillLevels[3], aSkillLevels[4],
-        aSkillLevels[5];
+local aSkillEasiest<const>, aSkillEasy<const>, aSkillMedium<const>,
+  aSkillHard<const>, aSkillHardest<const> =
+    aSkillLevels[1], aSkillLevels[2], aSkillLevels[3], aSkillLevels[4],
+    aSkillLevels[5];
 -- Level data types array -------------------------------------------------- --
 local aLevelsData<const> =
-{ -- Name --------- WinReq - Filename ----- Terrain type ------------------- --
+{ -- Name --------- WinReq ---------- Filename ----- Terrain type ---------- --
   { n="AZERG",     w=aSkillEasiest,  f="azerg",     t=aLevelTypeRock     },--01
   { n="DHOBBS",    w=aSkillEasiest,  f="dhobbs",    t=aLevelTypeGrass    },--02
   { n="ELEEVATE",  w=aSkillEasiest,  f="eleevate",  t=aLevelTypeGrass    },--03
@@ -483,7 +478,7 @@ local aLevelsData<const> =
   { n="KLARSH",    w=aSkillHardest,  f="klarsh",    t=aLevelTypeJungle   },--32
   { n="SUHMNER",   w=aSkillHardest,  f="suhmner",   t=aLevelTypeIslands  },--33
   { n="SIMTOB",    w=aSkillHardest,  f="simtob",    t=aLevelTypeJungle   },--34
-  -- Name --------- WinReq ----- Map name ------------ Map objects name --- --
+  -- Name --------- WinReq ---------- Filename ----- Terrain type ---------- --
 };
 -- Map data lookup table -------------------------------------------------- --
 local aZoneData<const> = {
