@@ -418,8 +418,8 @@ local function DestroyObject(iObj, oObj)
     oObj.ANT = oObjData.ANIMTIMER;
     -- Phase back in with originally specified criteria
     SetAction(oObj, oObjData.ACTION, oObjData.JOB, oObjData.DIRECTION);
-    -- Not actually destroyed
-    return false;
+    -- Pretend destroyed
+    return true;
   end
   -- Function to remove specified object from specified list
   local function RemoveObjectFromList(aList, oObjRemove)
@@ -1565,7 +1565,7 @@ local function RenderAll()
     end
     BlitSLT(texSpr, 853, 8.0, 192.0);
     for nX = 24.0, 280.0, 16.0 do BlitSLT(texSpr, 854, nX, 192.0) end;
-    BlitSLT(texSpr, 855, 296, 192);
+    BlitSLT(texSpr, 855, 296.0, 192.0);
     -- Draw shadows
     RenderShadow(8.0, 8.0, 312.0, 24.0);
     RenderShadow(8.0, 32.0, 312.0, 208.0);
@@ -2290,9 +2290,9 @@ local function InitCreateObject()
       OFL.TREASURE, ACT.REST, oTileFlags.W;
   -- Direction table for AIFindTarget -------------------------------------- --
   local aFindTargetData<const> = {
-    { DIR.UL, DIR.U,   DIR.UR }, -- This is used for the AI.FIND(SLOW)
-    { DIR.L,  iDNone, iDRight }, -- AI procedure. It's a lookup table for
-    { DIR.DL, iDDown,  DIR.DR }  -- quick conversion from co-ordinates.
+    { DIR.UL --[[ -1,-1 --]], false --[[ 0,-1 --]],  DIR.UR --[[ 1,-1 --]] },
+    { DIR.L  --[[ -1, 0 --]], false --[[ 0, 0 --]], iDRight --[[ 1, 0 --]] },
+    { DIR.DL --[[ -1, 1 --]], false --[[ 0, 1 --]],  DIR.DR --[[ 1, 1 --]] }
   };
   -- Picks a new target ---------------------------------------------------- --
   local function PickNewTarget(oObj)
@@ -2350,28 +2350,16 @@ local function InitCreateObject()
       oTarget = PickNewTarget(oObj);
       if oTarget then oTarget.TL[oObj.U] = oObj else return end;
     end
-    -- Variables for adjusted coordinates
-    local iXA, iYA = 0, 0;
-    -- This X is left of target X? Move right one pixel
-    if oObj.X < oTarget.X then iXA = iXA + 1;
-    -- X is right of target X? Move left one pixel
-    elseif oObj.X > oTarget.X then iXA = iXA - 1 end;
-    -- If we can move to requested horizontal position?
-    -- Move to requested horizontal position
-    if not IsCollideX(oObj, iXA) then AdjustPosX(oObj, iXA) end;
-    -- This Y is left of target Y? Move down one pixel
-    if oObj.Y < oTarget.Y then iYA = iYA + 1;
-    -- Y is right of target Y? Move up one pixel
-    elseif oObj.Y > oTarget.Y then iYA = iYA - 1 end;
-    -- If we can move to requested vertical position?
-    -- Move to requested vertical position
-    if not IsCollideY(oObj, iYA) then AdjustPosY(oObj, iYA) end;
-    -- Increment values for table lookup
-    iXA, iYA = iXA + 2, iYA + 2;
-    -- Direction changed? Change direction!
-    local iDirection<const> = aFindTargetData[iYA][iXA]
-    if oObj.D ~= iDirection then
-      SetAction(oObj, iAKeep, iJKeep, iDirection) end;
+    -- Move towards the target if we can
+    local iXA<const> = UtilSign(oTarget.X - oObj.X);
+    if iXA ~= 0 and not IsCollideX(oObj, iXA) then AdjustPosX(oObj, iXA) end;
+    local iYA<const> = UtilSign(oTarget.Y - oObj.Y);
+    if iYA ~= 0 and not IsCollideY(oObj, iYA) then AdjustPosY(oObj, iYA) end;
+    -- Return if no direction change
+    local iDirection<const> = aFindTargetData[iYA + 2][iXA + 2];
+    if not iDirection or oObj.D == iDirection then return end;
+    -- Update the new direction
+    SetAction(oObj, iAKeep, iJKeep, iDirection);
   end
   -- Process find target logic (slow --------------------------------------- --
   local function AIFindTargetSlow(oObj)
@@ -3381,28 +3369,8 @@ local function GameProc()
   local function AIEnterTradeCentreLogic(oObj)
     -- Hide the digger
     SetAction(oObj, iAHide, iJPhase, iDRight);
-    -- Number of items sold
-    local iItemsSold = 0;
-    -- Get object inventory and if inventory held
-    local aObjInvList<const> = oObj.I;
-    if #aObjInvList == 0 then return end;
     -- Get owner of this object
     local oParent<const> = oObj.P;
-    -- Repeat for each item in digger inventory...
-    local iObj = 1 repeat
-      -- Get the inventory object and if the gem is sellable or the
-      -- object has a owner and doesn't belong to this objects owner?
-      -- Then try to sell the item and if succeeded? Increment the
-      -- items sold.
-      local oObjInv<const> = aObjInvList[iObj];
-      local oParentInv<const> = oObjInv.P;
-      if (CanSellGem(oObjInv.ID) or
-         (oParentInv and oParentInv ~= oParent)) and
-        SellItem(oObj, oObjInv) then iItemsSold = iItemsSold + 1;
-      -- Conditions fail so try next inventory item.
-      else iObj = iObj + 1 end;
-    -- ...until we've enumerated the whole inventory.
-    until iObj > #aObjInvList;
     -- Get the lowest amount of money a player has
     local iLowest, oOpponent = maxinteger;
     for iIndex = 1, #aPlayers do
@@ -3418,6 +3386,26 @@ local function GameProc()
       -- owner has more money than the lowest player?
       BuyItem(oObj, aShopData[random(#aShopData)]);
     end
+    -- Get object inventory and return if no inventory held
+    local aObjInvList<const> = oObj.I;
+    if #aObjInvList == 0 then return end;
+    -- Number of items sold
+    local iItemsSold = 0;
+    -- Repeat for each item in digger inventory...
+    local iObj = 1 repeat
+      -- Get the inventory object and if the gem is sellable or the
+      -- object has a owner and doesn't belong to this objects owner?
+      -- Then try to sell the item and if succeeded? Increment the
+      -- items sold.
+      local oObjInv<const> = aObjInvList[iObj];
+      local oParentInv<const> = oObjInv.P;
+      if (CanSellGem(oObjInv.ID) or
+         (oParentInv and oParentInv ~= oParent)) and
+        SellItem(oObj, oObjInv) then iItemsSold = iItemsSold + 1;
+      -- Conditions fail so try next inventory item.
+      else iObj = iObj + 1 end;
+    -- ...until we've enumerated the whole inventory.
+    until iObj > #aObjInvList;
     -- If items were sold? Check if any player won
     if iItemsSold > 0 and EndConditionsCheck() then return true end;
   end
