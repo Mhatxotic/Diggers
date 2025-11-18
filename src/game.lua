@@ -2528,7 +2528,7 @@ local function InitCreateObject()
             oObj.X, oObj.Y = iOldX, iOldY;
             return SetAction(oObj, iAJump, iJKeep, iDKeep);
           end
-          -- Landed at inappropriate position
+          -- Bottom of jump at bad position so go in opposite direction
           break;
         end
         -- Increase Y position and fall damage. We go at 14 pixels each time as
@@ -2541,14 +2541,15 @@ local function InitCreateObject()
       -- Do not execute any more AI code this frame.
       return true;
     end
+    -- Object is not about to walk off the edge? Don't test for falling
+    if IsCollide(oObj, iAdjX, 2) then return end;
     -- Repeat virtual falling...
     repeat
       -- Continue until we find the bottom of the gap
       if IsCollide(oObj, iAdjX, 14) then
         -- Check for absolute pixel of the bottom of ground
         while not IsCollide(oObj, iAdjX, 1) do oObj.Y = oObj.Y + 1 end;
-        -- Already in water? Try to see if we can jump the gap and return the
-        -- result of trying to jump the gap
+        -- Object in water? Try to jump but continue if we can't
         if oObj.F & iFInWater ~= 0 then
           return TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit,
             iOldX, iOldY, true) end;
@@ -2557,15 +2558,14 @@ local function InitCreateObject()
         -- Try to see if we can jump the gap and return success if succeeded
         local vResult<const> = TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount,
           nHealthLimit, iOldX, iOldY, false);
-        if vResult then return true end;
-        -- Check if we're underwater and if we are? *or*
-        if (iId and aTileData[1 + iId] & iTFWater ~= 0) or
+        -- Check if simulated position underwater and if it is? *or*
+        if not vResult and ((iId and aTileData[1 + iId] & iTFWater ~= 0) or
            -- If the jump failed because the object isn't intelligent enough
            -- then check to see if the object is intelligent enough to avoid
            -- the gap.
-           (vResult == false and random() >= oObj.IN) then break end;
+           (vResult == false and random() >= oObj.IN)) then break end;
         -- Not even intelligent enough to avoid the gap so just fall down
-        return;
+        return true;
       end
       -- Increase Y position and fall damage. We go at 14 pixels each time as
       -- the bitmask sprite is 14 pixels high.
@@ -2582,11 +2582,10 @@ local function InitCreateObject()
       if iAntiWiggleRemain >= 10 then
         -- Reset anti-wiggle timeframe to another 5 seconds
         oObj.AW, oObj.AWR = iGameTicks + 300, 0;
-        -- Phase home if have parent else go to a random object
-        if oObj.P then PhaseHome(oObj) else
-          SetAction(oObj, iAPhase, iJPhase, iDDown) end;
-        -- Do not execute any more AI code this frame.
-        return true;
+        -- Phase home if have parent
+        if oObj.P then PhaseHome(oObj) return true end;
+        -- Go to a random object
+        return SetAction(oObj, iAPhase, iJPhase, iDDown);
       -- Set new wiggle count
       else oObj.AWR = iAntiWiggleRemain end;
     -- Still in the timeframe? Reset anti-wiggle time to another 5 sec
