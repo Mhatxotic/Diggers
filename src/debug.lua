@@ -30,6 +30,8 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   aLevelsData, GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
+  -- Set random level if not set
+  if not iId then iId = random(#aLevelsData) end;
   -- Frame buffer updated function
   local iStageL, iStageT, iStageR, iStageB;;
   local function OnStageUpdatedd(...)
@@ -50,66 +52,8 @@ local function InitDebugPlay(iId)
   end
   -- Level information
   local iLevelId, sLevelName, sLevelType, iWinLimit;
-  -- Infinite play tick callback
-  local function OnTick()
-    -- New object selected
-    local oObj;
-    -- For each player
-    for iPlayer = 1, #aPlayers do
-      -- Get player diggers and enumerate them
-      local aDiggers<const> = aPlayers[iPlayer].D;
-      for iDigger = 1, #aDiggers do
-        -- Get digger object and if it is in danger?
-        local oDigger<const> = aDiggers[iDigger];
-        if oDigger and
-           oDigger.J == JOB.INDANGER and
-           oDigger.A ~= ACT.DEATH and
-          (oDigger.A ~= ACT.FIGHT or
-           oDigger.P == oPlrActive) then
-          -- It is selected
-          iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
-          oObj = oDigger;
-          -- Do not check any more diggers
-          break;
-        end
-      end
-      -- Break if we got a digger
-      if oObj then break end;
-    end
-    -- Switch object every 10 seconds
-    if not oObj and GetGameTicks() % 600 == 0 then
-      -- Try again point
-      ::tryagain::
-      -- Select a player
-      local oPlayer<const> = aPlayers[iSelectedPlayerId];
-      -- Get player diggers
-      local aDiggers<const> = oPlayer.D;
-      -- Find a digger from the specified player.
-      oObj = aDiggers[iSelectedDiggerId];
-      -- Loop if we don't find a digger
-      if not oObj then SelectNextDigger() goto tryagain end;
-    end
-    -- New object selected?
-    if oObj then
-      -- Select the object and player if we got something!
-      SelectObject(oObj);
-      -- Next object
-      SelectNextDigger();
-    end
-    -- Perform game procedure
-    GameProc();
-  end
-  -- Infinite play render callback
-  local function OnRender()
-    -- Render terrain
-    RenderTerrain();
-    -- Render game objects
-    RenderObjects();
-    -- Render interface
-    RenderInterface();
-  end
   -- Render function
-  local function OnRenderRandom()
+  local function OnRender()
     -- Render terrain
     RenderTerrain();
     -- Get active player object and opponent player
@@ -211,15 +155,16 @@ local function InitDebugPlay(iId)
     fontTiny:SetCRGBA(1.0, 1.0, 1.0, 0.75);
     -- Draw game information
     Print(fontTiny, iStageL + 5.0, 5.0, format("\z
-      %s [%02u]\n\z     %s\n\z           %u TO WIN\n\z
-      %u OBJECTS\n\n\z  1: %s\n\z        ZOGS %5u/%u\n\z
-      DUG  %5u/%u\n\z   KO   %5u/%u\n\z  TRDE %5u/%u\n\n\z
-      2: %s\n\z         ZOGS %5u/%u\n\z  DUG  %5u/%u\n\z
-      KO   %5u/%u\n\z   TRDE %5u/%u",
+      %s [%02u]\n\z     %s\n\z          %u TO WIN\n\z
+      %u OBJECTS\n\n\z  %d@%d%9s\n\z    ZOGS%6u/%u\n\z
+      DUG%7u/%u\n\z     KO%8u/%u\n\z    TRDE%6u/%u\n\n\z
+      %d@%d%9s\n\z      ZOGS%6u/%u\n\z  DUG%7u/%u\n\z
+      KO%8u/%u\n\z      TRDE%6u/%u",
         sLevelName, iLevelId, sLevelType, iWinLimit, #aObjs,
-        oPlrActive.RD.LONGNAME, oPlrActive.M, oPlrActive.GI, oPlrActive.DUG,
-        oPlrActive.GEM, oPlrActive.EK, oPlrActive.DC, oPlrActive.GS,
-        oPlrActive.PUR, oPlrOpponent.RD.LONGNAME, oPlrOpponent.M,
+        oPlrActive.I, oPlrActive.RI, oPlrActive.RD.LONGNAME, oPlrActive.M,
+        oPlrActive.GI, oPlrActive.DUG, oPlrActive.GEM, oPlrActive.EK,
+        oPlrActive.DC, oPlrActive.GS, oPlrActive.PUR, oPlrOpponent.I,
+        oPlrOpponent.RI, oPlrOpponent.RD.LONGNAME, oPlrOpponent.M,
         oPlrOpponent.GI, oPlrOpponent.DUG, oPlrOpponent.GEM, oPlrOpponent.EK,
         oPlrOpponent.DC, oPlrOpponent.GS, oPlrOpponent.PUR));
     -- Draw debug mode
@@ -246,7 +191,7 @@ local function InitDebugPlay(iId)
     RenderInterface();
   end
   -- Finished playing this zone
-  local function Finish()
+  local function OnFinish()
     -- When level has faded out?
     local function OnFadeOut()
       -- Unregister frame buffer update event
@@ -255,13 +200,11 @@ local function InitDebugPlay(iId)
       InitDebugPlay();
     end
     -- Fade out to load a new level
-    Fade(0.0, 1.0, 0.04, OnRenderRandom, OnFadeOut);
+    Fade(0.0, 1.0, 0.04, OnRender, OnFadeOut);
   end
-  -- Callbacks to use
-  local fcbTCallback, fcbRCallback;
   -- Infinite play tick callback. Note that 'InitContinueGame()' will call
   -- this every time.
-  local function OnTickRandomInitialise()
+  local function OnTickInit()
     -- If the first frame?
     if GetGameTicks() == 0 then
       -- For each player...
@@ -303,7 +246,7 @@ local function InitDebugPlay(iId)
       -- the game will end eventually.
       if GetGameTicks() % iRate == iRateM1 then
         aPlayerAtHumanStart.M = aPlayerAtHumanStart.M + 1;
-        if aPlayerAtHumanStart.M >= iWinLimit then Finish() end;
+        if aPlayerAtHumanStart.M >= iWinLimit then OnFinish() end;
       end
       -- If we're blocked from polling objects then don't
       if GetGameTicks() < iNextObjectPoll then GameProc() return end
@@ -314,26 +257,68 @@ local function InitDebugPlay(iId)
         iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
         -- Don't cycle objects
         GameProc();
-      -- Mouse position still same so cycle objects
-      else OnTick() end;
+        -- Done
+        return
+      end
+      -- New object selected
+      local oObj;
+      -- For each player
+      for iPlayer = 1, #aPlayers do
+        -- Get player diggers and enumerate them
+        local aDiggers<const> = aPlayers[iPlayer].D;
+        for iDigger = 1, #aDiggers do
+          -- Get digger object and if it is in danger?
+          local oDigger<const> = aDiggers[iDigger];
+          if oDigger and
+             oDigger.J == JOB.INDANGER and
+             oDigger.A ~= ACT.DEATH and
+            (oDigger.A ~= ACT.FIGHT or
+             oDigger.P == oPlrActive) then
+            -- It is selected
+            iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
+            oObj = oDigger;
+            -- Do not check any more diggers
+            break;
+          end
+        end
+        -- Break if we got a digger
+        if oObj then break end;
+      end
+      -- Switch object every 10 seconds
+      if not oObj and GetGameTicks() % 600 == 0 then
+        -- Try again point
+        ::tryagain::
+        -- Select a player
+        local oPlayer<const> = aPlayers[iSelectedPlayerId];
+        -- Get player diggers
+        local aDiggers<const> = oPlayer.D;
+        -- Find a digger from the specified player.
+        oObj = aDiggers[iSelectedDiggerId];
+        -- Loop if we don't find a digger
+        if not oObj then SelectNextDigger() goto tryagain end;
+      end
+      -- New object selected?
+      if oObj then
+        -- Select the object and player if we got something!
+        SelectObject(oObj);
+        -- Next object
+        SelectNextDigger();
+      end
+      -- Perform game procedure
+      GameProc();
+
     end
     -- Set real function
-    SetCallbacks(OnTickRandom, fcbRCallback);
-  end
-  if iId then
-    fcbTCallback, fcbRCallback = OnTick, OnRender;
-  else
-    iId, fcbTCallback, fcbRCallback =
-      random(#aLevelsData), OnTickRandomInitialise, OnRenderRandom;
+    SetCallbacks(OnTickRandom, OnRender);
   end
   -- Load infinite play (AI vs AI)
-  LoadLevel(iId, "game", -1, nil, true, nil, true, fcbTCallback, fcbRCallback,
-    Finish);
+  LoadLevel(iId, "game", -1, nil, true, nil, true, OnTickInit, OnRender,
+    OnFinish);
   -- Play sound effects
   SetPlaySounds(true);
 end
 -- Scripts have been loaded ------------------------------------------------ --
-local function OnScriptLoaded(GetAPI)
+local function OnScriptLoaded(GetAPI, oAPI)
   -- Grab imports
   BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GameProc,
     GetActiveObject, GetActivePlayer, GetGameTicks, GetLevelInfo, GetMouseX,
@@ -352,6 +337,24 @@ local function OnScriptLoaded(GetAPI)
         "SetCallbacks", "SetPlaySounds", "UpdateShroud", "aLevelsData",
         "aObjs", "aPlayers", "fontLarge", "fontLittle", "fontTiny", "texSpr",
         "RenderInterface", "oObjectJobs", "oObjectActions");
+  -- Register a console command to dump level mask and keep it safe in API.
+  local CommandRegister<const> = Command.Register;
+  local function ConCmdSetLevel(_, strLevel)
+    -- On faded out
+    local function OnFadeOut() InitDebugPlay(tonumber(strLevel)) end;
+    -- On fade render
+    local function OnDuring()
+      -- Render terrain
+      RenderTerrain();
+      -- Render game objects
+      RenderObjects();
+      -- Render interface
+      RenderInterface();
+    end
+    -- Fade out to load a new level
+    Fade(0.0, 1.0, 0.04, OnDuring, OnFadeOut);
+  end
+  oAPI.cmdDebug = CommandRegister("debug", 1, 2, ConCmdSetLevel);
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitDebugPlay = InitDebugPlay } };
