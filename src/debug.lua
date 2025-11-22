@@ -26,14 +26,14 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   RenderObjects, RenderShroud, texSpr, fontLarge, fontLittle, fontTiny,
   SelectObject, GameProc, GetActiveObject, GetActivePlayer, SetCallbacks,
   LoadLevel, PrintC, PrintCT, PrintT, PrintR, Print, UpdateShroud,
-  SetPlaySounds, HaveZogsToWin, GetOpponentPlayer, RegisterFBUCallback,
-  aLevelsData, GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
+  SetPlaySounds, GetOpponentPlayer, RegisterFBUCallback, aLevelsData,
+  GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
   -- Set random level if not set
   if not iId then iId = random(#aLevelsData) end;
   -- Frame buffer updated function
-  local iStageL, iStageT, iStageR, iStageB;;
+  local iStageL, iStageT, iStageR, iStageB;
   local function OnStageUpdatedd(...)
     local _ _, _, iStageL, iStageT, iStageR, iStageB = ...;
   end
@@ -61,13 +61,11 @@ local function InitDebugPlay(iId)
     local oObjActive<const> = GetActiveObject();
     local oPlrOpponent<const> = GetOpponentPlayer();
     -- Get viewport information
-    local iPixPosX<const>, iPixPosY<const>,
-          iPixPosTargetX<const>, iPixPosTargetY<const>,
-          iPixCenPosX<const>, iPixCenPosY<const>,
-          iPosX<const>, iPosY<const>,
-          iAbsCenPosX<const>, iAbsCenPosY<const>,
-          iViewportW<const>, iViewportH<const>,
-          iVPX<const>, iVPY<const> = GetViewportData();
+    local iPixPosX<const>, iPixPosY<const>, iPixPosTargetX<const>,
+      iPixPosTargetY<const>, iPixCenPosX<const>, iPixCenPosY<const>,
+      iPosX<const>, iPosY<const>, iAbsCenPosX<const>, iAbsCenPosY<const>,
+      iViewportW<const>, iViewportH<const>, iVPX<const>, iVPY<const> =
+        GetViewportData();
     -- For each object
     for iObjId = 1, #aObjs do
       -- Get object data
@@ -306,7 +304,6 @@ local function InitDebugPlay(iId)
       end
       -- Perform game procedure
       GameProc();
-
     end
     -- Set real function
     SetCallbacks(OnTickRandom, OnRender);
@@ -323,20 +320,19 @@ local function OnScriptLoaded(GetAPI, oAPI)
   BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GameProc,
     GetActiveObject, GetActivePlayer, GetGameTicks, GetLevelInfo, GetMouseX,
     GetMouseY, GetOpponentPlayer, GetTileUnderMouse, GetViewportData,
-    HaveZogsToWin, LoadLevel, PrintC, PrintCT, PrintR, Print,
-    RegisterFBUCallback, RenderObjects, RenderShroud, RenderTerrain,
-    SelectObject, SetCallbacks, SetPlaySounds, UpdateShroud, aLevelsData,
-    aObjs, aPlayers, fontLarge, fontLittle, fontTiny, texSpr, RenderInterface,
-    JOB, ACT =
+    LoadLevel, PrintC, PrintCT, PrintR, Print, RegisterFBUCallback,
+    RenderObjects, RenderShroud, RenderTerrain, SelectObject, SetCallbacks,
+    SetPlaySounds, UpdateShroud, aLevelsData, aObjs, aPlayers, fontLarge,
+    fontLittle, fontTiny, texSpr, RenderInterface, JOB, ACT =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitSLTWH", "DrawHealthBar", "Fade",
         "GameProc", "GetActiveObject", "GetActivePlayer", "GetGameTicks",
         "GetLevelInfo", "GetMouseX", "GetMouseY", "GetOpponentPlayer",
-        "GetTileUnderMouse", "GetViewportData", "HaveZogsToWin", "LoadLevel",
-        "PrintC", "PrintCT", "PrintR", "Print", "RegisterFBUCallback",
-        "RenderObjects", "RenderShroud", "RenderTerrain", "SelectObject",
-        "SetCallbacks", "SetPlaySounds", "UpdateShroud", "aLevelsData",
-        "aObjs", "aPlayers", "fontLarge", "fontLittle", "fontTiny", "texSpr",
-        "RenderInterface", "oObjectJobs", "oObjectActions");
+        "GetTileUnderMouse", "GetViewportData", "LoadLevel", "PrintC",
+        "PrintCT", "PrintR", "Print", "RegisterFBUCallback", "RenderObjects",
+        "RenderShroud", "RenderTerrain", "SelectObject", "SetCallbacks",
+        "SetPlaySounds", "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
+        "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
+        "oObjectJobs", "oObjectActions");
   -- Register a console command to dump level mask and keep it safe in API.
   local CommandRegister<const> = Command.Register;
   local function ConCmdSetLevel(_, strLevel)
@@ -344,11 +340,9 @@ local function OnScriptLoaded(GetAPI, oAPI)
     local function OnFadeOut() InitDebugPlay(tonumber(strLevel)) end;
     -- On fade render
     local function OnDuring()
-      -- Render terrain
+      -- Render terrain, game objects and interface
       RenderTerrain();
-      -- Render game objects
       RenderObjects();
-      -- Render interface
       RenderInterface();
     end
     -- Fade out to load a new level
