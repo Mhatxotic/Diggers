@@ -2541,8 +2541,6 @@ local function InitCreateObject()
       -- Do not execute any more AI code this frame.
       return true;
     end
-    -- Object is not about to walk off the edge? Don't test for falling
-    if IsCollide(oObj, iAdjX, 2) then return end;
     -- Repeat virtual falling...
     repeat
       -- Continue until we find the bottom of the gap
@@ -2558,12 +2556,17 @@ local function InitCreateObject()
         -- Try to see if we can jump the gap and return success if succeeded
         local vResult<const> = TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount,
           nHealthLimit, iOldX, iOldY, false);
-        -- Check if simulated position underwater and if it is? *or*
-        if not vResult and ((iId and aTileData[1 + iId] & iTFWater ~= 0) or
-           -- If the jump failed because the object isn't intelligent enough
-           -- then check to see if the object is intelligent enough to avoid
-           -- the gap.
-           (vResult == false and random() >= oObj.IN)) then break end;
+        -- If jump not required?
+        if not vResult then
+           -- Check if simulated position underwater and if it is? *or*
+           if ((iId and aTileData[1 + iId] & iTFWater ~= 0) or
+             -- If the jump failed because the object isn't intelligent enough
+             -- then check to see if the object is intelligent enough to avoid
+             -- the gap.
+             (vResult == false and random() >= oObj.IN)) then break end;
+          -- Failed jump
+          return false;
+        end
         -- Not even intelligent enough to avoid the gap so just fall down
         return true;
       end
