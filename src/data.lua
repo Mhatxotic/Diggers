@@ -1496,6 +1496,9 @@ local oDigData<const> = {              -- Note that tile ids are 0-indexed here
   {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
   {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
   { 235, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 227, { nil, nil, nil, 228, nil, nil, DF.OB|DF.OX } },
+  { 228, { nil, nil, nil, 229, nil, nil, DF.OB|DF.OX } },
+  { 229, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG|DF.OX } },
   -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
 }, [DIR.R]={                           -- Digging right tile data
   -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
@@ -1529,6 +1532,9 @@ local oDigData<const> = {              -- Note that tile ids are 0-indexed here
   {  54, { nil, nil, nil,   9, nil, nil, DF.OI|DF.OG|DF.OX } },
   {  57, { nil, nil, nil,   6, nil, nil, DF.OI|DF.OG|DF.OX } },
   { 236, { nil, nil, nil,   7, nil, nil, DF.OI|DF.OG|DF.OX } },
+  { 230, { nil, nil, nil, 231, nil, nil, DF.OB|DF.OX } },
+  { 231, { nil, nil, nil, 232, nil, nil, DF.OB|DF.OX } },
+  { 232, { nil, nil, nil,  -1, nil, nil, DF.OI|DF.OG|DF.OX } },
   -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
 }, [DIR.DL]={                          -- Digging down-left tile data
   -- FO --- FA - FB - FC - TO - TA - TB  FLAGS ----------------------------- --
@@ -1873,12 +1879,12 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.W|TF.D|TF.ERB,                    -- 2240007
   TF.F|TF.D|TF.ETRB,                   -- 2250107
   TF.D|TF.ELRB,                        -- 2260207
-  TF.D|TF.ELTB,                        -- 2270307
-  TF.D|TF.ELTB,                        -- 2280407
-  TF.D|TF.ELTB,                        -- 2290507
-  TF.D|TF.ETRB,                        -- 2300607
-  TF.D|TF.ETRB,                        -- 2310707
-  TF.D|TF.ETRB,                        -- 2320807
+  TF.D|TF.ELTB,                        -- 2270307 Dig left-to-right 25%
+  TF.D|TF.ELTB,                        -- 2280407 Dig left-to-right 50%
+  TF.D|TF.ELTB,                        -- 2290507 Dig left-to-right 75%
+  TF.D|TF.ETRB,                        -- 2300607 Dig right-to-left 25%
+  TF.D|TF.ETRB,                        -- 2310707 Dig right-to-left 50%
+  TF.D|TF.ETRB,                        -- 2320807 Dig right-to-left 75%
   TF.I,                                -- 2330907
   TF.I,                                -- 2341007
   TF.D|TF.EA,                          -- 2351107 90%dug+10%dirt 11deg UR>DL
