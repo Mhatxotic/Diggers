@@ -1419,7 +1419,7 @@ local function AdjustObjectHealth()
   end
   -- Create a damage value ------------------------------------------------- --
   local function CreateDamageValue(iAmount, oObj, oObjCause, nR, nG, nB)
-    -- Return if caused by neutral damage and not by another or another player
+    -- Return if caused by neutral damage and not by another object
     -- or the object is in someones inventory.
     if not GetTestMode() and ((not oObjCause and oObj.P ~= oPlrActive) or
        (oObjCause and not oObjCause.P) or oObj.IP) then return end;
