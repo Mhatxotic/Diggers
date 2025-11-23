@@ -167,7 +167,7 @@ local function InitDebugPlay(iId)
         oPlrOpponent.DC, oPlrOpponent.GS, oPlrOpponent.PUR));
     -- Draw debug mode
     if GetGameTicks() % 120 < 60 then
-      PrintC(fontTiny, 160.0, 5.0, "DEMO MODE") end;
+      PrintC(fontTiny, 160.0, 5.0, "AI+AI MODE") end;
     -- Draw system information
     PrintR(fontTiny, iStageR - 5.0, 5.0, format("\z
       %u/%u S FRAM\n\z    %.3f %% CPUP\n\z  %.3f M RAMP\n\z
