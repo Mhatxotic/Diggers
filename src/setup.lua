@@ -969,7 +969,7 @@ local function OnScriptLoaded(GetAPI)
   -- Volume set utilities
   local function VPrepare(vCV) return floor(vCV:Get() * 100).."%" end;
   local function VSet(vCV, iAdj)
-    vCV:Number(UtilClamp(tonumber(vCV:Get()) + (iAdj * 0.05), 0, 1));
+    vCV:Number(UtilClamp(tonumber(vCV:Get()) + (iAdj * 0.01), 0, 1));
   end
   -- Master volume callbacks
   local function VMasterUpdate() return VPrepare(vAudvol) end;
