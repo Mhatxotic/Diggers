@@ -2390,10 +2390,12 @@ local function InitCreateObject()
   end
   -- Simulate jumping function --------------------------------------------- --
   local function SimulateJumpLogic(oObj, iAdjX, iAnimAmount, aJumpData, iStep)
+    -- Copy simulated action timer. We use it to move the object horizontally
+    local iActionTimer = oObj.AT;
     -- Repeat until we've run out of data
-    for iActionTimer = 0, #aJumpData - 1 do
+    for iJumpId = 0, #aJumpData - 1 do
       -- Get amount to move by and if we do move?
-      local iYMove = aJumpData[1 + iActionTimer];
+      local iYMove = aJumpData[1 + iJumpId];
       if iYMove == 0 then goto lNoMove end;
       -- Repeat for each pixel...
       repeat
@@ -2415,9 +2417,11 @@ local function InitCreateObject()
       do return end;
       -- Label to skip Y moving
       ::lNoMove::
-      -- Get action timer and move if it is time to move
+      -- Get action timer and move if it is time to move.
       if iActionTimer % iAnimAmount == 0 and
          not IsCollideX(oObj, iAdjX) then oObj.X = oObj.X + iAdjX end;
+      -- Increment simulated action timer
+      iActionTimer = iActionTimer + 1;
     end
     -- Jump successful but caller doesn't need to know this
   end
@@ -2440,6 +2444,15 @@ local function InitCreateObject()
       [iDRight] = aAIRunJumpGapRightData, [DIR.DR] = aAIRunJumpGapRightData
     }
   };
+  -- Returns if object is in the water ------------------------------------- --
+  local function ObjectInWaterXY(oObj, iX, iY)
+    -- Return false if position isn't invalid or flags not in the water
+    local iId<const> = GetLevelDataFromObject(oObj, iX, iY);
+    return iId and aTileData[1 + iId] & iTFWater ~= 0;
+  end
+  -- Returns if object is in the water ------------------------------------- --
+  local function ObjectInWater(oObj, iY)
+    return ObjectInWaterXY(oObj, 8, iY) end;
   -- AI jumping gap logic -------------------------------------------------- --
   local function TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit,
     iOldX, iOldY, bGapIsWater)
@@ -2456,8 +2469,7 @@ local function InitCreateObject()
     -- Repeat...
     repeat
       -- Bad jump if we encountered water
-      local iId<const> = GetLevelDataFromObject(oObj, 0, 14);
-      if iId and aTileData[1 + iId] & iTFWater ~= 0 then break end;
+      if ObjectInWaterXY(oObj, iAdjXW, 14) then break end;
       -- If we collide with the background if we go down more?
       if IsCollideY(oObj, 14) then
         -- Find absolute stable ground
@@ -2514,9 +2526,8 @@ local function InitCreateObject()
       SimulateJumpLogic(oObj, iAdjX, iAnimAmount, aJumpFallData, -1);
       -- Start from fall speed pixels and count down to 1
       repeat
-        -- Bad jump if we got a water block
-        local iId<const> = GetLevelDataFromObject(oObj, iAdjXW, 14);
-        if iId and aTileData[1 + iId] & iTFWater ~= 0 then break end;
+        -- Bad jump if we landed in water
+        if ObjectInWaterXY(oObj, iAdjXW, 14) then break end;
         -- If we collide with the background if we go down more?
         if IsCollideY(oObj, 14) then
           -- Find a stable ground
@@ -2547,28 +2558,24 @@ local function InitCreateObject()
       if IsCollide(oObj, iAdjX, 14) then
         -- Check for absolute pixel of the bottom of ground
         while not IsCollide(oObj, iAdjX, 1) do oObj.Y = oObj.Y + 1 end;
-        -- Object in water? Try to jump but continue if we can't
-        if oObj.F & iFInWater ~= 0 then
-          return TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount, nHealthLimit,
-            iOldX, iOldY, true) end;
-        -- Check if we actually would be underwater
-        iId = GetLevelDataFromObject(oObj, iAdjXW, 2);
+        -- Check if in water and if in water then gap is water
+        local bInWater<const>, bGapIsWater = oObj.F & iFInWater ~= 0;
+        if bInWater then bGapIsWater = true;
+        -- Not in water but check if bottom of gap is in water
+        else bGapIsWater = ObjectInWaterXY(oObj, iAdjXW, 2) end;
         -- Try to see if we can jump the gap and return success if succeeded
         local vResult<const> = TryJumpGap(oObj, iAdjX, iAdjXW, iAnimAmount,
-          nHealthLimit, iOldX, iOldY, false);
-        -- If jump not required?
-        if not vResult then
-           -- Check if simulated position underwater and if it is? *or*
-           if ((iId and aTileData[1 + iId] & iTFWater ~= 0) or
-             -- If the jump failed because the object isn't intelligent enough
-             -- then check to see if the object is intelligent enough to avoid
-             -- the gap.
-             (vResult == false and random() >= oObj.IN)) then break end;
-          -- Failed jump
-          return false;
-        end
-        -- Not even intelligent enough to avoid the gap so just fall down
-        return true;
+          nHealthLimit, iOldX, iOldY, bGapIsWater);
+        -- Return success if a jump would clear the gap
+        if vResult then return true end;
+        -- If gap is water
+        if (bGapIsWater and not bInWater) or
+          -- If the jump failed because the object isn't intelligent enough
+          -- then check to see if the object is intelligent enough to avoid
+          -- the gap.
+          (vResult == false and random() >= oObj.IN) then break end;
+        -- Fall down
+        return false;
       end
       -- Increase Y position and fall damage. We go at 14 pixels each time as
       -- the bitmask sprite is 14 pixels high.
@@ -2825,12 +2832,6 @@ local function InitCreateObject()
   local function AIRoamSlow(oObj)
     -- Move around every 4th frame
     if oObj.AT % 4 == 0 then AIRoam(oObj) end;
-  end
-  -- Returns if object is in the water ------------------------------------- --
-  local function ObjectInWater(oObj, iY)
-    -- Return false if position isn't invalid or flags not in the water
-    local iId<const> = GetLevelDataFromObject(oObj, 8, iY);
-    return iId and aTileData[1 + iId] & iTFWater ~= 0;
   end
   -- Fish bobbing up and down (slow) --------------------------------------- --
   local function AIFish(oObj)
