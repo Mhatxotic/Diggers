@@ -63,7 +63,7 @@ local aBuyItemResults<const> = {
 };
 -- Update price and carryable display -------------------------------------- --
 local function UpdateCarryable()
-  sPrice = format("%03uz (%u)",
+  sPrice = format("$%03u (%u)",
     oBuyObject.VALUE,
     (oDiggerInfo.STRENGTH - oObjActive.IW) // oBuyObject.WEIGHT)
 end
