@@ -28,6 +28,8 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   LoadLevel, PrintC, PrintCT, PrintT, PrintR, Print, UpdateShroud,
   SetPlaySounds, GetOpponentPlayer, RegisterFBUCallback, aLevelsData,
   GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
+-- Locals ------------------------------------------------------------------ --
+local bHud = true;                     -- Show hud?
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
   -- Set random level if not set
@@ -56,6 +58,18 @@ local function InitDebugPlay(iId)
   local function OnRender()
     -- Render terrain
     RenderTerrain();
+    -- Hud not enabled?
+    if not bHud then
+      -- Render objects normally
+      RenderObjects();
+      RenderShroud();
+      RenderInterface();
+      -- Done
+      return;
+    end
+    -- Get system information
+    local nCpu<const>, nSys<const> = CoreCPUUsage();
+    local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- Get active player object and opponent player
     local oPlrActive<const> = GetActivePlayer();
     local oObjActive<const> = GetActiveObject();
@@ -72,7 +86,8 @@ local function InitDebugPlay(iId)
       local oObj<const> = aObjs[iObjId];
       local iX<const>, iY<const> = oObj.X, oObj.Y;
       -- If in bounds of the viewport?
-      local iXX, iYY = iX - iVPX + oObj.OFX, iY - iVPY + oObj.OFY;
+      local iXX<const>, iYY<const> =
+        iX - iVPX + oObj.OFX, iY - iVPY + oObj.OFY;
       if min(iXX + 16, iStageR) > max(iXX, iStageL) and
          min(iYY + 16, iStageB) > max(iYY, iStageT) then
         -- Draw the texture
@@ -144,11 +159,8 @@ local function InitDebugPlay(iId)
         DrawHealthBar(oObj.H, 6.25, iXX, iYHealth, 1);
       end
     end
-    -- Render shroud
+    -- Render shroud and interface
     RenderShroud();
-    -- Get system information
-    local nCpu<const>, nSys<const> = CoreCPUUsage();
-    local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
     -- Draw engine info
     fontTiny:SetCRGBA(1.0, 1.0, 1.0, 0.75);
     -- Draw game information
@@ -165,9 +177,6 @@ local function InitDebugPlay(iId)
         oPlrOpponent.RI, oPlrOpponent.RD.LONGNAME, oPlrOpponent.M,
         oPlrOpponent.GI, oPlrOpponent.DUG, oPlrOpponent.GEM, oPlrOpponent.EK,
         oPlrOpponent.DC, oPlrOpponent.GS, oPlrOpponent.PUR));
-    -- Draw debug mode
-    if GetGameTicks() % 120 < 60 then
-      PrintC(fontTiny, 160.0, 5.0, "AI+AI MODE") end;
     -- Draw system information
     PrintR(fontTiny, iStageR - 5.0, 5.0, format("\z
       %u/%u S FRAM\n\z    %.3f %% CPUP\n\z  %.3f M RAMP\n\z
@@ -333,11 +342,25 @@ local function OnScriptLoaded(GetAPI, oAPI)
         "SetPlaySounds", "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
         "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
         "oObjectJobs", "oObjectActions");
+  -- Toggle hud
+  local function ToggleHud(sValue)
+    -- No parameter
+    if not sValue then bHud = not bHud return end;
+    -- Parameter specified
+    bHud = tonumber(sValue) ~= 0;
+  end
+  -- Debug commands
+  local aCommands<const> = {
+    ["hud"] = ToggleHud
+  };
   -- Register a console command to dump level mask and keep it safe in API.
   local CommandRegister<const> = Command.Register;
-  local function ConCmdSetLevel(_, strLevel)
+  local function ConCmdSetLevel(_, sValue, ...)
+    -- If is a command?
+    local fcbFunc<const> = aCommands[sValue]
+    if fcbFunc then return fcbFunc(...) end;
     -- On faded out
-    local function OnFadeOut() InitDebugPlay(tonumber(strLevel)) end;
+    local function OnFadeOut() InitDebugPlay(tonumber(sValue)) end;
     -- On fade render
     local function OnDuring()
       -- Render terrain, game objects and interface
@@ -348,7 +371,7 @@ local function OnScriptLoaded(GetAPI, oAPI)
     -- Fade out to load a new level
     Fade(0.0, 1.0, 0.04, OnDuring, OnFadeOut);
   end
-  oAPI.cmdDebug = CommandRegister("debug", 1, 2, ConCmdSetLevel);
+  oAPI.cmdDebug = CommandRegister("debug", 1, 3, ConCmdSetLevel);
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitDebugPlay = InitDebugPlay } };
