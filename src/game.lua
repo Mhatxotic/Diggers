@@ -2682,7 +2682,7 @@ local function InitCreateObject()
        oObj.A ~= iAStop and      -- Not stopped?
        oObj.J ~= iJInDanger then -- Not in danger?
       -- If the object can rest then they can rest and heal faster
-      if oObj.OD[iARest] and random() > oObj.IN then
+      if oObj.OD[iARest] and random() >= oObj.IN then
         return SetAction(oObj, iARest, iJNone, iDNone);
       -- Go home and rest
       else return SetAction(oObj, iAStop, iJNone, iDNone) end;
@@ -3383,8 +3383,10 @@ local function GameProc()
         if iMoney < iLowest then oOpponent, iLowest = oPlr, iMoney end;
       end
     end
-    -- If a random number based on the money gap and the money to win?
-    if random() < (oParent.M - oOpponent.M) / iWinLimit / 4.0 then
+    -- If object is intelligent enough and a random number based on the money
+    -- gap and the money to win?
+    if random() >= oObj.IN and
+       random() < (oParent.M - oOpponent.M) / iWinLimit / 4.0 then
       -- Try to purchase something random to keep the scores fair if objects
       -- owner has more money than the lowest player?
       BuyItem(oObj, aShopData[random(#aShopData)]);
@@ -3832,7 +3834,7 @@ local function GameProc()
     -- Generate random damage relative to the strength of the digger
     local iDamage = oObj.STRF - random(3);
     -- If digger is intelligent enough and target isn't then double damage!
-    if random() > oObj.IN and
+    if random() >= oObj.IN and
        random() < oTObj.IN then iDamage = iDamage * 2 end;
     -- Adjust health and play the sound with a random pitch
     AdjustObjectHealth(oTObj, iDamage, oObj);
