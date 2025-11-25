@@ -487,41 +487,22 @@ local function DestroyObjectUnknown(oObj)
   return false;
 end
 -- Add to inventory -------------------------------------------------------- --
-local function AddToInventory(oObjOwner, oObjTake, bOnlyTreasure)
+local function AddToInventory(oObjOwner, oObjTake, iObj)
   -- Check parameters
   if not UtilIsTable(oObjOwner) then
     error("Invalid owner object specified! "..tostring(oObjOwner)) end;
-  -- Failed if the object to take is...
-  if oObjTake.F & OFL.BUSY ~= 0 or        -- ...busy? -or-
-    #oObjTake.I > 0 or                    -- ...has inventory? -or-
-    (bOnlyTreasure and                    -- ...only pick up treasure? -and-
-     oObjTake.F & OFL.TREASURE == 0) then -- ...treasure flag not set?
-    -- We cannot pickup this object!
-    return false;
-  end
-  -- For each visible object
-  for iObj = 1, #aObjs do
-    -- Continue searching if this is not our object
-    if aObjs[iObj] ~= oObjTake then goto lContinue end;
-    -- Remove object and add requested object to owners inventory
-    remove(aObjs, iObj);
-    local oObjOwnInv<const> = oObjOwner.I;
-    oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
-    -- Add weight and set active inventory object to this object
-    oObjOwner.IW, oObjOwner.IS = oObjOwner.IW + oObjTake.W, oObjTake;
-    -- Set object that is now carrying this
-    oObjTake.IP = oObjActive;
-    -- Stop the taken object for inventory preview purposes
-    SetAction(oObjTake, ACT.STOP, JOB.NONE, DIR.NONE);
-    -- If item picked up was the active object then deselect it and its menu
-    if oObjActive == oObjTake then SelectObject() end;
-    -- Success
-    do return true end;
-    -- Continue point
-    ::lContinue::
-  end
-  -- This shouldn't happen! The object should be in the objects list!
-  return false;
+  -- Remove object and add requested object to owners inventory
+  remove(aObjs, iObj);
+  local oObjOwnInv<const> = oObjOwner.I;
+  oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
+  -- Add weight and set active inventory object to this object
+  oObjOwner.IW, oObjOwner.IS = oObjOwner.IW + oObjTake.W, oObjTake;
+  -- Set object that is now carrying this
+  oObjTake.IP = oObjActive;
+  -- Stop the taken object for inventory preview purposes
+  SetAction(oObjTake, ACT.STOP, JOB.NONE, DIR.NONE);
+  -- If item picked up was the active object then deselect it and its menu
+  if oObjActive == oObjTake then SelectObject() end;
 end
 -- Drop Object ------------------------------------------------------------- --
 local function DropObject(oObjOwner, oObjDrop)
@@ -592,29 +573,50 @@ end
 local function IsSpriteCollide(S1, X1, Y1, S2, X2, Y2)
   return maskSpr:IsCollideEx(S1, X1, Y1, maskSpr, S2, X2, Y2);
 end
--- Pickup Object ----------------------------------------------------------- --
-local function PickupObject(oObj, oObjTarget, bOnlyTreasure)
-  -- Return failure if target...
-  if oObj == oObjTarget or                -- ...is me?
-     oObjTarget.F & OFL.PICKUP == 0 or    -- *or* cant be grabbed?
-     oObj.IW + oObjTarget.W > oObj.STR or -- *or* too heavy?
-     not IsSpriteCollide(                 -- *or* not touching?
-       oObj.S, oObj.X + oObj.OFX, oObj.Y + oObj.OFY,
-       oObjTarget.S, oObjTarget.X + oObjTarget.OFX,
-                     oObjTarget.Y + oObjTarget.OFY) then
-    return false end;
-  -- Add object to objects inventory
-  return AddToInventory(oObj, oObjTarget, bOnlyTreasure);
-end
 -- Pickup Objects ---------------------------------------------------------- --
-local function PickupObjects(oObj, bOnlyTreasure)
-  -- Look for objects that can be picked up
-  for iObj = 1, #aObjs do
-    -- Try to pickup specified object and return success if succeeded
-    if PickupObject(oObj, aObjs[iObj], bOnlyTreasure) then return true end;
+local function PickupObjects(...)
+  -- Frequently used flags
+  local iFPickup<const>, iFBusy<const>, iFTreasure<const> =
+    OFL.PICKUP, OFL.BUSY, OFL.TREASURE;
+  -- Real function
+  local function DoPickupObjects(oObj, bOnlyTreasure)
+    -- Return if no objects or one object
+    if #aObjs <= 1 then return end;
+    -- Get object strength
+    local iStr<const>, iObj = oObj.STR, 1;
+    -- Continue point
+    ::lContinue::
+    -- Return if after the last object else get target object
+    if iObj > #aObjs then return false end;
+    local oObjTarget<const> = aObjs[iObj];
+    -- If...
+    if oObj == oObjTarget or -- ...target object is same as holder *or*
+       #oObjTarget.I > 0 or  -- ...target object has inventory *or*
+       oObj.IW + oObjTarget.W > iStr then -- ...not too heavy?
+      -- Goto next object
+      iObj = iObj + 1;
+      goto lContinue;
+    end;
+    -- Get target flags and if...
+    local iTFlags = oObjTarget.F;
+    if iTFlags & iFPickup ~= 0 and    -- ...can be grabbed? *and*
+       iTFlags & iFBusy == 0 and      -- ...not busy? *and*
+      (not bOnlyTreasure or           -- ...only pick up gems? *and*
+       iTFlags & iFTreasure ~= 0) and -- ...treasure flag not set?
+       IsSpriteCollide(               -- ...touching? *and*
+         oObj.S, oObj.X + oObj.OFX, oObj.Y + oObj.OFY, oObjTarget.S,
+         oObjTarget.X + oObjTarget.OFX, oObjTarget.Y + oObjTarget.OFY) then
+      -- Add to the inventory and return success
+      AddToInventory(oObj, oObjTarget, iObj);
+      return true;
+    end
+    -- Goto next object
+    iObj = iObj + 1;
+    goto lContinue;
   end
-  -- Failed!
-  return false;
+  -- Set real function and return first call of it
+  PickupObjects = DoPickupObjects;
+  return DoPickupObjects(...);
 end
 -- Set a random action, job and direction ---------------------------------- --
 local function SetRandomJob(oObj, bUser)
@@ -3128,8 +3130,8 @@ local function BuyItem(oObj, iItemId)
   -- Create the object and return if we can't
   local aObjInv<const> = CreateObject(iItemId, oObj.X, oObj.Y, oParent);
   if not aObjInv then return 3 end;
-  -- Add to inventory and return if we can't
-  if not AddToInventory(oObj, aObjInv) then return 4 end;
+  -- Add to inventory
+  AddToInventory(oObj, aObjInv, #aObjs);
   -- Reduce money
   oParent.M = iParentMoney - iValue;
   -- Total purchases plus one
@@ -3138,7 +3140,7 @@ local function BuyItem(oObj, iItemId)
   CoreLog(oObj.OD.NAME.." "..oObj.DI.." purchased "..oObjData.NAME..
     " for "..iValue.." Zogs ("..iParentMoney..">"..oParent.M..")!");
   -- Success
-  return 5;
+  return 4;
 end
 -- Main logic tick procedures ---------------------------------------------- --
 local function GameProc()
