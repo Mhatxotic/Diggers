@@ -1747,8 +1747,8 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.I,                                -- 0922802 Right cliff wall
   TF.I,                                -- 0932902 Left cliff wall
   TF.I,                                -- 0943002 Floor to wall left
-  TF.EA,                               -- 0953102 Clear dug tile with window
-  TF.EA,                               -- 0960003 Clear dug tile with skull
+  TF.AD|TF.EA,                         -- 0953102 Clear dug tile with window
+  TF.AD|TF.EA,                         -- 0960003 Clear dug tile with skull
   TF.W|TF.AB,                          -- 0970103 Ocean surface 1/4
   TF.W|TF.AB,                          -- 0980203 Ocean surface 2/4
   TF.W|TF.AB,                          -- 0990303 Ocean surface 3/4
