@@ -323,8 +323,7 @@ local function OnScriptLoaded(GetAPI)
   -- Set BuyItem() result sound effects
   local iSError<const> = oSfxData.ERROR;
   aBuyItemResults[1][2], aBuyItemResults[2][2], aBuyItemResults[3][2],
-    aBuyItemResults[4][2], aBuyItemResults[5][2] =
-      iSError, iSError, iSError, iSError, oSfxData.TRADE;
+    aBuyItemResults[4][2] = iSError, iSError, iSError, oSfxData.TRADE;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitShop = InitShop }, F = OnScriptLoaded };

@@ -304,15 +304,17 @@ local function UpdateLevel(iLoc, iTid)
   end
 end
 -- Can sell gem? ----------------------------------------------------------- --
-local function CanSellGem(iObjId)
+local function CanSellGem(iTypeId)
   -- Check parameters
-  if not UtilIsInteger(iObjId) then
-    error("Object not specified! "..tostring(iObjId)) end;
+  if not UtilIsInteger(iTypeId) then
+    error("Object not specified! "..tostring(iTypeId)) end;
   -- Jennites can always be sold
-  if iObjId == TYP.JENNITE then return true end;
+  if iTypeId == TYP.JENNITE then return true end;
   -- Not a Jennite so we need to check if it's a gem we can sell. If we can
   -- sell it? Then return success.
-  for iGem = 1,3 do if aGemsAvailable[iGem] == iObjId then return true end end;
+  for iGem = 1,3 do
+    if aGemsAvailable[iGem] == iTypeId then return true end;
+  end
   -- Can't sell this gem so return failed
   return false;
 end
@@ -402,10 +404,10 @@ local function EndConditionsCheck()
   return true;
 end
 -- Destroy object ---------------------------------------------------------- --
-local function DestroyObject(iObj, oObj)
-  -- We pass 'iObj' to 'table.remove' so we need to check it.
-  if not UtilIsInteger(iObj) then
-    error("Specified id is not an integer! "..tostring(iObj)) end;
+local function DestroyObject(iObjId, oObj)
+  -- We pass 'iObjId' to 'table.remove' so we need to check it.
+  if not UtilIsInteger(iObjId) then
+    error("Specified id is not an integer! "..tostring(iObjId)) end;
   -- Object respawns?
   if oObj.F & OFL.RESPAWN ~= 0 then
     -- Restore object health
@@ -430,12 +432,12 @@ local function DestroyObject(iObj, oObj)
     if #aList == 0 then return end;
     -- Enumerate each object from the end to the start of the list. If target
     -- object is our object then delete it from the list
-    for iObj = #aList, 1, -1 do
-      if aList[iObj] == oObjRemove then remove(aList, iObj) end;
+    for iObjListId = #aList, 1, -1 do
+      if aList[iObjListId] == oObjRemove then remove(aList, iObjListId) end;
     end
   end
   -- Remove object from the global objects list
-  remove(aObjs, iObj);
+  remove(aObjs, iObjId);
   -- Get objects Telepole destinations and remove them all
   local aObjTPD<const> = oObj.TD;
   for iTPIndex = #aObjTPD, 1, -1 do remove(aObjTPD, iTPIndex) end;
@@ -480,19 +482,19 @@ local function DestroyObjectUnknown(oObj)
     error("Invalid object specified! "..tostring(oObj)) end;
   -- Enumerate through each global object and find the specified object and
   -- destroy it if we find it.
-  for iIndex = 1, #aObjs do
-    if aObjs[iIndex] == oObj then return DestroyObject(iIndex, oObj) end;
+  for iObjId = 1, #aObjs do
+    if aObjs[iObjId] == oObj then return DestroyObject(iObjId, oObj) end;
   end
   -- Failed to find object
   return false;
 end
 -- Add to inventory -------------------------------------------------------- --
-local function AddToInventory(oObjOwner, oObjTake, iObj)
+local function AddToInventory(oObjOwner, oObjTake, iObjId)
   -- Check parameters
   if not UtilIsTable(oObjOwner) then
     error("Invalid owner object specified! "..tostring(oObjOwner)) end;
   -- Remove object and add requested object to owners inventory
-  remove(aObjs, iObj);
+  remove(aObjs, iObjId);
   local oObjOwnInv<const> = oObjOwner.I;
   oObjOwnInv[1 + #oObjOwnInv] = oObjTake;
   -- Add weight and set active inventory object to this object
@@ -510,11 +512,11 @@ local function DropObject(oObjOwner, oObjDrop)
   if not oObjDrop then return end;
   -- For each object in inventory...
   local oObjOwnInv<const> = oObjOwner.I;
-  for iIndex = 1, #oObjOwnInv do
+  for iObjId = 1, #oObjOwnInv do
     -- Return if this is not the object we're supposed to drop
-    if oObjOwnInv[iIndex] ~= oObjDrop then goto lContinue end;
+    if oObjOwnInv[iObjId] ~= oObjDrop then goto lContinue end;
     -- Remove object from owner inventory
-    remove(oObjOwnInv, iIndex);
+    remove(oObjOwnInv, iObjId);
     -- Set new position of object
     SetPosition(oObjDrop, oObjOwner.X, oObjOwner.Y);
     -- Add back to playfield
@@ -522,7 +524,7 @@ local function DropObject(oObjOwner, oObjDrop)
     -- Reduce carrying weight
     oObjOwner.IW = oObjOwner.IW - oObjDrop.W;
     -- Select next object
-    oObjOwner.IS = oObjOwnInv[iIndex];
+    oObjOwner.IS = oObjOwnInv[iObjId];
     -- Remove object inventory owner
     oObjOwnInv.IP = false;
     -- If now invalid select first object
@@ -580,38 +582,31 @@ local function PickupObjects(...)
     OFL.PICKUP, OFL.BUSY, OFL.TREASURE;
   -- Real function
   local function DoPickupObjects(oObj, bOnlyTreasure)
-    -- Return if no objects or one object
-    if #aObjs <= 1 then return end;
     -- Get object strength
-    local iStr<const>, iObj = oObj.STR, 1;
+    local iStr<const>, iObjId = oObj.STR, 1;
     -- Continue point
     ::lContinue::
     -- Return if after the last object else get target object
-    if iObj > #aObjs then return false end;
-    local oObjTarget<const> = aObjs[iObj];
-    -- If...
-    if oObj == oObjTarget or -- ...target object is same as holder *or*
-       #oObjTarget.I > 0 or  -- ...target object has inventory *or*
-       oObj.IW + oObjTarget.W > iStr then -- ...not too heavy?
-      -- Goto next object
-      iObj = iObj + 1;
-      goto lContinue;
-    end;
-    -- Get target flags and if...
+    if iObjId > #aObjs then return false end;
+    -- Get object and target flags and if...
+    local oObjTarget<const> = aObjs[iObjId];
     local iTFlags = oObjTarget.F;
-    if iTFlags & iFPickup ~= 0 and    -- ...can be grabbed? *and*
+    if oObj ~= oObjTarget and         -- ...target object not same *or*
+       iTFlags & iFPickup ~= 0 and    -- ...can be grabbed? *and*
        iTFlags & iFBusy == 0 and      -- ...not busy? *and*
       (not bOnlyTreasure or           -- ...only pick up gems? *and*
        iTFlags & iFTreasure ~= 0) and -- ...treasure flag not set?
-       IsSpriteCollide(               -- ...touching? *and*
+       #oObjTarget.I <= 0 and         -- ...target obj not has inventory *and*
+       oObj.IW + oObjTarget.W <= iStr and -- ...not too heavy?
+       IsSpriteCollide(                   -- ...touching? *and*
          oObj.S, oObj.X + oObj.OFX, oObj.Y + oObj.OFY, oObjTarget.S,
          oObjTarget.X + oObjTarget.OFX, oObjTarget.Y + oObjTarget.OFY) then
       -- Add to the inventory and return success
-      AddToInventory(oObj, oObjTarget, iObj);
+      AddToInventory(oObj, oObjTarget, iObjId);
       return true;
     end
     -- Goto next object
-    iObj = iObj + 1;
+    iObjId = iObjId + 1;
     goto lContinue;
   end
   -- Set real function and return first call of it
@@ -1230,9 +1225,9 @@ local function AdjustObjectHealth()
     -- Get absolute position
     local iAX<const>, iAY<const> = iX * 16, iY * 16;
     -- Compare against all objects
-    for iObject = 1, #aObjs do
+    for iObjId = 1, #aObjs do
       -- Get target object data and if not the same object?
-      local oTarget<const> = aObjs[iObject];
+      local oTarget<const> = aObjs[iObjId];
       if oTarget ~= oObjVictim then
         -- Get action and if target object...
         local iAction<const> = oTarget.A;
@@ -2145,9 +2140,9 @@ local function IsCollidePlatform(oObjSrc, iX, iY)
   -- Get source mask id (different if blocking)
   local iSrcMask<const> = oObjSrc.M;
   -- For each object...
-  for iObj = 1, #aObjs do
+  for iObjId = 1, #aObjs do
     -- Get target object to test with
-    local oObjDst<const> = aObjs[iObj];
+    local oObjDst<const> = aObjs[iObjId];
     -- If the target object set to block? If object isn't the target object?
     -- and the specified object collides with the target object? then yes!
     if oObjDst.F & OFL.BLOCK ~= 0 and oObjSrc ~= oObjDst and
@@ -2238,9 +2233,9 @@ local function InitMoveOtherObjects()
     -- If i'm not a platform then nothing to do here
     if oObj.F & iFBlock == 0 then return end;
     -- For each target object
-    for iTargetIndex = 1, #aObjs do
+    for iTObjId = 1, #aObjs do
       -- Not a potential target if...
-      local oTarget<const> = aObjs[iTargetIndex];
+      local oTarget<const> = aObjs[iTObjId];
       local iTFlags<const> = oTarget.F;
       if iTFlags & iFBlock ~= 0 or       -- ...target object blocks?
          oTarget == oObj or              -- *or* target object is me?
@@ -2902,9 +2897,9 @@ local function InitCreateObject()
     -- Get object sprite and position
     local iX<const>, iY<const> = oObj.X, oObj.Y;
     -- For each object
-    for iIndex = 1, #aObjs do
+    for iObjId = 1, #aObjs do
       -- Get object and ignore if explosive not in range of object
-      local oTarget<const> = aObjs[iIndex];
+      local oTarget<const> = aObjs[iObjId];
       if abs(oTarget.X - iX) >= 16 or
          abs(oTarget.Y - iY) >= 16 then goto lContinue end;
       -- Target must have a parent and is different to objects
@@ -2985,11 +2980,11 @@ local function InitCreateObject()
     [AI.FISH]        = AIFish,           [AI.CREEPSTOP] = AICreepStop
   };
   -- Actual create object function ----------------------------------------- --
-  local function CreateObject(iObjId, iX, iY, oParent)
+  local function CreateObject(iTypeId, iX, iY, oParent)
     -- Check parameters
-    if not UtilIsInteger(iObjId) then
-      error("Object id integer invalid! "..tostring(iObjId)) end;
-    if iObjId < 0 then error("Object id "..iObjId.." must be positive!") end;
+    if not UtilIsInteger(iTypeId) then
+      error("Object id integer invalid! "..tostring(iTypeId)) end;
+    if iTypeId < 0 then error("Object id "..iTypeId.." must be positive!") end;
     if not UtilIsInteger(iX) then
       error("X coord integer invalid! "..tostring(iX)) end;
     if iX < 0 then error("X coord "..iX.." must be positive!") end;
@@ -3002,22 +2997,22 @@ local function InitCreateObject()
       error("Y coord "..iY.." limit is "..iLLPixH.."!") end;
     -- If too many objects? Put warning in console and return!
     if #aObjs >= 500 then
-      CoreWrite("Warning! Too many objects creating "..iObjId.." at X="..iX..
+      CoreWrite("Warning! Too many objects creating "..iTypeId.." at X="..iX..
         " and Y="..iY.." with parent "..tostring(oParent).."!", 9);
       return false;
     end
     -- Get and test object information
-    local oObjData<const> = oObjectData[iObjId];
+    local oObjData<const> = oObjectData[iTypeId];
     if not UtilIsTable(oObjData) then error("Object data for #"..
-      iObjId.." not in objects lookup!") end;
+      iTypeId.." not in objects lookup!") end;
     -- Get object name
     local sName<const> = oObjData.NAME
     if not UtilIsString(sName) then error("Object name for #"..
-      iObjId.." not in object data table!") end;
+      iTypeId.." not in object data table!") end;
     -- Get and test AI type
     local iAI<const> = oObjData.AITYPE;
     if not UtilIsInteger(iAI) then error("Invalid AI type #"..
-      tostring(iAI).." for "..sName.."["..iObjId.."]!") end
+      tostring(iAI).." for "..sName.."["..iTypeId.."]!") end
     -- Increment unique object id number
     iUniqueId = iUniqueId + 1;
     -- Build new object array
@@ -3049,7 +3044,7 @@ local function InitCreateObject()
       GEM  = 0,                          -- Gems found
       H    = 100,                        -- Object health
       I    = { },                        -- Inventory for this object
-      ID   = iObjId,                     -- Object id (TYP.*)
+      ID   = iTypeId,                    -- Object id (TYP.*)
       IN   = oObjData.INTELLIGENCE,      -- Intelligence
       IP   = false,                      -- Object carrying this object
       IS   = nil,                        -- Selected inventory item
@@ -3107,7 +3102,7 @@ local function InitCreateObject()
     -- Insert into main object array
     aObjs[1 + #aObjs] = oObj;
     -- Log creation of item
-    CoreLog("Created object '"..sName.."'["..iObjId.."] at X:"..iX..
+    CoreLog("Created object '"..sName.."'["..iTypeId.."] at X:"..iX..
       ",Y:"..iY.." in position #"..#aObjs.."!");
     -- Return object
     return oObj;
@@ -3378,8 +3373,8 @@ local function GameProc()
     local oParent<const> = oObj.P;
     -- Get the lowest amount of money a player has
     local iLowest, oOpponent = maxinteger;
-    for iIndex = 1, #aPlayers do
-      local oPlr<const> = aPlayers[iIndex];
+    for iPlayerId = 1, #aPlayers do
+      local oPlr<const> = aPlayers[iPlayerId];
       if oPlr ~= oParent then
         local iMoney<const> = oPlr.M;
         if iMoney < iLowest then oOpponent, iLowest = oPlr, iMoney end;
@@ -3399,20 +3394,20 @@ local function GameProc()
     -- Number of items sold
     local iItemsSold = 0;
     -- Repeat for each item in digger inventory...
-    local iObj = 1 repeat
+    local iObjId = 1 repeat
       -- Get the inventory object and if the gem is sellable or the
       -- object has a owner and doesn't belong to this objects owner?
       -- Then try to sell the item and if succeeded? Increment the
       -- items sold.
-      local oObjInv<const> = aObjInvList[iObj];
+      local oObjInv<const> = aObjInvList[iObjId];
       local oParentInv<const> = oObjInv.P;
       if (CanSellGem(oObjInv.ID) or
          (oParentInv and oParentInv ~= oParent)) and
         SellItem(oObj, oObjInv) then iItemsSold = iItemsSold + 1;
       -- Conditions fail so try next inventory item.
-      else iObj = iObj + 1 end;
+      else iObjId = iObjId + 1 end;
     -- ...until we've enumerated the whole inventory.
-    until iObj > #aObjInvList;
+    until iObjId > #aObjInvList;
     -- If items were sold? Check if any player won
     if iItemsSold > 0 and EndConditionsCheck() then return true end;
   end
@@ -3849,8 +3844,8 @@ local function GameProc()
   -- Check object collision with other objects ----------------------------- --
   local function CollideLogic(oObj)
     -- Walk objects list and break if we found an ob
-    for iIndex = 1, #aObjs do
-      if CheckObjInteraction(oObj, aObjs[iIndex]) then return end;
+    for iObjId = 1, #aObjs do
+      if CheckObjInteraction(oObj, aObjs[iObjId]) then return end;
     end
     -- Fight target was found? Process the fight and clear fight target
     if oObj.FT then oObj.FT = FightingLogic(oObj, oObj.FT) return end;
@@ -4661,9 +4656,9 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     iX, iY = iViewportX + iX, iViewportY + iY;
     -- Walk through objects in backwards order. This is because objects are
     -- drawn from oldest to newest.
-    for iIndex = #aObjs, 1, -1 do
+    for iObjId = #aObjs, 1, -1 do
       -- Get object, select object and return if mouse cursor touching it
-      local oObj<const> = aObjs[iIndex];
+      local oObj<const> = aObjs[iObjId];
       if IsSpriteCollide(479, iX, iY, oObj.S, oObj.X, oObj.Y) then
         SelectObject(oObj, false);
         return PlayStaticSound(iSSelect);
