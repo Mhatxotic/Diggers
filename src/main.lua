@@ -22,14 +22,15 @@ local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
   CoreQuit<const>, CoreReset<const>, CoreStack<const>, CoreWrite<const>,
   FboDraw<const>, FboMatrix<const>, InputOnKey<const>, InputSetCursor<const>,
   CoreTime<const>, TextureCreate<const>, UtilBlank<const>, UtilDuration<const>,
-  UtilExplode<const>, UtilImplode<const>, UtilIsFunction<const>,
-  UtilIsInteger<const>, UtilIsString<const>, UtilIsTable<const>,
-  VariableRegister<const> =
+  UtilExplode<const>, UtilFlushArray<const>, UtilImplode<const>,
+  UtilIsFunction<const>, UtilIsInteger<const>, UtilIsString<const>,
+  UtilIsTable<const>, VariableRegister<const> =
     Asset.ParseBlock, Clip.Set, Core.Catchup, Core.End, Core.Log, Core.LogEx,
     Core.OnTick, Core.Quit, Core.Reset, Core.Stack, Core.Write, Fbo.Draw,
     Fbo.Matrix, Input.OnKey, Input.SetCursor, Core.Time, Texture.Create,
-    Util.Blank, Util.Duration, Util.Explode, Util.Implode, Util.IsFunction,
-    Util.IsInteger, Util.IsString, Util.IsTable, Variable.Register;
+    Util.Blank, Util.Duration, Util.Explode, Util.FlushArray, Util.Implode,
+    Util.IsFunction, Util.IsInteger, Util.IsString, Util.IsTable,
+    Variable.Register;
 -- Locals ------------------------------------------------------------------ --
 local CBProc, CBRender;                -- Generic tick callbacks
 local aModules<const> = { };           -- Modules data
@@ -388,8 +389,8 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
     aDstParams[1 + #aDstParams] = OnLoaded;
     -- Set stage 1 time
     oResource.ST1 = CoreTime();
-    -- Reset info for progress update
-    while #aInfo > 0 do remove(aInfo) end;
+    -- Reset parameters for progress update
+    UtilFlushArray(aInfo);
     -- Send cached handle if it exists
     local vCached<const> = oCache[sDst];
     if vCached then
