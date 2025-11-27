@@ -27,7 +27,7 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   SelectObject, GameProc, GetActiveObject, GetActivePlayer, SetCallbacks,
   LoadLevel, PrintC, PrintCT, PrintT, PrintR, Print, UpdateShroud,
   SetPlaySounds, GetOpponentPlayer, RegisterFBUCallback, aLevelsData,
-  GetViewportData, GetLevelInfo, RenderInterface, JOB, ACT;
+  GetViewportData, RenderInterface, JOB, ACT;
 -- Locals ------------------------------------------------------------------ --
 local bHud = true;                     -- Show hud?
 -- Load infinite play ------------------------------------------------------ --
@@ -211,9 +211,10 @@ local function InitDebugPlay(iId)
   end
   -- Store mouse position
   local aPlayerAtHumanStart, iX, iY, iNextObjectPoll, iRate, iRateM1;
-  -- Infinite play tick callback. Note that 'InitContinueGame()' will call
-  -- this every time.
-  local function OnInit()
+  -- Debug mode initialisation function
+  local function OnInit(...)
+    -- Store level information
+    iLevelId, sLevelName, sLevelType, iWinLimit = ...;
     -- Get opponent player
     local oPlayer<const> = GetOpponentPlayer();
     -- Set remove shroud mode
@@ -229,8 +230,6 @@ local function InitDebugPlay(iId)
     end
     -- Store mouse position
     iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
-    -- Get level information
-    iLevelId, sLevelName, sLevelType, iWinLimit = GetLevelInfo();
     -- Set money tick rate
     iRate = 216000 // iWinLimit;
     iRateM1 = iRate - 1;
@@ -320,7 +319,7 @@ end
 local function OnScriptLoaded(GetAPI, oAPI)
   -- Grab imports
   BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GameProc,
-    GetActiveObject, GetActivePlayer, GetGameTicks, GetLevelInfo, GetMouseX,
+    GetActiveObject, GetActivePlayer, GetGameTicks, GetMouseX,
     GetMouseY, GetOpponentPlayer, GetTileUnderMouse, GetViewportData,
     LoadLevel, PrintC, PrintCT, PrintR, Print, RegisterFBUCallback,
     RenderObjects, RenderShroud, RenderTerrain, SelectObject, SetCallbacks,
@@ -328,13 +327,13 @@ local function OnScriptLoaded(GetAPI, oAPI)
     fontLittle, fontTiny, texSpr, RenderInterface, JOB, ACT =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitSLTWH", "DrawHealthBar", "Fade",
         "GameProc", "GetActiveObject", "GetActivePlayer", "GetGameTicks",
-        "GetLevelInfo", "GetMouseX", "GetMouseY", "GetOpponentPlayer",
-        "GetTileUnderMouse", "GetViewportData", "LoadLevel", "PrintC",
-        "PrintCT", "PrintR", "Print", "RegisterFBUCallback", "RenderObjects",
-        "RenderShroud", "RenderTerrain", "SelectObject", "SetCallbacks",
-        "SetPlaySounds", "UpdateShroud", "aLevelsData", "aObjs", "aPlayers",
-        "fontLarge", "fontLittle", "fontTiny", "texSpr", "RenderInterface",
-        "oObjectJobs", "oObjectActions");
+        "GetMouseX", "GetMouseY", "GetOpponentPlayer", "GetTileUnderMouse",
+        "GetViewportData", "LoadLevel", "PrintC", "PrintCT", "PrintR", "Print",
+        "RegisterFBUCallback", "RenderObjects", "RenderShroud",
+        "RenderTerrain", "SelectObject", "SetCallbacks", "SetPlaySounds",
+        "UpdateShroud", "aLevelsData", "aObjs", "aPlayers", "fontLarge",
+        "fontLittle", "fontTiny", "texSpr", "RenderInterface", "oObjectJobs",
+        "oObjectActions");
   -- Toggle hud
   local function ToggleHud(sValue)
     -- No parameter

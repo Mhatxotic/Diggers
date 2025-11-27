@@ -4855,10 +4855,6 @@ local function OnPreInitAPI(GetAPI)
   local function GetActivePlayer() return oPlrActive end;
   -- Return the current opponent player ------------------------------------ --
   local function GetOpponentPlayer() return oPlrOpponent end;
-  -- Return information about the loaded level ----------------------------- --
-  local function GetLevelInfo()
-    return iLvlId, sLvlName, sLvlType, iWinLimit;
-  end
   -- Return information about the game viewport ---------------------------- --
   local function GetViewportData()
     return iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
@@ -5409,7 +5405,7 @@ local function OnPreInitAPI(GetAPI)
       for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
         aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
       -- Execute caller initialisation function
-      fcbInit();
+      fcbInit(iLvlId, sLvlName, sLvlType, iWinLimit);
       -- Do fade then set requested game callbacks
       local function OnFadeIn()
         -- Key bank requested?
@@ -5444,7 +5440,7 @@ local function OnPreInitAPI(GetAPI)
     DeInitLevel = DeInitLevel, GameProc = GameProc,
     GetAbsMousePos = GetAbsMousePos, GetActiveObject = GetActiveObject,
     GetActivePlayer = GetActivePlayer, GetGameTicks = GetGameTicks,
-    GetLevelInfo = GetLevelInfo, GetOpponentPlayer = GetOpponentPlayer,
+    GetOpponentPlayer = GetOpponentPlayer,
     GetTileUnderMouse = GetTileUnderMouse, GetViewportData = GetViewportData,
     InitContinueGame = InitContinueGame, LoadLevel = LoadLevel,
     LockViewport = LockViewport, RenderAll = RenderAll,
