@@ -209,9 +209,11 @@ local function InitDebugPlay(iId)
     -- Fade out to load a new level
     Fade(0.0, 1.0, 0.04, OnRender, OnFadeOut);
   end
+  -- Store mouse position
+  local aPlayerAtHumanStart, iX, iY, iNextObjectPoll, iRate, iRateM1;
   -- Infinite play tick callback. Note that 'InitContinueGame()' will call
   -- this every time.
-  local function OnTickInit()
+  local function OnInit()
     -- Get opponent player
     local oPlayer<const> = GetOpponentPlayer();
     -- Set remove shroud mode
@@ -226,90 +228,91 @@ local function InitDebugPlay(iId)
       UpdateShroud(oDigger.AX, oDigger.AY);
     end
     -- Store mouse position
-    local iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
+    iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
     -- Get level information
     iLevelId, sLevelName, sLevelType, iWinLimit = GetLevelInfo();
     -- Set money tick rate
-    local iRate<const> = 216000 // iWinLimit;
-    local iRateM1<const> = iRate - 1;
+    iRate = 216000 // iWinLimit;
+    iRateM1 = iRate - 1;
     -- Identify the player at the 'human player' start location as we'll give
     -- a handicap to the AI starting at the human start position since most
     -- human player start locations are not helpful the AI.
-    local aPlayerAtHumanStart;
     for iI = 1, #aPlayers do
       local aPlayer<const> = aPlayers[iI];
       if aPlayer.RI == 1 then aPlayerAtHumanStart = aPlayer break end;
     end
-    -- Set real function
-    local function OnTickRandom()
-      -- Add 1 Zog to what would be main player every so often. This eventually
-      -- gives the player a lead. They might eventually purchase something, and
-      -- the game will end eventually.
-      if GetGameTicks() % iRate == iRateM1 then
-        aPlayerAtHumanStart.M = aPlayerAtHumanStart.M + 1;
-        if aPlayerAtHumanStart.M >= iWinLimit then OnFinish() end;
-      end
-      -- If we're blocked from polling objects then don't
-      if GetGameTicks() < iNextObjectPoll then GameProc() return end
-      -- Mouse position changed?
-      local iNewX<const>, iNewY<const> = GetMouseX(), GetMouseY();
-      if iNewX ~= iX or iNewY ~= iY then
-        -- Update new position and block time for 10 seconds
-        iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
-        -- Don't cycle objects
-        GameProc();
-        -- Done
-        return
-      end
-      -- New object selected
-      local oObj;
-      -- For each player
-      for iPlayer = 1, #aPlayers do
-        -- Get player diggers and enumerate them
-        local aDiggers<const> = aPlayers[iPlayer].D;
-        for iDigger = 1, #aDiggers do
-          -- Get digger object and if it is in danger?
-          local oDigger<const> = aDiggers[iDigger];
-          if oDigger and
-             oDigger.J == JOB.INDANGER and
-             oDigger.A ~= ACT.DEATH and
-            (oDigger.A ~= ACT.FIGHT or
-             oDigger.P == oPlrActive) then
-            -- It is selected
-            iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
-            oObj = oDigger;
-            -- Do not check any more diggers
-            break;
-          end
-        end
-        -- Break if we got a digger
-        if oObj then break end;
-      end
-      -- Switch object every 10 seconds
-      if not oObj and GetGameTicks() % 600 == 0 then
-        -- Try again point
-        ::tryagain::
-        -- Select a player
-        local oPlayer<const> = aPlayers[iSelectedPlayerId];
-        -- Get player diggers
-        local aDiggers<const> = oPlayer.D;
-        -- Find a digger from the specified player.
-        oObj = aDiggers[iSelectedDiggerId];
-        -- Loop if we don't find a digger
-        if not oObj then SelectNextDigger() goto tryagain end;
-      end
-      -- New object selected?
-      if oObj then
-        -- Select the object and player if we got something!
-        SelectObject(oObj);
-        -- Next object
-        SelectNextDigger();
-      end
+  end
+  -- Set real function
+  local function OnTick()
+    -- Add 1 Zog to what would be main player every so often. This eventually
+    -- gives the player a lead. They might eventually purchase something, and
+    -- the game will end eventually.
+    if GetGameTicks() % iRate == iRateM1 then
+      aPlayerAtHumanStart.M = aPlayerAtHumanStart.M + 1;
+      if aPlayerAtHumanStart.M >= iWinLimit then OnFinish() end;
     end
+    -- If we're blocked from polling objects then don't
+    if GetGameTicks() < iNextObjectPoll then GameProc() return end
+    -- Mouse position changed?
+    local iNewX<const>, iNewY<const> = GetMouseX(), GetMouseY();
+    if iNewX ~= iX or iNewY ~= iY then
+      -- Update new position and block time for 10 seconds
+      iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
+      -- Don't cycle objects
+      GameProc();
+      -- Done
+      return
+    end
+    -- New object selected
+    local oObj;
+    -- For each player
+    for iPlayer = 1, #aPlayers do
+      -- Get player diggers and enumerate them
+      local aDiggers<const> = aPlayers[iPlayer].D;
+      for iDigger = 1, #aDiggers do
+        -- Get digger object and if it is in danger?
+        local oDigger<const> = aDiggers[iDigger];
+        if oDigger and
+           oDigger.J == JOB.INDANGER and
+           oDigger.A ~= ACT.DEATH and
+          (oDigger.A ~= ACT.FIGHT or
+           oDigger.P == oPlrActive) then
+          -- It is selected
+          iSelectedPlayerId, iSelectedDiggerId = iPlayer, iDigger;
+          oObj = oDigger;
+          -- Do not check any more diggers
+          break;
+        end
+      end
+      -- Break if we got a digger
+      if oObj then break end;
+    end
+    -- Switch object every 10 seconds
+    if not oObj and GetGameTicks() % 600 == 0 then
+      -- Try again point
+      ::tryagain::
+      -- Select a player
+      local oPlayer<const> = aPlayers[iSelectedPlayerId];
+      -- Get player diggers
+      local aDiggers<const> = oPlayer.D;
+      -- Find a digger from the specified player.
+      oObj = aDiggers[iSelectedDiggerId];
+      -- Loop if we don't find a digger
+      if not oObj then SelectNextDigger() goto tryagain end;
+    end
+    -- New object selected?
+    if oObj then
+      -- Select the object and player if we got something!
+      SelectObject(oObj);
+      -- Next object
+      SelectNextDigger();
+    end
+    -- Execute a game tick
+    GameProc();
   end
   -- Load infinite play (AI vs AI)
   LoadLevel(iId, "game", -1, nil, true, nil, true, OnTick, OnRender, OnFinish,
-    nil, nil, nil, true, OnTickInit);
+    nil, nil, nil, true, OnInit);
   -- Play sound effects
   SetPlaySounds(true);
 end

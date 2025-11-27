@@ -14,7 +14,7 @@ local UtilFormatNumber<const> = Util.FormatNumber;
 -- Engine function aliases ------------------------------------------------- --
 -- Diggers function and data aliases --------------------------------------- --
 local LoadLevel, PlayStaticSound, PrintC, RenderTerrain,
-  SetCallbacks, SetHotSpot, SetKeys, oGlobalData, oObjectTypes;
+  SetCallbacks, SetHotSpot, SetKeys, oGlobalData, oObjectTypes, fontLarge;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       iHotSpotId,                      -- Hot spot id
