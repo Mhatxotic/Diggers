@@ -212,24 +212,18 @@ local function InitDebugPlay(iId)
   -- Infinite play tick callback. Note that 'InitContinueGame()' will call
   -- this every time.
   local function OnTickInit()
-    -- If the first frame?
-    if GetGameTicks() == 0 then
-      -- For each player...
-      for iPlayerId = 1, #aPlayers do
-        -- Get player
-        local oPlayer<const> = aPlayers[iPlayerId];
-        -- Set remove shroud mode
-        oPlayer.US = true;
-        -- Get and enumerate player diggers
-        local aDiggers<const> = oPlayer.D;
-        for iDiggerId = 1, #aDiggers do
-          -- Get digger
-          local oDigger<const> = aDiggers[iDiggerId];
-          -- Set remove shroud mode
-          oDigger.US = true;
-          UpdateShroud(oDigger.AX, oDigger.AY);
-        end
-      end
+    -- Get opponent player
+    local oPlayer<const> = GetOpponentPlayer();
+    -- Set remove shroud mode
+    oPlayer.US = true;
+    -- Get and enumerate player diggers
+    local aDiggers<const> = oPlayer.D;
+    for iDiggerId = 1, #aDiggers do
+      -- Get digger
+      local oDigger<const> = aDiggers[iDiggerId];
+      -- Set remove shroud mode
+      oDigger.US = true;
+      UpdateShroud(oDigger.AX, oDigger.AY);
     end
     -- Store mouse position
     local iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
@@ -311,15 +305,11 @@ local function InitDebugPlay(iId)
         -- Next object
         SelectNextDigger();
       end
-      -- Perform game procedure
-      GameProc();
     end
-    -- Set real function
-    SetCallbacks(OnTickRandom, OnRender);
   end
   -- Load infinite play (AI vs AI)
-  LoadLevel(iId, "game", -1, nil, true, nil, true, OnTickInit, OnRender,
-    OnFinish);
+  LoadLevel(iId, "game", -1, nil, true, nil, true, OnTick, OnRender, OnFinish,
+    nil, nil, nil, true, OnTickInit);
   -- Play sound effects
   SetPlaySounds(true);
 end

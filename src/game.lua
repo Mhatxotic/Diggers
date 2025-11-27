@@ -202,21 +202,20 @@ local function SelectObject(oObj, bNow, bCursor)
   if not oObj then return end;
   -- Have focus command?
   if bNow ~= nil then
+    -- Get object absolute position
+    local iX<const>, iY<const> = oObj.AX, oObj.AY;
+    -- Scroll viewport to the object
+    ScrollViewportTo(iX - iScrTilesWd2, iY - iScrTilesHd2);
     -- Now as in this instant?
     if bNow then ForceViewport();
-    -- Now but as in gradually
-    else
-      -- Get object absolute position
-      local iX<const>, iY<const> = oObj.AX, oObj.AY;
-      -- Scroll viewport to the object
-      ScrollViewportTo(iX - iScrTilesWd2, iY - iScrTilesHd2);
-      -- If not AI vs AI mode object is not in the viewport? Finish scroll now
-      if not bAIvsAI and
-        ((iAbsPosX > 0 and iX - iVPScrollThreshold < iAbsPosX) or
-         (iAbsPosX < iLLAbsWmVP and iX + iVPScrollThreshold >= iViewportW) or
-         (iAbsPosY > 0 and iY - iVPScrollThreshold < iAbsPosY) or
-         (iAbsPosY < iLLAbsHmVP and iY + iVPScrollThreshold >= iViewportH))
-        then ForceViewport() end;
+    -- Now as in gradually? and also if not AI vs AI mode object is not in the
+    -- viewport? Finish scroll now
+    elseif not bAIvsAI and
+      ((iAbsPosX > 0 and iX - iVPScrollThreshold < iAbsPosX) or
+       (iAbsPosX < iLLAbsWmVP and iX + iVPScrollThreshold >= iViewportW) or
+       (iAbsPosY > 0 and iY - iVPScrollThreshold < iAbsPosY) or
+       (iAbsPosY < iLLAbsHmVP and iY + iVPScrollThreshold >= iViewportH)) then
+      ForceViewport();
     end
   -- Focus on object
   else ObjectFocus(oObj) end;
@@ -5027,7 +5026,8 @@ local function OnPreInitAPI(GetAPI)
         -- Add capital carried and reset its value
         oPlrActive.M = oPlrActive.M + oGlobalData.gCapitalCarried;
         oGlobalData.gCapitalCarried = 0;
-      end
+      -- Is AI vs AI? Set to un-shroud the players' objects
+      elseif bAIvsAI then oPlr.US = true end;
       -- Set viewpoint on this player and synchronise
       ScrollViewportTo(iX - iScrTilesWd2p1, iY - iScrTilesHd2 + 3);
       ForceViewport();
@@ -5190,7 +5190,7 @@ local function OnPreInitAPI(GetAPI)
   end
   -- Load level ------------------------------------------------------------ --
   local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
-    fcbNLogic, fcbNRender, fcbNEnd, iNHotSpotId, iSM1, iSM2, bRespawn)
+    fcbNLogic, fcbNRender, fcbNEnd, iNHotSpotId, iSM1, iSM2, bRespawn, fcbInit)
     -- De-init/Reset current level
     DeInitLevel();
     -- Setup player 1 parameters. We force the race that was originally
@@ -5298,6 +5298,11 @@ local function OnPreInitAPI(GetAPI)
         error("Ending function invalid! "..tostring(fcbNEnd)) end;
       fcbEnd = fcbNEnd;
     else fcbEnd = TriggerEnd end;
+    -- Check init trigger function
+    if fcbInit ~= nil then
+      if not UtilIsFunction(fcbInit) then
+        error("Init function invalid! "..tostring(fcbInit)) end;
+    else fcbInit = BlankFunction end;
     -- Initialise default hotspot id if not specified
     if not iNHotSpotId then iNHotSpotId = iHotSpotId end;
     -- Set FBU callback
@@ -5403,9 +5408,8 @@ local function OnPreInitAPI(GetAPI)
       local iGemStart<const> = random(#aDigTileData);
       for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
         aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
-      -- Do one tick at least or the fade will try to render with variables
-      -- that haven't been initialised yet
-      fcbLogic();
+      -- Execute caller initialisation function
+      fcbInit();
       -- Do fade then set requested game callbacks
       local function OnFadeIn()
         -- Key bank requested?
