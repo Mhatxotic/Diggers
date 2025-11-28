@@ -1461,6 +1461,9 @@ local function AdjustObjectHealth()
 end
 -- Render all screen elements ---------------------------------------------- --
 local function RenderAll()
+  -- Commonly accessed aliases --------------------------------------------- --
+  local iAStop<const>, iFBusy<const>, iFJump<const>, iJInDanger<const> =
+    ACT.STOP, OFL.BUSY, OFL.JUMP, JOB.INDANGER;
   -- Locals ---------------------------------------------------------------- --
   local aInfoScreenActiveItem;         -- Active screen item
   local fcbInfoScreen;                 -- Current info screen callback
@@ -1808,84 +1811,10 @@ local function RenderAll()
     -- Restore normal sprite colour
     texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   end
-  -- Draw status id above object ------------------------------------------- --
-  local function RenderStatusIndicatorOnActiveObject()
-    -- Which indicator to draw?
-    local iStatusId;
-    -- Object does not have an owner? Draw 'O' indicator above object to
-    -- indicate only the program can control this.
-    local oParent<const> = oObjActive.P;
-    if not oParent then iStatusId = 980;
-    -- If object has an owner but this client is not that owner? Draw 'X'
-    -- indicator above object to indicate only the owner can control this.
-    elseif oParent ~= oPlrActive then iStatusId = 976;
-    -- Parent is me?
-    else
-      -- If object is busy? Draw 'Zz' indicator above object to indicate
-      -- control is temporarily disabled
-      if oObjActive.F & OFL.BUSY ~= 0 then iStatusId = 984;
-      -- 'v' is default, free to control this object
-      else iStatusId = 988 end;
-      -- Get animated health
-      local iAnimatedHealth<const> = oObjActive.HA;
-      -- Get health and if object has health?
-      local iHealth<const> = oObjActive.H;
-      if iHealth > 0 then
-        -- Is a digger?
-        if oObjActive.DI then
-          -- Draw a pulsating heart
-          BlitSLT(texSpr, 797 +
-            (iGameTicks // (1 + (iHealth // 5))) % 4, 47, 216);
-          -- Digger has inventory?
-          if oObjActive.IW > 0 then
-            -- X position of object on UI and tile ID
-            local iX = 0;
-            -- For each inventory
-            local aObjInv<const> = oObjActive.I;
-            for iObjIndex = 1, #aObjInv do
-              -- Get object
-              local oObj<const> = aObjInv[iObjIndex];
-              -- Get inventory conversion id and if we got it then draw it
-              local iObjConvId<const> = oObj.OD.HUDSPRITE;
-              if iObjConvId then BlitSLT(texSpr, iObjConvId, 61 + iX, 218);
-              -- Draw as resized sprite
-              else BlitSLTWH(texSpr, oObj.S, 61 + iX, 218, 8, 8) end;
-              -- Increase X position
-              iX = iX + 8;
-            end
-          end
-        end
-        -- Animated health is higher than digger health?
-        if iHealth < iAnimatedHealth then
-          -- Draw animated health bar
-          texSpr:SetCRGBA(0.0, 0.0, 0.0, 1.0);
-          BlitSLTWH(texSpr, 1022, 61.0, 227.0, iAnimatedHealth / 2, 2.0);
-          texSpr:SetCRGB(1.0, 1.0, 1.0);
-          -- Decrease animated health
-          oObjActive.HA = iAnimatedHealth - 1;
-        -- Set animated health and don't draw otherwise
-        elseif iAnimatedHealth < iHealth then oObjActive.HA = iHealth end;
-        -- Draw health bar
-        DrawHealthBar(iHealth, 2.0, 61.0, 227.0, 2.0);
-      -- Else if health under animated health
-      elseif iAnimatedHealth > 0 then
-        -- Draw animated health bar
-        texSpr:SetCRGBA(0.0, 0.0, 0.0, 1.0);
-        BlitSLTWH(texSpr, 1022, 61.0, 227.0, iAnimatedHealth / 2, 2.0);
-        texSpr:SetCRGB(1.0, 1.0, 1.0);
-        -- Decrease animated health
-        oObjActive.HA = iAnimatedHealth - 1;
-      end
-    end
-    -- Draw the indicator
-    BlitSLT(texSpr, iGameTicks // 5 % 4 + iStatusId,
-      iStageL + iPixCenPosX + oObjActive.X - iAbsPosX * 16,
-      iStageT + iPixCenPosY + oObjActive.Y - iAbsPosY * 16 - 16);
-  end
   -- Render control context menu ------------------------------------------- --
   local function RenderContextMenu()
     -- Get object busy flag
-    local bBusy<const> = oObjActive.F & OFL.BUSY ~= 0;
+    local bBusy<const> = oObjActive.F & iFBusy ~= 0;
     -- Walk through it and test position
     for iMIndex = 1, #aContextMenuData do
       -- Get context menu item and draw it
@@ -1990,6 +1919,31 @@ local function RenderAll()
     -- Restore alpha on tiny font
     fontTiny:SetCA(1.0);
   end
+  -- Draw status area ------------------------------------------------------ --
+  local function DrawStatusArea()
+    -- Draw bottom left part, money and health backgrounds
+    for iColumn = 0, 6 do
+      BlitSLT(texSpr, 821 + iColumn, 8 + (iColumn * 16), 216) end;
+  end
+  -- Draw flags to say who is winning -------------------------------------- --
+  local function DrawFlags()
+    -- Set tile id based on diggers count
+    local iATile, iOTile = 868 + oPlrOpponent.DC, 874 + oPlrActive.DC;
+    -- Get monies and increase flag depending on who has more money
+    if iPlayerMoney > iOpponentMoney then iOTile = iOTile + 1;
+    elseif iPlayerMoney < iOpponentMoney then iATile = iATile + 1 end;
+    -- Draw flags for both sides
+    BlitSLT(texSpr, iATile, 120, 216);
+    BlitSLT(texSpr, iOTile, 120, 216);
+  end
+  -- Digger activity indicator --------------------------------------------- --
+  local oActionsP1<const>, oJobsP2<const>, oActionsP3<const> = {
+    [ACT.STOP] = 834, [ACT.FIGHT] = 840, [ACT.PHASE] = 841, [ACT.HIDE] = 838
+  }, {
+    [JOB.HOME] = 838, [JOB.SEARCH] = 839
+  }, {
+    [ACT.WALK] = 835, [ACT.RUN] = 835, [ACT.DIG] = 837
+  };
   -- Render Interface ------------------------------------------------------ --
   local function RenderInterface()
     -- Render damage values
@@ -2000,56 +1954,110 @@ local function RenderAll()
     RenderShadow(8.0, 216.0, 136.0, 232.0);
     RenderShadow(144.0, 216.0, 224.0, 232.0);
     RenderShadow(232.0, 216.0, 312.0, 232.0);
-    -- Draw bottom left part, money and health backgrounds
-    for iColumn = 0, 6 do
-      BlitSLT(texSpr, 821 + iColumn, 8 + (iColumn * 16), 216) end;
-    -- What object is selected?
-    if oObjActive then RenderStatusIndicatorOnActiveObject() end;
-    -- Tile to draw
-    local iTile;
+    -- Making sure all the hud elements are drawn in order while not having to
+    -- do the same checks on objects more than once is tricky, so be careful
+    -- when modifying this routine. Is an object selected?
+    if oObjActive then
+      -- Which indicator to draw?
+      local oPlayer<const>, iStatusId, iTile = oObjActive.P;
+      -- Is my object?
+      if oPlayer == oPlrActive then
+        -- If object is busy? Draw 'Zz' indicator above object to indicate
+        -- control is temporarily disabled
+        if oObjActive.F & iFBusy ~= 0 then iStatusId = 984;
+        -- 'v' is default, free to control this object
+        else iStatusId = 988 end;
+        -- Object is jumping?
+        if oObjActive.F & iFJump ~= 0 then iTile = 836;
+        -- Not jumping? Look up activity instead
+        else iTile = oActionsP1[oObjActive.A] or
+                     oJobsP2[oObjActive.J] or
+                     oActionsP3[oObjActive.A] end;
+      -- Opponent player so draw flags and set 'X' indicator
+      elseif oPlayer == oPlrOpponent then iStatusId = 976;
+      -- Neutral player so draw flags and set 'O' indicator
+      else iStatusId = 980 end;
+      -- Draw the indicator
+      BlitSLT(texSpr, iGameTicks // 5 % 4 + iStatusId,
+        iStageL + iPixCenPosX + oObjActive.X - iAbsPosX * 16,
+        iStageT + iPixCenPosY + oObjActive.Y - iAbsPosY * 16 - 16);
+      -- Draw status area
+      DrawStatusArea();
+      -- If my player (the only duplicated check we can't do anything about)
+      if oPlayer == oPlrActive then
+        -- Get animated health
+        local iAnimatedHealth<const> = oObjActive.HA;
+        -- Get health and if object has health?
+        local iHealth<const> = oObjActive.H;
+        if iHealth > 0 then
+          -- Is a digger?
+          if oObjActive.DI then
+            -- Draw a pulsating heart
+            BlitSLT(texSpr, 797 +
+              (iGameTicks // (1 + (iHealth // 5))) % 4, 47.0, 216.0);
+            -- Digger has inventory?
+            if oObjActive.IW > 0 then
+              -- X position of object on UI and tile ID
+              local nX = 0;
+              -- For each inventory
+              local aObjInv<const> = oObjActive.I;
+              for iObjIndex = 1, #aObjInv do
+                -- Get object
+                local oObj<const> = aObjInv[iObjIndex];
+                -- Get inventory conversion id and if we got it then draw it
+                local iObjConvId<const> = oObj.OD.HUDSPRITE;
+                if iObjConvId then
+                  BlitSLT(texSpr, iObjConvId, 61.0 + nX, 218.0);
+                -- Draw as resized sprite
+                else BlitSLTWH(texSpr, oObj.S, 61.0 + nX, 218.0, 8.0, 8.0) end;
+                -- Increase X position
+                nX = nX + 8.0;
+              end
+            end
+          end
+          -- Animated health is higher than digger health?
+          if iHealth < iAnimatedHealth then
+            -- Draw animated health bar
+            texSpr:SetCRGBA(0.0, 0.0, 0.0, 1.0);
+            BlitSLTWH(texSpr, 1022, 61.0, 227.0, iAnimatedHealth / 2, 2.0);
+            texSpr:SetCRGB(1.0, 1.0, 1.0);
+            -- Decrease animated health
+            oObjActive.HA = iAnimatedHealth - 1;
+          -- Set animated health and don't draw otherwise
+          elseif iAnimatedHealth < iHealth then oObjActive.HA = iHealth end;
+          -- Draw health bar
+          DrawHealthBar(iHealth, 2.0, 61.0, 227.0, 2.0);
+        -- Else if health under animated health
+        elseif iAnimatedHealth > 0 then
+          -- Draw animated health bar
+          texSpr:SetCRGBA(0.0, 0.0, 0.0, 1.0);
+          BlitSLTWH(texSpr, 1022, 61.0, 227.0, iAnimatedHealth / 2, 2.0);
+          texSpr:SetCRGB(1.0, 1.0, 1.0);
+          -- Decrease animated health
+          oObjActive.HA = iAnimatedHealth - 1;
+        end
+      end
+      -- Tile was Set? Draw flags instead else draw flags
+      if iTile then BlitSLT(texSpr, iTile, 120.0, 216.0) else DrawFlags() end;
+    -- No object selected so draw status area and flags
+    else DrawStatusArea() DrawFlags() end;
     -- Draw digger buttons and activity
     for iDiggerId = 1, 5 do
       -- Pre-calculate Y position
-      local iY<const> = iDiggerId * 16;
+      local nY<const> = 16.0 * iDiggerId;
       -- Get digger data and if Digger is alive?
       local oDigger<const> = oPlrActive.D[iDiggerId];
       if oDigger then
          -- Digger is selected?
-        if oObjActive and oDigger == oObjActive then
+        if oDigger == oObjActive then
           -- Show lightened up button
-          BlitSLT(texSpr, 808 + iDiggerId, 128 + iY, 216)
-          -- Object is jumping?
-          if oObjActive.F & OFL.JUMP ~= 0 then iTile = 836;
-          -- Not jumping?
-          else
-            -- Get Digger action and if stopped?
-            local iObjAction<const> = oObjActive.A;
-            if iObjAction == ACT.STOP then iTile = 834;
-            -- If fighting?
-            elseif iObjAction == ACT.FIGHT then iTile = 840;
-            -- If teleporting?
-            elseif iObjAction == ACT.PHASE then iTile = 841;
-            -- Something else?
-            else
-              -- Get Digger job and if home or inside the home?
-              local iObjJob<const> = oObjActive.J;
-              if iObjJob == JOB.HOME or iObjAction == ACT.HIDE then
-                iTile = 838;
-              -- If searching for treasure?
-              elseif iObjJob == JOB.SEARCH then iTile = 839;
-              -- If walking or running?
-              elseif iObjAction == ACT.WALK or
-                iObjAction == ACT.RUN then iTile = 835;
-              -- If digging?
-              elseif iObjAction == ACT.DIG then iTile = 837 end;
-            end
-          end
+          BlitSLT(texSpr, 808 + iDiggerId, 128.0 + nY, 216.0)
         -- Show dimmed button
-        else BlitSLT(texSpr, 803 + iDiggerId, 128 + iY, 216) end;
+        else BlitSLT(texSpr, 803 + iDiggerId, 128.0 + nY, 216.0) end;
         -- Status tile to draw
         local iStatusTile;
         -- Digger is in danger?
-        if oDigger.J == JOB.INDANGER then
+        if oDigger.J == iJInDanger then
           -- Every even second set a different blue indicator.
           if iGameTicks % 120 < 60 then iStatusTile = 831;
                                    else iStatusTile = 832 end;
@@ -2057,36 +2065,23 @@ local function RenderAll()
         elseif oDigger.JT >= oDigger.PW and
                iGameTicks % 120 < 60 then iStatusTile = 833;
         -- Not in danger but busy?
-        elseif oDigger.F & OFL.BUSY ~= 0 then iStatusTile = 830;
+        elseif oDigger.F & iFBusy ~= 0 then iStatusTile = 830;
         -- Not in danger, not busy but doing something?
-        elseif oDigger.A ~= ACT.STOP then iStatusTile = 829;
+        elseif oDigger.A ~= iAStop then iStatusTile = 829;
         -- Not in danger, not busy and not doing something
         else iStatusTile = 828 end;
         -- Show activity indicator (78-84)
-        BlitSLT(texSpr, iStatusTile, 128 + iY, 204);
+        BlitSLT(texSpr, iStatusTile, 128.0 + nY, 204.0);
       -- Digger is not alive! Show dimmed button
-      else BlitSLT(texSpr, 803 + iDiggerId, 128 + iY, 216) end;
+      else BlitSLT(texSpr, 803 + iDiggerId, 128.0 + nY, 216.0) end;
     end
-    -- Tile was set? Draw it
-    if iTile then BlitSLT(texSpr, iTile, 120, 216);
-    -- No tile was set
-    else
-      -- Set tile id based on diggers count
-      local iATile, iOTile = 868 + oPlrOpponent.DC, 874 + oPlrActive.DC;
-      -- Get monies and increase flag depending on who has more money
-      if iPlayerMoney > iOpponentMoney then iOTile = iOTile + 1;
-      elseif iPlayerMoney < iOpponentMoney then iATile = iATile + 1 end;
-      -- Draw flags for both sides
-      BlitSLT(texSpr, iATile, 120, 216);
-      BlitSLT(texSpr, iOTile, 120, 216);
-    end
-    -- Animate player one's money
+    -- Animate main player money
     AnimateMoney();
     -- Draw device select utility button
-    BlitSLT(texSpr, 814, 232, 216);
+    BlitSLT(texSpr, 814, 232.0, 216);
     -- Draw info screen
     fcbInfoScreen();
-    -- Context menu selected?
+    -- Render context menu if selected
     if aContextMenuData then RenderContextMenu() end;
     -- Render tooltip
     RenderTip();
