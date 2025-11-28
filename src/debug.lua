@@ -27,7 +27,7 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   SelectObject, GameProc, GetActiveObject, GetActivePlayer, SetCallbacks,
   LoadLevel, PrintC, PrintCT, PrintT, PrintR, Print, UpdateShroud,
   SetPlaySounds, GetOpponentPlayer, RegisterFBUCallback, aLevelsData,
-  GetViewportData, RenderInterface, JOB, ACT;
+  GetViewportData, RenderAll, RenderInterface, JOB, ACT;
 -- Locals ------------------------------------------------------------------ --
 local bHud = true;                     -- Show hud?
 -- Load infinite play ------------------------------------------------------ --
@@ -59,14 +59,7 @@ local function InitDebugPlay(iId)
     -- Render terrain
     RenderTerrain();
     -- Hud not enabled?
-    if not bHud then
-      -- Render objects normally
-      RenderObjects();
-      RenderShroud();
-      RenderInterface();
-      -- Done
-      return;
-    end
+    if not bHud then return RenderAll() end;
     -- Get system information
     local nCpu<const>, nSys<const> = CoreCPUUsage();
     local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
@@ -324,7 +317,7 @@ local function OnScriptLoaded(GetAPI, oAPI)
     LoadLevel, PrintC, PrintCT, PrintR, Print, RegisterFBUCallback,
     RenderObjects, RenderShroud, RenderTerrain, SelectObject, SetCallbacks,
     SetPlaySounds, UpdateShroud, aLevelsData, aObjs, aPlayers, fontLarge,
-    fontLittle, fontTiny, texSpr, RenderInterface, JOB, ACT =
+    fontLittle, fontTiny, texSpr, RenderAll, RenderInterface, JOB, ACT =
       GetAPI("BlitSLT", "BlitSLTRB", "BlitSLTWH", "DrawHealthBar", "Fade",
         "GameProc", "GetActiveObject", "GetActivePlayer", "GetGameTicks",
         "GetMouseX", "GetMouseY", "GetOpponentPlayer", "GetTileUnderMouse",
@@ -332,8 +325,8 @@ local function OnScriptLoaded(GetAPI, oAPI)
         "RegisterFBUCallback", "RenderObjects", "RenderShroud",
         "RenderTerrain", "SelectObject", "SetCallbacks", "SetPlaySounds",
         "UpdateShroud", "aLevelsData", "aObjs", "aPlayers", "fontLarge",
-        "fontLittle", "fontTiny", "texSpr", "RenderInterface", "oObjectJobs",
-        "oObjectActions");
+        "fontLittle", "fontTiny", "texSpr", "RenderAll", "RenderInterface",
+        "oObjectJobs", "oObjectActions");
   -- Toggle hud
   local function ToggleHud(sValue)
     -- No parameter
@@ -353,15 +346,8 @@ local function OnScriptLoaded(GetAPI, oAPI)
     if fcbFunc then return fcbFunc(...) end;
     -- On faded out
     local function OnFadeOut() InitDebugPlay(tonumber(sValue)) end;
-    -- On fade render
-    local function OnDuring()
-      -- Render terrain, game objects and interface
-      RenderTerrain();
-      RenderObjects();
-      RenderInterface();
-    end
     -- Fade out to load a new level
-    Fade(0.0, 1.0, 0.04, OnDuring, OnFadeOut);
+    Fade(0.0, 1.0, 0.04, RenderAll, OnFadeOut);
   end
   oAPI.cmdDebug = CommandRegister("debug", 1, 3, ConCmdSetLevel);
 end

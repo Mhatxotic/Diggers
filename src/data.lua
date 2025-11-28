@@ -240,6 +240,11 @@ OFL.JUMP         = OFL.JUMPRISE | OFL.JUMPFALL; -- Jumping (rising OR fallign)
 OFL.JUMPFLOAT    = OFL.JUMP | OFL.FLOATING;     -- Jumping and floating
 OFL.JUMPRISEBUSY = OFL.JUMPRISE | OFL.BUSY;     -- Jump rising and busy
 OFL.JUMPFALLBUSY = OFL.JUMPFALL | OFL.BUSY;     -- Jump falling and busy
+-- Pickup flags
+OFL.PUMANY  = OFL.PICKUP | OFL.BUSY;     -- Pickup any items (& mask)
+OFL.PUMGEMS = OFL.PUMANY | OFL.TREASURE; -- Pickup only treasure (& mask)
+OFL.PUEANY  = OFL.PICKUP;                -- Pickup any items (== match)
+OFL.PUEGEMS = OFL.PUEANY | OFL.TREASURE; -- Pickup only treasure (== match)
 -- Commonly used combinations that are inverted for the '&' (AND) operator
 OFL.iBUSY, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER, OFL.iJUMP, OFL.iJUMPRISE,
   OFL.iNOHOME, OFL.iJUMPFALLBUSY, OFL.iNOSOUND =
@@ -545,7 +550,7 @@ local oGenericActDeathData<const> =
 -- Find treasure phase data ------------------------------------------------ --
 local oTreasureActPhaseData<const> = {
   [DIR.NONE] = { 106, 109, 0, 7 },
-  FLAGS      = OFL.FALL|OFL.PICKUP|OFL.NOAI,
+  FLAGS      = OFL.FALL|OFL.PICKUP|OFL.NOAI|OFL.BUSY,
   SOUND      = oSfxData.FIND
 };
 -- Generic object hide data ------------------------------------------------ --

@@ -71,14 +71,10 @@ local iLLPixHmVP, iLLPixWmVP;          -- Maximum viewport pixel position
 local iPixCenPosX, iPixCenPosY;        -- Current viewport pixel centre pos
 local iPixPosTargetX, iPixPosTargetY;  -- Current viewport animated pixel pos
 local iPixPosX, iPixPosY;              -- Current viewport pixel position
-local iScrTilesH;                      -- Max vertical tiles on screen
-local iScrTilesHd2;                    -- " as above but divided by two
-local iScrTilesHd2p1;                  -- " as above but div by two plus one
-local iScrTilesHm1;                    -- " as above but minus one
-local iScrTilesW;                      -- Max horizontal tiles on screen
-local iScrTilesWd2;                    -- " as above but divided by two
-local iScrTilesWd2p1;                  -- " as above but div by two plus one
-local iScrTilesWm1;                    -- " as above but minus one
+local iScrTilesW, iScrTilesH;          -- Max horiz/vertical tiles on screen
+local iScrTilesWd2, iScrTilesHd2;      -- " as above but divided by two
+local iScrTilesWd2p1, iScrTilesHd2p1;  -- " as above but div by two plus one
+local iScrTilesWm1, iScrTilesHm1;      -- " as above but minus one
 local iStageB, iStageH, iStageL;       -- Fbo bottom/height/left bounds
 local iStageR, iStageT, iStageW;       -- Fbo right/top/width bounds
 local iTilesHeight, iTilesWidth;       -- Total tiles on screen
@@ -542,11 +538,8 @@ local function IsSpriteCollide(S1, X1, Y1, S2, X2, Y2)
 end
 -- Pickup Objects ---------------------------------------------------------- --
 local function PickupObjects(...)
-  -- Frequently used flags
-  local iFPickup<const>, iFBusy<const>, iFTreasure<const> =
-    OFL.PICKUP, OFL.BUSY, OFL.TREASURE;
   -- Real function
-  local function DoPickupObjects(oObj, bOnlyTreasure)
+  local function DoPickupObjects(oObj, iAnd, iEqual)
     -- Get object strength
     local iStr<const>, iObjId = oObj.STR, 1;
     -- Continue point
@@ -557,10 +550,7 @@ local function PickupObjects(...)
     local oObjTarget<const> = aObjs[iObjId];
     local iTFlags = oObjTarget.F;
     if oObj ~= oObjTarget and         -- ...target object not same *or*
-       iTFlags & iFPickup ~= 0 and    -- ...can be grabbed? *and*
-       iTFlags & iFBusy == 0 and      -- ...not busy? *and*
-      (not bOnlyTreasure or           -- ...only pick up gems? *or*
-       iTFlags & iFTreasure ~= 0) and -- ...treasure flag not set? *and*
+       iTFlags & iAnd == iEqual and   -- ...target property flags match? *and*
        #oObjTarget.I <= 0 and         -- ...target obj not has inventory *and*
        oObj.IW + oObjTarget.W <= iStr and -- ...not too heavy? *and*
        IsSpriteCollide(                   -- ...touching?
@@ -624,17 +614,17 @@ local function InitSetAction()
     iDUpLeft<const>, iFiBusy<const>, iFiFall<const>, iFiJump<const>,
     iFiNoSound<const>, iFBlock<const>, iFBusy<const>, iFImpatient<const>,
     iFJump<const>, iFJumpRiseBusy<const>, iFNoAI<const>, iFNoHome<const>,
-    iFNoSound<const>, iFRngSprite<const>, iFStaminaBoost<const>,
-    iFTPMaster<const>, iJDigDown<const>, iJHome<const>, iJKeep<const>,
-    iJNone<const>, iJPhase<const>, iSJump<const>, iSGClose<const>,
-    iSGOpen<const>, iTyGateB<const>, iTyLiftB<const> =
+    iFNoSound<const>, iFPuAnyMask<const>, iFPuAnyEq<const>, iFRngSprite<const>,
+    iFStaminaBoost<const>, iFTPMaster<const>, iJDigDown<const>, iJHome<const>,
+    iJKeep<const>, iJNone<const>, iJPhase<const>, iSJump<const>,
+    iSGClose<const>, iSGOpen<const>, iTyGateB<const>, iTyLiftB<const> =
       ACT.CLOSE, ACT.FIGHT, ACT.KEEP, ACT.OPEN, ACT.PHASE, ACT.STOP, ACT.WALK,
       DIR.D, DIR.L, DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.U, DIR.UL, OFL.iBUSY,
       OFL.iFALL, OFL.iJUMP, OFL.iNOSOUND, OFL.BLOCK, OFL.BUSY, OFL.IMPATIENT,
       OFL.JUMP, OFL.JUMPRISEBUSY, OFL.NOAI, OFL.NOHOME, OFL.NOSOUND,
-      OFL.RNGSPRITE, OFL.STAMINABOOST, OFL.TPMASTER, JOB.DIGDOWN, JOB.HOME,
-      JOB.KEEP, JOB.NONE, JOB.PHASE, oSfxData.JUMP, oSfxData.GCLOSE,
-      oSfxData.GOPEN, TYP.GATEB, TYP.LIFTB;
+      OFL.PUMANY, OFL.PUEANY, OFL.RNGSPRITE, OFL.STAMINABOOST, OFL.TPMASTER,
+      JOB.DIGDOWN, JOB.HOME, JOB.KEEP, JOB.NONE, JOB.PHASE, oSfxData.JUMP,
+      oSfxData.GCLOSE, oSfxData.GOPEN, TYP.GATEB, TYP.LIFTB;
   -- Deployment of train track --------------------------------------------- --
   local function DEPLOYTrack(oObj)
     -- Deploy success
@@ -815,7 +805,8 @@ local function InitSetAction()
   end
   -- Drop inventory item or grab world item requested? --------------------- --
   local function ACTDropItem(oObj) return true, DropObject(oObj, oObj.IS) end;
-  local function ACTGrabItem(oObj) return true, PickupObjects(oObj, false) end;
+  local function ACTGrabItem(oObj)
+    return true, PickupObjects(oObj, iFPuAnyMask, iFPuAnyEq) end;
   -- Previous or next inventory item requested? ---------------------------- --
   local function ACTLastItem(oObj) return true, CycleObjInventory(oObj,-1) end;
   local function ACTNextItem(oObj) return true, CycleObjInventory(oObj, 1) end;
@@ -2249,12 +2240,14 @@ local function InitCreateObject()
     iDRight<const>, iJDig<const>, iJInDanger<const>, iJKeep<const>,
     iJNone<const>, iJPhase<const>, iJSearch<const>, iFBusy<const>,
     iFDelicate<const>, iFFall<const>, iFInWater<const>, iFPhaseTarget<const>,
+    iFPuMAny<const>, iFPuMGems<const>, iFPuEAny<const>, iFPuEGems<const>,
     iFSellable<const>, iFTreasure<const>, iARest<const>, iTFWater<const> =
       ACT.CREEP, ACT.DYING, ACT.JUMP, ACT.KEEP, ACT.PHASE, ACT.STOP, ACT.WALK,
       DIR.D, DIR.KEEP, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG,
       JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, OFL.BUSY,
-      OFL.DELICATE, OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.SELLABLE,
-      OFL.TREASURE, ACT.REST, oTileFlags.W;
+      OFL.DELICATE, OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.PUMANY,
+      OFL.PUMGEMS, OFL.PUEANY, OFL.PUEGEMS, OFL.SELLABLE, OFL.TREASURE,
+      ACT.REST, oTileFlags.W;
   -- Direction table for AIFindTarget -------------------------------------- --
   local aFindTargetData<const> = {
     { DIR.UL --[[ -1,-1 --]], false --[[ 0,-1 --]],  DIR.UR --[[ 1,-1 --]] },
@@ -2610,21 +2603,23 @@ local function InitCreateObject()
     }
   };
   -- Drop a random object -------------------------------------------------- --
-  local function AIDropRandomObject(oObj, bAndTreasure)
+  local function AIDropRandomObject(oObj, iAnd, iEqual)
     -- Get digger inventory and return if no inventory.
     local aObjInvList<const> = oObj.I;
     if #aObjInvList == 0 then return end;
-    -- Pick a random object and return if its treasure.
+    -- Pick a random object and try to drop it if properties match
     local oObjInv<const> = aObjInvList[random(#aObjInvList)];
-    if not bAndTreasure and oObjInv.F & iFTreasure ~= 0 then return end;
-    -- Return if we dropped the object
-    return DropObject(oObj, oObjInv);
+    return oObjInv.F & iAnd == iEqual and DropObject(oObj, oObjInv);
   end
-  -- AI digger logic ------------------------------------------------------- --
+  -- Pickup Objects or just gems ------------------------------------------- --
+  local function AIPickupObjectsOrGems(oObj)
+    return (random() >= 0.05 and PickupObjects(oObj, iFPuMGems, iFPuEGems)) or
+      PickupObjects(oObj, iFPuMAny, iFPuEAny);
+  end
+  -- Digger AI logic ------------------------------------------------------- --
   local function AIDiggerLogic(oObj)
-    -- Return if...
-    if oObj.F & iFFall == 0 or      -- ...or not allowed to fall
-       oObj.FD > 0 then return end; -- ...already falling
+    -- Return if not falling or already falling
+    if oObj.F & iFFall == 0 or oObj.FD > 0 then return end;
     -- If object is busy?
     if oObj.F & iFBusy ~= 0 then
       -- If resting and full health then snap out of it
@@ -2643,43 +2638,44 @@ local function InitCreateObject()
     end
     -- Return if object jumped
     if ObjectJumped(oObj) then return end;
+    -- Generate a random number for this digger for this frame
+    local nRandom<const> = random();
     -- Stop the Digger if needed so it can heal a bit if...
-    if random() < 0.001 and      -- Intelligent enough? (0.1%)
+    if nRandom < 0.001 and       -- Intelligent enough? (0.1%)
        oObj.H <= 25 and          -- Below quarter health?
        oObj.A ~= iAStop and      -- Not stopped?
        oObj.J ~= iJInDanger then -- Not in danger?
       -- If the object can rest then they can rest and heal faster
-      if oObj.OD[iARest] and random() >= oObj.IN then
+      if oObj.OD[iARest] and nRandom >= oObj.IN then
         return SetAction(oObj, iARest, iJNone, iDNone);
       -- Go home and rest
       else return SetAction(oObj, iAStop, iJNone, iDNone) end;
     end
     -- If object...
-    if (((random() <= 0.01 and            -- *and* (1% chance?
-          oObj.H < 50) or                 -- *and* Health under 50%)
-         (random() <= 0.001 and           -- *or* (0.1% chance?
-          oObj.H >= 50)) and              -- *and* Health over 50%)
+    if (((nRandom <= 0.01 and             -- Low 1% chance?
+          oObj.H < 50) or                 -- *and* Health under 50%?
+         (nRandom <= 0.001 and            -- *or* (0.1% chance?
+          oObj.H >= 50)) and              -- *and* Health over 50%?
         oObj.J == iJInDanger and          -- Object is in danger?
         oObj.A ~= iAStop) or              -- *and* moving?
-       (random() <= 0.001 and             -- *or* (0.1% chance?)
+       (nRandom <= 0.001 and              -- *or* (0.1% chance?)
         oObj.IW >= oObj.MI and            -- *and* Digger has full inv?
         ObjectHasValuables(oObj)) or      -- *and* has sellable items?)
-       (random() <= 0.01 and              -- *or* (1% chance?)
+       (nRandom <= 0.01 and               -- *or* (1% chance?)
         iGameTicks - oObj.LDT >= 7200 and -- *and* Not dug for 2 mins?
         oObj.A == iAStop) then            -- *and* not moving?)
       PhaseHome(oObj);                    -- Phase home
     end
     -- Return if...
-    if (oObj.H < 50 and          -- ...Below half health? *and*
-        oObj.A == iAStop and     -- Stopped? *and*
-        random() > 0.001) or     -- Very big chance? (0.1%) *or*
-       (oObj.A == iAWalk and     -- Digger is walking *and*
-        iGameTicks % 30 == 0 and -- Once every 30 frames *and*
-        oObj.J ~= iJSearch and   -- Digger not searching? *and
-        (PickupObjects(oObj,     -- Pick up obj or device
-           random() >= 0.05) or  -- (devices have 5% chance) *or*
-         (random() <= 0.01 and   -- 1% chance and dropped an object.
-          AIDropRandomObject(oObj, false)))) then return end;
+    if (oObj.H < 50 and                   -- below half health?
+        oObj.A == iAStop and              -- *and* stopped?
+        nRandom > 0.001) or               -- *and* very low 0.1% chance?
+        (oObj.J ~= iJSearch and           -- *or* Digger not searching?
+         oObj.AT % 30 == 1 and            -- *and* once every 30 frames?
+         (nRandom >= oObj.IN and          -- *and* intelligent enough?
+          AIPickupObjectsOrGems(oObj)) or -- *and* picked up an object?
+         (nRandom <= 0.05 and             -- *or* 5% chance to drop & dropped?
+          AIDropRandomObject(oObj, iFTreasure, 0))) then return end;
     -- Return if no data for current action
     local oAIDataAction<const> = oAIData[oObj.A];
     if not oAIDataAction then return end;
@@ -2688,8 +2684,8 @@ local function InitCreateObject()
     if not oAIDataJob then return end;
     -- Return false if no chance to change job
     local nAIDataDirection<const> = oAIDataJob[oObj.D];
-    return nAIDataDirection and random() <= nAIDataDirection and
-           SetRandomJob(oObj);
+    return nAIDataDirection and nRandom <= nAIDataDirection and
+      SetRandomJob(oObj);
   end
   -- AI random direction logic initialisation data ------------------------- --
   local aAIRandomLogicInitData<const> = { DIR.U, iDDown, DIR.L, iDRight };
@@ -2772,11 +2768,13 @@ local function InitCreateObject()
        oObj.F & iFFall == 0 or             -- ...*or* or not allowed to fall...
        oObj.FD > 0 or                      -- ...*or* already falling...
        ObjectJumped(oObj) then return end; -- ...*or* we jumped.
-    -- Every 30 game frames (half of a second). Try to pick up treasure with a
-    -- 25% chance to pickup devices as well and if no objects were picked up
+    -- Every 60 game frames (a second). Try to pick up treasure with a
+    -- 5% chance to pickup devices as well and if no objects were picked up
     -- then theres a 5% chance to try to drop one.
-    if iGameTicks % 60 == 0 and (PickupObjects(oObj, random() >= 0.25) or
-         (random() < 0.05 and AIDropRandomObject(oObj, true))) then return end;
+    if iGameTicks % 60 == 0 and
+       (random() < 0.25 and AIPickupObjectsOrGems(oObj)) or
+       (random() < 0.05 and
+        AIDropRandomObject(oObj, iFTreasure, iFTreasure)) then return end;
     -- If ADHD hasn't set in yet? Just return
     if random() > 0.001 then return end;
     -- Get and set a random action
@@ -3120,13 +3118,13 @@ local function GameProc()
     iFInWater<const>, iFiFall<const>, iFiFloating<const>, iFiInWater<const>,
     iFiJumpFallBusy<const>, iFiJumpRise<const>, iFJumping<const>,
     iFJumpFall<const>, iFJumpRise<const>, iFPhaseDigger<const>,
-    iFPhaseTarget<const>, iFPursueDigger<const>, iFRegenerate<const>,
-    iFStationary<const>, iFTPMaster<const>, iFWaterBased<const>,
-    iJDigDown<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
-    iJPhase<const>, iJSearch<const>, iSError<const>, iTDeadWait<const>,
-    iTyFirstAid<const>, iTyTelepole<const>, iTFW<const>, iTFP<const>,
-    iTFEL<const>, iTFER<const>, iTFEB<const>, iTFET<const>,
-    iTFAnimateBegin<const>, iTFAnimateEnd<const> =
+    iFPhaseTarget<const>, iFPuGemMask<const>, iFPuGemEq<const>,
+    iFPursueDigger<const>, iFRegenerate<const>, iFStationary<const>,
+    iFTPMaster<const>, iFWaterBased<const>, iJDigDown<const>,
+    iJInDanger<const>, iJKeep<const>, iJNone<const>, iJPhase<const>,
+    iJSearch<const>, iSError<const>, iTDeadWait<const>, iTyFirstAid<const>,
+    iTyTelepole<const>, iTFW<const>, iTFP<const>, iTFEL<const>, iTFER<const>,
+    iTFEB<const>, iTFET<const>, iTFAnimateBegin<const>, iTFAnimateEnd<const> =
       ACT.DEATH, ACT.EATEN, ACT.FIGHT, ACT.HIDE, ACT.KEEP, ACT.PHASE, ACT.RUN,
       ACT.STOP, DIR.D, DIR.DR, DIR.KEEP, DIR.KEEPMOVE, DIR.LR, DIR.NONE,
       DIR.OPPOSITE, DIR.R, DIR.UR, OFL.AQUALUNG, OFL.BUSY, OFL.CONSUME,
@@ -3134,11 +3132,12 @@ local function GameProc()
       OFL.FLOATING, OFL.HEALNEARBY, OFL.HURTDIGGER, OFL.INWATER, OFL.iFALL,
       OFL.iFLOATING, OFL.iINWATER, OFL.iJUMPFALLBUSY, OFL.iJUMPRISE, OFL.JUMP,
       OFL.JUMPFALL, OFL.JUMPRISE, OFL.PHASEDIGGER, OFL.PHASETARGET,
-      OFL.PURSUEDIGGER, OFL.REGENERATE, OFL.STATIONARY, OFL.TPMASTER,
-      OFL.WATERBASED, JOB.DIGDOWN, JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE,
-      JOB.SEARCH, oSfxData.ERROR, 600, TYP.FIRSTAID, TYP.TELEPOLE,
-      oTileFlags.W, oTileFlags.P, oTileFlags.EL, oTileFlags.ER, oTileFlags.EB,
-      oTileFlags.ET, oTileFlags.AB, oTileFlags.AE;
+      OFL.PUMGEMS, OFL.PUEGEMS, OFL.PURSUEDIGGER, OFL.REGENERATE,
+      OFL.STATIONARY, OFL.TPMASTER, OFL.WATERBASED, JOB.DIGDOWN, JOB.INDANGER,
+      JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, oSfxData.ERROR, 600,
+      TYP.FIRSTAID, TYP.TELEPOLE, oTileFlags.W, oTileFlags.P, oTileFlags.EL,
+      oTileFlags.ER, oTileFlags.EB, oTileFlags.ET, oTileFlags.AB,
+      oTileFlags.AE;
   -- == TILE DIGGING LOGIC ================================================= --
   -- Storage for certain positions and tile ids relative to the object
   local iDP,   -- Vertical position at objects feet
@@ -4025,7 +4024,7 @@ local function GameProc()
       end
       -- Pickup objects if searching and every 1/6th of a second of game time
       if oObj.J == iJSearch and oObj.AT % 10 == 0 then
-        PickupObjects(oObj, true);
+        PickupObjects(oObj, iFPuGemMask, iFPuGemEq);
       -- Unset job if object is in danger and danger timeout is reached?
       elseif oObj.J == iJInDanger and oObj.AT >= iTDeadWait then
         SetAction(oObj, iAKeep, iJNone, iDKeep);
