@@ -2617,10 +2617,13 @@ local function InitCreateObject()
     local oObjInv<const> = aObjInvList[random(#aObjInvList)];
     return oObjInv.F & iAnd == iEqual and DropObject(oObj, oObjInv);
   end
-  -- Pickup Objects or just gems ------------------------------------------- --
+  -- Pickup objects or just gems ------------------------------------------- --
   local function AIPickupObjectsOrGems(oObj)
-    return (random() >= 0.05 and PickupObjects(oObj, iFPuMGems, iFPuEGems)) or
-      PickupObjects(oObj, iFPuMAny, iFPuEAny);
+    -- 95% chance to pickup gems only
+    if random() >= 0.05 then
+      return PickupObjects(oObj, iFPuMGems, iFPuEGems) end;
+    -- 5% chance to pickup gems or items
+    return PickupObjects(oObj, iFPuMAny, iFPuEAny);
   end
   -- Digger AI logic ------------------------------------------------------- --
   local function AIDiggerLogic(oObj)
@@ -2681,15 +2684,15 @@ local function InitCreateObject()
       return;
     end
     -- Return if...
-    if (oObj.H < 50 and                   -- below half health?
-        oObj.A == iAStop and              -- *and* stopped?
-        nRandom > 0.001) or               -- *and* very low 0.1% chance?
-        (oObj.J ~= iJSearch and           -- *or* Digger not searching?
-         oObj.AT % 10 == 1 and            -- *and* once every 10 frames?
-         (nRandom >= oObj.IN and          -- *and* intelligent enough?
-          AIPickupObjectsOrGems(oObj)) or -- *and* picked up an object?
-         (nRandom <= 0.05 and             -- *or* 5% chance to drop & dropped?
-          AIDropRandomObject(oObj, iFTreasure, 0))) then return end;
+    if (oObj.H < 50 and                    -- below half health?
+        oObj.A == iAStop and               -- *and* stopped?
+        nRandom > 0.001) or                -- *and* very low 0.1% chance?
+        (oObj.J ~= iJSearch and            -- *or* Digger not searching?
+         oObj.AT % 10 == 1 and             -- *and* once every 10 frames?
+         ((nRandom >= oObj.IN and          -- *and* intelligent enough?
+           AIPickupObjectsOrGems(oObj)) or -- *and* picked up an object?
+          (nRandom <= 0.01 and             -- *or* 1% to drop and dropped?
+           AIDropRandomObject(oObj, iFTreasure, 0)))) then return end;
     -- Return if no data for current action
     local oAIDataAction<const> = oAIData[oObj.A];
     if not oAIDataAction then return end;
