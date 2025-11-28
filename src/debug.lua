@@ -30,6 +30,9 @@ local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   GetViewportData, RenderAll, RenderInterface, JOB, ACT;
 -- Locals ------------------------------------------------------------------ --
 local bHud = true;                     -- Show hud?
+local iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+  iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW, iViewportH,
+  iVPX, iVPY, oPlrActive, oObjActive, oPlrOpponent;
 -- Load infinite play ------------------------------------------------------ --
 local function InitDebugPlay(iId)
   -- Set random level if not set
@@ -56,23 +59,13 @@ local function InitDebugPlay(iId)
   local iLevelId, sLevelName, sLevelType, iWinLimit;
   -- Render function
   local function OnRender()
-    -- Render terrain
-    RenderTerrain();
     -- Hud not enabled?
     if not bHud then return RenderAll() end;
+    -- Render terrain
+    RenderTerrain();
     -- Get system information
     local nCpu<const>, nSys<const> = CoreCPUUsage();
     local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
-    -- Get active player object and opponent player
-    local oPlrActive<const> = GetActivePlayer();
-    local oObjActive<const> = GetActiveObject();
-    local oPlrOpponent<const> = GetOpponentPlayer();
-    -- Get viewport information
-    local iPixPosX<const>, iPixPosY<const>, iPixPosTargetX<const>,
-      iPixPosTargetY<const>, iPixCenPosX<const>, iPixCenPosY<const>,
-      iPosX<const>, iPosY<const>, iAbsCenPosX<const>, iAbsCenPosY<const>,
-      iViewportW<const>, iViewportH<const>, iVPX<const>, iVPY<const> =
-        GetViewportData();
     -- For each object
     for iObjId = 1, #aObjs do
       -- Get object data
@@ -203,17 +196,24 @@ local function InitDebugPlay(iId)
     Fade(0.0, 1.0, 0.04, OnRender, OnFadeOut);
   end
   -- Store mouse position
-  local aPlayerAtHumanStart, iX, iY, iNextObjectPoll, iRate, iRateM1;
+  local iX, iY, iPPX, iPPY, iNextObjectPoll, iRate,
+    iRateM1, aPlayerAtHumanStart = GetMouseX(), GetMouseY(), 0, 0, 0;
   -- Debug mode initialisation function
   local function OnInit(...)
+    -- Get viewport information
+    iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+      iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW,
+      iViewportH, iVPX, iVPY = GetViewportData();
     -- Store level information
     iLevelId, sLevelName, sLevelType, iWinLimit = ...;
-    -- Get opponent player
-    local oPlayer<const> = GetOpponentPlayer();
+    -- Get active player object and opponent player
+    oPlrActive = GetActivePlayer();
+    oObjActive = GetActiveObject();
+    oPlrOpponent = GetOpponentPlayer();
     -- Set remove shroud mode
-    oPlayer.US = true;
+    oPlrOpponent.US = true;
     -- Get and enumerate player diggers
-    local aDiggers<const> = oPlayer.D;
+    local aDiggers<const> = oPlrOpponent.D;
     for iDiggerId = 1, #aDiggers do
       -- Get digger
       local oDigger<const> = aDiggers[iDiggerId];
@@ -221,8 +221,6 @@ local function InitDebugPlay(iId)
       oDigger.US = true;
       UpdateShroud(oDigger.AX, oDigger.AY);
     end
-    -- Store mouse position
-    iX, iY, iNextObjectPoll = GetMouseX(), GetMouseY(), 0;
     -- Set money tick rate
     iRate = 216000 // iWinLimit;
     iRateM1 = iRate - 1;
@@ -236,6 +234,10 @@ local function InitDebugPlay(iId)
   end
   -- Set real function
   local function OnTick()
+    -- Get viewport information
+    iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+      iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW,
+      iViewportH, iVPX, iVPY = GetViewportData();
     -- Add 1 Zog to what would be main player every so often. This eventually
     -- gives the player a lead. They might eventually purchase something, and
     -- the game will end eventually.
@@ -245,11 +247,11 @@ local function InitDebugPlay(iId)
     end
     -- If we're blocked from polling objects then don't
     if GetGameTicks() < iNextObjectPoll then GameProc() return end
-    -- Mouse position changed?
-    local iNewX<const>, iNewY<const> = GetMouseX(), GetMouseY();
-    if iNewX ~= iX or iNewY ~= iY then
+    -- Mouse position or viewport changed?
+    if iNewX ~= iX or iNewY ~= iY or iPixPosX ~= iPPX or iPixPosY ~= iPPY then
       -- Update new position and block time for 10 seconds
-      iX, iY, iNextObjectPoll = iNewX, iNewY, GetGameTicks() + 600;
+      iX, iY, iNextObjectPoll, iPPX, iPPY = iNewX, iNewY, GetGameTicks() + 600,
+        iPixPosX, iPixPosY;
       -- Don't cycle objects
       GameProc();
       -- Done

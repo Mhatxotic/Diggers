@@ -1169,14 +1169,14 @@ end
 -- Set object health (properly initialised at script init) ----------------- --
 local function AdjustObjectHealth()
   -- Commonly accessed aliases
-  local iADeath<const>, iAPhase<const>, iJNone<const>, iDNone<const>,
-    iFNoSound<const>, iTFWater<const>, iTFIndestructible<const>,
-    iTFDestructable<const>, iTFArtificial<const>, iTFProtected<const>,
-    iTFExposedAll<const>, iTFFirmGround<const>, iTypLiftB<const>,
-    iTypFloodGate<const> =
-      ACT.DEATH, ACT.PHASE, JOB.NONE, DIR.NONE, OFL.NOSOUND, oTileFlags.W,
-      oTileFlags.I, oTileFlags.D, oTileFlags.AD, oTileFlags.P, oTileFlags.EA,
-      oTileFlags.F, TYP.LIFTB, TYP.GATEB;
+  local iADeath<const>, iAPhase<const>, iJInDanger<const>, iJNone<const>,
+    iDNone<const>, iFiJump<const>, iFNoSound<const>, iTFWater<const>,
+    iTFIndestructible<const>, iTFDestructable<const>, iTFArtificial<const>,
+    iTFProtected<const>, iTFExposedAll<const>, iTFFirmGround<const>,
+    iTypLiftB<const>, iTypFloodGate<const> =
+      ACT.DEATH, ACT.PHASE, JOB.INDANGER, JOB.NONE, DIR.NONE, OFL.iJUMP,
+      OFL.NOSOUND, oTileFlags.W, oTileFlags.I, oTileFlags.D, oTileFlags.AD,
+      oTileFlags.P, oTileFlags.EA, oTileFlags.F, TYP.LIFTB, TYP.GATEB;
   -- Actually kill object
   local function KillObject(oTarget, oObjCause)
     AdjustObjectHealth(oTarget, -100, oObjCause);
@@ -1394,23 +1394,33 @@ local function AdjustObjectHealth()
       if iNewHealth > 100 then
         oObjVictim.H, iAmount = 100, 100 - oObjVictim.H;
       else oObjVictim.H = iNewHealth end;
-      -- Add a damage value above the objects head
+      -- Health reduction?
       if iAmount < 0 then
+        -- Add a damage value above the objects head
         CreateDamageValue(iAmount, oObjVictim, oObjCause, 1.0, 1.0, 1.0);
+        -- If health is in danger?
+        if iNewHealth <= 10 then
+          -- Set object in danger
+          oObjVictim.J = iJInDanger;
+          -- Indicator for in danger and not dead
+          return 1;
+        end
+      -- Health increment?
       elseif iAmount > 0 then
+        -- Add a damage value above the objects head
         CreateDamageValue(iAmount, oObjVictim, oObjCause, 1.0, 1.0, 0.25);
       end
-      -- Do not do anything else
-      return;
+      -- At a safe health still
+      return 0;
     end
     -- Write killing value above objects head
     CreateDamageValue(iAmount, oObjVictim, oObjCause, 1.0, 0.0, 1.0);
     -- Object is dead so clamp health to zero or update the objects new health
     if iNewHealth < 0 then oObjVictim.H = 0 else oObjVictim.H = iNewHealth end;
     -- Kill object (Don't move this, for explosion stuff to work)
-    SetAction(oObjVictim, iADeath, JOB.INDANGER, DIR.NONE);
+    SetAction(oObjVictim, iADeath, iJInDanger, iDNone);
     -- Remove jump and falling status from object
-    local iFlags<const> = oObjVictim.F & OFL.iJUMP;
+    local iFlags<const> = oObjVictim.F & iFiJump;
     oObjVictim.F = iFlags;
     -- Get victim name
     local sVictim<const> = oObjVictim.OD.NAME..
@@ -1444,7 +1454,7 @@ local function AdjustObjectHealth()
     -- Disable menu if object is selected and menu open
     if oObjActive == oObjVictim and aContextMenu then SetContextMenu() end;
     -- Object died
-    return true;
+    return -1;
   end
   -- Return actual function
   return AdjustObjectHealth;
@@ -2237,13 +2247,14 @@ local function InitCreateObject()
   local iACreep<const>, iADying<const>, iAJump<const>, iAKeep<const>,
     iAPhase<const>, iAStop<const>, iAWalk<const>, iDDown<const>,
     iDKeep<const>, iDLeftRight<const>, iDNone<const>, iDOpposite<const>,
-    iDRight<const>, iJDig<const>, iJInDanger<const>, iJKeep<const>,
-    iJNone<const>, iJPhase<const>, iJSearch<const>, iFBusy<const>,
-    iFDelicate<const>, iFFall<const>, iFInWater<const>, iFPhaseTarget<const>,
-    iFPuMAny<const>, iFPuMGems<const>, iFPuEAny<const>, iFPuEGems<const>,
-    iFSellable<const>, iFTreasure<const>, iARest<const>, iTFWater<const> =
+    iDRight<const>, iDUp<const>, iJDig<const>, iJInDanger<const>,
+    iJKeep<const>, iJNone<const>, iJPhase<const>, iJSearch<const>,
+    iFBusy<const>, iFDelicate<const>, iFFall<const>, iFInWater<const>,
+    iFPhaseTarget<const>, iFPuMAny<const>, iFPuMGems<const>, iFPuEAny<const>,
+    iFPuEGems<const>, iFSellable<const>, iFTreasure<const>, iARest<const>,
+    iTFWater<const> =
       ACT.CREEP, ACT.DYING, ACT.JUMP, ACT.KEEP, ACT.PHASE, ACT.STOP, ACT.WALK,
-      DIR.D, DIR.KEEP, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, JOB.DIG,
+      DIR.D, DIR.KEEP, DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.U, JOB.DIG,
       JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, OFL.BUSY,
       OFL.DELICATE, OFL.FALL, OFL.INWATER, OFL.PHASETARGET, OFL.PUMANY,
       OFL.PUMGEMS, OFL.PUEANY, OFL.PUEGEMS, OFL.SELLABLE, OFL.TREASURE,
@@ -2346,7 +2357,7 @@ local function InitCreateObject()
     -- Reset last dig time
     oObj.LDT = iGameTicks;
     -- Teleport home
-    return SetAction(oObj, iAPhase, iJPhase, DIR.U);
+    return SetAction(oObj, iAPhase, iJPhase, iDUp);
   end
   -- Simulate jumping function --------------------------------------------- --
   local function SimulateJumpLogic(oObj, iAdjX, iAnimAmount, aJumpData, iStep)
@@ -2553,7 +2564,7 @@ local function InitCreateObject()
         -- Reset anti-wiggle timeframe to another 5 seconds
         oObj.AW, oObj.AWR = iGameTicks + 300, 0;
         -- Phase home if have parent
-        if oObj.P then PhaseHome(oObj) return true end;
+        if oObj.P and PhaseHome(oObj) then return true end;
         -- Go to a random object
         return SetAction(oObj, iAPhase, iJPhase, iDDown);
       -- Set new wiggle count
@@ -2568,7 +2579,7 @@ local function InitCreateObject()
     -- Ai is stopped?
     [iAStop] = {
       -- No job set?
-      [iJNone] = { [DIR.UL] = 0.02, [DIR.U]  = 0.1,  [DIR.UR]  = 0.02,
+      [iJNone] = { [DIR.UL] = 0.02, [iDUp]  = 0.1,   [DIR.UR]  = 0.02,
                    [DIR.L]  = 0.02, [iDNone] = 0.1,  [iDRight] = 0.02,
                    [DIR.DL] = 0.02, [iDDown] = 0.02, [DIR.DR]  = 0.02 },
       -- Job is to dig?
@@ -2624,17 +2635,20 @@ local function InitCreateObject()
     if oObj.F & iFBusy ~= 0 then
       -- If resting and full health then snap out of it
       if oObj.A == iARest and oObj.H >= 100 then
-        return SetAction(oObj, iAStop, iJNone, iDNone) end;
+        SetAction(oObj, iAStop, iJNone, iDNone) end;
       -- Nothing else to do whilst busy
       return;
     end
-    -- Teleport home to rest and sell items if these conditions are met...
+    -- If the following conditions are met...
     if ObjectIsAtHome(oObj) and -- Object is at their home point? *and*
       (oObj.IW > 0 or           -- (Digger is carrying something? *or*
        oObj.H < 75) and         --  Health is under 75%) *and*
        oObj.A == iAStop and     -- Digger has stopped?
        oObj.D ~= iDRight then   -- Digger hasn't teleported yet?
-      return SetAction(oObj, iAPhase, iJPhase, iDRight);
+      -- Teleport home to rest and sell items
+      SetAction(oObj, iAPhase, iJPhase, iDRight);
+      -- Nothing else to do whilst teleporting
+      return;
     end
     -- Return if object jumped
     if ObjectJumped(oObj) then return end;
@@ -2642,36 +2656,41 @@ local function InitCreateObject()
     local nRandom<const> = random();
     -- Stop the Digger if needed so it can heal a bit if...
     if nRandom < 0.001 and       -- Intelligent enough? (0.1%)
-       oObj.H <= 25 and          -- Below quarter health?
-       oObj.A ~= iAStop and      -- Not stopped?
+       oObj.H <= 25 and          -- *and* Below quarter health?
+       oObj.A ~= iAStop and      -- *and* Not stopped?
        oObj.J ~= iJInDanger then -- Not in danger?
       -- If the object can rest then they can rest and heal faster
       if oObj.OD[iARest] and nRandom >= oObj.IN then
-        return SetAction(oObj, iARest, iJNone, iDNone);
+        SetAction(oObj, iARest, iJNone, iDNone);
       -- Go home and rest
-      else return SetAction(oObj, iAStop, iJNone, iDNone) end;
+      else SetAction(oObj, iAStop, iJNone, iDNone) end;
+      -- Nothing else to do in this frame
+      return;
     end
-    -- If object...
+    -- If the following conditions are met?
     if (((nRandom <= 0.01 and             -- Low 1% chance?
           oObj.H < 50) or                 -- *and* Health under 50%?
          (nRandom <= 0.001 and            -- *or* (0.1% chance?
           oObj.H >= 50)) and              -- *and* Health over 50%?
-        oObj.J == iJInDanger and          -- Object is in danger?
+        oObj.J == iJInDanger and          -- *and* object is in danger?
         oObj.A ~= iAStop) or              -- *and* moving?
        (nRandom <= 0.001 and              -- *or* (0.1% chance?)
         oObj.IW >= oObj.MI and            -- *and* Digger has full inv?
         ObjectHasValuables(oObj)) or      -- *and* has sellable items?)
        (nRandom <= 0.01 and               -- *or* (1% chance?)
         iGameTicks - oObj.LDT >= 7200 and -- *and* Not dug for 2 mins?
-        oObj.A == iAStop) then            -- *and* not moving?)
-      PhaseHome(oObj);                    -- Phase home
+        oObj.A == iAStop) then            -- *and* stopped?
+      -- Teleport home
+      PhaseHome(oObj);
+      -- Nothing else to do in this frame
+      return;
     end
     -- Return if...
     if (oObj.H < 50 and                   -- below half health?
         oObj.A == iAStop and              -- *and* stopped?
         nRandom > 0.001) or               -- *and* very low 0.1% chance?
         (oObj.J ~= iJSearch and           -- *or* Digger not searching?
-         oObj.AT % 30 == 1 and            -- *and* once every 30 frames?
+         oObj.AT % 10 == 1 and            -- *and* once every 10 frames?
          (nRandom >= oObj.IN and          -- *and* intelligent enough?
           AIPickupObjectsOrGems(oObj)) or -- *and* picked up an object?
          (nRandom <= 0.05 and             -- *or* 5% chance to drop & dropped?
@@ -2682,13 +2701,14 @@ local function InitCreateObject()
     -- Return if no data for specified job
     local oAIDataJob<const> = oAIDataAction[oObj.J];
     if not oAIDataJob then return end;
-    -- Return false if no chance to change job
+    -- Return if no chance to change job
     local nAIDataDirection<const> = oAIDataJob[oObj.D];
-    return nAIDataDirection and nRandom <= nAIDataDirection and
-      SetRandomJob(oObj);
+    if not nAIDataDirection or nRandom >= nAIDataDirection then return end;
+    -- Set a new job
+    SetRandomJob(oObj);
   end
   -- AI random direction logic initialisation data ------------------------- --
-  local aAIRandomLogicInitData<const> = { DIR.U, iDDown, DIR.L, iDRight };
+  local aAIRandomLogicInitData<const> = { iDUp, iDDown, DIR.L, iDRight };
   -- AI random direction logic movement data ------------------------------- --
   local oAIRandomLogicMoveData<const> = {
     -- -- (1st line) Try to move in these directions first... -------------- --
@@ -2698,7 +2718,7 @@ local function InitCreateObject()
     --   TeX  TeY Direction   TeX  TeY Direction   TeX  TeY Direction
     --    \/  \/  \/           \/  \/  \/           \/  \/  \/
     -- --------------------------------------------------------------------- --
-    [DIR.U]  = { { {  0, -2 }, {  0, -1 } }, -- Going up?
+    [iDUp] = { { {  0, -2 }, {  0, -1 } }, -- Going up?
       { { -1, -1, DIR.U   }, {  1, -1, DIR.U   }, { -1,  0, DIR.L },
         {  1,  0, iDRight }, {  0,  1, iDDown  } } },
     -- --------------------------------------------------------------------- --
@@ -2708,11 +2728,11 @@ local function InitCreateObject()
     -- --------------------------------------------------------------------- --
     [DIR.L] = { { { -2,  0 }, { -1,  0 } }, -- Going left?
       { { -1,  0, DIR.L   }, { -1, -1, DIR.L   }, { -1,  1, DIR.L   },
-        {  0, -1, DIR.U   }, {  0,  1, iDDown  }, {  1,  0, iDRight } } },
+        {  0, -1, iDUp    }, {  0,  1, iDDown  }, {  1,  0, iDRight } } },
     -- --------------------------------------------------------------------- --
     [iDRight] = { { {  2,  0 }, {  1,  0 } }, -- Going right?
       { {  1,  0, iDRight }, {  1, -1, iDRight }, {  1,  1, iDRight },
-        {  0, -1, DIR.U   }, {  0,  1, iDDown  }, { -1,  0, DIR.L   } } }
+        {  0, -1, iDUp    }, {  0,  1, iDDown  }, { -1,  0, DIR.L   } } }
     -- --------------------------------------------------------------------- --
   };
   -- AI random direction logic --------------------------------------------- --
@@ -3409,10 +3429,13 @@ local function GameProc()
         if not bIgnoreTelepole then
           -- Teleport to this device
           SetPosition(oObj, oTarget.X, oTarget.Y);
-          -- Take away health
-          if not bIsTeleMaster then AdjustObjectHealth(oObj, -5) end;
-          -- Re-phase back into stance
-          SetAction(oObj, iAPhase, iJNone, iDNone);
+          -- If not have teleportation perk? Take away health and if in low
+          -- health? We don't need to test if the object died.
+          if not bIsTeleMaster and AdjustObjectHealth(oObj, -5) == 1 then
+            -- Re-phase back into stance keeping already set danger flag
+            SetAction(oObj, iAPhase, iJKeep, iDNone);
+            -- Re-phase back into stance
+          else SetAction(oObj, iAPhase, iJNone, iDNone) end;
           -- Add it to ignore teleport destinations list for next time.
           aDestinations[1 + #aDestinations] = oTarget;
           -- Don't go home
@@ -3429,10 +3452,10 @@ local function GameProc()
     -- Set position of object to player's home
     local oPlrParent<const> = oObj.P;
     if oPlrParent then SetPosition(oObj, oPlrParent.HX, oPlrParent.HY) end;
-    -- Take away health
-    if not bIsTeleMaster then AdjustObjectHealth(oObj, -5) end;
     -- Re-phase back into stance
     SetAction(oObj, iAPhase, iJNone, iDKeep);
+    -- Take away health if not have teleportation enhancement
+    if not bIsTeleMaster then AdjustObjectHealth(oObj, -5) end;
   end
   -- Player entering trade centre logic ------------------------------------ --
   local function PlayerEnterTradeCentreLogic(oObj)
@@ -3477,7 +3500,7 @@ local function GameProc()
     else SetAction(oObj, iAStop, iJNone, iDKeep) end;
   end
   -- Functions base on direction ------------------------------------------- --
-  local oFunctions<const> = {
+  local oPhaseFunctions<const> = {
     [iDRight]     = AIEnterTradeCentreLogic,
     [DIR.U]       = PhaseHomeOrTelepoleLogic,
     [DIR.UL]      = PlayerEnterTradeCentreLogic,
@@ -3502,14 +3525,14 @@ local function GameProc()
     -- instantly respawn the object
     oObj.AT = 0;
     -- Cache current direction as this direction controls where the object is
-    -- going to teleport to (see the above 'oFunctions' table).
+    -- going to teleport to (see the above 'oPhaseFunctions' table).
     local iDirection<const> = oObj.D;
     -- Object has finished phasing
     if oObj.J ~= iJPhase then
       -- Object was teleported eaten? Respawn as eaten!
       if iDirection == iDDownRight then
         SetAction(oObj, iAEaten, iJNone, iDLeftRight);
-      -- Object not eaten?
+      -- Object not eaten? The object will reappear normally
       else SetAction(oObj, iAStop, iJNone, iDKeep) end;
       -- Done
       return false;
@@ -3521,7 +3544,7 @@ local function GameProc()
       if not oPlr or oPlr ~= oPlrActive then SelectObject() end;
     end
     -- Run function
-    return oFunctions[iDirection](oObj);
+    return oPhaseFunctions[iDirection](oObj);
   end
   -- Hiding? (trade centre) ------------------------------------------------ --
   local function ACTHide(oObj)
@@ -3693,7 +3716,7 @@ local function GameProc()
       -- Kill consumer
       AdjustObjectHealth(oObj, -100, oTarget);
       -- Eat digger and set it to busy
-      SetAction(oTarget, iAEaten, iJNone, iDKeep);
+      SetAction(oTarget, iAEaten, iJKeep, iDKeep);
       -- This digger is selected by the client? Unset control menu
       if oObjActive == oTarget then SetContextMenu() end;
       -- Don't need to test collision anymore since we killed the egg
@@ -3731,9 +3754,8 @@ local function GameProc()
           else SetAction(oTarget, iAKeep, iJInDanger, iDKeep) end;
         -- Target in danger
         else oTarget.J = iJInDanger end;
-        -- Reduce health
+        -- Reduce health and process next object
         AdjustObjectHealth(oTarget, -1, oObj);
-        -- Return to process next object
         return;
       end
       -- Object is dangerous and target is not jumping?
@@ -3801,11 +3823,12 @@ local function GameProc()
     -- If digger is intelligent enough and target isn't then double damage!
     if random() >= oObj.IN and
        random() < oTObj.IN then iDamage = iDamage * 2 end;
-    -- Adjust health and play the sound with a random pitch
-    AdjustObjectHealth(oTObj, iDamage, oObj);
+    -- Play the sound with a random pitch
     PlaySoundAtObject(oTObj, iSound, 0.9 + (random() % 0.1));
-    -- Return if object is acceptable health or not intelligent enough to run.
-    if oObj.H >= 10 or random() < oObj.IN then return end;
+    -- Adjust health and return if still in good health, died or not
+    -- intelligent enough to run away from opponent.
+    if AdjustObjectHealth(oTObj, iDamage, oObj) <= 0 or
+       random() < oObj.IN then return end;
     -- Run in opposite direction
     SetAction(oObj, iARun, iJInDanger, iDOpposite);
   end
@@ -3977,10 +4000,9 @@ local function GameProc()
     -- Object is delicate? Remove more health
     if iFlags & iFDelicate ~= 0 then iDamage = -iDamage;
                                 else iDamage = -(iDamage // 2) end;
-    -- Reduce health and return if object died or is above danger zone
-    if AdjustObjectHealth(oObj, iDamage) or oObj.H > 10 then return end;
-    -- Stop the object from moving
-    SetAction(oObj, iAStop, iJInDanger, iDNone);
+    -- Reduce health and stop object if fell too much
+    if AdjustObjectHealth(oObj, iDamage) == 1 then
+      SetAction(oObj, iAStop, iJKeep, iDNone) end;
   end
   -- Actions that are ignored when checking for obj collisions and water --- --
   local oActIgnoreObjColWater<const> = { [iAPhase] = true, [iADeath] = true };
@@ -4391,10 +4413,9 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
   end
   -- Create explosion (Cheat)
   local function CauseExplosion()
-    if GetTestMode() then
-      AdjustObjectHealth(
-        CreateObject(TYP.TNT, GetTileUnderMouse()), -100, oObjActive);
-    end
+    if not GetTestMode() then return end
+    AdjustObjectHealth(CreateObject(TYP.TNT,
+      GetTileUnderMouse()), -100, oObjActive);
   end
   -- Slow down cvar
   local cvSlowDown;
