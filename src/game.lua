@@ -2608,22 +2608,19 @@ local function InitCreateObject()
                        [DIR.DR]  = 0.002 },
     }
   };
-  -- Drop a random object -------------------------------------------------- --
-  local function AIDropRandomObject(oObj, iAnd, iEqual)
-    -- Get digger inventory and return if no inventory.
-    local aObjInvList<const> = oObj.I;
-    if #aObjInvList == 0 then return end;
-    -- Pick a random object and try to drop it if properties match
-    local oObjInv<const> = aObjInvList[random(#aObjInvList)];
-    return oObjInv.F & iAnd == iEqual and DropObject(oObj, oObjInv);
-  end
   -- Pickup objects or just gems ------------------------------------------- --
-  local function AIPickupObjectsOrGems(oObj)
+  local function AIPickupOrDrop(oObj, iEqual)
     -- 95% chance to pickup gems only
     if random() >= 0.05 then
       return PickupObjects(oObj, iFPuMGems, iFPuEGems) end;
     -- 5% chance to pickup gems or items
-    return PickupObjects(oObj, iFPuMAny, iFPuEAny);
+    if PickupObjects(oObj, iFPuMAny, iFPuEAny) then return true end;
+    -- Get digger inventory and return if no inventory or 95% chance to ignore.
+    local aObjInvList<const> = oObj.I;
+    if #aObjInvList == 0 then return end;
+    -- Pick a random object and try to drop it if properties match
+    local oObjInv<const> = aObjInvList[random(#aObjInvList)];
+    return oObjInv.F & iFTreasure == iEqual and DropObject(oObj, oObjInv);
   end
   -- Digger AI logic ------------------------------------------------------- --
   local function AIDiggerLogic(oObj)
@@ -2689,10 +2686,8 @@ local function InitCreateObject()
         nRandom > 0.001) or                -- *and* very low 0.1% chance?
         (oObj.J ~= iJSearch and            -- *or* Digger not searching?
          oObj.AT % 10 == 1 and             -- *and* once every 10 frames?
-         ((nRandom >= oObj.IN and          -- *and* intelligent enough?
-           AIPickupObjectsOrGems(oObj)) or -- *and* picked up an object?
-          (nRandom <= 0.01 and             -- *or* 1% to drop and dropped?
-           AIDropRandomObject(oObj, iFTreasure, 0)))) then return end;
+         nRandom >= oObj.IN and            -- *and* intelligent enough?
+         AIPickupOrDrop(oObj, 0)) then return end;
     -- Return if no data for current action
     local oAIDataAction<const> = oAIData[oObj.A];
     if not oAIDataAction then return end;
@@ -2786,13 +2781,11 @@ local function InitCreateObject()
        oObj.F & iFFall == 0 or             -- ...*or* or not allowed to fall...
        oObj.FD > 0 or                      -- ...*or* already falling...
        ObjectJumped(oObj) then return end; -- ...*or* we jumped.
-    -- Every 60 game frames (a second). Try to pick up treasure with a
+    -- Every 60 game frames (a second). Try to pick up gems with a
     -- 5% chance to pickup devices as well and if no objects were picked up
-    -- then theres a 5% chance to try to drop one.
-    if iGameTicks % 60 == 0 and
-       (random() < 0.25 and AIPickupObjectsOrGems(oObj)) or
-       (random() < 0.05 and
-        AIDropRandomObject(oObj, iFTreasure, iFTreasure)) then return end;
+    -- then another 5% chance to drop a piece of inventory.
+    if iGameTicks % 60 == 0 and random() < 0.25 and
+       AIPickupOrDrop(oObj, iFTreasure) then return end;
     -- If ADHD hasn't set in yet? Just return
     if random() > 0.001 then return end;
     -- Get and set a random action
@@ -2932,7 +2925,7 @@ local function InitCreateObject()
   end
   -- AI for flood gate ----------------------------------------------------- --
   local function AIGate(oObj)
-    -- Ignore if a rare random value occurs
+    -- Ignore if a rare random value occurs.
     if random() > 0.00001 then return end;
     -- Open or close the gate
     if random() < 0.5 then SetAction(oObj, ACT.OPEN, iJNone, iDNone);
@@ -3011,10 +3004,9 @@ local function InitCreateObject()
       AIDF = false,                      -- Default AI function
       ANT  = oObjData.ANIMTIMER,         -- Animation timer
       AT   = 0,                          -- Action timer
-      AX   = 0,                          -- Tile X position
+      AX   = 0,     AY   = 0,            -- Tile position
       AW   = 0,                          -- Anti-wiggle timeout
       AWR  = 0,                          -- Anti-wiggle remain
-      AY   = 0,                          -- Tile Y position
       CS   = not not oObjData[ACT.STOP], -- Object can stop?
       D    = false,                      -- Direction to go in (DIR.*)
       DA   = false,                      -- Attachment direction data
@@ -3043,31 +3035,26 @@ local function InitCreateObject()
       LK   = 0,                          -- Living things killed
       M    = false,                      -- Mask id for IsCollidePlatform()
       OD   = oObjData,                   -- Object data table
-      OFX  = 0, OFY  = 0,                -- Drawing offset
-      OFXA = 0, OFYA = 0,                -- Attachment drawing offset
+      OFX  = 0,     OFY  = 0,            -- Drawing offset
+      OFXA = 0,     OFYA = 0,            -- Attachment drawing offset
       P    = oParent,                    -- Parent of object
       PW   = 0,                          -- Patience warning
       PL   = 0,                          -- Patience limit
       S    = 0,                          -- Current sprite frame #
-      S1   = 0,                          -- Start sprite frame #
-      S1A  = 0,                          -- Start attachment sprite frame #
-      S2   = 0,                          -- Ending sprite frame #
-      S2A  = 0,                          -- Ending attachment sprite frame #
+      S1   = 0,     S1A  = 0             -- Start sprite frame# (+attachment)
+      S2   = 0,     S2A  = 0,            -- Ending sprite frame# (+attachment)
       SA   = 0,                          -- Current attachment sprite frame #
-      SM   = false,                      -- Object stamina
-      SMM1 = false,                      -- Object stamina minus one
+      SM   = false, SMM1 = false,        -- Object stamina (+minus 1)
       ST   = 0,                          -- Sprite animation timer
       STA  = oObjData.ATTACHMENT,        -- Object attachment id
       STR  = oObjData.STRENGTH,          -- Object strength
-      SX   = iX,                         -- Object starting position
-      SY   = iY,                         -- Object starting position
+      SX   = iX,    SY   = iY,           -- Object starting position
       TD   = { },                        -- Ignored teleport destinations
       TL   = { },                        -- Objects that are targeting this
       U    = iUniqueId,                  -- Unique id
       US   = oParent and oParent.US,     -- Automatically un-shroud?
       W    = oObjData.WEIGHT,            -- Carry amount / requirement
-      X    = 0,                          -- Absolute X position
-      Y    = 0,                          -- Absolute Y position
+      X    = 0,     Y    = 0             -- Absolute position
     };
     -- Add animated health value if our object
     if oParent and oPlrActive == oParent then oObj.HA = oObj.H end;
@@ -4971,8 +4958,8 @@ local function OnPreInitAPI(GetAPI)
     UtilFlushArrays(aObjs, aPlayers, aFloodData, aGemsAvailable,
       aLvlData, aShroudData, aDamageValues);
     -- Reset positions and other variables
-    iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iGameTicks,
-      iLvlId, iWinLimit, sMoney, iUniqueId, fcbLogic, fcbRender, fcbEnd =
+    iPixPosTargetX, iPixPosTargetY, iPixPosX, iPixPosY, iGameTicks, iLvlId,
+      iWinLimit, sMoney, iUniqueId, fcbLogic, fcbRender, fcbEnd =
         0, 0, 0, 0, 0, nil, nil, nil, 0, nil, nil, nil;
     -- Reset active objects, menus and players
     oPlrActive, oPlrOpponent = nil, nil;
