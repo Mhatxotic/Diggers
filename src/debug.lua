@@ -153,16 +153,18 @@ local function InitDebugPlay(iId)
     Print(fontTiny, iStageL + 5.0, 5.0, format("\z
       %s [%02u]\n\z     %s\n\z          %u TO WIN\n\z
       %u OBJECTS\n\n\z  %d@%d%9s\n\z    ZOGS%6u/%u\n\z
-      DUG%7u/%u\n\z     KO%8u/%u\n\z    TRDE%6u/%u\n\n\z
+      DUG%7u/%u\n\z     KO%8s/%u\n\z    TRDE%6u/%u\n\n\z
       %d@%d%9s\n\z      ZOGS%6u/%u\n\z  DUG%7u/%u\n\z
-      KO%8u/%u\n\z      TRDE%6u/%u",
+      KO%8s/%u\n\z      TRDE%6u/%u",
         sLevelName, iLevelId, sLevelType, iWinLimit, #aObjs,
         oPlrActive.I, oPlrActive.RI, oPlrActive.RD.LONGNAME, oPlrActive.M,
-        oPlrActive.GI, oPlrActive.DUG, oPlrActive.GEM, oPlrActive.EK,
-        oPlrActive.DC, oPlrActive.GS, oPlrActive.PUR, oPlrOpponent.I,
-        oPlrOpponent.RI, oPlrOpponent.RD.LONGNAME, oPlrOpponent.M,
-        oPlrOpponent.GI, oPlrOpponent.DUG, oPlrOpponent.GEM, oPlrOpponent.EK,
-        oPlrOpponent.DC, oPlrOpponent.GS, oPlrOpponent.PUR));
+        oPlrActive.GI, oPlrActive.DUG, oPlrActive.GEM,
+        format("%u/%u", oPlrActive.LK, oPlrActive.EK), oPlrActive.DC,
+        oPlrActive.GS, oPlrActive.PUR, oPlrOpponent.I, oPlrOpponent.RI,
+        oPlrOpponent.RD.LONGNAME, oPlrOpponent.M, oPlrOpponent.GI,
+        oPlrOpponent.DUG, oPlrOpponent.GEM,
+        format("%u/%u", oPlrOpponent.LK, oPlrOpponent.EK), oPlrOpponent.DC,
+        oPlrOpponent.GS, oPlrOpponent.PUR));
     -- Draw system information
     PrintR(fontTiny, iStageR - 5.0, 5.0, format("\z
       %u/%u S FRAM\n\z    %.3f %% CPUP\n\z  %.3f M RAMP\n\z
@@ -248,6 +250,7 @@ local function InitDebugPlay(iId)
     -- If we're blocked from polling objects then don't
     if GetGameTicks() < iNextObjectPoll then GameProc() return end
     -- Mouse position or viewport changed?
+    iNewX, iNewY = GetMouseX(), GetMouseY();
     if iNewX ~= iX or iNewY ~= iY or iPixPosX ~= iPPX or iPixPosY ~= iPPY then
       -- Update new position and block time for 10 seconds
       iX, iY, iNextObjectPoll, iPPX, iPPY = iNewX, iNewY, GetGameTicks() + 600,
