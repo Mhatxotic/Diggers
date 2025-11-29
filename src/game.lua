@@ -2183,7 +2183,7 @@ local function MoveX(oObj, iX)
   if not IsCollide(oObj, iX, -2) then AdjustPos(oObj, iX, -2) return end;
   -- Get action to perform when object blocked
   local aBlockData<const> = aDigBlockData[oObj.J];
-  -- Set action requested
+  -- Set action requested if we can
   SetAction(oObj, aBlockData[1], aBlockData[2], aBlockData[3]);
 end
 -- Check for colliding objects and move them ------------------------------- --
@@ -3041,7 +3041,7 @@ local function InitCreateObject()
       PW   = 0,                          -- Patience warning
       PL   = 0,                          -- Patience limit
       S    = 0,                          -- Current sprite frame #
-      S1   = 0,     S1A  = 0             -- Start sprite frame# (+attachment)
+      S1   = 0,     S1A  = 0,            -- Start sprite frame# (+attachment)
       S2   = 0,     S2A  = 0,            -- Ending sprite frame# (+attachment)
       SA   = 0,                          -- Current attachment sprite frame #
       SM   = false, SMM1 = false,        -- Object stamina (+minus 1)
