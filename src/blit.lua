@@ -7,10 +7,10 @@
 -- 888---d88'--888--`88.---.88'-`88.---.88'-888-----o--888-`88b.--oo----.d8P --
 -- 888bd8P'--oo888oo-`Y8bod8P'---`Y8bod8P'-o888ooood8-o888o-o888o-8""8888P'- --
 -- ========================================================================= --
--- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
+-- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local collectgarbage<const> = collectgarbage;
+local collectgarbage<const>, format<const> = collectgarbage, string.format;
 -- Engine function aliases ------------------------------------------------- --
 local CoreCatchup<const>, CoreTime<const>, FontPrint<const>, FontPrintC<const>,
   FontPrintCT<const>, FontPrintM<const>, FontPrintR<const>, FontPrintS<const>,
@@ -32,6 +32,7 @@ local ClearStates, IsMouseInBounds, MusicVolume, SetCallbacks, SetHotSpot,
 local fcbFading = false;               -- Fading callback
 local fontLittle,                      -- Little font
       nLoadX, nLoadY,                  -- Loader position
+      nStageW, nStageH,                -- Stage width and height
       nStageB, nStageL,                -- Stage bottom and left co-ord
       nStageR, nStageT,                -- Stage right and top co-ord
       nTexScale,                       -- Texture scale
@@ -278,10 +279,42 @@ local function Fade(nStart, nEnd, nStep, fcbDuring, fcbAfter, bAndMusic)
   end
 end
 -- Set frame buffer update callback (always active) ------------------------ --
-local function OnStageUpdated(_, _, iStageL, iStageT, iStageR, iStageB)
-  nStageL, nStageT, nStageR, nStageB =
-    iStageL + 0.0, iStageT + 0.0, iStageR + 0.0, iStageB + 0.0;
+local function OnStageUpdated(iStageW, iStageH, iStageL, iStageT, iStageR,
+    iStageB)
+  nStageW, nStageH, nStageL, nStageT, nStageR, nStageB =
+    iStageW + 0.0, iStageH + 0.0, iStageL + 0.0, iStageT + 0.0, iStageR + 0.0,
+    iStageB + 0.0;
   nLoadX, nLoadY = nStageR - 24.0, nStageB - 24.0;
+end
+-- Init pixels test mode --------------------------------------------------- --
+local function InitPixels()
+  -- Pixels rendering procedure
+  local function PixelsRenderProc()
+    texSpr:SetCRGBAI(0xFF4F4F4F);
+    for nY = nStageT, nStageB, 16.0 do
+      for nX = nStageL, nStageR, 16.0 do
+        texSpr:BlitSLT(865, nX, nY);
+      end
+    end
+    texSpr:SetCRGBAI(0x7FFFFFFF);
+    BlitSLTWH(texSpr, 1022, nStageL, nStageT, nStageW,       1);
+    BlitSLTWH(texSpr, 1022, nStageL, nStageT,       1, nStageH);
+    BlitSLTWH(texSpr, 1022, nStageR, nStageT,      -1, nStageH);
+    BlitSLTWH(texSpr, 1022, nStageL, nStageB, nStageW,      -1);
+    BlitSLTRB(texSpr, 1022,   0,   0, 320,   1);
+    BlitSLTRB(texSpr, 1022,   0,   0,   1, 240);
+    BlitSLTRB(texSpr, 1022, 320,   0, 319, 240);
+    BlitSLTRB(texSpr, 1022,   0, 240, 320, 239);
+    texSpr:SetCRGBAI(0xFFFFFFFF);
+    Print(fontLittle, 8, 8, format("L:%12.6f\nT:%12.6f\nR:%12.6f\n\z
+                                    B:%12.6f\nW:%12.6f\nH:%12.6f",
+      nStageL, nStageT, nStageR, nStageB, nStageW, nStageH));
+    RenderTip();
+  end
+  -- Set proc functions
+  SetKeys(true);
+  SetTip("TEST PATTERN");
+  SetCallbacks(nil, PixelsRenderProc);
 end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
@@ -316,7 +349,8 @@ return { F = OnScriptLoaded, A = { Fade = Fade, Print = Print, PrintC = PrintC,
   PrintU = PrintU, PrintUR = PrintUR, PrintW = PrintW, PrintWS = PrintWS,
   BlitLTRB = BlitLTRB, BlitLT = BlitLT, BlitSLT = BlitSLT,
   BlitSLTRB = BlitSLTRB, BlitSLTWH = BlitSLTWH, BlitSLTWHA = BlitSLTWHA,
-  RenderFade = RenderFade, RenderShadow = RenderShadow, RenderTip = RenderTip,
+  InitPixels = InitPixels, RenderFade = RenderFade,
+  RenderShadow = RenderShadow, RenderTip = RenderTip,
   RenderTipShadow = RenderTipShadow, SetTip = SetTip, SetVLTRB = SetVLTRB,
   TileA = TileA } };
 -- End-of-File ============================================================= --

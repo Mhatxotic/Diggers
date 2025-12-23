@@ -7,7 +7,7 @@
 -- 888---d88'--888--`88.---.88'-`88.---.88'-888-----o--888-`88b.--oo----.d8P --
 -- 888bd8P'--oo888oo-`Y8bod8P'---`Y8bod8P'-o888ooood8-o888o-o888o-8""8888P'- --
 -- ========================================================================= --
--- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
+-- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local collectgarbage<const>, cos<const>, error<const>, floor<const>,
@@ -651,18 +651,18 @@ local function fcbTick()
     -- Some library functions and variables only for this scope
     local InitBook, InitCon, InitCredits, InitTitleCredits, InitDebugPlay,
       InitEditor, InitEnding, InitFail, InitFile, InitIntro, InitMap,
-      InitNewGame, InitRace, InitScene, InitScore, InitTitle, LoadLevel,
-      aLevelsData, oObjectTypes, aRacesData;
+      InitNewGame, InitPixels, InitRace, InitScene, InitScore, InitTitle,
+      LoadLevel, aLevelsData, oObjectTypes, aRacesData;
     -- Load dependecies we need on this module
     CursorRender, DisableKeyHandlers, InitBook, InitCon, InitCredits,
       InitDebugPlay, InitEditor, InitEnding, InitFail, InitFile, InitIntro,
-      InitMap, InitNewGame, InitRace, InitScene, InitScore, InitTitle,
-      InitTitleCredits, JoystickProc, LoadLevel, RestoreKeyHandlers,
+      InitMap, InitNewGame, InitPixels, InitRace, InitScene, InitScore,
+      InitTitle, InitTitleCredits, JoystickProc, LoadLevel, RestoreKeyHandlers,
       SetHotSpot, SetKeys, SetTip, aLevelsData, oObjectTypes, aRacesData =
         GetAPI("CursorRender", "DisableKeyHandlers", "InitBook", "InitCon",
           "InitCredits", "InitDebugPlay", "InitEditor", "InitEnding",
           "InitFail", "InitFile", "InitIntro", "InitMap", "InitNewGame",
-          "InitRace", "InitScene", "InitScore", "InitTitle",
+          "InitPixels", "InitRace", "InitScene", "InitScore", "InitTitle",
           "InitTitleCredits", "JoystickProc", "LoadLevel",
           "RestoreKeyHandlers", "SetHotSpot", "SetKeys", "SetTip",
           "aLevelsData", "oObjectTypes", "aRacesData");
@@ -711,12 +711,14 @@ local function fcbTick()
       elseif iStartLevel == -11 then InitMap();
       -- Testing the file select screen (file.lua)
       elseif iStartLevel == -12 then InitFile();
+      -- Testing pixels
+      elseif iStartLevel == -13 then InitPixels(oAPI.texSpr);
       -- Testing a races ending (ending.lua)
-      elseif iStartLevel > -17 and iStartLevel <= -13 then
-        InitEnding(#aRacesData + (-17 - iStartLevel));
+      elseif iStartLevel > -18 and iStartLevel <= -14 then
+        InitEnding(#aRacesData + (-18 - iStartLevel));
       -- Reserved for testing win and map post mortem (game/post.lua)
-      elseif iStartLevel <= -17 and iStartLevel > -17 - #aLevelsData then
-        LoadLevel(-iStartLevel-16, "game", -1, nil, nil, nil, nil, nil, nil,
+      elseif iStartLevel <= -18 and iStartLevel > -18 - #aLevelsData then
+        LoadLevel(-iStartLevel-17, "game", -1, nil, nil, nil, nil, nil, nil,
           nil, nil, 17550);
       -- Invalid test code so skip the below return
       else goto invalid end;

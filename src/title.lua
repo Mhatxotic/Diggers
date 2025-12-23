@@ -7,7 +7,7 @@
 -- 888---d88'--888--`88.---.88'-`88.---.88'-888-----o--888-`88b.--oo----.d8P --
 -- 888bd8P'--oo888oo-`Y8bod8P'---`Y8bod8P'-o888ooood8-o888o-o888o-8""8888P'- --
 -- ========================================================================= --
--- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
+-- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local pairs<const>, random<const> = pairs, math.random;
@@ -276,7 +276,7 @@ local function OnAssetsLoaded(aResources, bNoMusic)
   -- Initialise credits
   strCredits = "ORIGINAL VERSIONS BY TOBY SIMPSON AND MIKE FROGGATT\n\z
     (C) 1994 MILLENNIUM INTERACTIVE LTD. ALL RIGHTS RESERVED\n\rcffffff4f\z
-    POWERED BY "..sAppTitle.." (C) 2025 "..sAppVendor..". \z
+    POWERED BY "..sAppTitle.." (C) 2026 "..sAppVendor..". \z
       ALL RIGHTS RESERVED\n\z
     PRESS "..tKeyBankCats.gksc[9].." TO SETUP, "..
       tKeyBankCats.gksb[9].." TO SET KEYS OR "..
