@@ -7,7 +7,7 @@
 -- 888---d88'--888--`88.---.88'-`88.---.88'-888-----o--888-`88b.--oo----.d8P --
 -- 888bd8P'--oo888oo-`Y8bod8P'---`Y8bod8P'-o888ooood8-o888o-o888o-8""8888P'- --
 -- ========================================================================= --
--- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
+-- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 -- Engine function aliases ------------------------------------------------- --
@@ -145,6 +145,8 @@ end
 local function ProcRenderBackLobby()
   -- Render static background
   BlitLT(texZmtc, -54.0, 0.0);
+  -- Render shadow
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw tip and return
   RenderTipShadow();
 end

@@ -7,7 +7,7 @@
 -- 888---d88'--888--`88.---.88'-`88.---.88'-888-----o--888-`88b.--oo----.d8P --
 -- 888bd8P'--oo888oo-`Y8bod8P'---`Y8bod8P'-o888ooood8-o888o-o888o-8""8888P'- --
 -- ========================================================================= --
--- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
+-- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local cos<const>, floor<const>, format<const>, pairs<const>, sin<const>,
@@ -98,10 +98,10 @@ local function LoadSaveData()
         local CL<const>, LA = { }, 0;
         for LI in L:gmatch("(%d+)") do
           -- Convert to number and if valid number?
-          LI = tonumber(LI);
-          if LI and LI >= 1 and LI <= #aLevelsData then
+          local iCompleted<const> = tonumber(LI);
+          if iCompleted and iCompleted >= 1 and iCompleted <= #aLevelsData then
             -- Push valid level
-            CL[LI], LA = true, LA + 1;
+            CL[iCompleted], LA = true, LA + 1;
           end
         end
         -- Levels added and valid number of levels?

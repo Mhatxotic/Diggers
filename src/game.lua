@@ -7,15 +7,15 @@
 -- 888---d88'--888--`88.---.88'-`88.---.88'-888-----o--888-`88b.--oo----.d8P --
 -- 888bd8P'--oo888oo-`Y8bod8P'---`Y8bod8P'-o888ooood8-o888o-o888o-8""8888P'- --
 -- ========================================================================= --
--- (c) Mhatxotic Design, 2025          (c) Millennium Interactive Ltd., 1994 --
+-- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 local abs<const>, ceil<const>, error<const>, floor<const>, format<const>,
   max<const>, maxinteger<const>, min<const>, pairs<const>, random<const>,
-  remove<const>, sin<const>, tostring<const>, unpack<const> =
+  remove<const>, sin<const>, tostring<const>, unpack<const>, create<const> =
     math.abs, math.ceil, error, math.floor, string.format, math.max,
     math.maxinteger, math.min, pairs, math.random, table.remove, math.sin,
-    tostring, table.unpack;
+    tostring, table.unpack, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local CoreLog<const>, CoreWrite<const>, UtilClamp<const>, UtilClampInt<const>,
   UtilFlushArray<const>, UtilFlushArrays<const>, UtilFormatNumber<const>,
@@ -35,17 +35,31 @@ local ACT, AI, BlitSLT, BlitSLTRB, BlitSLTWH, CreateObject, DF, DIR,
   fontLittle, fontTiny, iAnimNormal, iSavedSlowDown, iSlowDown, oDigData,
   oDugRandShaftData, oFloodGateData, oGlobalData, oMenuData, oObjectData,
   oSfxData, oTileFlags, texSpr;
+-- Level limits ------------------------------------------------------------ --
+local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
+local iLLAbsH<const>   = 128;               -- Total # of vertical tiles
+local iLLAbsWm1<const> = iLLAbsW - 1;       -- Horizontal tiles minus one
+local iLLAbsHm1<const> = iLLAbsH - 1;       -- Vertical tiles minus one
+local iLLAbs<const>    = iLLAbsW * iLLAbsH; -- Total # of tiles in level
+local iLLAbsM1<const>  = iLLAbs - 1;        -- Total tiles minus one
+local iLLAbsMLW<const> = iLLAbs - iLLAbsW;  -- Total tiles minus one row
+local iLLPixW<const>   = iLLAbsW * 16;      -- Total # of horizontal pixels
+local iLLPixH<const>   = iLLAbsH * 16;      -- Total # of vertical pixels
+local iLLPixWm1<const> = iLLPixW - 1;       -- Total H pixels minus one
+local iLLPixHm1<const> = iLLPixH - 1;       -- Total V pixels minus one
+-- Other consts ------------------------------------------------------------ --
+local iVPScrollThreshold<const> = 4;        -- Limit before centring viewport
 -- Locals ------------------------------------------------------------------ --
 local aContextMenu;                    -- Currently open context menu
 local aContextMenuData;                -- Cached context menu positions data
-local aDamageValues<const> = { };      -- Holds damage values
-local aFloodData<const> = { };         -- Active tile flooding data
-local aGemsAvailable<const> = { };     -- Gems available to be sold
-local aLvlData<const> = { };           -- Current level data
-local aObjs<const> = { };              -- Game objects list
-local aPlayers<const> = { };           -- All the players in the game
+local aDamageValues<const>  = create(32);     -- Holds damage values
+local aFloodData<const>     = create(32);     -- Active tile flooding data
+local aGemsAvailable<const> = create(4);      -- Gems available to be sold
+local aLvlData<const>       = create(iLLAbs); -- Current level data
+local aObjs<const>          = create(256);    -- Game objects list
+local aPlayers<const>       = create(2);      -- All the players in the game
 local aRacesData;                      -- Races data (data.lua)
-local aShroudData<const> = { };        -- Current level shroud data
+local aShroudData<const>    = create(iLLAbs); -- Current level shroud data
 local bAIvsAI;                         -- Is currently an AI vs AI game?
 local fcbLogic, fcbRender, fcbEnd;     -- Current logic/render/end callbacks
 local iGameTicks;                      -- Frames rendered for this level
@@ -80,20 +94,6 @@ local iStageR, iStageT, iStageW;       -- Fbo right/top/width bounds
 local iTilesHeight, iTilesWidth;       -- Total tiles on screen
 local iViewportH, iViewportW;          -- Current viewport width and height
 local iViewportX, iViewportY;          -- Current viewport absolute position
--- Level limits ------------------------------------------------------------ --
-local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
-local iLLAbsH<const>   = 128;               -- Total # of vertical tiles
-local iLLAbsWm1<const> = iLLAbsW - 1;       -- Horizontal tiles minus one
-local iLLAbsHm1<const> = iLLAbsH - 1;       -- Vertical tiles minus one
-local iLLAbs<const>    = iLLAbsW * iLLAbsH; -- Total # of tiles in level
-local iLLAbsM1<const>  = iLLAbs - 1;        -- Total tiles minus one
-local iLLAbsMLW<const> = iLLAbs - iLLAbsW;  -- Total tiles minus one row
-local iLLPixW<const>   = iLLAbsW * 16;      -- Total # of horizontal pixels
-local iLLPixH<const>   = iLLAbsH * 16;      -- Total # of vertical pixels
-local iLLPixWm1<const> = iLLPixW - 1;       -- Total H pixels minus one
-local iLLPixHm1<const> = iLLPixH - 1;       -- Total V pixels minus one
--- Other consts ------------------------------------------------------------ --
-local iVPScrollThreshold<const> = 4;        -- Limit before centring viewport
 -- Blank function ---------------------------------------------------------- --
 local function BlankFunction() end;
 -- Function to play a sound ------------------------------------------------ --
@@ -2260,7 +2260,7 @@ local function InitCreateObject()
   -- Picks a new target ---------------------------------------------------- --
   local function PickNewTarget(oObj)
     -- Holds potential targets
-    local aTargets<const> = { };
+    local aTargets<const> = create(#aPlayers * 5);
     -- For each player...
     for iPlayer = 1, #aPlayers do
       -- Get player data and enumerate their diggers
@@ -2731,16 +2731,16 @@ local function InitCreateObject()
         return AdjustPos(oObj, aPDItem[1], aPDItem[2]) end;
     end
     -- Blocked so we need to find a new direction to move in
-    local oDirections<const> = { };
-    -- Try every possible combination but the last
     local aPossibleDirections<const> = aDData[2];
+    local aDirections<const> = create(#aPossibleDirections);
+    -- Try every possible combination but the last
     for iI = 1, #aPossibleDirections - 1 do
       local aPDData<const> = aPossibleDirections[iI];
       if not IsCollide(oObj, aPDData[1], aPDData[2]) then
-        oDirections[1 + #oDirections] = aPDData[3] end;
+        aDirections[1 + #aDirections] = aPDData[3] end;
     end
     -- If we have a possible direction then go in that direction
-    if #oDirections ~= 0 then iDirection = oDirections[random(#oDirections)];
+    if #aDirections > 0 then iDirection = aDirections[random(#aDirections)];
     -- No direction found
     else
       -- Try going back in the previous direction
@@ -3422,7 +3422,7 @@ local function GameProc()
   -- Phase to a random target logic ---------------------------------------- --
   local function PhaseRandomTargetLogic(oObj)
     -- Walk objects list and find candidate objects to teleport to
-    local aCandObjs<const> = { };
+    local aCandObjs<const> = create(aObjs);
     for iCandObjId = 1, #aObjs do
       -- Get object and if the object isn't this object and object is
       -- a valid phase target? Insert into valid phase targets list.
@@ -4229,7 +4229,7 @@ local function GameProc()
         end
       end
       -- If at a five minute interval?
-      if iGameTicks % 18000 ~= 0 then
+      if iGameTicks % 18000 == 0 then
         -- Rotate gems in bank and move first gem to last gem
         aGemsAvailable[1 + #aGemsAvailable] = aGemsAvailable[1];
         remove(aGemsAvailable, 1);
@@ -4585,7 +4585,7 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     -- Get context menu item data
     local aMData<const> = aContextMenu[3];
     -- Start building context menu data to help with rendering
-    aContextMenuData = { };
+    aContextMenuData = create(#aMData);
     -- Current position of title
     local iX, iY = iMenuLeft, iMenuTop;
     -- Walk through selected menu
@@ -5011,7 +5011,8 @@ local function OnPreInitAPI(GetAPI)
   -- Create a player ------------------------------------------------------- --
   local function CreatePlayer(iPlrId, iX, iY, iRaceId, bIsAI)
     -- Players diggers and number of diggers to create
-    local aDiggers<const>, iNumDiggers<const> = { }, 5;
+    local iNumDiggers<const> = 5;
+    local aDiggers<const> = create(iNumDiggers);
     -- Calculate home point
     local iHomeX, iHomeY<const> = iX * 16 - 2, iY * 16 + 32;
     -- Get object data for race
@@ -5135,12 +5136,12 @@ local function OnPreInitAPI(GetAPI)
     end
   end
   -- Build a level from asset and return players found --------------------- --
-  local aPlrExpected<const> = { };
+  local aPlrExpected<const> = create(2);
   local function BuildLevel(asLevel)
     -- Create a blank mask with the specified level name
     maskZone = MaskCreateZero(asLevel:Name(), iLLPixW, iLLPixH);
     -- Player starting point data list
-    local aPlrsFound<const> = { };
+    local aPlrsFound<const> = create(2);
     -- For each row in the data file
     for iY = 0, iLLAbsHm1 do
       -- Calculate precise Y position for object
@@ -5234,7 +5235,8 @@ local function OnPreInitAPI(GetAPI)
       error("Player 2 AI boolean of type '"..type(bAI2).."' invalid!") end;
     aPlrExpected[2] = { iRace2, bAI2 };
     -- Prepare a modifiable table of races available for selection
-    local aRacesAvailable<const>, oRacesTaken<const> = { }, { };
+    local aRacesAvailable<const>, oRacesTaken<const> =
+      create(#aPlrExpected), create(0, #aPlrExpected);
     for iI = 1, #aRacesData do
       aRacesAvailable[1 + #aRacesAvailable] = aRacesData[iI] end;
     -- Resolve race ids for players requesting actual race ids first
@@ -5372,7 +5374,7 @@ local function OnPreInitAPI(GetAPI)
         -- AI vs AI mode
         bAIvsAI = true;
         -- A randomised version of randomised players
-        local aPlrsFoundRand<const> = { };
+        local aPlrsFoundRand<const> = create(#aPlrsFound);
         -- Repeat...
         repeat
           -- Get a random player
