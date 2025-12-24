@@ -145,6 +145,8 @@ end
 local function ProcRenderBackLobby()
   -- Render static background
   BlitLT(texZmtc, -54.0, 0.0);
+  -- Render shadow
+  RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Draw tip and return
   RenderTipShadow();
 end
