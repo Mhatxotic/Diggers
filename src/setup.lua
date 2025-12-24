@@ -12,10 +12,11 @@
 -- Core function aliases --------------------------------------------------- --
 local cos<const>, floor<const>, format<const>, ipairs<const>, len<const>,
   maxinteger<const>, max<const>, min<const>, pairs<const>, remove<const>,
-  rep<const>, sin<const>, sort<const>, tonumber<const>, tostring<const> =
+  rep<const>, sin<const>, sort<const>, tonumber<const>, tostring<const>,
+  create<const> =
     math.cos, math.floor, string.format, ipairs, utf8.len, math.maxinteger,
     math.max, math.min, pairs, table.remove, string.rep, math.sin, table.sort,
-    tonumber, tostring;
+    tonumber, tostring, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   CoreCPUUsage<const>, CoreEngine<const>, CoreLibrary<const>,
@@ -129,21 +130,22 @@ local aAssets,                         -- Required assets
       sStatusLine1, sStatusLine2,      -- Current status title and subtitle
       sStatusLineSave,                 -- Saved status title
       sTitle;                          -- Current main title
--- Readme locals ----------------------------------------------------------- --
-local aCreditLines<const> = { };       -- Actual readme data
-local aReadmeColourData<const> = { };  -- Readme colourisation date
-local iHotSpotReadme,                  -- Readme hotspot id
-      iKeyBankReadme,                  -- Readme keybank id
-      aReadmeData,                     -- Readme data
-      aReadmeVisibleLines;             -- Readme/binds lines data
-local iReadmeIndexBegin = 1;           -- Current start line
-local iReadmeIndexEnd = 1;             -- Ending line
+-- Readme configuration ---------------------------------------------------- --
 local iReadmeRows<const> = 28;         -- Maximum readme on-screen rows
 local iReadmeCols<const> = 77;         -- Maximum readme on-screen columns
 local nReadmeSpacing<const> = 6.0;     -- Spacing between each line
 local nReadmePaddingX<const> = 8.0;    -- Starting X co-ordinate
 local nReadmePaddingY<const> = 27.0;   -- Starting Y co-ordinate
 local iReadmeColsM1<const> = iReadmeCols - 1; -- Readme columns minus one
+-- Readme locals ----------------------------------------------------------- --
+local aCreditLines = create(1613);     -- Actual readme data
+local aReadmeColourData<const> = create(iReadmeRows); -- Readme colour data
+local iHotSpotReadme,                  -- Readme hotspot id
+      iKeyBankReadme,                  -- Readme keybank id
+      aReadmeData,                     -- Readme data
+      aReadmeVisibleLines;             -- Readme/binds lines data
+local iReadmeIndexBegin = 1;           -- Current start line
+local iReadmeIndexEnd = 1;             -- Ending line
 -- Configuration locals ---------------------------------------------------- --
 local iAudioDeviceId,                  -- Current audio device id
       iAudioDeviceIdOriginal,          -- Original audio device id
@@ -432,10 +434,10 @@ end
 -- ------------------------------------------------------------------------- --
 local function UpdateReadmeLines()
   -- Clear displayed lines
-  aReadmeVisibleLines = { };
+  local iMaximum<const> = min(iReadmeIndexBegin + iReadmeRows, #aReadmeData);
+  aReadmeVisibleLines = create(iMaximum);
   -- For each line in readme file...
-  for iIndex = iReadmeIndexBegin,
-    min(iReadmeIndexBegin + iReadmeRows, #aReadmeData) do
+  for iIndex = iReadmeIndexBegin, iMaximum do
     -- Get line and truncate it if it is too long
     local sLine = aReadmeData[iIndex];
     if #sLine > iReadmeColsM1 then sLine = sLine:sub(1, iReadmeColsM1) end;
@@ -577,10 +579,10 @@ end
 -- ------------------------------------------------------------------------- --
 local function UpdateBindsLines()
   -- Clear displayed lines
-  aReadmeVisibleLines = { };
+  local iMaximum<const> = min(iBindsIndexBegin + iReadmeRows, #aBindingsList);
+  aReadmeVisibleLines = create(iMaximum);
   -- For each line in readme file...
-  for iIndex = iBindsIndexBegin,
-    min(iBindsIndexBegin + iReadmeRows, #aBindingsList) do
+  for iIndex = iBindsIndexBegin, iMaximum do
     -- Get line and truncate it if it is too long
     local aBind<const> = aBindingsList[iIndex];
     local sLine = aBind[6];
@@ -751,7 +753,7 @@ local function OnScriptLoaded(GetAPI)
   -- Set original procedures function
   local function GoFinish()
     -- Unload data
-    aReadmeData, aReadmeVisibleLines = { }, { };
+    aReadmeData, aReadmeVisibleLines = nil, nil;
     -- Return to sub-proc
     SetCallbacks(fcbLogic, fcbRender);
     -- Music to resume?
@@ -784,7 +786,7 @@ local function OnScriptLoaded(GetAPI)
   -- Text position
   local nSizeD2<const> = nSize / 2.0;
   -- Hot spots list
-  local aHotSpots<const> = { };
+  local aHotSpots<const> = create(#aButtons);
   -- For each button
   for iButtonIndex = 1, #aButtons do
     -- Get button and hot spot data

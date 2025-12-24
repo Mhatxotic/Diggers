@@ -12,10 +12,11 @@
 -- Core function aliases --------------------------------------------------- --
 local collectgarbage<const>, cos<const>, error<const>, floor<const>,
   format<const>, pairs<const>, random<const>, remove<const>, rep<const>,
-  sin<const>, tonumber<const>, tostring<const>, type<const>, unpack<const> =
+  sin<const>, tonumber<const>, tostring<const>, type<const>, unpack<const>,
+  create<const> =
     collectgarbage, math.cos, error, math.floor, string.format,
     pairs, math.random, table.remove, string.rep, math.sin, tonumber,
-    tostring, type, table.unpack;
+    tostring, type, table.unpack, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
   CoreEnd<const>, CoreLog<const>, CoreLogEx<const>, CoreOnTick<const>,
@@ -33,15 +34,15 @@ local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
     Variable.Register;
 -- Locals ------------------------------------------------------------------ --
 local CBProc, CBRender;                -- Generic tick callbacks
-local aModules<const> = { };           -- Modules data
-local bTestMode = false;               -- Test mode enabled
-local fFont<const> = Font.Console();   -- Main console class
+local aMods<const>   = create(34);     -- Modules data
+local bTestMode      = false;          -- Test mode enabled
+local fFont<const>   = Font.Console(); -- Main console class
 local fboMain<const> = Fbo.Main();     -- Main frame buffer object class
-local iAPI = 0;                        -- Variables in API
+local iAPI           = 0;              -- Variables in API
 local iTexScale;                       -- Texture scale
-local oAPI<const> = { };               -- API to send to other functions
-local oCache = { };                    -- File cache
-local oFrameBufferCbs<const> = { };    -- Frame buffer updated function
+local oAPI<const>    = create(0, 183); -- API to send to other functions
+local oCache         = create(0, 4);   -- File cache
+local oFbuCbs<const> = create(0, 16);  -- Frame buffer updated function
 -- Stage dimensions -------------------------------------------------------- --
 local iStageWidth  = 320;              -- Width of stage (Monitor)
 local iStageHeight = 240;              -- Height of stage (Monitor)
@@ -137,7 +138,7 @@ local function ParseScriptResult(sName, oModData)
   PutAPI(sName, oModAPI);
   -- Put returned data in API for later when everything is loaded and we'll
   -- call the modules callback function with the fully loaded API.
-  aModules[1 + #aModules] = oModData;
+  aMods[1 + #aMods] = oModData;
 end
 -- Function to parse a script ---------------------------------------------- --
 local function ParseScript(asScript)
@@ -433,7 +434,7 @@ local function RefreshViewportInfo()
       floor(iStageRightO) // iTexScale, floor(iStageBottom) // iTexScale,
       floor(iOrthoWidth) // iTexScale, floor(iOrthoHeight) // iTexScale;
   -- Call frame buffer callbacks
-  for _, fcbC in pairs(oFrameBufferCbs) do
+  for _, fcbC in pairs(oFbuCbs) do
     -- Protected call so we can handle errors
     local bResult<const>, sReason<const> = xpcall(fcbC, CoreStack,
       iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight,
@@ -449,7 +450,7 @@ local function RegisterFrameBufferUpdateCallback(sName, fCB)
   if nil ~= fCB and not UtilIsFunction(fCB) then
     error("Invalid callback function! "..tostring(fCB)) end;
   -- Register callback when frame buffer is updated
-  oFrameBufferCbs[sName] = fCB;
+  oFbuCbs[sName] = fCB;
   -- If a callback was set then call it
   if nil ~= fCB then
     fCB(iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight,
@@ -635,16 +636,16 @@ local function fcbTick()
     -- ...and a CVar to force a different language
     oAPI.cvLang = VariableRegister("gam_lang", "", oCVF.STRINGSAVE, fcbEmpty);
     -- Ask modules to grab needed functions from the API (first chance)
-    for iI = 1, #aModules do
-      local oModData<const> = aModules[iI];
+    for iI = 1, #aMods do
+      local oModData<const> = aMods[iI];
       local fcbFunc<const> = oModData.I;
       if fcbFunc then PutAPI(oModData.N, fcbFunc(GetAPI)) end;
     end
     -- Assign loaded sound effects (audio.lua)
     GetAPI("RegisterSounds")(aResources, iBaseSounds, #aBaseSounds);
     -- Ask modules to grab needed functions from the API (last chance)
-    for iI = 1, #aModules do
-      local oModData<const> = aModules[iI];
+    for iI = 1, #aMods do
+      local oModData<const> = aMods[iI];
       local fcbFunc<const> = oModData.F;
       if fcbFunc then fcbFunc(GetAPI, oModData, oAPI) end;
     end
