@@ -1213,30 +1213,33 @@ local function OnScriptLoaded(GetAPI)
   -- Add third party credits header
   Header("ACKNOWLEDGEMENT OF "..iCredits.." THIRD-PARTY CREDITS");
   -- Enumerate credits so we can build a quick credits list
-  local iCreditsM1<const> = iCredits - 1;
-  for iIndex = 0, iCreditsM1, 2 do
-    -- Get credit information
+  local iIndex = 0;
+  repeat
+    -- Get first credit information and if we can show a second?
     local sName<const>, sVersion<const> = CoreLibrary(iIndex);
-    -- If we can show another?
+    -- 1-index credit id.
     iIndex = iIndex + 1;
-    if iIndex <= iCreditsM1 then
+    if iIndex < iCredits then
       -- Get second credit information
       local sName2<const>, sVersion2<const> = CoreLibrary(iIndex);
+      -- Go forward another entry
+      iIndex = iIndex + 1;
       -- Insert both credits
       aCreditLines[1 + #aCreditLines] =
         format("%2d: %-16s %16s  %2d: %-16s %16s",
-        iIndex, sName:upper(), "(v"..sVersion:upper()..")",
-        iIndex+1, sName2:upper(), "(v"..sVersion2:upper()..")");
+        iIndex-1, sName:upper(), "(v"..sVersion:upper()..")",
+        iIndex, sName2:upper(), "(v"..sVersion2:upper()..")");
     -- Only one left so write last
     else aCreditLines[1 + #aCreditLines] = format("%2d: %-17s %15s", iIndex,
       sName:upper(), "(v"..sVersion:upper()..")") end;
-  end
+  -- Until there are no more items left
+  until iIndex >= iCredits;
   -- Add space
   aCreditLines[1 + #aCreditLines] = "";
   -- Add licenses header
   Header("LICENSES");
   -- Now for all the other credits in detail
-  for iIndex = 0, iCreditsM1 do
+  for iIndex = 0, iCredits - 1 do
     -- Get credit information
     local sName<const>, sVersion<const>, bCopyright, sAuthor<const> =
       CoreLibrary(iIndex);

@@ -98,10 +98,10 @@ local function LoadSaveData()
         local CL<const>, LA = { }, 0;
         for LI in L:gmatch("(%d+)") do
           -- Convert to number and if valid number?
-          LI = tonumber(LI);
-          if LI and LI >= 1 and LI <= #aLevelsData then
+          local iCompleted<const> = tonumber(LI);
+          if iCompleted and iCompleted >= 1 and iCompleted <= #aLevelsData then
             -- Push valid level
-            CL[LI], LA = true, LA + 1;
+            CL[iCompleted], LA = true, LA + 1;
           end
         end
         -- Levels added and valid number of levels?
