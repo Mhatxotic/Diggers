@@ -1177,7 +1177,7 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "TNT MAP",                LUNGS     = 32,
  MENU      = MNU.MAP,                  NAME      = "MAP",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 300,
+ TELEDELAY = 200,                      VALUE     = 215,
  WEIGHT    = 3,
 -- ------------------------------------------------------------------------- --
 }, [TYP.TRACK] = {

@@ -240,7 +240,7 @@ local function FinishAndAccept()
 end
 -- Check zone selected then accept ----------------------------------------- --
 local function GoFinishAndAcceptCheck()
-  if iHoverZone then FinishAndAccept() end end
+  if iHoverZone > 0 then FinishAndAccept() end end
 -- Mouse wheel scroll event to scroll around available zones --------------- --
 local function OnScroll(nX, nY)
   if nY < 0 then GoNextZone() elseif nY > 0 then GoPreviousZone() end;
