@@ -4343,10 +4343,10 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     end
   end
   -- Helper for digging
-  local function GenericAction(iAction, iJob, iDirection)
+  local function GenericAction(iAction, iJob, iDirection, bNoBusy)
     -- Return if object not selected or not mine or not busy.
     if not oObjActive or oObjActive.P ~= oPlrActive or
-      oObjActive.F & iFBusy ~= 0 then return end;
+      (oObjActive.F & iFBusy ~= 0 and not bNoBusy) then return end;
     -- Get object data and if requesting special movement detection?
     local oObjData<const> = oObjActive.OD;
     if iAction == 0 then
@@ -4411,8 +4411,8 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
   local function DigDownRight() GenericAction(0, iJDig, iDDownRight) end;
   local function DigDown() GenericAction(0, iJDigDown, iDTileCentre) end;
   -- Drop or grab items?
-  local function DropItems() GenericAction(iADrop, iJKeep, iDKeep) end;
-  local function GrabItems() GenericAction(iAGrab, iJKeep, iDKeep) end;
+  local function DropItems() GenericAction(iADrop, iJKeep, iDKeep, true) end;
+  local function GrabItems() GenericAction(iAGrab, iJKeep, iDKeep, true) end;
   local function Teleport() GenericAction(iAPhase, iJPhase, iDUp) end;
   -- Spawn Jennite? (Cheat)
   local function SpawnJennite()
