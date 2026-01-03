@@ -138,7 +138,7 @@ local nReadmePaddingX<const> = 8.0;    -- Starting X co-ordinate
 local nReadmePaddingY<const> = 27.0;   -- Starting Y co-ordinate
 local iReadmeColsM1<const> = iReadmeCols - 1; -- Readme columns minus one
 -- Readme locals ----------------------------------------------------------- --
-local aCreditLines = create(1613);     -- Actual readme data
+local aCreditLines = create(1616);     -- Actual readme data
 local aReadmeColourData<const> = create(iReadmeRows); -- Readme colour data
 local iHotSpotReadme,                  -- Readme hotspot id
       iKeyBankReadme,                  -- Readme keybank id
