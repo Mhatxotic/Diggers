@@ -350,23 +350,24 @@ local aBaseSounds<const> = {
   { T=4, F="select"   }, { T=4, F="sale"     }, { T=4, F="switch"   },
   { T=4, F="hololoop" }, { T=4, F="holo"     }
 };
--- Add all these to all the base assets to load ---------------------------- --
-local aBaseAssetsCategories<const> =
-  { aBaseScripts, aBaseFonts, aBaseTextures, aBaseMasks, aBaseSounds };
--- Build base assets to load ----------------------------------------------- --
-local aBaseAssets<const> = { };
-for iBaseIndex = 1, #aBaseAssetsCategories do
-  local aAssets<const> = aBaseAssetsCategories[iBaseIndex];
-  for iAssetIndex = 1, #aAssets do
-    aBaseAssets[1 + #aBaseAssets] = aAssets[iAssetIndex];
-  end
-end
 -- Calculate starting indexes of each base asset --------------------------- --
 local iBaseScripts<const> = 1;
 local iBaseFonts<const> = iBaseScripts + #aBaseScripts;
 local iBaseTextures<const> = iBaseFonts + #aBaseFonts;
 local iBaseMasks<const> = iBaseTextures + #aBaseTextures;
 local iBaseSounds<const> = iBaseMasks + #aBaseMasks;
+local iBaseTotal<const> = iBaseSounds + #aBaseSounds;
+-- Add all these to all the base assets to load ---------------------------- --
+local aBaseAssetsCategories<const> =
+  { aBaseScripts, aBaseFonts, aBaseTextures, aBaseMasks, aBaseSounds };
+-- Build base assets to load ----------------------------------------------- --
+local aBaseAssets<const> = table.create(iBaseTotal);
+for iBaseIndex = 1, #aBaseAssetsCategories do
+  local aAssets<const> = aBaseAssetsCategories[iBaseIndex];
+  for iAssetIndex = 1, #aAssets do
+    aBaseAssets[1 + #aBaseAssets] = aAssets[iAssetIndex];
+  end
+end
 -- Return all the assets data to main.lua ---------------------------------- --
 return oAssetsData, aBaseAssets, iBaseScripts, iBaseFonts,
        iBaseTextures, iBaseMasks, iBaseSounds, aBaseSounds;

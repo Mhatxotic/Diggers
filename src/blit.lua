@@ -17,24 +17,28 @@ local CoreCatchup<const>, CoreTime<const>, FontPrint<const>, FontPrintC<const>,
   FontPrintU<const>, FontPrintUR<const>, FontPrintW<const>, FontPrintWS<const>,
   TextureBlitLTRB<const>, TextureBlitSLTA<const>, TextureBlitSLTWHA<const>,
   TextureBlitSLTWH<const>, TextureBlitLT<const>, TextureBlitSLT<const>,
-  TextureBlitSLTRB<const>, TextureTileA<const>, UtilClamp<const>,
-  UtilIsFunction<const>, UtilIsNumber<const>, VideoSetVLTRB<const> =
+  TextureBlitSLTRB<const>, TextureTileA<const>, UtilCRC<const>,
+  UtilClamp<const>, UtilIsFunction<const>, UtilIsNumber<const>,
+  VideoSetVLTRB<const> =
     Core.Catchup, Core.Time, Font.Print, Font.PrintC, Font.PrintCT,
     Font.PrintM, Font.PrintR, Font.PrintS, Font.PrintU, Font.PrintUR,
     Font.PrintW, Font.PrintWS, Texture.BlitLTRB, Texture.BlitSLTA,
     Texture.BlitSLTWHA, Texture.BlitSLTWH, Texture.BlitLT, Texture.BlitSLT,
-    Texture.BlitSLTRB, Texture.TileA, Util.Clamp, Util.IsFunction,
+    Texture.BlitSLTRB, Texture.TileA, Util.CRC, Util.Clamp, Util.IsFunction,
     Util.IsNumber, Video.SetVLTRB;
 -- Library functions loaded later ------------------------------------------ --
 local ClearStates, IsMouseInBounds, MusicVolume, SetCallbacks, SetHotSpot,
   SetKeys;
 -- Locals ------------------------------------------------------------------ --
 local fcbFading = false;               -- Fading callback
-local fontLittle,                      -- Little font
-      nLoadX, nLoadY,                  -- Loader position
+local fontLittle;                      -- Little font
+local iTipCRC = 0;                     -- Checksum of last tip
+local nLoadX, nLoadY,                  -- Loader position
       nStageW, nStageH,                -- Stage width and height
       nStageB, nStageL,                -- Stage bottom and left co-ord
       nStageR, nStageT,                -- Stage right and top co-ord
+      nStatusLineSize,                 -- Marquee length
+      nStatusLinePos,                  -- Marquee position
       nTexScale,                       -- Texture scale
       sTip,                            -- Current tip and bounds
       texSpr;                          -- Sprites texture
@@ -130,9 +134,17 @@ local function DoRenderTip(nX)
   BlitSLT(texSpr, 848, nX + 32.0, 216.0);
   BlitSLT(texSpr, 848, nX + 48.0, 216.0);
   BlitSLT(texSpr, 849, nX + 64.0, 216.0);
-  -- Set tip colour and render the text
+  -- Set tip colour
   fontLittle:SetCRGB(1.0, 1.0, 1.0);
-  PrintC(fontLittle, nX + 40.0, 220.0, sTip);
+  -- If marquee?
+  if nStatusLinePos then
+    -- Draw the marquee
+    PrintM(fontLittle, nX + 4 - nStatusLinePos, 220.0,
+      nStatusLinePos, 72 + nStatusLinePos, sTip);
+    nStatusLinePos = nStatusLinePos + 1;
+    if nStatusLinePos >= nStatusLineSize then nStatusLinePos = 0.0 end;
+  -- Not long enough for marquee
+  else PrintC(fontLittle, nX + 40.0, 220.0, sTip) end;
 end
 -- Render the tip in the bottom right -------------------------------------- --
 local function RenderTip()
@@ -176,7 +188,39 @@ local function RenderTipShadow()
   RenderShadow(232.0, 216.0, 312.0, 232.0);
 end;
 -- Set bottom right tip ---------------------------------------------------- --
-local function SetTip(strTip) sTip = strTip end;
+local function SetTip(strTip)
+  -- Return if same tip address
+  if sTip == strTip then return end;
+  -- No tip specified?
+  if not strTip then
+    -- Clear tip if set
+    if sTip then sTip = nil end;
+    -- Clear marquee if set
+    if nStatusLinePos then nStatusLinePos = nil end;
+    -- Done
+    return;
+  end
+  -- Return if tip has same CRC as last time else update tip and its CRC
+  local iNTipCRC<const> = UtilCRC(strTip);
+  if iNTipCRC == iTipCRC then return end;
+  iTipCRC, sTip = iNTipCRC, strTip;
+  -- If the tip isn't long enough to go off the edge?
+  if #sTip <= 12 then
+    -- Clear marquee if set
+    if nStatusLinePos then nStatusLinePos = nil end;
+    -- Done
+    return;
+  end
+  -- Suffix marquee separator
+  sTip = sTip.." -+- ";
+  -- Get length of string with the separator
+  nStatusLineSize = fontLittle:PrintS(sTip) * nTexScale;
+  -- Suffix part of the start of the string to the end to make the scrolling
+  -- appear seamless.
+  sTip = sTip..strTip:gsub(1, 12);
+  -- Set start of string
+  nStatusLinePos = 0;
+end
 -- Loading indicator ------------------------------------------------------- --
 local function ProcLoader()
   texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);

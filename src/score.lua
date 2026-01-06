@@ -10,11 +10,11 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local unpack<const>, error<const>, pairs<const>, ipairs<const>, max<const>,
+local unpack<const>, error<const>, pairs<const>, create<const>, max<const>,
   min<const>, sin<const>, cos<const>, tostring<const>, maxinteger<const>,
   mininteger<const> =
-    table.unpack, error, pairs, ipairs, math.max, math.min, math.sin, math.cos,
-    tostring, math.maxinteger, math.mininteger;
+    table.unpack, error, pairs, table.create, math.max, math.min, math.sin,
+    math.cos, tostring, math.maxinteger, math.mininteger;
 -- Engine function aliases ------------------------------------------------- --
 local CoreTime<const>, UtilFormatNumber<const>, UtilIsInteger<const>,
   UtilIsString<const> = Core.Time, Util.FormatNumber, Util.IsInteger,
@@ -100,9 +100,9 @@ local function ProcRenderScore()
       fontLittle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
       Print(fontLittle, aData[7] + 16.0, aData[8], aData[6]);
       fontTiny:SetCRGBA(1.0, 1.0, 1.0, 1.0);
-      PrintR(fontTiny, aData[7] + 160.0, aData[8] + 1.0, aData[12]);
+      PrintR(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[11]);
       fontTiny:SetCRGBA(1.0, 1.0, 1.0, 1.0);
-      Print(fontTiny, aData[7] + 160.0, aData[8] + 1.0, aData[11]);
+      Print(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[12]);
       fontLittle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
       PrintR(fontLittle, aData[7] + 304.0, aData[8], aData[9]);
     else
@@ -113,10 +113,10 @@ local function ProcRenderScore()
         aData[7] + 312.0, aData[8] + 10.0, 1022);
       fontLittle:SetCRGBA(0.75, 0.75, 0.75, 1.0);
       Print(fontLittle, aData[7] + 16.0, aData[8], aData[6]);
-      fontTiny:SetCRGBA(0.0, 1.0, 0.0, 1.0);
-      PrintR(fontTiny, aData[7] + 160.0, aData[8] + 1.0, aData[12]);
-      fontTiny:SetCRGBA(1.0, 0.5, 0.0, 1.0);
-      Print(fontTiny, aData[7] + 160.0, aData[8] + 1.0, aData[11]);
+      fontTiny:SetCRGBA(0.0, 0.5, 0.0, 1.0);
+      PrintR(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[11]);
+      fontTiny:SetCRGBA(1.0, 1.0, 0.0, 1.0);
+      Print(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[12]);
       fontLittle:SetCRGBA(1.0, 0.0, 1.0, 1.0);
       PrintR(fontLittle, aData[7] + 304.0, aData[8], aData[9]);
     end
@@ -338,7 +338,7 @@ local function AddTotal(sLabel, iValue, iScorePerTick)
     32.0 + (#aTotals * 14.0),      -- [08] Starting Y position
     0,                             -- [09] Actual final score for item
     fcbMove,                       -- [10] Move animation callback
-    "x"..UtilFormatNumber(iScorePerTick, 0), -- [11] Localised 'iScorePerTick'
+    UtilFormatNumber(iScorePerTick, 0).."x", -- [11] Localised 'iScorePerTick'
     "0",                           -- [12] Localised 'value'
   };
 end
@@ -372,14 +372,12 @@ local function OnAssetsLoaded(aResources)
   PlayMusic(aResources[2]);
   -- Setup lobby texture
   texTitle = aResources[1];
-  -- Reset values
-  nBarY, iTotalId, iTotalScore, aTotals, iScoreItem = 0.0, 0, 0, { }, 0;
   -- Count levels completed
   local iZonesComplete = 0;
   for _ in pairs(oGlobalData.gLevelsCompleted) do
     iZonesComplete = iZonesComplete + 1 end;
-  -- Add score categories
-  for iI, aData in ipairs({
+  -- Score subject data
+  local aScoreSubjectData<const> = {
     { "Bank balance",      oGlobalData.gBankBalance,        10 },
     { "Zones completed",   iZonesComplete,               10000 },
     { "Terrain dug",       oGlobalData.gTotalDug,            1 },
@@ -390,10 +388,17 @@ local function OnAssetsLoaded(aResources)
     { "Items purchased",   oGlobalData.gTotalPurchases,   1000 },
     { "Capital carried",   oGlobalData.gTotalCapital,      100 },
     { "Fiends eliminated", oGlobalData.gTotalEnemyKills, 10000 },
-    { "Homicide duties",  -oGlobalData.gTotalHomicides,   1000 },
-    { "Mortality duties", -oGlobalData.gTotalDeaths,      1000 },
-    { "Time taken",       -oGlobalData.gTotalTimeTaken,      1 },
-  }) do AddTotal(unpack(aData)) end;
+    { "Homicide duties",   oGlobalData.gTotalHomicides,  -1000 },
+    { "Mortality duties",  oGlobalData.gTotalDeaths,     -1000 },
+    { "Time taken",        oGlobalData.gTotalTimeTaken,     -1 },
+  };
+  -- Initialise values
+  nBarY, iTotalId, iTotalScore, iScoreItem = 0.0, 0, 0, 0;
+  -- Generate score categories
+  aTotals = create(#aScoreSubjectData);
+  for iIndex = 1, #aScoreSubjectData do
+    AddTotal(unpack(aScoreSubjectData[iIndex]));
+  end
   -- Fade in
   Fade(1.0, 0.0, 0.025, RenderSimple, OnFadedIn);
 end

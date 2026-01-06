@@ -17,9 +17,9 @@ local max<const>, min<const>, random<const>, format<const>, ceil<const>,
 -- Engine function aliases ------------------------------------------------- --
 local UtilHex<const>, CoreCPUUsage<const>, CoreRAM<const>, CoreUptime<const>,
   CoreLUATime<const>, CoreLUAUsage<const>, UtilDuration<const>,
-  DisplayGPUFPS<const> =
+  CoreCPUFPS<const>, DisplayGPUFPS<const> =
     Util.Hex, Core.CPUUsage, Core.RAM, Core.Uptime, Core.LUATime,
-    Core.LUAUsage, Util.Duration, Display.GPUFPS;
+    Core.LUAUsage, Util.Duration, Core.CPUFPS, Display.GPUFPS;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   GetMouseX, GetMouseY, GetTileUnderMouse, aPlayers, aObjs, RenderTerrain,
@@ -167,14 +167,15 @@ local function InitDebugPlay(iId)
         oPlrOpponent.GS, oPlrOpponent.PUR));
     -- Draw system information
     PrintR(fontTiny, iStageR - 5.0, 5.0, format("\z
-      %u/%u S FRAM\n\z    %.3f %% CPUP\n\z  %.3f M RAMP\n\z
-      %.3f M PEAK\n\z     %.3f M LUAU\n\z   %.3f %% CPUS\n\z
-      %.3f %% RAMS\n\n\z  %s GAMT\n\z       %s LUAT\n\z
-      %s ENGT\n\n\z       %d/%4d VPXC\n\z   %d/%4d VPXT\n\z
-      %d/%4d VCPX\n\z     %d/%4d APOS\n\z   %d/%4d ACPS\n\z
-      %d/%4d AMAX\n\z     %d/%4d MPOS\n\z   %d/%4d MPLP",
-        GetGameTicks(), DisplayGPUFPS(), nCpu, nProc / 1048576,
-        nPeak / 1048576, CoreLUAUsage() / 1048576, nSys, nPerc,
+      %.0f/%.0f S FRAP\n\z  %.3f %% CPUP\n\z  %.3f M RAMP\n\z
+      %.3f M PEAK\n\z       %.3f M LUAU\n\z   %.3f %% CPUS\n\z
+      %.3f %% RAMS\n\n\z    %u FRAM\n\z       %s GAMT\n\z
+      %s LUAT\n\z           %s ENGT\n\n\z     %d/%4d VPXC\n\z
+      %d/%4d VPXT\n\z       %d/%4d VCPX\n\z   %d/%4d APOS\n\z
+      %d/%4d ACPS\n\z       %d/%4d AMAX\n\z   %d/%4d MPOS\n\z
+      %d/%4d MPLP",
+        CoreCPUFPS(), DisplayGPUFPS(), nCpu, nProc / 1048576,
+        nPeak / 1048576, CoreLUAUsage() / 1048576, nSys, nPerc, GetGameTicks(),
         UtilDuration(GetGameTicks() / 60, 0), UtilDuration(CoreLUATime(), 0),
         UtilDuration(CoreUptime(), 0), iPixPosX, iPixPosY, iPixPosTargetX,
         iPixPosTargetY, iPixCenPosX, iPixCenPosY, iPosX, iPosY, iAbsCenPosX,

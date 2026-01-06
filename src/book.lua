@@ -11,8 +11,8 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 -- Engine function aliases ------------------------------------------------- --
-local CoreLog<const>, UtilBlank<const>, UtilClampInt<const> =
-  Core.Log, Util.Blank, Util.ClampInt;
+local CoreLog<const>, CoreLogEx<const>, UtilBlank<const>, UtilClampInt<const> =
+  Core.Log, Core.LogEx, Util.Blank, Util.ClampInt;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLT, Fade, GameProc, InitCon, InitContinueGame,
   LoadResources, PlayMusic, PlayStaticSound, PrintW, RenderAll, RenderShadow,
@@ -22,7 +22,6 @@ local BlitLT, BlitSLT, Fade, GameProc, InitCon, InitContinueGame,
 local aAssets,                         -- Assets required
       aBookData,                       -- Book data
       aIllustration;                   -- Illustration data
-local aPageHotSpots<const> = { };      -- Page specific hotspots
 local fcbFinish,                       -- Callback to call to exit
       fcbOnPageAssetsPost,             -- When page assets have loaded
       fcbProcLogic,                    -- Main page logic callback
@@ -33,8 +32,9 @@ local fcbFinish,                       -- Callback to call to exit
       iKeyBankCoverId, iKeyBankPageId, -- Key bank id for cover and pages part
       iKeyBankStartId,                 -- Key bank to set when cover page load
       iPage,                           -- Book current page
-      iSClick, iSSelect,               -- Sound effects used
-      oZmtcTexture,                    -- Lobby closed texture asset
+      iSClick, iSSelect;               -- Sound effects used
+local oPageHotSpots<const> = { };      -- Page specific hotspots
+local oZmtcTexture,                    -- Lobby closed texture asset
       strExitTip, strPage, strText,    -- Tip strings and actual page text
       strPageNext, strPageLast,        -- Next and last page tips
       texCover, texPage, texZmtc;      -- Book, page and bg texture handles
@@ -71,7 +71,7 @@ local function LoadPage(fcbOnComplete)
   if strPageLast > 0 then strPageLast = "< TO PAGE "..strPageLast;
   else strPageLast = "AT START" end;
   -- Set hotspots based on page
-  SetHotSpot(aPageHotSpots[iPage] or iHotSpotPageId);
+  SetHotSpot(oPageHotSpots[iPage] or iHotSpotPageId);
 end
 -- Switch page with sound -------------------------------------------------- --
 local function GoAdjustPage(iNewPage)
@@ -212,7 +212,7 @@ local function OnAssetsLoaded(aResources, fcbProcCustomHandle)
   if strText then
     -- Set page keybank and callbacks
     iKeyBankStartId, iHotSpotStartId, fcbProcRender =
-      iKeyBankPageId, aPageHotSpots[iPage] or iHotSpotPageId, ProcRenderPage;
+      iKeyBankPageId, oPageHotSpots[iPage] or iHotSpotPageId, ProcRenderPage;
   -- Not shown the cover page yet? Set render callback
   else
     -- Set cover page keybank and callbanks
@@ -293,9 +293,9 @@ local function OnScriptLoaded(GetAPI, aModData, oAPI)
     -- Not found?
     else
       -- English is default language and log the error
-      CoreLog("Language '"..sSelectedLang..
-        "' not supported! Defaulting to English.");
-      SelectLanguage("", true);
+      CoreLogEx("Language '"..sSelectedLang..
+        "' not supported! Defaulting to English.", Core.LogLevels.WARNING);
+      SelectLanguage("en", true);
     end
   end
   -- Select requested language override
@@ -368,7 +368,7 @@ local function OnScriptLoaded(GetAPI, aModData, oAPI)
       aHSToAdd[#aHSToAdd + 1] = aHSIdle;
       aHSToAdd[#aHSToAdd + 1] = aHSExit;
       -- Register and bind hotspot
-      aPageHotSpots[iPage] = RegisterHotSpot(aHSToAdd);
+      oPageHotSpots[iPage] = RegisterHotSpot(aHSToAdd);
     end
   end
   -- Set points of interest data for cover

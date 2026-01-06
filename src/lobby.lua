@@ -185,14 +185,14 @@ local function InitLobby(bNoSetMusic, iSaveMusicPos)
 end
 -- Click when lobby is closed ---------------------------------------------- --
 local function ExitClose(bFadeMusic, fcbCallback, ...)
-  -- Remove frame buffer update event
-  RegisterFBUCallback("lobby");
   -- Play sound and init the bank screen
   PlayStaticSound(iSSelect);
   -- Store parameters
   local aParams<const> = { ... };
   -- When faded out?
   local function OnFadeOutClosed()
+    -- Remove frame buffer update event
+    RegisterFBUCallback("lobby");
     -- Call exit function with requested parameters
     fcbCallback(unpack(aParams));
     -- Dereference assets for the garbage collector

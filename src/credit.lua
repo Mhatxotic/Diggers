@@ -10,7 +10,8 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local random<const>, remove<const> = math.random, table.remove;
+local random<const>, remove<const>, create<const> =
+  math.random, table.remove, table.create;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLTRB, DeInitLevel, Fade, GameProc, GetMusic, InitScore, LoadDemoLevel,
   LoadLevel, LoadResources, LockViewport, PlayMusic, PrintC, PrintR, Print,
@@ -104,7 +105,7 @@ end
 -- Init rolling credits ---------------------------------------------------- --
 local function InitRollingCredits(strMusic)
   -- Reset credit data
-  aXCredits = { };
+  aXCredits = create(#aCreditsXData);
   -- Current absolute position on-screen
   local nYEnd = 0;
   -- Enumerate through all extra credits
@@ -240,7 +241,7 @@ local function OnAssetsLoaded(aResources, bRolling)
   -- Register frame buffer update
   RegisterFBUCallback("credits", OnStageUpdated);
   -- Build levels to pick from
-  aLevels = { };
+  aLevels = create(#aLevelsData);
   for iI = 1, #aLevelsData do aLevels[1 + #aLevels] = iI end;
   -- Load first level or credits
   if bRolling then InitRollingCredits("credits");

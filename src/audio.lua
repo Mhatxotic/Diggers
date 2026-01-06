@@ -10,12 +10,13 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local error, tostring = error, tostring;
+local error<const>, tostring<const>, create<const>, getmetatable<const> =
+  error, tostring, table.create, getmetatable;
 -- Engine function aliases ------------------------------------------------- --
 local UtilIsInteger<const>, UtilIsNumber<const>, UtilIsTable<const> =
   Util.IsInteger, Util.IsNumber, Util.IsTable;
 -- Input handling variables ------------------------------------------------ --
-local aSounds<const>            = { }; -- Sound effects
+local aSounds;                         -- Sound effects
 local vidVideo;                        -- FMV playback handle
 local nPosition;                       -- Saved music position
 local musMusic;                        -- Currently playing music handle
@@ -70,36 +71,34 @@ local function PlayMusic(musHandle, nVolume, iPosCmd, iLoop, iStart)
   if not UtilIsInteger(iPosCmd) then iPosCmd = 0 end;
   if not UtilIsInteger(iLoop) then iLoop = -1 end;
   if not UtilIsInteger(iStart) then iStart = 0 end;
+  if getmetatable(musHandle) ~= "Stream" then return end;
   -- Stop music
   StopMusic(iPosCmd);
-  -- Handle specified?
-  if musHandle then
-    -- Set loop
-    if iStart then musHandle:SetLoopBegin(iStart) end;
-    -- Pause video if there is one
-    if vidVideo then vidVideo:Pause() end;
-    -- Asked to restore position?
-    if 2 == iPosCmd and nPosition and nPosition > 0 then
-      -- Restore position
-      musHandle:SetPosition(nPosition);
-      -- Play music
-      musHandle:SetLoop(iLoops);
-      -- Delete position and loop variable
-      nPosition, iLoops = nil, nil;
-    -- No restore position?
-    else
-      -- Play music from start
-      musHandle:SetPosition(0);
-      -- iLoop forever
-      musHandle:SetLoop(-1);
-    end
-    -- Set volume
-    musHandle:SetVolume(nVolume);
+  -- Set loop
+  if iStart then musHandle:SetLoopBegin(iStart) end;
+  -- Pause video if there is one
+  if vidVideo then vidVideo:Pause() end;
+  -- Asked to restore position?
+  if 2 == iPosCmd and nPosition and nPosition > 0 then
+    -- Restore position
+    musHandle:SetPosition(nPosition);
     -- Play music
-    musHandle:Play();
-    -- Set current track
-    musMusic = musHandle;
+    musHandle:SetLoop(iLoops);
+    -- Delete position and loop variable
+    nPosition, iLoops = nil, nil;
+  -- No restore position?
+  else
+    -- Play music from start
+    musHandle:SetPosition(0);
+    -- iLoop forever
+    musHandle:SetLoop(-1);
   end
+  -- Set volume
+  musHandle:SetVolume(nVolume);
+  -- Play music
+  musHandle:Play();
+  -- Set current track
+  musMusic = musHandle;
 end
 -- Function to play sound at the specified pan ----------------------------- --
 local function PlaySound(iSfxId, nPan, nPitch)
@@ -136,6 +135,7 @@ local function RegisterSounds(aHandles, iStart, iExpect)
   if iEnd > #aHandles then
     error("Invalid end specified: "..iStart..","..iExpect..","..iEnd) end;
   -- Set all the requested handles
+  aSounds = create(iExpect);
   for iSHIndex = iStart, iEnd do
     aSounds[1 + #aSounds] = aHandles[iSHIndex] end;
   -- Check we got the correct amount

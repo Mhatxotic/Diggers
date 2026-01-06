@@ -10,7 +10,8 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local pairs<const>, floor<const> = pairs, math.floor;
+local pairs<const>, floor<const>, create<const> =
+  pairs, math.floor, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local CoreTicks<const>, UtilClampInt<const>, UtilFormatNumber<const>,
   UtilIsNumber<const>, UtilIsTable<const> = Core.Ticks, Util.ClampInt,
@@ -167,10 +168,6 @@ local function OnHover()
       -- Get cache'd info of zone and if zone is not completed?
       local iNewZone<const> = aZoneCache[iZoneId];
       if iNewZone then
-        -- Set selection cursor
-        SetCursor(iCSelect);
-        -- Stop scrolling
-        SetTick(ProcZoneHover);
         -- Different?
         if iNewZone ~= iHoverZone then
           -- Set new zone selected
@@ -180,6 +177,10 @@ local function OnHover()
           -- Set selected level
           oHoverData = aLevelsData[iHoverZone];
         end
+        -- Set selection cursor
+        SetCursor(iCSelect);
+        -- Stop scrolling
+        SetTick(ProcZoneHover);
         -- Got a zone
         return;
       end
@@ -281,15 +282,15 @@ end
 local function OnAssetsLoaded(aResources)
   -- Set texture handles
   texZone = aResources[1];
-  -- Clear zone and flag cache
-  aZoneCache, aFlagCache, aZoneAvail = { }, { }, { };
   -- Levels completed
   local aLevelsCompleted<const> = oGlobalData.gLevelsCompleted;
   -- Rebuild flag data cache
+  aFlagCache = create(#aLevelsCompleted);
   for iZoneId in pairs(aLevelsCompleted) do
     aFlagCache[1 + #aFlagCache] = aZoneData[iZoneId][8];
   end
   -- Rebuild zone data cache
+  aZoneCache, aZoneAvail = create(#aFlagCache), create(#aFlagCache);
   for iZoneId = 1, #aZoneData do
     local aZoneItem<const> = aZoneData[iZoneId];
     local iZoneCompleted;

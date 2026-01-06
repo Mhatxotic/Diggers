@@ -286,13 +286,14 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
   if not UtilIsFunction(fComplete) then
     error("Finished callback is invalid! "..tostring(fComplete)) end;
   -- Initialise queue
-  local sDst, aInfo, oNCache, iTotal, iLoaded = "", { }, { }, nil, nil;
+  local sDst, aInfo, oNCache, iTotal, iLoaded =
+    "", { }, create(0, #aResources), nil, nil;
   -- Progress update on asynchronous loading
   local function ProgressUpdate(iCmd, ...)
     if iCmd == iFStart then aInfo = { ... } end;
   end
   -- Output handles
-  local aOutputHandles<const> = { };
+  local aOutputHandles<const> = create(#aResources);
   -- Grab extra parameters to send to callback
   local aParams<const> = { ... };
   -- Load item
@@ -366,17 +367,21 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
       -- Set stage 1 duration and stage 2 start time
       oResource.ST1 = nTime - oResource.ST1;
       oResource.ST2 = nTime;
+      -- File information required?
+      local vInfoRequired<const> = aTypeData[6];
       -- Get final call parameters and if not specified?
       local aParams = oResource.P;
       if aParams == nil then
-        -- Set empty parameters table
-        aParams = { };
+        -- Create preallocated parameters table if required
+        local iParamsSize;
+        if vInfoRequired then iParamsSize = #aInfo else iParamsSize = 0 end;
+        aParams = create(iParamsSize);
         oResource.P = aParams;
       -- Check that user specified parameters are valid
       elseif not UtilIsTable(aParams) then
         error("Invalid params "..tostring(aParams).." at index "..iI.."!") end;
       -- File information required? Add all the parameters
-      if aTypeData[6] then
+      if vInfoRequired then
         for iI = 1, #aInfo do aParams[1 + #aParams] = aInfo[iI] end;
       end
     end
@@ -595,9 +600,9 @@ local function fcbTick()
       local aFuncs<const> = { ... }
       if #aFuncs == 0 then error("No functions specified to check") end;
       -- Functions already added
-      local oAdded<const> = { };
+      local oAdded<const> = create(0, #aFuncs);
       -- Find each function specified and return all of them
-      local aRets<const> = { };
+      local aRets<const> = create(#aFuncs);
       for iI = 1, #aFuncs do
         -- Check parameter
         local sMember<const> = aFuncs[iI];

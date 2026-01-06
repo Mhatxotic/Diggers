@@ -10,21 +10,24 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local cos<const>, floor<const>, format<const>, pairs<const>, sin<const>,
-  tonumber<const> =
-    math.cos, math.floor, string.format, pairs, math.sin, tonumber;
+local cos<const>, error<const>, floor<const>, format<const>, pairs<const>,
+  sin<const>, tonumber<const>, create<const>, unpack<const> =
+    math.cos, error, math.floor, string.format, pairs, math.sin, tonumber,
+    table.create, table.unpack;
 -- Engine function aliases ------------------------------------------------- --
-local UtilFormatNumber<const>, UtilFormatTime<const>, CoreOSTime<const>,
-  CoreTime<const>, VariableSave<const> = Util.FormatNumber, Util.FormatTime,
-    Core.OSTime, Core.Time, Variable.Save;
+local CoreLogEx<const>, UtilFormatNumber<const>, UtilFormatTime<const>,
+  CoreOSTime<const>, CoreTime<const>, VariableSave<const> =
+    Core.LogEx, Util.FormatNumber, Util.FormatTime, Core.OSTime, Core.Time,
+    Variable.Save;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintC,
   RenderFade, RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys,
-  SetTip, aLevelsData, oObjectData, oObjectTypes, fontSpeech, texSpr;
+  SetTip, aLevelsData, aRacesData, oObjectData, oObjectTypes, fontSpeech,
+  texSpr, tKeyBankCats;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       aFileData, aNameData;            -- File and file names data
-local aSaveSlot<const> = { };          -- Contains save cvars
+local aSaveSlot<const> = create(4);    -- Contains save cvars
 local iHotSpotIdLoadOnly,              -- Hot spot id (Load only)
       iHotSpotIdLoadSave,              -- Hot spot id (Load AND save)
       iHotSpotIdNoLoadSave,            -- Hot spot id (No load/save)
@@ -43,7 +46,7 @@ local sFileMatchText<const> =
   "^(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),(%d+),\z
     (%d+),(%d+),(%d+),(%d+),([%d%s]*)$"
 -- Global data ------------------------------------------------------------- --
-local oGlobalData<const> = { };
+local oGlobalData<const> = create(0, 20);
 -- Initialise a new game --------------------------------------------------- --
 local function InitNewGame()
   oGlobalData.gBankBalance,      oGlobalData.gCapitalCarried,
@@ -67,57 +70,102 @@ local function InitNewGame()
     0,                             0,
     0,                             17500;
 end
+-- Parse level data and return result -------------------------------------- --
+local function ParseSaveData(cvSlot)
+  -- Get CVar and if not empty
+  if cvSlot:Empty() then return false end;
+  -- We need 17 comma separated values
+  local aTokens<const> = { cvSlot:Get():match(sFileMatchText); }
+  if #aTokens ~= 17 then return false, 101 end;
+  -- For each string in the tokens list
+  for iIndex = 1, #aTokens - 1 do
+    -- Convert the string to number
+    local iValue<const> = tonumber(aTokens[iIndex])
+    -- String to number conversion failed?
+    if not iValue then return false, 200 + iIndex end;
+    -- No value should be negative
+    if iValue < 0 then return false, 300 + iIndex end;
+    -- Accepted value
+    aTokens[iIndex] = iValue;
+  end
+  -- Now parse all the integers of each one
+  local iTimestamp<const>, iTimeTaken<const>, iSelectedRace<const>,
+    iBankBalance<const>, iCaptialCarried<const>, iHomicides<const>,
+    iTotalCapital<const>, iExploration<const>, iMortalities<const>,
+    iGemsSold<const>, iGemsFound<const>, iIncome<const>, iDug<const>,
+    iFiendsKilled<const>, iPurchases<const>, iLevelsCompleted<const>,
+    sLevelsCompleted<const> = unpack(aTokens);
+  -- Check that race id is valid
+  if iSelectedRace >= #aRacesData then return false, 400 end;
+  -- Can't keep a balance over the winning total without seeing end game
+  if iBankBalance > oGlobalData.gZogsToWinGame then return false, 401 end;
+  -- Having this much in devices at the end of the level is impossible
+  if iCaptialCarried > 65535 then return false, 402 end;
+  -- Number of levels completed can't exceed the actual number of levels
+  if iLevelsCompleted > #aLevelsData then return false, 403 end;
+  -- This is a overestimate but protects from insane values
+  if iIncome > (iLevelsCompleted * 65535) then return false, 404 end;
+  -- If it takes at most 4 digs to clear a typical block and there are 16384
+  -- blocks in a level, then the value can't possibly be over the levels
+  -- completed count.
+  if iDug > (iLevelsCompleted * 65535) then return false, 405 end;
+  -- There are 16384 blocks in a level so 16384 shroud tiles
+  if iExploration > (iLevelsCompleted * 16384) then return false, 406 end;
+  -- Since a gem found is a gem that's dug, it can't be over the dug count
+  if iGemsFound > iDug then return false, 407 end;
+  -- Homicides or deaths can't be over the maximum number of diggers in each
+  -- level completed
+  if iHomicides > (iLevelsCompleted * 5) then return false, 408 end;
+  if iMortalities > (iLevelsCompleted * 5) then return false, 409 end;
+  -- Parse levels completed
+  local aLevelsCompleted<const>, iLevelId = create(34), 0;
+  for iLevelIndex in sLevelsCompleted:gmatch("(%d+)") do
+    -- Convert to number and if valid number?
+    local iCompleted<const> = tonumber(iLevelIndex);
+    if not iCompleted then return false, 500 end;
+    if iCompleted < 1 then return false, 501 end;
+    if iCompleted > #aLevelsData then return false, 502 end;
+    -- Push valid level
+    aLevelsCompleted[iCompleted], iLevelId = true, iLevelId + 1;
+  end
+  -- Levels added and valid number of levels?
+  if iLevelId <= 0 then return false, 503 end;
+  if iLevelId > #aLevelsData then return false, 504 end;
+  if iLevelId ~= iLevelsCompleted then return false, 505 end;
+  -- Return both file data data...
+  return true, { iTimestamp, iTimeTaken, iSelectedRace, iBankBalance,
+    iCaptialCarried, iHomicides, iTotalCapital, iExploration, iMortalities,
+    iGemsSold, iGemsFound, iIncome, iDug, iFiendsKilled, iPurchases,
+    aLevelsCompleted },
+    -- and filename
+    format("%s (%s) %u%% ($%s)",
+      UtilFormatTime(iTimestamp, "%a %b %d %H:%M:%S %Y"):upper(),
+      oObjectData[oObjectTypes.FTARG + iSelectedRace].NAME,
+      floor(iBankBalance / oGlobalData.gZogsToWinGame * 100),
+      UtilFormatNumber(iBankBalance, 0));
+end
 -- Read, verify and return save data --------------------------------------- --
 local function LoadSaveData()
   -- Data to return
-  local aFileData<const>, aNameData<const> = { }, { };
+  local aFileData<const>, aNameData<const> = create(4), create(4);
   -- Get game data CVars
   for iIndex = 1, #aSaveSlot do
-    -- Get CVar and if not empty
-    local sData<const> = aSaveSlot[iIndex]:Get();
-    if #sData > 0 then
-      -- Get data for num
-      -- We need 5 comma separated values (Last value optional)
-      local T, TTT, R, B, C, TSP, TC, TDE, TD, TGS, TGF, TI,
-        TDG, TPE, TP, LC, L = sData:match(sFileMatchText);
-      -- Convert everything to integers
-      T, TTT, R, B, C, TSP, TC, TDE, TD, TGS, TGF, TI, TDG, TPE, TP, LC =
-        tonumber(T), tonumber(TTT), tonumber(R), tonumber(B), tonumber(C),
-        tonumber(TSP), tonumber(TC), tonumber(TDE), tonumber(TD),
-        tonumber(TGS), tonumber(TGF), tonumber(TI), tonumber(TDG),
-        tonumber(TPE), tonumber(TP), tonumber(LC);
-      -- Check variables and if they are all good?
-      if TTT and T and R and B and C and TSP and TC and TDE and TD and
-         TGS and TGF and TI and TDG and TPE and TP and LC and L and
-         T >= 1 and TTT >= 0 and R >= 0 and R <= 3 and
-         B <= oGlobalData.gZogsToWinGame and C >= 0 and C <= 9999 and
-         TSP >= 0 and TC >= 0 and TDE >= 0 and TD >= 0 and TGS >= 0 and
-         TGF >= 0 and TI >= 0 and TDG >= 0 and TPE >= 0 and TP >= 0 and
-         LC >= 0 and LC <= #aLevelsData then
-        -- Parse levels completed
-        local CL<const>, LA = { }, 0;
-        for LI in L:gmatch("(%d+)") do
-          -- Convert to number and if valid number?
-          local iCompleted<const> = tonumber(LI);
-          if iCompleted and iCompleted >= 1 and iCompleted <= #aLevelsData then
-            -- Push valid level
-            CL[iCompleted], LA = true, LA + 1;
-          end
-        end
-        -- Levels added and valid number of levels?
-        if LA > 0 and LA <= #aLevelsData and LA == LC then
-          -- Level data OK! file and name data
-          aFileData[iIndex], aNameData[iIndex] =
-            { T, TTT, R, B, C, TSP, TC, TDE, TD, TGS,
-              TGF, TI, TDG, TPE, TP, CL },
-            format("%s (%s) %u%% (%s$)",
-              UtilFormatTime(T, "%a %b %d %H:%M:%S %Y"):upper(),
-              oObjectData[oObjectTypes.FTARG + R].NAME,
-              floor(B / oGlobalData.gZogsToWinGame * 100),
-              UtilFormatNumber(B, 0));
-        else aNameData[iIndex] = "CORRUPTED SLOT "..iIndex.." (E#2)" end;
-      else aNameData[iIndex] = "CORRUPTED SLOT "..iIndex.." (E#1)" end;
-    else aNameData[iIndex] = "EMPTY SLOT "..iIndex end;
+    -- Parse save data and if failed?
+    local bResult<const>, aFData<const>, sData =
+      ParseSaveData(aSaveSlot[iIndex])
+    if not bResult then
+      -- Corrupted slot?
+      if aFData then
+        -- Data not available
+        aFileData[iIndex] = false;
+        -- Set corrupted label for player
+        sData = format("CORRUPTED SLOT %d (ERROR #%d)", iIndex, aFData);
+      -- Just an empty slot
+      else sData = format("EMPTY SLOT %d", iIndex) end;
+    -- Success so set parsed file data
+    else aFileData[iIndex] = aFData end;
+    -- Set file name so user can see
+    aNameData[iIndex] = sData;
   end
   -- Return data
   return aFileData, aNameData;
@@ -139,11 +187,11 @@ local function RenderFile()
     if iSelected == iFileId then
       local nTime<const> = CoreTime();
       RenderFade(0.5 + (sin(nTime) * cos(nTime) * 0.25),
-        35.0, 47.0 + nY, 285.0, 60.0 + nY);
+        35.0, 41.0 + nY, 285.0, 54.0 + nY);
     end
     -- Print name of file
     fontSpeech:SetCRGB(1.0, 1.0, 1.0);
-    PrintC(fontSpeech, 160.0, 49 + nY, aNameData[iFileId]);
+    PrintC(fontSpeech, 160.0, 43.0 + nY, aNameData[iFileId]);
   end
   -- Draw tip
   RenderTipShadow();
@@ -197,13 +245,13 @@ end
 -- Delete file ------------------------------------------------------------- --
 local function GoDelete()
   -- No id? Ignore
-  if not iSelected or not aFileData[iSelected] then return end;
+  if not iSelected or aFileData[iSelected] == nil then return end;
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Write data
   aSaveSlot[iSelected]:Clear();
   -- Set message
-  sMsg = "FILE "..iSelected.." DELETED SUCCESSFULLY!";
+  sMsg = format("FILE %d DELETED SUCCESSFULLY!", iSelected);
   -- Commit CVars on the game engine to persistent storage
   VariableSave();
   -- Refresh data
@@ -240,8 +288,8 @@ local function GoLoad()
   oGlobalData.gTotalPurchases, oGlobalData.gLevelsCompleted =
     aData[2],                     aData[3],
     nil,                          17500,
-    aData[4],                     floor(oGlobalData.gBankBalance/
-                                  oGlobalData.gZogsToWinGame * 100),
+    aData[4],                     floor(oGlobalData.gBankBalance /
+                                    oGlobalData.gZogsToWinGame * 100),
     aData[5],                     false,
     true,                         aData[6],
     aData[7],                     aData[8],
@@ -250,7 +298,7 @@ local function GoLoad()
     aData[13],                    aData[14],
     aData[15],                    aData[16];
   -- Set success message
-  sMsg = "FILE LOADED SUCCESSFULLY!";
+  sMsg = format("FILE %d LOADED SUCCESSFULLY!", iSelected);
   -- Can save now
   SetKeys(true, iKeyBankIdLoadSave);
   SetHotSpot(iHotSpotIdLoadSave);
@@ -258,11 +306,11 @@ end
 -- Save file --------------------------------------------------------------- --
 local function GoSave()
   -- Number of levels and levels completed
-  local iZonesCompleted, sLevelsCompleted = 0, sEmptyString;
+  local iZonesCompleted, iLevelsCompleted = 0, sEmptyString;
   -- For each level completed
   for iZoneId in pairs(oGlobalData.gLevelsCompleted) do
-    if iZonesCompleted == 0 then sLevelsCompleted = sLevelsCompleted..iZoneId;
-    else sLevelsCompleted = sLevelsCompleted.." "..iZoneId end;
+    if iZonesCompleted == 0 then iLevelsCompleted = iLevelsCompleted..iZoneId;
+    else iLevelsCompleted = iLevelsCompleted.." "..iZoneId end;
     iZonesCompleted = iZonesCompleted + 1;
   end
   -- Play sound
@@ -277,9 +325,9 @@ local function GoSave()
       oGlobalData.gTotalDeaths, oGlobalData.gTotalGemsSold,
       oGlobalData.gTotalGemsFound, oGlobalData.gTotalIncome,
       oGlobalData.gTotalDug, oGlobalData.gTotalEnemyKills,
-      oGlobalData.gTotalPurchases, iZonesCompleted, sLevelsCompleted));
+      oGlobalData.gTotalPurchases, iZonesCompleted, iLevelsCompleted));
   -- Set message
-  sMsg = "FILE "..iSelected.." SAVED SUCCESSFULLY!";
+  sMsg = format("FILE %d SAVED SUCCESSFULLY!", iSelected);
   -- Can exit to title
   oGlobalData.gGameSaved = true;
   -- Commit CVars on the game engine to persistent storage
@@ -295,6 +343,7 @@ local function GoFile1() Select(1) end;
 local function GoFile2() Select(2) end;
 local function GoFile3() Select(3) end;
 local function GoFile4() Select(4) end;
+local function GoFile5() Select(5) end;
 -- Selection adjust function ----------------------------------------------- --
 local function GoAdjustFile(iAmount)
   Select(1 + ((((iSelected or 0) + iAmount) - 1) % 4));
@@ -320,7 +369,7 @@ local function OnAssetsLoaded(aResources)
   -- Display data
   aFileData, aNameData = LoadSaveData();
   -- Make sure nothing selected so load/save buttons are disabled
-  iSelected, sMsg = nil, "SELECT FILE";
+  iSelected, sMsg = nil, "SELECT A FILE BELOW";
   -- Change render procedures
   Fade(1.0, 0.0, 0.04, RenderFile, OnFadeIn);
 end
@@ -335,14 +384,14 @@ local function OnScriptLoaded(GetAPI)
   BlitLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintC,
     RegisterHotSpot, RegisterKeys, RenderFade, RenderShadow, RenderTipShadow,
     SetCallbacks, SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData,
-    aLevelsData, oObjectData, oObjectTypes, oSfxData, fcbEmpty, fontSpeech,
-    texSpr =
+    aLevelsData, aRacesData, oObjectData, oObjectTypes, oSfxData, fcbEmpty,
+    fontSpeech, texSpr, tKeyBankCats =
       GetAPI("BlitLT", "Fade", "InitCon", "LoadResources", "PlayStaticSound",
         "PrintC", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderShadow", "RenderTipShadow", "SetCallbacks", "SetHotSpot",
         "SetKeys", "SetTip", "oAssetsData", "oCursorIdData", "aLevelsData",
-        "oObjectData", "oObjectTypes", "oSfxData", "fcbEmpty", "fontSpeech",
-        "texSpr");
+        "aRacesData", "oObjectData", "oObjectTypes", "oSfxData", "fcbEmpty",
+        "fontSpeech", "texSpr", "tKeyBankCats");
   -- Set assets data
   aAssets = { oAssetsData.file, oAssetsData.zmtc };
   -- Set sound effect ids
@@ -351,7 +400,8 @@ local function OnScriptLoaded(GetAPI)
   local oKeys<const> = Input.KeyCodes;
   local iPress<const> = Input.States.PRESS;
   local aKBDelete<const>, aKBLoad<const>, aKBSave<const>, aKBFile1<const>,
-    aKBFile2<const>, aKBFile3<const>, aKBFile4<const>, aKBEscape<const> =
+    aKBFile2<const>, aKBFile3<const>, aKBFile4<const>, aKBFile5<const>,
+    aKBEscape<const> =
       { oKeys.BACKSPACE, GoDelete, "zmtcfdsf", "DELETE SELECTED FILE" },
       { oKeys.L,         GoLoad,   "zmtcflsf", "LOAD SELECTED FILE"   },
       { oKeys.S,         GoSave,   "zmtcfssf", "SAVE SELECTED FILE"   },
@@ -359,46 +409,68 @@ local function OnScriptLoaded(GetAPI)
       { oKeys.N2,        GoFile2,  "zmtcfsfb", "SELECT 2ND FILE"      },
       { oKeys.N3,        GoFile3,  "zmtcfsfc", "SELECT 3RD FILE"      },
       { oKeys.N4,        GoFile4,  "zmtcfsfd", "SELECT 4TH FILE"      },
+      { oKeys.N5,        GoFile5,  "zmtcfsfe", "SELECT 5TH FILE"      },
       { oKeys.ESCAPE,    GoCntrl,  "zmtcfc",   "CANCEL"               };
   local sName<const> = "ZMTC FILE";
-  iKeyBankIdLoadSave = RegisterKeys(sName, { [iPress] = { aKBDelete,
-    aKBLoad, aKBSave, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBEscape } });
-  iKeyBankIdLoadOnly = RegisterKeys(sName, { [iPress] = { aKBDelete,
-    aKBLoad, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBEscape } });
-  iKeyBankIdSaveOnly = RegisterKeys(sName, { [iPress] = { aKBDelete,
-    aKBSave, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBEscape } });
+  iKeyBankIdLoadSave = RegisterKeys(sName, { [iPress] = { aKBDelete, aKBLoad,
+    aKBSave, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
+  iKeyBankIdLoadOnly = RegisterKeys(sName, { [iPress] = { aKBDelete, aKBLoad,
+    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
+  iKeyBankIdSaveOnly = RegisterKeys(sName, { [iPress] = { aKBDelete, aKBSave,
+    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
   iKeyBankIdNoLoadSave = RegisterKeys(sName, { [iPress] = { aKBDelete,
-    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBEscape } });
+    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
   -- Get cursor ids
   local iCOK<const>, iCSelect<const>, iCExit<const> =
     oCursorIdData.OK, oCursorIdData.SELECT, oCursorIdData.EXIT;
   -- Setup hot spots
   local aHSLoad<const>, aHSSave<const>, aHS1<const>, aHS2<const>, aHS3<const>,
-    aHS4<const>, aHSFile<const>, aHSCntrl<const> =
+    aHS4<const>, aHS5, aHSFile<const>, aHSCntrl<const> =
       {  57, 126,  60,  60, 0, iCOK,     "LOAD FILE",  OnScroll, GoLoad  },
       { 201, 126,  60,  60, 0, iCOK,     "SAVE FILE",  OnScroll, GoSave  },
-      {  35,  60, 250,  13, 0, iCSelect, "FILE 1",     OnScroll, GoFile1 },
-      {  35,  73, 250,  13, 0, iCSelect, "FILE 2",     OnScroll, GoFile2 },
-      {  35,  86, 250,  13, 0, iCSelect, "FILE 3",     OnScroll, GoFile3 },
-      {  35,  99, 250,  13, 0, iCSelect, "FILE 4",     OnScroll, GoFile4 },
+      {  35,  54, 250,  13, 0, iCSelect, "FILE 1",     OnScroll, GoFile1 },
+      {  35,  67, 250,  13, 0, iCSelect, "FILE 2",     OnScroll, GoFile2 },
+      {  35,  80, 250,  13, 0, iCSelect, "FILE 3",     OnScroll, GoFile3 },
+      {  35,  93, 250,  13, 0, iCSelect, "FILE 4",     OnScroll, GoFile4 },
+      {  35, 106, 250,  13, 0, iCSelect, "FILE 5",     OnScroll, GoFile5 },
       {   8,   8, 304, 200, 0, 0,        "LOAD/SAVE",  OnScroll, false   },
       {   0,   0,   0, 240, 3, iCExit,   "CONTROLLER", OnScroll, GoCntrl };
   iHotSpotIdLoadSave = RegisterHotSpot({
-    aHSLoad, aHSSave, aHS1, aHS2, aHS3, aHS4, aHSFile, aHSCntrl });
+    aHSLoad, aHSSave, aHS1, aHS2, aHS3, aHS4, aHS5, aHSFile, aHSCntrl });
   iHotSpotIdLoadOnly = RegisterHotSpot({
-    aHSLoad, aHS1, aHS2, aHS3, aHS4, aHSFile, aHSCntrl });
+    aHSLoad, aHS1, aHS2, aHS3, aHS4, aHS5, aHSFile, aHSCntrl });
   iHotSpotIdSaveOnly = RegisterHotSpot({
-    aHSSave, aHS1, aHS2, aHS3, aHS4, aHSFile, aHSCntrl });
+    aHSSave, aHS1, aHS2, aHS3, aHS4, aHS5, aHSFile, aHSCntrl });
   iHotSpotIdNoLoadSave = RegisterHotSpot({
-    aHS1, aHS2, aHS3, aHS4, aHSFile, aHSCntrl });
+    aHS1, aHS2, aHS3, aHS4, aHS5, aHSFile, aHSCntrl });
   -- Register file data CVar
   local aCVF<const> = Variable.Flags;
   -- Default CVar flags for string storage
   local iCFR<const> = aCVF.STRINGSAVE|aCVF.TRIM|aCVF.PROTECTED|aCVF.DEFLATE;
   -- Variable register function
   local VariableRegister<const> = Variable.Register;
-  -- Four save slots so four save variables required
-  for iSlotId = 1, 4 do
+  -- Callback to check if game version changed
+  local iVersion<const> =
+    tonumber(Variable.Internal.app_version:Get():match("%d+"));
+  if not iVersion then error("Internal error: App version not valid!") end;
+  -- Note that this cvar will unregister when we're done with it as it is
+  -- stored a local variable. There isn't any need for the user to modify
+  -- this so the behaviour is as intended.
+  local cvVersion<const> = VariableRegister("gam_lastversion", "0",
+    aCVF.UINTEGERSAVE, fcbEmpty);
+  -- If version is different?
+  local iOldVersion<const> = tonumber(cvVersion:Get());
+  if iVersion ~= iOldVersion then
+    -- Log that the version changed
+    CoreLogEx("Version change from "..
+      iOldVersion.." to "..iVersion.."!", Core.LogLevels.WARNING);
+    -- Update saved version to new version
+    cvVersion:Integer(iVersion);
+    -- Here we can eventually make changes to the game saves if we ever need to
+    -- change the format of them
+  end
+  -- Five save slots so five save variables required
+  for iSlotId = 1, 5 do
     aSaveSlot[iSlotId] =
       VariableRegister("gam_data"..iSlotId, sEmptyString, iCFR, fcbEmpty);
   end

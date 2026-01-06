@@ -4499,7 +4499,14 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     PlayInterfaceSound(iSError);
   end
   -- Pause the game
-  local function SelectPauseScreen() SelectInfoScreen() InitPause() end;
+  local function SelectPauseScreen()
+    -- Hide any info panels
+    SelectInfoScreen()
+    -- Play sound
+    PlayStaticSound(iSClick);
+    -- Pass to pause module
+    InitPause();
+  end
   -- Show inventory screen
   local function SelectInventoryScreen() SelectInfoScreen(1) end;
   -- Show location screen
@@ -4841,18 +4848,17 @@ local function OnPreInitAPI(GetAPI)
     aRacesData, oDugRandShaftData, oFloodGateData, maskLev, maskSpr,
     oGlobalData, aShopData, aAIChoicesData, aShroudCircle, aShroudTileLookup =
       GetAPI("oObjectTypes", "aLevelsData", "oObjectData", "oObjectActions",
-        "oObjectJobs", "oObjectDirections", "aAITypesData",
-        "aObjectFlags", "aDigTileData", "aTileData", "oTileFlags",
-        "oDigData", "BlitSLTRB", "BlitSLTWH", "BlitSLT", "aDigTileFlags",
-        "GetTestMode", "oSfxData", "aJumpRiseData", "aJumpFallData",
-        "iAnimNormal", "PlayStaticSound", "PlaySound", "Print", "PrintC",
-        "PrintR", "oMenuData", "oMenuFlags", "oMenuIds", "InitBook",
-        "RenderFade", "InitTNTMap", "InitLobby", "texSpr", "fontLarge",
-        "fontLittle", "fontTiny", "aDigBlockData", "SetCursorPos",
-        "RenderShadow", "RenderTip", "SetTip", "aRacesData",
-        "oDugRandShaftData", "oFloodGateData", "maskLevel",
-        "maskSprites", "oGlobalData", "aShopData", "aAIChoicesData",
-        "aShroudCircle", "aShroudTileLookup");
+        "oObjectJobs", "oObjectDirections", "aAITypesData", "aObjectFlags",
+        "aDigTileData", "aTileData", "oTileFlags", "oDigData", "BlitSLTRB",
+        "BlitSLTWH", "BlitSLT", "aDigTileFlags", "GetTestMode", "oSfxData",
+        "aJumpRiseData", "aJumpFallData", "iAnimNormal", "PlayStaticSound",
+        "PlaySound", "Print", "PrintC", "PrintR", "oMenuData", "oMenuFlags",
+        "oMenuIds", "InitBook", "RenderFade", "InitTNTMap", "InitLobby",
+        "texSpr", "fontLarge", "fontLittle", "fontTiny", "aDigBlockData",
+        "SetCursorPos", "RenderShadow", "RenderTip", "SetTip", "aRacesData",
+        "oDugRandShaftData", "oFloodGateData", "maskLevel", "maskSprites",
+        "oGlobalData", "aShopData", "aAIChoicesData", "aShroudCircle",
+        "aShroudTileLookup");
   -- Setup required assets for LoadLevel() and InitContinueGame().
   local oAssetTerrain<const>, oAssetObject<const>, oAssetTexture<const> =
     oAssetsData.mapt, oAssetsData.mapo, oAssetsData.game;

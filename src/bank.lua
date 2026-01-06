@@ -10,8 +10,8 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local format<const>, unpack<const>, error<const> =
-  string.format, table.unpack, error;
+local format<const>, unpack<const>, error<const>, create<const> =
+  string.format, table.unpack, error, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local UtilBlank<const>, UtilIsTable<const> = Util.Blank, Util.IsTable;
 -- Diggers function and data aliases --------------------------------------- --
@@ -220,8 +220,8 @@ local function OnAssetsLoaded(aResources)
   texBank = aResources[1];
   -- Get treasure value modifier
   iTreasureValueModifier = GetGameTicks() // 18000;
-  -- Banker data
-  aBankerData = { };
+  -- Reset banker data
+  aBankerData = create(#aBankerStaticData);
   -- Initialise banker data
   RefreshData();
   -- No speech bubbles, reset win notification and set empty tip

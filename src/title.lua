@@ -10,7 +10,8 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local pairs<const>, random<const> = pairs, math.random;
+local pairs<const>, random<const>, create<const> =
+  pairs, math.random, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const> =
   Core.RAM, Display.VRAM, Util.Bytes;
@@ -223,14 +224,14 @@ local function GoLoadLevel(strTitle)
   -- Next update time
   iNextUpdate = GetGameTicks();
   -- Build array of all the completed levels from every save slot
-  local aZones, aZonesKV<const> = { }, { };
+  local aZones, oZonesKV<const> = create(34), create(0, 34);
   for iSlotId, aSlotData in pairs(LoadSaveData()) do
-    for iZoneId in pairs(aSlotData[16]) do
-      if not aZonesKV[iZoneId] then
-        aZonesKV[iZoneId] = true;
+    if aSlotData then for iZoneId in pairs(aSlotData[16]) do
+      if not oZonesKV[iZoneId] then
+        oZonesKV[iZoneId] = true;
         aZones[1 + #aZones] = iZoneId;
       end
-    end
+    end end
   end
   -- If zero or one zone completed then allow showing the first two zones
   if #aZones <= 1 then aZones[1], aZones[2] = 1, 2 end;

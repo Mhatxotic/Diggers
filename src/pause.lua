@@ -29,7 +29,7 @@ local iHotSpotId;                      -- Pause screen hot spot id
 local iKeyBankId;                      -- Pause screen key bank id
 local iLastHotSpotId;                  -- Saved hot spot id
 local iLastKeyBankId;                  -- Saved key bank id
-local iSSelect;                        -- Sound error and select ids
+local iSClick, iSSelect;               -- Sound ids
 local muMusic;                         -- Current music played
 local nStageL, nStageR;                -- Stage horizontal bounds
 local nStageT, nStageB;                -- Stage vertical bounds
@@ -40,6 +40,8 @@ local sSmallTips;                      -- Small instructions text
 local texSpr;                          -- Sprite texture
 -- End game callback ------------------------------------------------------- --
 local function EndGame()
+  -- Dereference music
+  muMusic = nil;
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Abort the game with the opponent raising all the money
@@ -48,9 +50,9 @@ end
 -- Continue game callback -------------------------------------------------- --
 local function ContinueGame()
   -- Play sound
-  PlayStaticSound(iSSelect);
+  PlayStaticSound(iSClick);
   -- Resume music if we have it
-  if muMusic then PlayMusic(muMusic, nil, 2) end;
+  if muMusic then muMusic = PlayMusic(muMusic, nil, 2) end;
   -- Remove stage bounds callback
   RegisterFBUCallback("pause");
   -- Restore game keys and hotspot
@@ -178,7 +180,7 @@ local function OnScriptLoaded(GetAPI)
     }
   });
   -- Get sound effects
-  iSSelect = oSfxData.SELECT;
+  iSClick, iSSelect = oSfxData.CLICK, oSfxData.SELECT;
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, A = { InitPause = InitPause } };

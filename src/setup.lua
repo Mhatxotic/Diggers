@@ -139,7 +139,7 @@ local nReadmePaddingY<const> = 27.0;   -- Starting Y co-ordinate
 local iReadmeColsM1<const> = iReadmeCols - 1; -- Readme columns minus one
 -- Readme locals ----------------------------------------------------------- --
 local aCreditLines = create(1616);     -- Actual readme data
-local aReadmeColourData<const> = create(iReadmeRows); -- Readme colour data
+local aRmClrData<const> = create(iReadmeRows); -- Readme colour data
 local iHotSpotReadme,                  -- Readme hotspot id
       iKeyBankReadme,                  -- Readme keybank id
       aReadmeData,                     -- Readme data
@@ -162,7 +162,7 @@ local iAudioDeviceId,                  -- Current audio device id
       iWindowId,                       -- Current window size id
       iWindowIdOriginal;               -- Original window size id
 -- Binding locals ---------------------------------------------------------- --
-local aBindingsList<const> = { };      -- All of the formatted keybindings data
+local aBindsList<const> = create(136); -- All of the formatted keybind data
 local iBindsIndexBegin = 1;            -- Current starting keybinds position
 local iBindsIndexEnd = 1;              -- Current ending keybinds position
 local iHotSpotBind;                    -- Bind hotspots
@@ -253,7 +253,7 @@ local function RenderBackgroundStart(nId)
   PrintR(fontTiny, 312.0, 18.0, format("%.1f%% ENG", nCPUUsageProcess));
   FlickerColours(FlickerColour1, FlickerColour2);
   PrintR(fontTiny, 312.0, 9.0, format("%.1f%% SYS", nCPUUsageSystem));
-  Print(fontTiny, 8.0, 18.0, format("%u FPS", nGPUFramesPerSecond));
+  Print(fontTiny, 8.0, 18.0, format("%.1f FPS", nGPUFramesPerSecond));
 end
 -- ------------------------------------------------------------------------- --
 local function Refresh()
@@ -384,7 +384,7 @@ local function ProcRenderReadme()
     -- Get data
     local aData<const> = aReadmeVisibleLines[iIndex];
     -- Calculate gradient colour
-    local iCol<const> = aReadmeColourData[iIndex];
+    local iCol<const> = aRmClrData[iIndex];
     -- Calculate intensity
     local nIntensity<const> =
       0.75 + (((iIndex / #aReadmeVisibleLines) + nTime) % 0.25);
@@ -579,12 +579,12 @@ end
 -- ------------------------------------------------------------------------- --
 local function UpdateBindsLines()
   -- Clear displayed lines
-  local iMaximum<const> = min(iBindsIndexBegin + iReadmeRows, #aBindingsList);
+  local iMaximum<const> = min(iBindsIndexBegin + iReadmeRows, #aBindsList);
   aReadmeVisibleLines = create(iMaximum);
   -- For each line in readme file...
   for iIndex = iBindsIndexBegin, iMaximum do
     -- Get line and truncate it if it is too long
-    local aBind<const> = aBindingsList[iIndex];
+    local aBind<const> = aBindsList[iIndex];
     local sLine = aBind[6];
     local sBind<const> = aBind[8];
     sLine = sLine.." "..rep(".", 74 - #sLine - #sBind).." "..sBind;
@@ -597,7 +597,7 @@ local function UpdateBindsLines()
   end
   -- Update statuses
   sStatusLine1 = "DISPLAYING INPUT BINDING "..iBindsIndexBegin.." TO "..
-    iBindsIndexEnd.." OF "..#aBindingsList.." OF TOTAL INPUT BINDINGS";
+    iBindsIndexEnd.." OF "..#aBindsList.." OF TOTAL INPUT BINDINGS";
   -- Make sure marquee is showing
   SetTip(0, "MOVE THE CURSOR TO A BIND YOU WANT TO CHANGE AND PRESS LMB OR \z
     JB1 ON IT TO CHANGE THE KEY BINDING FOR IT. PRESS "..
@@ -616,7 +616,7 @@ local function RenderBinds()
     -- Get data
     local aData<const> = aReadmeVisibleLines[iIndex];
     -- Calculate gradient colour
-    local iCol<const> = aReadmeColourData[iIndex];
+    local iCol<const> = aRmClrData[iIndex];
     -- Return if no option is selected
     local nIntensity;
     if iSelectedOption == iIndex then
@@ -756,12 +756,8 @@ local function OnScriptLoaded(GetAPI)
     aReadmeData, aReadmeVisibleLines = nil, nil;
     -- Return to sub-proc
     SetCallbacks(fcbLogic, fcbRender);
-    -- Music to resume?
-    if musLast then
-      -- Play the music
-      PlayMusic(musLast, nil, 2);
-      -- Do not keep reference to handle
-      musLast = nil;
+    -- Music to resume? Play the music and dereference the handle
+    if musLast then musLast = PlayMusic(musLast, nil, 2);
     -- No music to set? Just stop the setup music
     else StopMusic() end;
     -- Resume any video that might be playing
@@ -1098,14 +1094,14 @@ local function OnScriptLoaded(GetAPI)
   local function SetReadme(iLine)
     -- Get maximum lines
     local iMax<const> =
-      UtilClampInt(#aReadmeData - #aReadmeColourData, 1, maxinteger);
+      UtilClampInt(#aReadmeData - #aRmClrData, 1, maxinteger);
     -- Set to end line?
     if iLine == maxinteger then iReadmeIndexBegin = iMax;
     -- Set line?
     else iReadmeIndexBegin = UtilClampInt(iLine, 1, iMax) end;
     -- Set ending line
-    iReadmeIndexEnd = UtilClampInt(iReadmeIndexBegin +
-      #aReadmeColourData, 1, #aReadmeData);
+    iReadmeIndexEnd =
+      UtilClampInt(iReadmeIndexBegin + #aRmClrData, 1, #aReadmeData);
     -- Update displayed readme lines
     UpdateReadmeLines();
   end
@@ -1156,14 +1152,14 @@ local function OnScriptLoaded(GetAPI)
   local function SetBinds(iLine)
     -- Get maximum lines
     local iMax<const> =
-      UtilClampInt(#aBindingsList - #aReadmeColourData, 1, maxinteger);
+      UtilClampInt(#aBindsList - #aRmClrData, 1, maxinteger);
     -- Set to end line?
     if iLine == maxinteger then iBindsIndexBegin = iMax;
     -- Set line?
     else iBindsIndexBegin = UtilClampInt(iLine, 1, iMax) end;
     -- Set ending line
-    iBindsIndexEnd = UtilClampInt(iBindsIndexBegin +
-      #aReadmeColourData, 1, #aBindingsList);
+    iBindsIndexEnd =
+      UtilClampInt(iBindsIndexBegin + #aRmClrData, 1, #aBindsList);
     -- Update displayed readme lines
     UpdateBindsLines();
   end
@@ -1174,7 +1170,7 @@ local function OnScriptLoaded(GetAPI)
   local function ScrollBindsUp() ScrollBinds(-1) end;
   local function ScrollBindsDown() ScrollBinds(1) end;
   local function ScrollBindsHome() SetBinds(1) end;
-  local function ScrollBindsEnd() SetBinds(#aBindingsList) end;
+  local function ScrollBindsEnd() SetBinds(#aBindsList) end;
   -- Setup bind keys
   local aBindsPageUp<const>, aBindsPageDown<const>,
         aBindsHome<const>,   aBindsEnd<const>,
@@ -1267,8 +1263,7 @@ local function OnScriptLoaded(GetAPI)
   aCreditLines[1 + #aCreditLines] = "*** END-OF-FILE ***";
   -- Init text colours
   for iIndex = 1, iReadmeRows do
-    aReadmeColourData[1 + #aReadmeColourData] =
-      (iIndex / iReadmeRows) * 0.25 end;
+    aRmClrData[1 + #aRmClrData] = (iIndex / iReadmeRows) * 0.25 end;
   -- Truncate bottom empty lines
   while #aCreditLines > 0 and #aCreditLines[#aCreditLines] == 0 do
     remove(aCreditLines) end;
@@ -1295,11 +1290,11 @@ local function OnScriptLoaded(GetAPI)
     aBind[7] = VariableRegister("gam_key_"..aBind[3], aBind[1], iSS,
       CVarModified);
     -- Put in bindings list
-    aBindingsList[1 + #aBindingsList] = aBind;
+    aBindsList[1 + #aBindsList] = aBind;
   end
   -- Sort the bindings list
   local function BindSortFunction(aA, aB) return aA[6] < aB[6] end;
-  sort(aBindingsList, BindSortFunction);
+  sort(aBindsList, BindSortFunction);
   -- Get OK result for Variable:Integer()
   local iVROK<const> = Variable.Result.OK;
   -- Binds area clicked
