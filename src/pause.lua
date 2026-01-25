@@ -14,23 +14,18 @@ local cos<const>, sin<const> = math.cos, math.sin;
 -- Engine function aliases ------------------------------------------------- --
 local CoreTime<const>, UtilFormatNTime<const> = Core.Time, Util.FormatNTime;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, PlayMusic,
-  PlayStaticSound, PrintC, RegisterFBUCallback, RenderAll, RenderFade,
-  RenderTip, SetCallbacks, SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd,
-  tKeyBankCats, fontLarge, fontTiny;
+local BlitSLTWHA, GetKeyName, InitContinueGame, PlayStaticSound, PrintC,
+  RegisterFBUCallback, RenderAll, RenderFade, RenderTip, SetCallbacks,
+  SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd, fontLarge, fontTiny;
 -- Statics ------------------------------------------------------------------ --
 local nPauseX<const> = 160.0;                    -- Pause text X position
 local nPauseY<const> = 72.0;                     -- Pause text Y position
 local nInstructionY<const> = nPauseY + 24.0;     -- Instruction text Y position
 local nSmallTipsY<const> = nInstructionY + 44.0; -- Small tips Y position
 -- Locals ------------------------------------------------------------------ --
-local fCBProc, fCBRender;              -- Last callbacks
 local iHotSpotId;                      -- Pause screen hot spot id
 local iKeyBankId;                      -- Pause screen key bank id
-local iLastHotSpotId;                  -- Saved hot spot id
-local iLastKeyBankId;                  -- Saved key bank id
 local iSClick, iSSelect;               -- Sound ids
-local muMusic;                         -- Current music played
 local nStageL, nStageR;                -- Stage horizontal bounds
 local nStageT, nStageB;                -- Stage vertical bounds
 local nTime;                           -- Current time
@@ -38,28 +33,18 @@ local nTimeNext;                       -- Next clock update
 local sInstruction;                    -- Instruction text
 local sSmallTips;                      -- Small instructions text
 local texSpr;                          -- Sprite texture
+-- Continue game callback -------------------------------------------------- --
+local function ContinueGame()
+  -- Play click sound and continue game
+  PlayStaticSound(iSClick);
+  InitContinueGame(true);
+end
 -- End game callback ------------------------------------------------------- --
 local function EndGame()
-  -- Dereference music
-  muMusic = nil;
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Abort the game with the opponent raising all the money
   TriggerEnd(3);
-end
--- Continue game callback -------------------------------------------------- --
-local function ContinueGame()
-  -- Play sound
-  PlayStaticSound(iSClick);
-  -- Resume music if we have it
-  if muMusic then muMusic = PlayMusic(muMusic, nil, 2) end;
-  -- Remove stage bounds callback
-  RegisterFBUCallback("pause");
-  -- Restore game keys and hotspot
-  SetKeys(true, iLastKeyBankId);
-  SetHotSpot(iLastHotSpotId);
-  -- Unpause
-  SetCallbacks(fCBProc, fCBRender);
 end
 -- Pause logic callback ---------------------------------------------------- --
 local function ProcPause()
@@ -114,35 +99,28 @@ local function InitPause()
   -- Consts
   sInstruction = "PAUSED!"
   sSmallTips =
-    "PRESS \rcffffff00"..tKeyBankCats.igpatg[9]..
+    "PRESS \rcffffff00"..GetKeyName("igpatg")..
       "\rr OR SELECT AT EDGE TO ABORT GAME\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.igpcg[9]..
+    "PRESS \rcffffff00"..GetKeyName("igpcg")..
       "\rr OR SELECT IN MIDDLE TO RESUME GAME\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.gksc[9]..
+    "PRESS \rcffffff00"..GetKeyName("gksc")..
       "\rr TO CHANGE ENGINE OPTIONS\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.gksb[9]..
+    "PRESS \rcffffff00"..GetKeyName("gksb")..
       "\rr TO CHANGE KEY BINDINGS\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.gksa[9]..
+    "PRESS \rcffffff00"..GetKeyName("gksa")..
       "\rr FOR THE GAME AND ENGINE CREDITS\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.gkcc[9]..
+    "PRESS \rcffffff00"..GetKeyName("gkcc")..
       "\rr TO RESET CURSOR POSITION\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.gkwr[9]..
+    "PRESS \rcffffff00"..GetKeyName("gkwr")..
       "\rr TO RESET WINDOW SIZE AND POSITION\n"..
-    "PRESS \rcffffff00"..tKeyBankCats.gkss[9]..
+    "PRESS \rcffffff00"..GetKeyName("gkss")..
       "\rr TO TAKE A SCREENSHOT";
-  -- Save current music
-  muMusic = GetMusic();
-  -- Save callbacks
-  fCBProc, fCBRender = GetCallbacks();
   -- Stop music
   StopMusic(1);
   -- Get stage bounds
   RegisterFBUCallback("pause", OnStageUpdated);
   -- Pause string
   nTimeNext = 0.0;
-  -- Save game keybank id to restore it on exit
-  iLastKeyBankId = GetKeyBank();
-  iLastHotSpotId = GetHotSpot();
   -- Set pause screen keys and no hot spots
   SetKeys(true, iKeyBankId);
   SetHotSpot(iHotSpotId);
@@ -154,18 +132,15 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oCursorIdData, oSfxData;
   -- Get imports
-  BlitSLTWHA, GetCallbacks, GetHotSpot, GetKeyBank, GetMusic, PlayMusic,
-    PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
-    RegisterKeys, RenderAll, RenderFade, RenderTip, SetCallbacks, SetHotSpot,
-    SetKeys, SetTip, StopMusic, TriggerEnd, oCursorIdData, tKeyBankCats,
-    oSfxData, fontLarge, fontTiny, texSpr =
-      GetAPI("BlitSLTWHA", "GetCallbacks", "GetHotSpot", "GetKeyBank",
-        "GetMusic", "PlayMusic", "PlayStaticSound", "PrintC",
-        "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
-        "RenderAll", "RenderFade", "RenderTip", "SetCallbacks",
-        "SetHotSpot", "SetKeys", "SetTip", "StopMusic", "TriggerEnd",
-        "oCursorIdData", "tKeyBankCats", "oSfxData", "fontLarge", "fontTiny",
-        "texSpr");
+  BlitSLTWHA, GetKeyName, InitContinueGame, PlayStaticSound, PrintC,
+    RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderAll, RenderFade,
+    RenderTip, SetCallbacks, SetHotSpot, SetKeys, SetTip, StopMusic,
+    TriggerEnd, fontLarge, fontTiny, oCursorIdData, oSfxData, texSpr =
+      GetAPI("BlitSLTWHA", "GetKeyName", "InitContinueGame", "PlayStaticSound",
+        "PrintC", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
+        "RenderAll", "RenderFade", "RenderTip", "SetCallbacks", "SetHotSpot",
+        "SetKeys", "SetTip", "StopMusic", "TriggerEnd", "fontLarge",
+        "fontTiny", "oCursorIdData", "oSfxData", "texSpr");
   -- Setup hot spot
   iHotSpotId = RegisterHotSpot({
     { 8, 8, 8, 224, 3, oCursorIdData.OK,   false, false, ContinueGame },

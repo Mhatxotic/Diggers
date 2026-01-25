@@ -10,8 +10,8 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local pairs<const>, random<const>, create<const> =
-  pairs, math.random, table.create;
+local create<const>, pairs<const>, random<const> =
+  table.create, pairs, math.random;
 -- Engine function aliases ------------------------------------------------- --
 local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const> =
   Core.RAM, Display.VRAM, Util.Bytes;
@@ -19,15 +19,16 @@ local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const> =
 local strVersion<const> = Variable.Internal.app_version:Get().." ";
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
-  GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
-  LoadResources, LoadSaveData, PlayStaticSound, PrintC, RegisterFBUCallback,
-  RenderObjects, RenderTerrain, SelectObject, SetHotSpot, tKeyBankCats,
-  aLevelsData, oObjectTypes, aObjs, fontTiny;
+  GetKeyName, GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits,
+  LoadLevel, LoadResources, LoadSaveData, PlayStaticSound, PrintC,
+  RegisterFBUCallback, RenderObjects, RenderTerrain, SelectObject, SetHotSpot,
+  aLevelsData, aObjs, fontTiny;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets to load
       fcbEnterAnimProc,                -- Enter animation procedure
       fcbLeaveAnimProc,                -- Leave animation procedure
       fcbRC,                           -- System information update function
+      iDigTypeRandom,                  -- Type to select a random digger
       iHotSpotId,                      -- Button hotspot id
       iKeyBankId,                      -- Title key bank id
       iNextUpdate,                     -- Next system information update
@@ -43,29 +44,29 @@ local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
 sAppTitle, sAppVendor, sAppExeType =
   sAppTitle:upper(), sAppVendor:upper(), sAppExeType:upper();
 -- Static element positions ------------------------------------------------ --
-local nCentreX, nCreditsY, nLogoX, nLogoY, nPostY, nSubY =
-  160.0, 206.0, 79.0, 12.0, 72.0, 58.0;
+local nCentreX<const>, nCreditsY<const>, nLogoX<const>, nLogoY<const>,
+  nPostY<const>, nSubY<const> = 160.0, 206.0, 79.0, 12.0, 72.0, 58.0;
 -- Render in procedure ----------------------------------------------------- --
 local function RenderProcEnterAnim()
   -- Scroll in amount
-  local n1, n2 = 160.0, 168.0;
+  local nAnimCounter1, nAnimCounter2 = 160.0, 168.0;
   -- Initial animation procedure
   local function RenderProcInitialAnim()
     -- Render terrain and game objects
     RenderTerrain();
     RenderObjects();
     -- Render title objects
-    BlitSLT(texTitle, 2, nLogoX, 12.0 - n1);
-    BlitSLT(texTitle, 3, nStageL - n1, nPostY);
-    BlitSLT(texTitle, 4, nStageR - (168.0 - n2), nPostY);
+    BlitSLT(texTitle, 2, nLogoX, 12.0 - nAnimCounter1);
+    BlitSLT(texTitle, 3, nStageL - nAnimCounter1, nPostY);
+    BlitSLT(texTitle, 4, nStageR - (168.0 - nAnimCounter2), nPostY);
     -- Render status text
     fontTiny:SetCRGB(1.0, 0.9, 0.0);
-    PrintC(fontTiny, nCentreX, 58.0 - n1, strSubTitle);
-    PrintC(fontTiny, nCentreX, 206.0 + n1, strCredits);
+    PrintC(fontTiny, nCentreX, 58.0 - nAnimCounter1, strSubTitle);
+    PrintC(fontTiny, nCentreX, 206.0 + nAnimCounter1, strCredits);
     -- Move components in
-    n1 = n1 - (n1 * 0.1);
-    n2 = n2 - (n2 * 0.1);
-    if n1 > 1.0 and n2 > 1.0 then return end;
+    nAnimCounter1 = nAnimCounter1 - (nAnimCounter1 * 0.1);
+    nAnimCounter2 = nAnimCounter2 - (nAnimCounter2 * 0.1);
+    if nAnimCounter1 > 1.0 and nAnimCounter2 > 1.0 then return end;
     -- Animation completed
     local function RenderProcFinishedAnim()
       -- Render terrain and game objects
@@ -91,24 +92,24 @@ end
 -- Render fade out procedure ----------------------------------------------- --
 local function RenderProcLeaveAnim()
   -- Scroll in amount
-  local n1, n2 = 160.0, 168.0;
+  local nAnimCounter1, nAnimCounter2 = 160.0, 168.0;
   -- Initial animation procedure
   local function RenderProcInitialAnim()
     -- Render terrain and game objects
     RenderTerrain();
     RenderObjects();
     -- Render title objects
-    BlitSLT(texTitle, 2, nLogoX, -148.0 + n1);
-    BlitSLT(texTitle, 3, nStageL - 168.0 + n1, nPostY);
-    BlitSLT(texTitle, 4, nStageR - n2, nPostY);
+    BlitSLT(texTitle, 2, nLogoX, -148.0 + nAnimCounter1);
+    BlitSLT(texTitle, 3, nStageL - 168.0 + nAnimCounter1, nPostY);
+    BlitSLT(texTitle, 4, nStageR - nAnimCounter2, nPostY);
     -- Render status text
     fontTiny:SetCRGB(1.0, 0.9, 0.0);
-    PrintC(fontTiny, nCentreX, 58.0 - n1, strSubTitle);
-    PrintC(fontTiny, nCentreX, 370.0 - n1, strCredits);
+    PrintC(fontTiny, nCentreX, nAnimCounter1 - 106.0, strSubTitle);
+    PrintC(fontTiny, nCentreX, 370.0 - nAnimCounter1, strCredits);
     -- Move components in
-    n1 = n1 - (n1 * 0.05);
-    n2 = n2 - (n2 * 0.05);
-    if n1 >= 1.0 and n2 >= 1.0 then return end;
+    nAnimCounter1 = nAnimCounter1 - (nAnimCounter1 * 0.05);
+    nAnimCounter2 = nAnimCounter2 - (nAnimCounter2 * 0.05);
+    if nAnimCounter1 >= 1.0 and nAnimCounter2 >= 1.0 then return end;
     -- Animation completed
     local function RenderProcFinishedAnim()
       -- Render terrain and game objects
@@ -207,8 +208,7 @@ end
 -- Framebuffer changed callback -------------------------------------------- --
 local function OnStageUpdated(_, _, iStageL, _, iStageR, iStageB)
   -- Update stage bounds converting to numbers
-  nStageL, nStageR, nStageB =
-    iStageL + 0.0, iStageR + 0.0, iStageB + 0.0;
+  nStageL, nStageR, nStageB = iStageL + 0.0, iStageR + 0.0, iStageB + 0.0;
   -- Recalculate post start game position
   nPostSGX = nStageR - 168.0;
   -- Re-detect video RAM
@@ -236,9 +236,9 @@ local function GoLoadLevel(strTitle)
   -- If zero or one zone completed then allow showing the first two zones
   if #aZones <= 1 then aZones[1], aZones[2] = 1, 2 end;
   -- Load AI vs AI and use random zone
-  LoadLevel(aZones[random(#aZones)], strTitle, iKeyBankId,
-    oObjectTypes.DIGRANDOM, true, oObjectTypes.DIGRANDOM, true,
-    ProcLogic, ProcRender, FadeOutToCredits, iHotSpotId, nil, nil, true);
+  LoadLevel(aZones[random(#aZones)], strTitle, iKeyBankId, iDigTypeRandom,
+    true, iDigTypeRandom, true, ProcLogic, ProcRender, FadeOutToCredits,
+    iHotSpotId, nil, nil, true);
 end
 -- When faded out to quit -------------------------------------------------- --
 local function OnFadeOutToQuit() Core.Quit(0) end;
@@ -279,9 +279,9 @@ local function OnAssetsLoaded(aResources, bNoMusic)
     (C) 1994 MILLENNIUM INTERACTIVE LTD. ALL RIGHTS RESERVED\n\rcffffff4f\z
     POWERED BY "..sAppTitle.." (C) 2026 "..sAppVendor..". \z
       ALL RIGHTS RESERVED\n\z
-    PRESS "..tKeyBankCats.gksc[9].." TO SETUP, "..
-      tKeyBankCats.gksb[9].." TO SET KEYS OR "..
-      tKeyBankCats.gksa[9].." TO SEE ACKNOWLEDGEMENTS AT ANY TIME";
+    PRESS "..GetKeyName("gksc").." TO SETUP, "..GetKeyName("gksb")..
+      " TO SET KEYS OR "..GetKeyName("gksa")..
+      " TO SEE ACKNOWLEDGEMENTS AT ANY TIME";
   -- Load demonstration level without or with title music
   if bNoMusic then GoLoadLevel() else GoLoadLevel("title") end;
 end
@@ -292,21 +292,24 @@ end
 -- Script ready function --------------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
+  local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData,
+    oObjectTypes, oSfxData;
   -- Get imports
   BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
-    GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits, LoadLevel,
-    LoadResources, LoadSaveData, PlayStaticSound, PrintC, RegisterFBUCallback,
-    RegisterHotSpot, RegisterKeys, RenderObjects, RenderTerrain, SelectObject,
-    SetHotSpot, oAssetsData, oCursorIdData, tKeyBankCats, aLevelsData,
-    oObjectTypes, aObjs, oSfxData, fontTiny =
+    GetKeyName, GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits,
+    LoadLevel, LoadResources, LoadSaveData, PlayStaticSound, PrintC,
+    RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderObjects,
+    RenderTerrain, SelectObject, SetHotSpot, aLevelsData, aObjs, fontTiny,
+    oAssetsData, oCursorIdData, oObjectTypes, oSfxData =
       GetAPI("BlitSLT", "DeInitLevel", "Fade", "GameProc", "GetActivePlayer",
-        "GetGameTicks", "GetOpponentPlayer", "InitLobby", "InitNewGame",
-        "InitTitleCredits", "LoadLevel", "LoadResources", "LoadSaveData",
-        "PlayStaticSound", "PrintC", "RegisterFBUCallback", "RegisterHotSpot",
-        "RegisterKeys", "RenderObjects", "RenderTerrain", "SelectObject",
-        "SetHotSpot", "oAssetsData", "oCursorIdData", "tKeyBankCats",
-        "aLevelsData", "oObjectTypes", "aObjs", "oSfxData", "fontTiny");
+        "GetGameTicks", "GetKeyName", "GetOpponentPlayer", "InitLobby",
+        "InitNewGame", "InitTitleCredits", "LoadLevel", "LoadResources",
+        "LoadSaveData", "PlayStaticSound", "PrintC", "RegisterFBUCallback",
+        "RegisterHotSpot", "RegisterKeys", "RenderObjects", "RenderTerrain",
+        "SelectObject", "SetHotSpot", "aLevelsData", "aObjs", "fontTiny",
+        "oAssetsData", "oCursorIdData", "oObjectTypes", "oSfxData");
+  -- Set random digger type
+  iDigTypeRandom = oObjectTypes.DIGRANDOM;
   -- Build assets data
   aAssets = { oAssetsData.title };
   -- Get sound id

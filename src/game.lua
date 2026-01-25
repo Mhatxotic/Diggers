@@ -26,15 +26,15 @@ local CoreLog<const>, CoreWrite<const>, UtilClamp<const>, UtilClampInt<const>,
     Util.IsInteger, Util.IsString, Util.IsTable, Util.Sign;
 -- Diggers shared functions and data assigned later ------------------------ --
 local ACT, AI, BlitSLT, BlitSLTRB, BlitSLTWH, CreateObject, DF, DIR,
-  GetTestMode, InitBook, InitLobby, InitTNTMap, JOB, MFL, MNU,
-  MoveOtherObjects, OFL, PlayInterfaceSound, PlaySound, PlaySoundAtObject,
-  PlayStaticSound, Print, PrintC, PrintR, RenderFade, RenderShadow, RenderTip,
-  SelectInfoScreen, SetAction, SetCursorPos, SetTip, TYP, aAIChoicesData,
-  aDigBlockData, aDigTileData, aJumpFallData, aJumpRiseData, aLevelsData,
-  aShopData, aShroudCircle, aShroudTileLookup, aTileData, fontLarge,
-  fontLittle, fontTiny, iAnimNormal, iSavedSlowDown, iSlowDown, oDigData,
-  oDugRandShaftData, oFloodGateData, oGlobalData, oMenuData, oObjectData,
-  oSfxData, oTileFlags, texSpr;
+  GetTestMode, InitLobby, InitTNTMap, JOB, MFL, MNU, MoveOtherObjects, OFL,
+  PlayInterfaceSound, PlaySound, PlaySoundAtObject, PlayStaticSound, Print,
+  PrintC, PrintR, RenderFade, RenderShadow, RenderTip, SelectInfoScreen,
+  SetAction, SetCursorPos, SetTip, TYP, aAIChoicesData, aDigBlockData,
+  aDigTileData, aJumpFallData, aJumpRiseData, aLevelsData, aShopData,
+  aShroudCircle, aShroudTileLookup, aTileData, fontLarge, fontLittle, fontTiny,
+  iAnimNormal, iSavedSlowDown, iSlowDown, oDigData, oDugRandShaftData,
+  oFloodGateData, oGlobalData, oMenuData, oObjectData, oSfxData, oTileFlags,
+  texSpr;
 -- Level limits ------------------------------------------------------------ --
 local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
 local iLLAbsH<const>   = 128;               -- Total # of vertical tiles
@@ -4498,41 +4498,18 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     -- Failed? Play sound
     PlayInterfaceSound(iSError);
   end
-  -- Pause the game
-  local function SelectPauseScreen()
-    -- Hide any info panels
-    SelectInfoScreen()
-    -- Play sound
-    PlayStaticSound(iSClick);
-    -- Pass to pause module
-    InitPause();
-  end
   -- Show inventory screen
   local function SelectInventoryScreen() SelectInfoScreen(1) end;
   -- Show location screen
   local function SelectLocationScreen() SelectInfoScreen(2) end;
   -- Show status screen
   local function SelectStatusScreen() SelectInfoScreen(3) end;
-  -- Init the book
-  local function SelectBook()
-    -- Enumerate diggers
-    local aDiggers<const> = oPlrActive.D;
-    for iDigger = 1, #aDiggers do
-      -- Get digger data and if it's teleporting home or going home?
-      local oDigger<const> = aDiggers[iDigger];
-      if oDigger and (oDigger.F & iFNoHome ~= 0 or oDigger.J == iJHome) then
-        -- Play error sound effect and return
-        return PlayInterfaceSound(oSfxData.ERROR);
-      end
-    end
-    -- Book screen selected (for icon)
-    SelectInfoScreen(4);
-    -- Play sound effect to show the player clicked it
-    PlayInterfaceSound(oSfxData.CLICK);
-    -- Remove play sound function
-    SetPlaySounds(false);
-    -- Init the book
-    InitBook(true);
+  -- Show pause screen
+  local function SelectPauseScreen()
+    -- Hide any info panels
+    SelectInfoScreen(4)
+    -- Pass to pause module
+    InitPause();
   end
   -- Setup keybank
   iKeyBankId = RegisterKeys("IN-GAME", {
@@ -4555,7 +4532,6 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
       { oKeys.F5, SelectInventoryScreen, "igshi", "TOGGLE DIGGER INVENTORY" },
       { oKeys.F6, SelectLocationScreen, "igshl", "TOGGLE DIGGER LOCATIONS" },
       { oKeys.F7, SelectStatusScreen, "igshs", "TOGGLE GAME STATUS" },
-      { oKeys.F8, SelectBook, "igshb", "TOGGLE THE BOOK" },
       { oKeys.UP, MoveJump, "igj", "JUMP THE OBJECT" },
       { oKeys.DOWN, MoveStop, "igs", "STOP MOVING BUT KEEP JOB" },
       { oKeys.LEFT, MoveLeft, "igml", "WALK OR RUN OBJECT LEFT" },
@@ -4800,7 +4776,8 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
       SelectLocationScreen },
     { 280, 216, 16, 16, 0, iCSelect, "GAME STATUS", OnScroll,
       SelectStatusScreen },
-    { 296, 216, 16, 16, 0, iCSelect, "THE BOOK",    OnScroll, SelectBook },
+    { 296, 216, 16, 16, 0, iCSelect, "PAUSE",       OnScroll,
+      SelectPauseScreen },
     -- Anything else on the screen (too complecated to put here)
     { 0, 0, 0, 240, 3, 0, OnHover, OnScroll,
       { false, SelectObjectOnScreenPress, SelectObjectOnScreenDrag } },
@@ -4843,7 +4820,7 @@ local function OnPreInitAPI(GetAPI)
     aTileData, oTileFlags, oDigData, BlitSLTRB, BlitSLTWH, BlitSLT, DF,
     GetTestMode, oSfxData, aJumpRiseData, aJumpFallData, iAnimNormal,
     PlayStaticSound, PlaySound, Print, PrintC, PrintR, oMenuData, MFL, MNU,
-    InitBook, RenderFade, InitTNTMap, InitLobby, texSpr, fontLarge, fontLittle,
+    RenderFade, InitTNTMap, InitLobby, texSpr, fontLarge, fontLittle,
     fontTiny, aDigBlockData, SetCursorPos, RenderShadow, RenderTip, SetTip,
     aRacesData, oDugRandShaftData, oFloodGateData, maskLev, maskSpr,
     oGlobalData, aShopData, aAIChoicesData, aShroudCircle, aShroudTileLookup =
@@ -4853,7 +4830,7 @@ local function OnPreInitAPI(GetAPI)
         "BlitSLTWH", "BlitSLT", "aDigTileFlags", "GetTestMode", "oSfxData",
         "aJumpRiseData", "aJumpFallData", "iAnimNormal", "PlayStaticSound",
         "PlaySound", "Print", "PrintC", "PrintR", "oMenuData", "oMenuFlags",
-        "oMenuIds", "InitBook", "RenderFade", "InitTNTMap", "InitLobby",
+        "oMenuIds", "RenderFade", "InitTNTMap", "InitLobby",
         "texSpr", "fontLarge", "fontLittle", "fontTiny", "aDigBlockData",
         "SetCursorPos", "RenderShadow", "RenderTip", "SetTip", "aRacesData",
         "oDugRandShaftData", "oFloodGateData", "maskLevel", "maskSprites",
@@ -4912,7 +4889,7 @@ local function OnPreInitAPI(GetAPI)
     SetRandomJob(oObj, true);
   end
   -- Continue game from book or lobby -------------------------------------- --
-  local function InitContinueGame(bMusic)
+  local function InitContinueGame(bMusic, bNoObject)
     -- Make sure there is no info screen selected
     SelectInfoScreen();
     -- Post loaded
@@ -4925,7 +4902,8 @@ local function OnPreInitAPI(GetAPI)
       SetKeys(true, iKeyBankId);
       SetHotSpot(iHotSpotId);
       -- If no object originally sent or is not hidden then we're done
-      if not oObjActive or oObjActive.A ~= ACT.HIDE then return end;
+      if bNoObject or not oObjActive or
+         oObjActive.A ~= ACT.HIDE then return end;
       -- Get active parent players diggers and enumerate their diggers
       local aDiggers<const> = oObjActive.P.D;
       for iDiggerId = 1, #aDiggers do

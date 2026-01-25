@@ -23,7 +23,7 @@ local CoreLogEx<const>, UtilFormatNumber<const>, UtilFormatTime<const>,
 local BlitLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintC,
   RenderFade, RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys,
   SetTip, aLevelsData, aRacesData, oObjectData, oObjectTypes, fontSpeech,
-  texSpr, tKeyBankCats;
+  texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       aFileData, aNameData;            -- File and file names data
@@ -346,11 +346,15 @@ local function GoFile4() Select(4) end;
 local function GoFile5() Select(5) end;
 -- Selection adjust function ----------------------------------------------- --
 local function GoAdjustFile(iAmount)
-  Select(1 + ((((iSelected or 0) + iAmount) - 1) % 4));
+  Select(1 + ((((iSelected or 0) + iAmount) - 1) % 5));
 end
+-- Mouse scroll up --------------------------------------------------------- --
+local function ScrollUp() GoAdjustFile(-1) end;
+-- Mouse scroll down ------------------------------------------------------- --
+local function ScrollDown() GoAdjustFile(1)  end;
 -- Mouse scroll event ------------------------------------------------------ --
 local function OnScroll(nX, nY)
-  if nY < 0 then GoAdjustFile(1) elseif nY > 0 then GoAdjustFile(-1) end
+  if nY < 0 then ScrollDown() elseif nY > 0 then ScrollUp() end
 end
 -- When file screen has faded in? ------------------------------------------ --
 local function OnFadeIn()
@@ -385,13 +389,13 @@ local function OnScriptLoaded(GetAPI)
     RegisterHotSpot, RegisterKeys, RenderFade, RenderShadow, RenderTipShadow,
     SetCallbacks, SetHotSpot, SetKeys, SetTip, oAssetsData, oCursorIdData,
     aLevelsData, aRacesData, oObjectData, oObjectTypes, oSfxData, fcbEmpty,
-    fontSpeech, texSpr, tKeyBankCats =
+    fontSpeech, texSpr =
       GetAPI("BlitLT", "Fade", "InitCon", "LoadResources", "PlayStaticSound",
         "PrintC", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderShadow", "RenderTipShadow", "SetCallbacks", "SetHotSpot",
         "SetKeys", "SetTip", "oAssetsData", "oCursorIdData", "aLevelsData",
         "aRacesData", "oObjectData", "oObjectTypes", "oSfxData", "fcbEmpty",
-        "fontSpeech", "texSpr", "tKeyBankCats");
+        "fontSpeech", "texSpr");
   -- Set assets data
   aAssets = { oAssetsData.file, oAssetsData.zmtc };
   -- Set sound effect ids
@@ -401,25 +405,31 @@ local function OnScriptLoaded(GetAPI)
   local iPress<const> = Input.States.PRESS;
   local aKBDelete<const>, aKBLoad<const>, aKBSave<const>, aKBFile1<const>,
     aKBFile2<const>, aKBFile3<const>, aKBFile4<const>, aKBFile5<const>,
-    aKBEscape<const> =
-      { oKeys.BACKSPACE, GoDelete, "zmtcfdsf", "DELETE SELECTED FILE" },
-      { oKeys.L,         GoLoad,   "zmtcflsf", "LOAD SELECTED FILE"   },
-      { oKeys.S,         GoSave,   "zmtcfssf", "SAVE SELECTED FILE"   },
-      { oKeys.N1,        GoFile1,  "zmtcfsfa", "SELECT 1ST FILE"      },
-      { oKeys.N2,        GoFile2,  "zmtcfsfb", "SELECT 2ND FILE"      },
-      { oKeys.N3,        GoFile3,  "zmtcfsfc", "SELECT 3RD FILE"      },
-      { oKeys.N4,        GoFile4,  "zmtcfsfd", "SELECT 4TH FILE"      },
-      { oKeys.N5,        GoFile5,  "zmtcfsfe", "SELECT 5TH FILE"      },
-      { oKeys.ESCAPE,    GoCntrl,  "zmtcfc",   "CANCEL"               };
+    aKBScrollUp<const>, aKBScrollDown<const>, aKBEscape<const> =
+      { oKeys.BACKSPACE, GoDelete,   "zmtcfdsf", "DELETE SELECTED FILE" },
+      { oKeys.L,         GoLoad,     "zmtcflsf", "LOAD SELECTED FILE"   },
+      { oKeys.S,         GoSave,     "zmtcfssf", "SAVE SELECTED FILE"   },
+      { oKeys.N1,        GoFile1,    "zmtcfsfa", "SELECT 1ST FILE"      },
+      { oKeys.N2,        GoFile2,    "zmtcfsfb", "SELECT 2ND FILE"      },
+      { oKeys.N3,        GoFile3,    "zmtcfsfc", "SELECT 3RD FILE"      },
+      { oKeys.N4,        GoFile4,    "zmtcfsfd", "SELECT 4TH FILE"      },
+      { oKeys.N5,        GoFile5,    "zmtcfsfe", "SELECT 5TH FILE"      },
+      { oKeys.UP,        ScrollUp,   "zmtcfsu",  "SCROLL FILE UP"       },
+      { oKeys.DOWN,      ScrollDown, "zmtcfsd",  "SCROLL FILE DOWN"     },
+      { oKeys.ESCAPE,    GoCntrl,    "zmtcfc",   "CANCEL"               };
   local sName<const> = "ZMTC FILE";
   iKeyBankIdLoadSave = RegisterKeys(sName, { [iPress] = { aKBDelete, aKBLoad,
-    aKBSave, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
+    aKBSave, aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBScrollUp,
+    aKBScrollDown, aKBEscape } });
   iKeyBankIdLoadOnly = RegisterKeys(sName, { [iPress] = { aKBDelete, aKBLoad,
-    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
+    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBScrollUp,
+    aKBScrollDown, aKBEscape } });
   iKeyBankIdSaveOnly = RegisterKeys(sName, { [iPress] = { aKBDelete, aKBSave,
-    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
+    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBScrollUp,
+    aKBScrollDown, aKBEscape } });
   iKeyBankIdNoLoadSave = RegisterKeys(sName, { [iPress] = { aKBDelete,
-    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBEscape } });
+    aKBFile1, aKBFile2, aKBFile3, aKBFile4, aKBFile5, aKBScrollUp,
+    aKBScrollDown, aKBEscape } });
   -- Get cursor ids
   local iCOK<const>, iCSelect<const>, iCExit<const> =
     oCursorIdData.OK, oCursorIdData.SELECT, oCursorIdData.EXIT;

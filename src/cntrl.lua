@@ -109,7 +109,7 @@ local function GoTransition(fcbOnFadeOut, ...);
   return Fade(0.0, 1.0, 0.04, ProcRender, OnFadeOut);
 end
 -- Hotspot function events ------------------------------------------------- --
-local function GoBook() GoTransition(InitBook, false) end;
+local function GoBook() GoTransition(InitBook) end;
 local function GoFile() GoTransition(InitFile) end;
 local function GoLobby() GoTransition(InitLobby, true) end;
 local function GoMap() GoTransition(InitMap) end;

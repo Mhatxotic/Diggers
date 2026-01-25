@@ -1,4 +1,4 @@
--- ASSETS.LUA ============================================================== --
+-- ASSET.LUA =============================================================== --
 -- ooooooo.--ooooooo--.ooooo.-----.ooooo.--oooooooooo-oooooooo.----.ooooo..o --
 -- 888'-`Y8b--`888'--d8P'-`Y8b---d8P'-`Y8b-`888'---`8-`888--`Y88.-d8P'---`Y8 --
 -- 888----888--888--888---------888---------888--------888--.d88'-Y88bo.---- --
@@ -253,6 +253,10 @@ local oAssetsData<const> = {
     588, 524,  51,  45, -- [28] Map (Page 71)
     526, 594,  44,  36, -- [28] First-aid kit (Page 72)
     480,   0,  76,  84, -- [29] Wanted (Page 82)
+    592,   0,  16,  16, -- [30] British flag (en)
+    592,  16,  16,  16, -- [31] French flag (fr)
+    592,  32,  16,  16, -- [32] German flag (de)
+    592,  48,  16,  16, -- [33] Italian flag (it)
   } } },
   -- book.lua, lobby.lua, cntrl.lua, race.lua, ending.lua ------------------ --
   zmtc = { T = 2, F = "zmtc", P = { 0 } },

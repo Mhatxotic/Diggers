@@ -582,6 +582,8 @@ local function RegisterKeys(sName, oKeys)
   -- Return identifier
   return #aKeyBank;
 end
+-- Return key name for specified key id ------------------------------------ --
+local function GetKeyName(sId) return tKeyBankCats[sId][9] end;
 -- Return current keybinds list -------------------------------------------- --
 local function GetKeyBank() return iKeyBank end;
 -- Set global keys table --------------------------------------------------- --
@@ -712,10 +714,10 @@ end
 return { F = OnScriptLoaded, A = { ClearStates = ClearStates,
   CursorRender = CursorRender, DisableKeyHandlers = DisableKeyHandlers,
   GetCursor = GetCursor, GetHotSpot = GetHotSpot, GetJoyState = GetJoyState,
-  GetKeys = GetKeys, GetKeyBank = GetKeyBank, GetMouseX = GetMouseX,
-  GetMouseY = GetMouseY, IsJoyHeld = IsJoyHeld, IsJoyPressed = IsJoyPressed,
-  IsJoyReleased = IsJoyReleased, IsMouseInBounds = IsMouseInBounds,
-  IsMouseNotInBounds = IsMouseNotInBounds,
+  GetKeys = GetKeys, GetKeyBank = GetKeyBank, GetKeyName = GetKeyName,
+  GetMouseX = GetMouseX, GetMouseY = GetMouseY, IsJoyHeld = IsJoyHeld,
+  IsJoyPressed = IsJoyPressed, IsJoyReleased = IsJoyReleased,
+  IsMouseInBounds = IsMouseInBounds, IsMouseNotInBounds = IsMouseNotInBounds,
   IsMouseXGreaterEqualThan = IsMouseXGreaterEqualThan,
   IsMouseXLessThan = IsMouseXLessThan,
   IsMouseYGreaterEqualThan = IsMouseYGreaterEqualThan,

@@ -13,13 +13,13 @@
 local error<const>, max<const>, maxinteger<const> =
   error, math.max, math.maxinteger;
 -- Engine function aliases ------------------------------------------------- --
-local UtilBlank<const>, CoreTime<const>, UtilIsInteger<const> =
-  Util.Blank, Core.Time, Util.IsInteger;
+local CoreTime<const>, UtilBlank<const>, UtilIsInteger<const> =
+  Core.Time, Util.Blank, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLT, BlitSLTRB, BlitLT, Fade, GetCallbacks, InitSetup, InitTitle,
+local BlitLT, BlitSLT, BlitSLTRB, Fade, GetCallbacks, InitSetup, InitTitle,
   LoadResources, PrintC, RegisterFBUCallback, RenderFade, RenderShadow,
-  SetCallbacks, SetCursorPos, SetHotSpot, SetVLTRB, VideoPlay, VideoStop,
-  aIntroSubTitles, fontLittle, texSpr, SetKeys;
+  SetCallbacks, SetCursorPos, SetHotSpot, SetKeys, SetVLTRB, VideoPlay,
+  VideoStop, aIntroSubTitles, fontLittle, texSpr;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets data to load
       aSubTitle,                       -- Active subtitle to wait for
@@ -320,17 +320,17 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, iTexScale;
   -- Get imports
-  BlitSLT, BlitSLTRB, BlitLT, Fade, GetCallbacks, InitSetup, InitTitle,
+  BlitLT, BlitSLT, BlitSLTRB, Fade, GetCallbacks, InitSetup, InitTitle,
     LoadResources, PrintC, RegisterFBUCallback, RegisterHotSpot, RegisterKeys,
     RenderFade, RenderShadow, SetCallbacks, SetCursorPos, SetHotSpot, SetKeys,
-    SetVLTRB, VideoPlay, VideoStop, oAssetsData, aIntroSubTitles, fontLittle,
-    texSpr, iTexScale =
-      GetAPI("BlitSLT", "BlitSLTRB", "BlitLT", "Fade", "GetCallbacks",
+    SetVLTRB, VideoPlay, VideoStop, aIntroSubTitles, fontLittle, iTexScale,
+    oAssetsData, texSpr =
+      GetAPI("BlitLT", "BlitSLT", "BlitSLTRB", "Fade", "GetCallbacks",
         "InitSetup", "InitTitle", "LoadResources", "PrintC",
         "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
         "RenderShadow", "SetCallbacks", "SetCursorPos", "SetHotSpot",
-        "SetKeys", "SetVLTRB", "VideoPlay", "VideoStop", "oAssetsData",
-        "aIntroSubTitles", "fontLittle", "texSpr", "iTexScale");
+        "SetKeys", "SetVLTRB", "VideoPlay", "VideoStop", "aIntroSubTitles",
+        "fontLittle", "iTexScale", "oAssetsData", "texSpr");
   -- Build assets to load
   aAssets = { oAssetsData.title, oAssetsData.intro };
   -- Get font size and padding

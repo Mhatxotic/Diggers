@@ -11,25 +11,24 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 -- Engine function aliases ------------------------------------------------- --
-local TextureCreateTS<const>, TextureUploadEx<const>, ImageRaw<const>,
-      AssetCreate<const>
-      = -- ----------------------------------------------------------------- --
-      Texture.CreateTS, Texture.UploadEx, Image.Raw, Asset.Create;
+local AssetCreate<const>, ImageRaw<const>, TextureCreateTS<const>,
+  TextureUploadEx<const> =
+    Asset.Create, Image.Raw, Texture.CreateTS, Texture.UploadEx;
 -- Diggers function and data aliases --------------------------------------- --
-local BlitSLTWH, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
-  aLvlData, LoadResources, PlayStaticSound, RenderAll, RenderShadow,
-  RenderTip, SetCallbacks, SetHotSpot, SetKeys, aObjs, aTileData,
-  oTileFlags, texSpr;
+local BlitLT, BlitSLTWH, Fade, GameProc, GetGameTicks, InitContinueGame,
+  LoadResources, PlayStaticSound, RenderAll, RenderShadow, RenderTip,
+  SetCallbacks, SetHotSpot, SetKeys, aLvlData, aObjs, aTileData, oTileFlags,
+  texSpr;
 -- Locals ------------------------------------------------------------------ --
-local aAssets,                         -- Assets required
-      asBData;                         -- The raw pixel data asset handle
+local aAssets;                         -- Assets required
+local aPageData<const> = { };          -- Page data
+local asBData;                         -- The raw pixel data asset handle
 local iBSize<const> = 128 * 128 * 3;   -- Byte size of map
-local iHotSpotIdDown, iHotSpotIdUp,    -- Hot spot id (up and down)
-      iKeyBankIdDown, iKeyBankIdUp,    -- Key bank id (up and down)
-      imTerrain,                       -- The raw pixel data bitmap handle
-      iSClick, iSSelect,               -- Sound effect ids
+local iSClick, iSSelect,               -- Sound effect ids
       iTerrainPage,                    -- Terrain page (0 or 1)
       iWFlags, iSFlags,                -- Water and solid tile flag
+      imTerrain,                       -- The raw pixel data bitmap handle
+      nFadeX,                          -- X pos to draw disabled fade button
       nNextUpdate,                     -- Next map update (updates on 1st tick)
       texMap,                          -- TNT map texture
       texTerrain;                      -- Terrain texture handle (dynamic)
@@ -44,27 +43,30 @@ local function GoExit()
   -- Continue game
   InitContinueGame(false);
 end
--- Select a different page ------------------------------------------------- --
-local function GoSelect(iPageId, iSoundId, iKeyBankId, iHotSpotId)
-  -- Play requested sound effect
-  PlayStaticSound(iSoundId);
+-- Select a different page without sound ----------------------------------- --
+local function GoSelectNow(iPageId)
+  -- Get page data
+  local aPageItem<const> = aPageData[iPageId];
   -- Set new page
   iTerrainPage = iPageId;
+  -- Set position of fade button
+  nFadeX = aPageItem[3];
   -- Set new hotspot and keybank id
-  SetHotSpot(iHotSpotId);
-  SetKeys(true, iKeyBankId);
+  SetHotSpot(aPageItem[2]);
+  SetKeys(true, aPageItem[1]);
+end
+-- Select a different page ------------------------------------------------- --
+local function GoSelect(iPageId, iSoundId, iKeyBankId, iHotSpotId)
+  -- Play requested sound effect and set new page
+  PlayStaticSound(iSoundId);
+  GoSelectNow(iPageId);
 end
 -- Scrolling callback functions -------------------------------------------- --
-local function GoUp()
-  GoSelect(0, iSSelect, iKeyBankIdDown, iHotSpotIdDown) end;
-local function GoDown()
-  GoSelect(1, iSSelect, iKeyBankIdUp, iHotSpotIdUp) end;
+local function GoUp() GoSelect(0, iSSelect) end;
+local function GoDown() GoSelect(1, iSSelect) end;
 local function GoScroll(nX, nY)
-  if nY > 0 and iTerrainPage == 1 then
-    GoSelect(0, iSClick, iKeyBankIdDown, iHotSpotIdDown);
-  elseif nY < 0 and iTerrainPage == 0 then
-    GoSelect(1, iSClick, iKeyBankIdUp, iHotSpotIdUp);
-  end
+  if nY > 0 and iTerrainPage == 1 then GoSelect(0, iSClick);
+  elseif nY < 0 and iTerrainPage == 0 then GoSelect(1, iSClick) end;
 end
 -- Render callback --------------------------------------------------------- --
 local function ProcRender()
@@ -78,22 +80,22 @@ local function ProcRender()
   RenderTip();
   -- Draw terrain
   BlitSLTWH(texTerrain, iTerrainPage, 32, 44, 256, 128);
-  -- Dim appropriate button
+  -- Set dimmed appropriate button
   texSpr:SetCRGBA(1.0, 0.0, 0.0, 0.5);
-  if iTerrainPage == 0 then
-    BlitSLTWH(texSpr, 1022, 140.0, 179.0, 17.0, 17.0);
-  elseif iTerrainPage == 1 then
-    BlitSLTWH(texSpr, 1022, 162.0, 179.0, 17.0, 17.0) end;
+  -- Draw fade over disabled button
+  BlitSLTWH(texSpr, 1022, nFadeX, 179.0, 17.0, 17.0);
+  -- Restore sprites colour
   texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
 end
 -- TNT map procedure ------------------------------------------------------- --
 local function ProcLogic()
   -- Perform game actions
   GameProc();
-  -- Done if map update interval not reached
-  if GetGameTicks() < nNextUpdate then return end;
-  -- Wait about another five seconds
-  nNextUpdate = GetGameTicks() + 60;
+  -- Get current game time and return if map update interval not reached
+  local nGameTicks<const> = GetGameTicks();
+  if nGameTicks < nNextUpdate then return end;
+  -- Wait about another one second before next map update
+  nNextUpdate = nGameTicks + 60;
   -- For each pixel row
   for iY = 0, 127 do
     -- Calculate Y position in destination bitmap
@@ -143,23 +145,22 @@ local function ProcLogic()
 end
 -- On assets loaded event -------------------------------------------------- --
 local function OnAssetsLoaded(aResources)
-  -- Initialise variables
-  texMap, iTerrainPage, nNextUpdate = aResources[1], 0, 0;
-  -- Set hotspot and key bank ids
-  SetHotSpot(iHotSpotIdDown);
-  SetKeys(true, iKeyBankIdDown);
+  -- Initialise page, hotspots and keybank
+  GoSelectNow(0);
+  -- Initialise handle and next map update
+  texMap, nNextUpdate = aResources[1], 0;
   -- Set callbacks
   SetCallbacks(ProcLogic, ProcRender);
   -- Create the first buffer for raw pixel data
   asBData = AssetCreate("TNTMap", iBSize);
   -- Generate the first image bitmap from the raw data (asBData is now empty)
-  imTerrain = ImageRaw("TNTMap", asBData, 128, 128, 24, 0x1907);
+  imTerrain = ImageRaw("TNTMap", asBData, 128, 128, 24);
   -- Generate the texture from the bitmap image (imTerrain is now empty)
   texTerrain = TextureCreateTS(imTerrain, 128, 64, 0, 0, 0);
   -- Restore raw pixel memory data size for second bitmap handle
   asBData:Resize(iBSize);
   -- Generate a new image from the swapped out image (asBData is empty again)
-  imTerrain = ImageRaw("TNTMapDummy", asBData, 128, 128, 24, 0x1907);
+  imTerrain = ImageRaw("TNTMapDummy", asBData, 128, 128, 24);
   -- Restore raw pixel data size for the new upload
   asBData:Resize(iBSize);
 end
@@ -172,31 +173,32 @@ local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData, oSfxData;
   -- Grab imports
-  BlitSLTWH, BlitLT, Fade, GameProc, GetGameTicks, InitContinueGame,
-    LoadResources, PlayStaticSound, RegisterHotSpot, RegisterKeys,
-    RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot,
-    SetKeys, oAssetsData, oCursorIdData, aLvlData, aObjs, oSfxData,
-    aTileData, oTileFlags, texSpr =
-      GetAPI("BlitSLTWH", "BlitLT", "Fade", "GameProc", "GetGameTicks",
+  BlitLT, BlitSLTWH, Fade, GameProc, GetGameTicks, InitContinueGame,
+    LoadResources, PlayStaticSound, RegisterHotSpot, RegisterKeys, RenderAll,
+    RenderShadow, RenderTip, SetCallbacks, SetHotSpot, SetKeys, aLvlData,
+    aObjs, aTileData, oAssetsData, oCursorIdData, oSfxData, oTileFlags,
+    texSpr =
+      GetAPI("BlitLT", "BlitSLTWH", "Fade", "GameProc", "GetGameTicks",
         "InitContinueGame", "LoadResources", "PlayStaticSound",
         "RegisterHotSpot", "RegisterKeys", "RenderAll", "RenderShadow",
-        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "oAssetsData",
-        "oCursorIdData", "aLvlData", "aObjs", "oSfxData", "aTileData",
+        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "aLvlData",
+        "aObjs", "aTileData", "oAssetsData", "oCursorIdData", "oSfxData",
         "oTileFlags", "texSpr");
   -- Setup required assets
   aAssets = { oAssetsData.tntmap };
   -- Get sound effects
   iSSelect, iSClick = oSfxData.SELECT, oSfxData.CLICK;
   -- Get cursor ids
-  local iCExit, iCSelect = oCursorIdData.EXIT, oCursorIdData.SELECT;
+  local iCExit<const>, iCSelect<const> =
+    oCursorIdData.EXIT, oCursorIdData.SELECT;
   -- Setup hotspots
   local aHUp<const>, aHDown<const>, aHMap<const>, aHExit<const> =
     { 140, 179,  17,  17, 0, iCSelect, "PAGE UP",   GoScroll, GoUp   },
     { 162, 179,  17,  17, 0, iCSelect, "PAGE DOWN", GoScroll, GoDown },
     {   8,   8, 304, 200, 0, 0,        "TNT MAP",   GoScroll, false  },
     {   0,   0,   0, 240, 3, iCExit,   "CLOSE",     GoScroll, GoExit }
-  iHotSpotIdUp = RegisterHotSpot({ aHUp, aHMap, aHExit });
-  iHotSpotIdDown = RegisterHotSpot({ aHDown, aHMap, aHExit });
+  local iHotSpotIdUp<const> = RegisterHotSpot({ aHUp, aHMap, aHExit });
+  local iHotSpotIdDown<const> = RegisterHotSpot({ aHDown, aHMap, aHExit });
   -- Register keybinds
   local oKeys<const> = Input.KeyCodes;
   local sName<const> = "IN-GAME TNT MAP";
@@ -205,10 +207,16 @@ local function OnScriptLoaded(GetAPI)
     { oKeys.ESCAPE, GoExit, "igtnte",  "LEAVE"       },
     { oKeys.UP,     GoUp,   "igtntsu", "SCROLL UP"   },
     { oKeys.DOWN,   GoDown, "igtntsd", "SCROLL DOWN" };
-  iKeyBankIdUp = RegisterKeys(sName, { [iPress] = { aKUp, aKExit } });
-  iKeyBankIdDown = RegisterKeys(sName, { [iPress] = { aKDown, aKExit } });
+  local iKeyBankIdUp<const> =
+    RegisterKeys(sName, { [iPress] = { aKUp, aKExit } });
+  local iKeyBankIdDown<const> =
+    RegisterKeys(sName, { [iPress] = { aKDown, aKExit } });
   -- Store water and solid tile flags
   iWFlags, iSFlags = oTileFlags.W, oTileFlags.D + oTileFlags.AD;
+  -- Set map page data
+  -- Page          KeyBank Id      HotSpot Id      nFadeX
+  aPageData[0] = { iKeyBankIdDown, iHotSpotIdDown, 140.0 }; -- Top half
+  aPageData[1] = { iKeyBankIdUp,   iHotSpotIdUp,   162.0 }; -- Bottom half
 end
 -- Exports and imports ----------------------------------------------------- --
 return { A = { InitTNTMap = InitTNTMap }, F = OnScriptLoaded };
