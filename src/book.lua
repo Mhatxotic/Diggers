@@ -65,7 +65,8 @@ local function LoadPage(fcbOnComplete)
   SetTip(strPage)
   -- Set last and next page tip
   strPageNext = iPage + 1;
-  if strPageNext < #aBookData then strPageNext = "TO PAGE "..strPageNext.." >";
+  if strPageNext <= #aBookData then
+    strPageNext = "TO PAGE "..strPageNext.." >";
   else strPageNext = "AT END" end;
   strPageLast = iPage - 1;
   if strPageLast > 0 then strPageLast = "< TO PAGE "..strPageLast;
