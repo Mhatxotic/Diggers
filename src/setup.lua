@@ -10,13 +10,12 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local cos<const>, floor<const>, format<const>, ipairs<const>, len<const>,
-  maxinteger<const>, max<const>, min<const>, pairs<const>, remove<const>,
-  rep<const>, sin<const>, sort<const>, tonumber<const>, tostring<const>,
-  create<const> =
-    math.cos, math.floor, string.format, ipairs, utf8.len, math.maxinteger,
-    math.max, math.min, pairs, table.remove, string.rep, math.sin, table.sort,
-    tonumber, tostring, table.create;
+local cos<const>, floor<const>, format<const>, len<const>, maxinteger<const>,
+  max<const>, min<const>, pairs<const>, remove<const>, rep<const>, sin<const>,
+  sort<const>, tonumber<const>, tostring<const>, create<const> =
+    math.cos, math.floor, string.format, utf8.len, math.maxinteger, math.max,
+    math.min, pairs, table.remove, string.rep, math.sin, table.sort, tonumber,
+    tostring, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   CoreCPUUsage<const>, CoreEngine<const>, CoreLibrary<const>,
@@ -989,24 +988,35 @@ local function OnScriptLoaded(GetAPI)
   local function VFMVSet(iAdj) VSet(vAudfmvvol, iAdj) end;
   local function VFMVDown() VFMVSet(-1) end;
   local function VFMVUp() VFMVSet(1) end;
+  -- Configuration entry lookup table
+  local aOptions<const> = {
+    -- Update func   Down func    Up func     Update other indicies
+    { MonitorUpdate, MonitorDown, MonitorUp,  {      } }, -- [01]
+    { FSStateUpdate, FSStateDown, FSStateUp,  { 3, 4 } }, -- [02]
+    { FSResUpdate,   FSResDown,   FSResUp,    {      } }, -- [03]
+    { WSizeUpdate,   WSizeDown,   WSizeUp,    {      } }, -- [04]
+    { LimiterUpdate, LimiterDown, LimiterUp,  {      } }, -- [05]
+    { FilterUpdate,  FilterSwap,  FilterSwap, {      } }, -- [06]
+    { AudioUpdate,   AudioDown,   AudioUp,    {      } }, -- [07]
+    { VMasterUpdate, VMasterDown, VMasterUp,  {      } }, -- [08]
+    { VStreamUpdate, VStreamDown, VStreamUp,  {      } }, -- [09]
+    { VSampleUpdate, VSampleDown, VSampleUp,  {      } }, -- [10]
+    { VFMVUpdate,    VFMVDown,    VFMVUp,     {      } }, -- [11]
+  };
   -- Apply functions to static option table
-  for iIndex, aF in ipairs({
-    { MonitorUpdate, MonitorDown, MonitorUp  }, -- [01]
-    { FSStateUpdate, FSStateDown, FSStateUp  }, -- [02]
-    { FSResUpdate,   FSResDown,   FSResUp    }, -- [03]
-    { WSizeUpdate,   WSizeDown,   WSizeUp    }, -- [04]
-    { LimiterUpdate, LimiterDown, LimiterUp  }, -- [05]
-    { FilterUpdate,  FilterSwap,  FilterSwap }, -- [06]
-    { AudioUpdate,   AudioDown,   AudioUp    }, -- [07]
-    { VMasterUpdate, VMasterDown, VMasterUp  }, -- [08]
-    { VStreamUpdate, VStreamDown, VStreamUp  }, -- [09]
-    { VSampleUpdate, VSampleDown, VSampleUp  }, -- [10]
-    { VFMVUpdate,    VFMVDown,    VFMVUp     }, -- [11]
-  }) do
+  for iIndex = 1, #aOptions do
+    -- Get options data
+    local aF<const> = aOptions[iIndex];
+    -- Get display lookup data and add assign it at index 5
     local aOptionItem<const> = aSetupOptionData[iIndex];
+    aF[5] = aOptionItem;
+    -- Get update function and assign it to display lookup table
     local fcbUpdateFunc<const> = aF[1];
     aOptionItem[2] = fcbUpdateFunc;
+    -- Get hotspot data
     local aHotSpot<const> = aOptionItem[1];
+    -- Get extra update call functions
+    local aExtraFuncs<const> = aF[4];
     -- Setup dimensions
     aHotSpot[1], aHotSpot[2] = 4, 28 + (iIndex - 1) * 15;
     aHotSpot[3], aHotSpot[4] = 312, 15;
@@ -1022,43 +1032,52 @@ local function OnScriptLoaded(GetAPI)
       SetTip(iIndex, sTip);
     end
     aHotSpot[7] = OnHover;
+    -- Generic adjust option procedure
+    local function AdjustOption(fcbAdjust)
+      -- Play sound, select last/next option and update the setting
+      PlayStaticSound(iSClick);
+      fcbAdjust();
+      aOptionItem[7] = fcbUpdateFunc();
+      -- Process extra update functions
+      for iSubIndex = 1, #aExtraFuncs do
+        -- Get the static option data
+        local aExtraCall<const> = aExtraFuncs[iSubIndex];
+        -- Call it's update function and store result in the display lookup
+        aExtraCall[5][7] = aExtraCall[1]();
+      end
+    end
     -- Setup custom scroll option
     local fcbDown<const>, fcbUp<const> = aF[2], aF[3];
     local function OnScroll(nX, nY)
       -- Mouse scrolling down?
-      if nY < 0 then
-        -- Play sound, select last option and update the setting
-        PlayStaticSound(iSClick);
-        fcbDown();
-        aOptionItem[7] = fcbUpdateFunc();
+      if nY < 0 then AdjustOption(fcbDown);
       -- Mouse scrolling up?
-      elseif nY > 0 then
-        -- Play sound, select next option and update the setting
-        PlayStaticSound(iSClick);
-        fcbUp();
-        aOptionItem[7] = fcbUpdateFunc();
-      end
+      elseif nY > 0 then AdjustOption(fcbUp) end;
     end
     aHotSpot[8] = OnScroll;
     -- Setup custom click function
     local function OnClick(iButton)
       -- LMB or JB1?
-      if iButton == 0 then
-        -- Play sound, select next option and update the setting
-        PlayStaticSound(iSClick);
-        fcbUp();
-        aOptionItem[7] = fcbUpdateFunc();
+      if iButton == 0 then AdjustOption(fcbUp);
       -- RMB or JB1?
-      elseif iButton == 1 then
-        -- Play sound, select last option and update the setting
-        PlayStaticSound(iSClick);
-        fcbDown();
-        aOptionItem[7] = fcbUpdateFunc();
-      end
+      elseif iButton == 1 then AdjustOption(fcbDown) end;
     end
     aHotSpot[9] = OnClick;
     -- Add the hot spot to the hot spots list
     aHotSpots[1 + #aHotSpots] = aHotSpot;
+  end
+  -- Extra callbacks required?
+  for iIndex = 1, #aOptions do
+    -- Get option data
+    local aF<const> = aOptions[iIndex];
+    -- Get extra callback data and if set?
+    local aFuncs<const> = aF[4];
+    if #aFuncs > 0 then
+      -- Convert the indices to actual table addresses for update function
+      for iSubIndex = 1, #aFuncs do
+        aFuncs[iSubIndex] = aOptions[aFuncs[iSubIndex]];
+      end
+    end
   end
   -- Register the hot spots
   local function OnSetupHover()
