@@ -989,19 +989,20 @@ local function OnScriptLoaded(GetAPI)
   local function VFMVDown() VFMVSet(-1) end;
   local function VFMVUp() VFMVSet(1) end;
   -- Configuration entry lookup table
+  local aNone<const> = { };
   local aOptions<const> = {
     -- Update func   Down func    Up func     Update other indicies
-    { MonitorUpdate, MonitorDown, MonitorUp,  {      } }, -- [01]
+    { MonitorUpdate, MonitorDown, MonitorUp,  aNone    }, -- [01]
     { FSStateUpdate, FSStateDown, FSStateUp,  { 3, 4 } }, -- [02]
-    { FSResUpdate,   FSResDown,   FSResUp,    {      } }, -- [03]
-    { WSizeUpdate,   WSizeDown,   WSizeUp,    {      } }, -- [04]
-    { LimiterUpdate, LimiterDown, LimiterUp,  {      } }, -- [05]
-    { FilterUpdate,  FilterSwap,  FilterSwap, {      } }, -- [06]
-    { AudioUpdate,   AudioDown,   AudioUp,    {      } }, -- [07]
-    { VMasterUpdate, VMasterDown, VMasterUp,  {      } }, -- [08]
-    { VStreamUpdate, VStreamDown, VStreamUp,  {      } }, -- [09]
-    { VSampleUpdate, VSampleDown, VSampleUp,  {      } }, -- [10]
-    { VFMVUpdate,    VFMVDown,    VFMVUp,     {      } }, -- [11]
+    { FSResUpdate,   FSResDown,   FSResUp,    aNone    }, -- [03]
+    { WSizeUpdate,   WSizeDown,   WSizeUp,    aNone    }, -- [04]
+    { LimiterUpdate, LimiterDown, LimiterUp,  aNone    }, -- [05]
+    { FilterUpdate,  FilterSwap,  FilterSwap, aNone    }, -- [06]
+    { AudioUpdate,   AudioDown,   AudioUp,    aNone    }, -- [07]
+    { VMasterUpdate, VMasterDown, VMasterUp,  aNone    }, -- [08]
+    { VStreamUpdate, VStreamDown, VStreamUp,  aNone    }, -- [09]
+    { VSampleUpdate, VSampleDown, VSampleUp,  aNone    }, -- [10]
+    { VFMVUpdate,    VFMVDown,    VFMVUp,     aNone    }, -- [11]
   };
   -- Apply functions to static option table
   for iIndex = 1, #aOptions do
