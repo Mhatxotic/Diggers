@@ -56,7 +56,7 @@ This modern version originated in 2006 as a [Win32 C build](https://github.com/M
 | **Memory** *(Linux)* | 16MB | 128MB+ | Wild estimate. |
 | **Graphics** | NV GF8K/ATI R600 | NV GF8K+/ATI R600+ | OpenGL 3.2 compatible. |
 | **Audio** | Any sound device | Any sound device | OpenAL 1.1 compatible. |
-| **Input** | Keyboard and mouse | Keyboard and mouse | Supports joystick! |
+| **Input** | Keyboard | Keyboard and mouse | Supports game controller! |
 | **Disk Space** | 48MB (Read-Only) | 64MB (Read+Write) | Portable! |
 | **Network** | None | None | Unused. |
 
