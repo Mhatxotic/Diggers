@@ -588,19 +588,23 @@ local function UpdateBindsLines()
     local sBind<const> = aBind[8];
     sLine = sLine.." "..rep(".", 74 - #sLine - #sBind).." "..sBind;
     if #sLine > iReadmeColsM1 then sLine = sLine:sub(1, iReadmeColsM1) end;
+    -- Generate intensity value for if the value has been changed
+    local nAdjust;
+    if aBind[10] then nAdjust = 0.25 else nAdjust = 0 end;
     -- Insert visible line
     local nY<const> =
       nReadmePaddingY + ((#aReadmeVisibleLines + 1.0) * nReadmeSpacing)
     aReadmeVisibleLines[1 + #aReadmeVisibleLines] =
-      { nReadmePaddingX, nY, sLine, nReadmePaddingX + 304.0, nY + 6.0, aBind };
+      { nReadmePaddingX, nY, sLine, nReadmePaddingX + 304.0, nY + 6.0,
+        aBind, nAdjust };
   end
   -- Update statuses
   sStatusLine1 = "DISPLAYING INPUT BINDING "..iBindsIndexBegin.." TO "..
     iBindsIndexEnd.." OF "..#aBindsList.." OF TOTAL INPUT BINDINGS";
   -- Make sure marquee is showing
-  SetTip(0, "MOVE THE CURSOR TO A BIND YOU WANT TO CHANGE AND PRESS LMB OR \z
-    JB1 ON IT TO CHANGE THE KEY BINDING FOR IT. PRESS "..
-    tKeyBankCats.sbpu[9]..", "..tKeyBankCats.sbpd[9]..", "..
+  SetTip(0, "MOVE THE CURSOR TO A BIND YOU WANT TO CHANGE AND PRESS LMB, JB1 \z
+    OR "..tKeyBankCats.sbsb[9].." ON IT TO CHANGE THE KEY BINDING FOR IT. \z
+    PRESS "..tKeyBankCats.sbpu[9]..", "..tKeyBankCats.sbpd[9]..", "..
     tKeyBankCats.sbh[9]..", "..tKeyBankCats.sbe[9]..", "..
     tKeyBankCats.sbu[9].." OR "..tKeyBankCats.sbd[9].." TO SCROLL THE \z
     BINDS. "..tKeyBankCats.gksc[9]..", RMB OR JB2 TO RETURN TO SETUP. "..
@@ -626,7 +630,8 @@ local function RenderBinds()
       nIntensity = 1;
     else
       -- Calculate intensity
-      nIntensity = 0.75 + (((iIndex / #aReadmeVisibleLines) + nTime) % 0.25);
+      nIntensity =
+        0.75 + (((iIndex / #aReadmeVisibleLines) + nTime) % 0.25) - aData[7];
     end
     -- Set text colour and print the bind line
     fontTiny:SetCRGB(nIntensity, nIntensity, nIntensity);
@@ -712,19 +717,19 @@ local function OnScriptLoaded(GetAPI)
     GetMusic, IsMouseYLessThan, LoadResources, PlayMusic, PlayStaticSound,
     PrintC, PrintM, PrintR, PrintS, Print, RegisterFBUCallback,
     RegisterHotSpot, RegisterKeys, RenderFade, RenderShadow,
-    RestoreKeyHandlers, SetCallbacks, SetHotSpot, SetKeys, StopMusic,
-    VideoPause, VideoResume, oAssetsData, oCursorIdData, tKeyBankCats,
-    oKeyToLiteral, aSetupButtonData, aSetupOptionData, oSfxData, fontLarge,
-    fontLittle, fontTiny, texSpr =
+    RestoreKeyHandlers, SetCallbacks, SetCursorPos, SetHotSpot, SetKeys,
+    StopMusic, VideoPause, VideoResume, oAssetsData, oCursorIdData,
+    tKeyBankCats, oKeyToLiteral, aSetupButtonData, aSetupOptionData, oSfxData,
+    fontLarge, fontLittle, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "DisableKeyHandlers", "GetCallbacks", "GetHotSpot",
         "GetKeyBank", "GetMusic", "IsMouseYLessThan", "LoadResources",
         "PlayMusic", "PlayStaticSound", "PrintC", "PrintM", "PrintR", "PrintS",
         "Print", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderFade", "RenderShadow", "RestoreKeyHandlers", "SetCallbacks",
-        "SetHotSpot", "SetKeys", "StopMusic", "VideoPause", "VideoResume",
-        "oAssetsData", "oCursorIdData", "tKeyBankCats", "oKeyToLiteral",
-        "aSetupButtonData", "aSetupOptionData", "oSfxData", "fontLarge",
-        "fontLittle", "fontTiny", "texSpr");
+        "SetCursorPos", "SetHotSpot", "SetKeys", "StopMusic", "VideoPause",
+        "VideoResume", "oAssetsData", "oCursorIdData", "tKeyBankCats",
+        "oKeyToLiteral", "aSetupButtonData", "aSetupOptionData", "oSfxData",
+        "fontLarge", "fontLittle", "fontTiny", "texSpr");
   -- Set assetsData
   aAssets = { oAssetsData.setupm };
   -- Callback to set all settings to default
@@ -1180,8 +1185,75 @@ local function OnScriptLoaded(GetAPI)
     -- Set ending line
     iBindsIndexEnd =
       UtilClampInt(iBindsIndexBegin + #aRmClrData, 1, #aBindsList);
+    -- If we're moving past the beginning?
+    if iLine <= 0 then
+      -- Move the selection backwards
+      iSelectedOption =
+        UtilClampInt(iSelectedOption + (iLine - 1), 1, #aRmClrData);
+    -- If we're moving past the end?
+    elseif iLine + #aRmClrData > #aBindsList then
+      -- Move the selection forwards
+      iSelectedOption = UtilClampInt(iSelectedOption +
+        (#aRmClrData - (#aBindsList - iLine)), 1, #aRmClrData + 1);
+    end
     -- Update displayed readme lines
     UpdateBindsLines();
+  end
+  -- Get OK result for Variable:Integer()
+  local iVROK<const> = Variable.Result.OK;
+  -- Binds area clicked
+  local function OnBindsClick()
+    -- Get key bind data
+    local aBindData<const> = aReadmeVisibleLines[iSelectedOption][6];
+    -- Set text to receive key
+    local sTextSave<const> = aBindData[8];
+    aBindData[8] = "???";
+    -- Update readme lines
+    UpdateBindsLines();
+    -- Remove marquee settings
+    sStatusLineSave, nStatusLineSize, nStatusLinePos, iTipId =
+      nil, nil, nil, nil;
+    -- Update tip at the bottom
+    sStatusLine1 = "PRESS ANY KEY TO USE AS NEW KEY BINDING";
+    sStatusLine2 = "CTRL+C:CANCEL  \z
+                    CTRL+D:DEFAULT  \z
+                    CTRL+BACKSPACE:CLEAR";
+    -- Unset hots pots to show wait cursor
+    SetHotSpot();
+    -- Disable all input events
+    DisableKeyHandlers();
+    -- On key scan functino
+    local function OnScanKey(iKey, iState, iMods, iScan)
+      -- Ignore if not pressed
+      if iState ~= iPress then return end;
+      -- Mods were pressed?
+      if iMods > 0 then
+        -- Control was pressed?
+        if iMods & iControl == iControl then
+          -- Backspace was pressed? Set unbound
+          if iKey == iBackspace then iKey = 0;
+          -- C was pressed? Keep existing key
+          elseif iKey == iLetterC then iKey = aBindData[1];
+          -- D key was pressed? Use default
+          elseif iKey == iLetterD then iKey = aBindData[5];
+          -- Not recognised? Ignore press
+          else return end;
+        -- Do not process key with mods
+        else return end;
+      end
+      -- Apply bind to cvar the cvar callback will change the text to the
+      -- new value but won't if the value could not be changed in which we
+      -- restore the original text value here.
+      if aBindData[7]:Integer(iKey) ~= iVROK then aBindData[8] = sTextSave end;
+      -- Restore input handlers
+      RestoreKeyHandlers();
+      -- Restore hot spots
+      SetHotSpot(iHotSpotBind);
+      -- Update readme lines
+      UpdateBindsLines();
+    end
+    -- Set new callbacks
+    InputOnKey(OnScanKey);
   end
   -- Bind scroll callbacks
   local function ScrollBinds(iAdj) SetBinds(iBindsIndexBegin + iAdj) end;
@@ -1191,19 +1263,29 @@ local function OnScriptLoaded(GetAPI)
   local function ScrollBindsDown() ScrollBinds(1) end;
   local function ScrollBindsHome() SetBinds(1) end;
   local function ScrollBindsEnd() SetBinds(#aBindsList) end;
+  -- Bind scroll callbacks with forced cursor move
+  local function MoveMouse() SetCursorPos(160, iSelectedOption * 6 + 30) end;
+  local function ScrollBindsPageUpMvCur() ScrollBindsPageUp() MoveMouse() end;
+  local function ScrollBindsPageDownMvCur()
+    ScrollBindsPageDown() MoveMouse() end;
+  local function ScrollBindsUpMvCur() ScrollBindsUp() MoveMouse() end;
+  local function ScrollBindsDownMvCur() ScrollBindsDown() MoveMouse() end;
+  local function ScrollBindsHomeMvCur() ScrollBindsHome() MoveMouse() end;
+  local function ScrollBindsEndMvCur() ScrollBindsEnd() MoveMouse() end;
   -- Setup bind keys
   local aBindsPageUp<const>, aBindsPageDown<const>,
         aBindsHome<const>,   aBindsEnd<const>,
         aBindsUp<const>,     aBindsDown<const> =
-    { iPageUp,   ScrollBindsPageUp,   "sbpu", "SCROLL UP A PAGE"    },
-    { iPageDown, ScrollBindsPageDown, "sbpd", "SCROLL DOWN A PAGE"  },
-    { iHome,     ScrollBindsHome,     "sbh",  "SCROLL TO THE START" },
-    { iEnd,      ScrollBindsEnd,      "sbe",  "SCROLL TO THE END"   },
-    { iUp,       ScrollBindsUp,       "sbu",  "SCROLL UP A LINE"    },
-    { iDown,     ScrollBindsDown,     "sbd",  "SCROLL DOWN A LINE"  };
+    { iPageUp,   ScrollBindsPageUpMvCur,   "sbpu", "SCROLL UP A PAGE"    },
+    { iPageDown, ScrollBindsPageDownMvCur, "sbpd", "SCROLL DOWN A PAGE"  },
+    { iHome,     ScrollBindsHomeMvCur,     "sbh",  "SCROLL TO THE START" },
+    { iEnd,      ScrollBindsEndMvCur,      "sbe",  "SCROLL TO THE END"   },
+    { iUp,       ScrollBindsUpMvCur,       "sbu",  "SCROLL UP A LINE"    },
+    { iDown,     ScrollBindsDownMvCur,     "sbd",  "SCROLL DOWN A LINE"  };
   iKeyBankBind = RegisterKeys("SETUP BINDINGS", {
     [iPress] = { aGenericEscape, aBindsPageUp, aBindsPageDown,
-      aBindsHome, aBindsEnd, aBindsUp, aBindsDown },
+      aBindsHome, aBindsEnd, aBindsUp, aBindsDown,
+      { oKeys.ENTER, OnBindsClick, "sbsb", "SET NEW BIND" } },
     [iRepeat] = { aBindsPageUp, aBindsPageDown, aBindsHome,
       aBindsEnd, aBindsUp, aBindsDown },
   });
@@ -1303,6 +1385,8 @@ local function OnScriptLoaded(GetAPI)
       local sValue<const> = oKeyToLiteral[sV] or oKeyToLiteral.UNKNOWN;
       aBind[8] = sValue.." ["..format("%03d", sV).."]";
       aBind[9] = sValue;
+      -- Make a boolean for if the value is different from last
+      aBind[10] = aBind[5] ~= sV;
       -- Accepted
       return true;
     end
@@ -1315,62 +1399,6 @@ local function OnScriptLoaded(GetAPI)
   -- Sort the bindings list
   local function BindSortFunction(aA, aB) return aA[6] < aB[6] end;
   sort(aBindsList, BindSortFunction);
-  -- Get OK result for Variable:Integer()
-  local iVROK<const> = Variable.Result.OK;
-  -- Binds area clicked
-  local function OnBindsClick()
-    -- Get key bind data
-    local aBindData<const> = aReadmeVisibleLines[iSelectedOption][6];
-    -- Set text to receive key
-    local sTextSave<const> = aBindData[8];
-    aBindData[8] = "???";
-    -- Update readme lines
-    UpdateBindsLines();
-    -- Remove marquee settings
-    sStatusLineSave, nStatusLineSize, nStatusLinePos, iTipId =
-      nil, nil, nil, nil;
-    -- Update tip at the bottom
-    sStatusLine1 = "PRESS ANY KEY TO USE AS NEW KEY BINDING";
-    sStatusLine2 = "CTRL+C:CANCEL  \z
-                    CTRL+D:DEFAULT  \z
-                    CTRL+BACKSPACE:CLEAR";
-    -- Unset hots pots to show wait cursor
-    SetHotSpot();
-    -- Disable all input events
-    DisableKeyHandlers();
-    -- On key scan functino
-    local function OnScanKey(iKey, iState, iMods, iScan)
-      -- Ignore if not pressed
-      if iState ~= iPress then return end;
-      -- Mods were pressed?
-      if iMods > 0 then
-        -- Control was pressed?
-        if iMods & iControl == iControl then
-          -- Backspace was pressed? Set unbound
-          if iKey == iBackspace then iKey = 0;
-          -- C was pressed? Keep existing key
-          elseif iKey == iLetterC then iKey = aBindData[1];
-          -- D key was pressed? Use default
-          elseif iKey == iLetterD then iKey = aBindData[5];
-          -- Not recognised? Ignore press
-          else return end;
-        -- Do not process key with mods
-        else return end;
-      end
-      -- Apply bind to cvar the cvar callback will change the text to the
-      -- new value but won't if the value could not be changed in which we
-      -- restore the original text value here.
-      if aBindData[7]:Integer(iKey) ~= iVROK then aBindData[8] = sTextSave end;
-      -- Restore input handlers
-      RestoreKeyHandlers();
-      -- Restore hot spots
-      SetHotSpot(iHotSpotBind);
-      -- Update readme lines
-      UpdateBindsLines();
-    end
-    -- Set new callbacks
-    InputOnKey(OnScanKey);
-  end
   -- Cursor over binds area. Find which option the mouse is in
   local function HoverBinds()
     for iIndex = 1, #aReadmeVisibleLines do
@@ -1408,4 +1436,3 @@ end
 -- Return imports and exports ---------------------------------------------- --
 return { A = { InitSetup = InitSetup }, F = OnScriptLoaded };
 -- == End-of-File ========================================================== --
-
