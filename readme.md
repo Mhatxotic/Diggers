@@ -48,8 +48,8 @@ This modern version originated in 2006 as a [Win32 C build](https://github.com/M
 | | Minimum | Recommended | Note |
 | --- | --- | --- | --- |
 | **Processor** | Dual-Core 2GHz  | Multi-Core 2GHz+ | Multithreaded! |
-| **System** *(Windows)* | XP *(SP3 X86/SP2 X64)* | 7/8.X/1X+ *(X64)* | 32 and 64bit executable. |
-| **Memory** *(Windows)* | 16MB *(XP/X86)* | 128MB+ *(Win7/X64)* | Close estimate. |
+| **System** *(Windows)* | XP *(SP2 X64)* | 7/8.X/1X+ *(X64)* | None. |
+| **Memory** *(Windows)* | 32MB *(XP)* | 128MB+ *(7+)* | None. |
 | **System** *(MacOS)* | 10.15 *(Intel)* / 11 *(Arm)* | 11.0+ *(Arm)* | FAT Universal executable. |
 | **Memory** *(MacOS)* | 256MB *(Intel)* | 512MB *(Arm)* | Close estimate. |
 | **System** *(Linux)* | Ubuntu 24.04 *(X64)* | Mint 22.1+ *(X64)* | See below for packages. |
