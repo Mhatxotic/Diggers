@@ -570,6 +570,22 @@ local oKeysDeployDevice<const> = { [ACT.DEPLOY] = oObjectStop };
 -- Default animation timers ------------------------------------------------ --
 local iAnimNormal<const> = 8; -- Sprite timer for normal objects in ticks
 local iAnimFast<const>   = 2; -- Sprite timer for fast objects in ticks
+-- Obstacle check logic ---------------------------------------------------- --
+--                              Move Timer/XAdj/Centre position for water
+local aAIObstacleWalkLeftData<const>  = { 2, -1, 7 }; -- ACT.WALK,DIR.L/DL/UL
+local aAIObstacleWalkRightData<const> = { 2,  1, 8 }; -- ACT.WALK,DIR.R/DR/UR
+local aAIObstacleRunLeftData<const>   = { 1, -1, 7 }; -- ACT.RUN,DIR.L/DL/UL
+local aAIObstacleRunRightData<const>  = { 1,  1, 8 }; -- ACT.RUN,DIR.R/DR/UR
+-- Obstacle direction to jump data logic ----------------------------------- --
+local oAIObstacleLogicWalk<const>, oAIObstacleLogicRun<const> = {
+  [DIR.UL] = aAIObstacleWalkLeftData,  [DIR.L]  = aAIObstacleWalkLeftData,
+  [DIR.UR] = aAIObstacleWalkRightData, [DIR.DL] = aAIObstacleWalkLeftData,
+  [DIR.R]  = aAIObstacleWalkRightData, [DIR.DR] = aAIObstacleWalkRightData
+}, {
+  [DIR.UL] = aAIObstacleRunLeftData,  [DIR.L]  = aAIObstacleRunLeftData,
+  [DIR.UR] = aAIObstacleRunRightData, [DIR.DL] = aAIObstacleRunLeftData,
+  [DIR.R]  = aAIObstacleRunRightData, [DIR.DR] = aAIObstacleRunRightData
+}
 -- Function to make data for a digger race --------------------------------- --
 local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
   iRLB, iRLE, iRRB, iRRE,  iDLB, iDLE, iDRB, iDRE, iDDB, iDDE,
@@ -599,6 +615,7 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
     [ACT.PHASE] = oDiggerActPhaseData,
     [ACT.HIDE] = oGenericActHideData,
     [ACT.REST] = aRest,
+
     [ACT.DEATH] = {
       [DIR.NONE] = { 451, 454 },
       FLAGS = OFL.BUSY|OFL.NOAI,
@@ -607,17 +624,65 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
       [DIR.UL] = aStop, [DIR.U]    = aStop, [DIR.UR] = aStop,
       [DIR.L]  = aStop, [DIR.NONE] = aStop, [DIR.R]  = aStop,
       [DIR.DL] = aStop, [DIR.D]    = aStop, [DIR.DR] = aStop,
-      FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET
+      FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET,
+      CHOICES  = {
+        [JOB.NONE] = {
+          [DIR.UL] = 0.01, [DIR.U]    = 0.01, [DIR.UR] = 0.01,
+          [DIR.L]  = 0.01, [DIR.NONE] = 0.01, [DIR.R]  = 0.01,
+          [DIR.DL] = 0.01, [DIR.D]    = 0.01, [DIR.DR] = 0.01
+        }, [JOB.DIG] = {
+          [DIR.UL] = 0.01, [DIR.U]    = 0.01, [DIR.UR] = 0.01,
+          [DIR.L]  = 0.01, [DIR.NONE] = 0.01, [DIR.R]  = 0.01,
+          [DIR.DL] = 0.01, [DIR.D]    = 0.01, [DIR.DR] = 0.01
+        }
+      }
     }, [ACT.WALK] = {
       [DIR.UL] = aWalkLeft, [DIR.U]    = aWalkLeft, [DIR.UR] = aWalkRight,
       [DIR.L]  = aWalkLeft, [DIR.NONE] = aWalkLeft, [DIR.R]  = aWalkRight,
       [DIR.DL] = aWalkLeft, [DIR.D]    = aWalkLeft, [DIR.DR] = aWalkRight,
-      FLAGS    = OFL.FALL|OFL.PHASETARGET
+      FLAGS    = OFL.FALL|OFL.PHASETARGET,
+      OBSTACLE = oAIObstacleLogicWalk,
+      CHOICES  = {
+        [JOB.NONE] = {
+          [DIR.UL] = 0.01, [DIR.U]    = 0.01, [DIR.UR] = 0.01,
+          [DIR.L]  = 0.01, [DIR.NONE] = 0.01, [DIR.R]  = 0.01,
+          [DIR.DL] = 0.01, [DIR.D]    = 0.01, [DIR.DR] = 0.01
+        }, [JOB.BOUNCE] = {
+          [DIR.UL] = 0.005, [DIR.UR] = 0.005, [DIR.L] = 0.005,
+          [DIR.R]  = 0.005, [DIR.DL] = 0.005, [DIR.D] = 0.005,
+          [DIR.DR] = 0.005
+        }, [JOB.DIG] = {
+          [DIR.UL] = 0.005, [DIR.UR] = 0.005, [DIR.L]  = 0.005,
+          [DIR.R]  = 0.005, [DIR.DL] = 0.05,  [DIR.DR] = 0.05
+        }, [JOB.DIGDOWN] = {
+           [DIR.D] = 0.95
+        }, [JOB.SEARCH] = {
+          [DIR.UL] = 0.002, [DIR.UR] = 0.002, [DIR.L] = 0.002,
+          [DIR.R]  = 0.002, [DIR.DL] = 0.002, [DIR.D] = 0.002,
+          [DIR.DR] = 0.002
+        },
+      }
     }, [ACT.RUN] = {
       [DIR.UL] = aRunLeft, [DIR.U]    = aRunLeft, [DIR.UR] = aRunRight,
       [DIR.L]  = aRunLeft, [DIR.NONE] = aRunLeft, [DIR.R]  = aRunRight,
       [DIR.DL] = aRunLeft, [DIR.D]    = aRunLeft, [DIR.DR] = aRunRight,
-      FLAGS    = OFL.FALL|OFL.PHASETARGET
+      FLAGS    = OFL.FALL|OFL.PHASETARGET,
+      OBSTACLE = oAIObstacleLogicRun,
+      CHOICES  = {
+        [JOB.NONE] = {
+          [DIR.UL] = 0.01, [DIR.U]    = 0.01, [DIR.UR] = 0.01,
+          [DIR.L]  = 0.01, [DIR.NONE] = 0.01, [DIR.R]  = 0.01,
+          [DIR.DL] = 0.01, [DIR.D]    = 0.01, [DIR.DR] = 0.01
+        }, [JOB.BOUNCE] = {
+          [DIR.UL] = 0.01, [DIR.UR] = 0.01, [DIR.L]  = 0.01,
+          [DIR.R]  = 0.01, [DIR.DL] = 0.01, [DIR.D]  = 0.01,
+          [DIR.DR] = 0.01
+        }, [JOB.INDANGER] = {
+          [DIR.UL] = 0.002, [DIR.UR] = 0.002, [DIR.L] = 0.002,
+          [DIR.R]  = 0.002, [DIR.DL] = 0.002, [DIR.D] = 0.002,
+          [DIR.DR] = 0.002
+        }
+      }
     }, [ACT.DIG] = {
       [DIR.UL] = aDigLeft, [DIR.U]    = aDigLeft,       [DIR.UR] = aDigRight,
       [DIR.L]  = aDigLeft, [DIR.NONE] = aDigLeft,       [DIR.R]  = aDigRight,
@@ -677,6 +742,9 @@ local oObjectData<const> = {           -- Objects data
 --       OFX, = <integer> (optional)   Drawing offset X position.
 --       OFY  = <integer> (optional)   Drawing offset Y position.
 --     },                              End of specific direction data.
+--     CHOICES = {                     AI choices data (only if an AI.DIGGER).
+--       [DIR.*] = <Number>            Probably of action change (0-1).
+--     },                              End of AI choices direction data.
 --     FLAGS   = OFL.*[|OFL.*],        Set obj flags on direction (see above).
 --     SOUND   = oSfxData.*,           Play specified sound on first frame.
 --     SOUNDRP = oSfxData.*            Repeat specified sound on first frame.
@@ -712,15 +780,15 @@ local oObjectData<const> = {           -- Objects data
 -- Digger races (S2,W4,R4,D6,F4,E4,R2,DS,DD,INT,PAT,LUN,STA,STR,TLD,FL,N,LN) --
 [TYP.FTARG] = MakeDiggerObject(138, 140,  12, 15, 8, 11,
   20, 23, 16, 19,  63, 65, 60, 62, 86, 88,  245, 249, 240, 244,
-  77, 79, 74, 76,  nil, nil,  oSfxData.DIEFTAR,  60,  0.7,  9600,  4,
+  77, 79, 74, 76,  nil, nil,  oSfxData.DIEFTAR,  60,  0.8,  9600,  4,
   60,  3,  120,  OFL.DELICATE,  "FTARG",  "F'TARG"),
 [TYP.HABBISH] = MakeDiggerObject(135, 137,  120, 123, 116, 119,
   128, 131, 124, 127,  228, 230, 225, 227, 237, 239,  255, 259, 250, 254,
-  151, 153, 141, 143,  132, 132,  oSfxData.DIEHABB,  70,  0.6,  7500,  12,
+  151, 153, 141, 143,  132, 132,  oSfxData.DIEHABB,  70,  0.75,  7500,  12,
   120,  5,  60,  OFL.DELICATE|OFL.TPMASTER,  "HABBISH"),
 [TYP.GRABLIN] = MakeDiggerObject(222, 224,  204, 207, 200, 203,
   212, 215, 208, 211,  83, 85, 80, 82, 89, 91,  275, 279, 270, 274,
-  219, 221, 216, 218,  nil, nil,  oSfxData.DIEGRAB,  50,  0.8,  10500,  8,
+  219, 221, 216, 218,  nil, nil,  oSfxData.DIEGRAB,  50,  0.85,  10500,  8,
   120,  4,  120,  OFL.DELICATE,  "GRABLIN"),
 [TYP.QUARRIOR] = MakeDiggerObject(178, 180,  160, 163, 156, 159,
   168, 171, 164, 167,  234, 236, 231, 233, 92, 94,  265, 269, 260, 264,
@@ -995,12 +1063,14 @@ local oObjectData<const> = {           -- Objects data
   [DIR.UL] = { 321, 324 }, [DIR.U]    = { 321, 324 }, [DIR.UR] = { 325, 328 },
   [DIR.L]  = { 321, 324 }, [DIR.NONE] = { 321, 324 }, [DIR.R]  = { 325, 328 },
   [DIR.DL] = { 321, 324 }, [DIR.D]    = { 321, 324 }, [DIR.DR] = { 325, 328 },
-  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS
+  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS,
+  OBSTACLE = oAIObstacleLogicWalk
  }, [ACT.RUN] = {
   [DIR.UL] = { 321, 324 }, [DIR.U]    = { 321, 324 }, [DIR.UR] = { 325, 328 },
   [DIR.L]  = { 321, 324 }, [DIR.NONE] = { 321, 324 }, [DIR.R]  = { 325, 328 },
   [DIR.DL] = { 321, 324 }, [DIR.D]    = { 321, 324 }, [DIR.DR] = { 325, 328 },
-  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS
+  FLAGS    = OFL.FALL|OFL.REGENERATE|OFL.PHASETARGET|OFL.DANGEROUS,
+  OBSTACLE = oAIObstacleLogicRun
  },
  ACTION       = ACT.STOP,              AITYPE    = AI.TROLL,
  ANIMTIMER    = iAnimNormal,           DIRECTION = DIR.LR,
@@ -1079,14 +1149,26 @@ local oObjectData<const> = {           -- Objects data
  [ACT.STOP] = {
   [DIR.L] = { 288, 288 }, [DIR.NONE] = { 288, 288 }, [DIR.R] = { 288, 288 },
   [DIR.D] = { 288, 288 },
-  FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
+  FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET,
+  CHOICES = { [JOB.NONE] = {
+    { 0.001, ACT.CREEP, JOB.NONE,    DIR.LR   },
+    { 0.001, ACT.CREEP, JOB.DIGDOWN, DIR.TCTR }
+  } }
  }, [ACT.CREEP] = {
   [DIR.L] = { 288, 290 }, [DIR.R] = { 288, 290 }, [DIR.D] = { 288, 290 },
-  FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET
+  FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET,
+  CHOICES = { [JOB.NONE] = {
+    { 0.001, ACT.STOP,  JOB.NONE,    DIR.LR   },
+    { 0.001, ACT.CREEP, JOB.DIGDOWN, DIR.TCTR }
+  } }
  }, [ACT.DIG] = {
   [DIR.D] = { 288, 290 },
-  FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET|OFL.NOAI,
-  SOUNDRP = oSfxData.DIG
+  FLAGS   = OFL.FALL|OFL.PICKUP|OFL.PHASETARGET,
+  SOUNDRP = oSfxData.DIG,
+  CHOICES = { [JOB.DIGDOWN] = {
+    { 0.05, ACT.STOP,  JOB.NONE, DIR.NONE },
+    { 0.01, ACT.CREEP, JOB.NONE, DIR.LR   }
+   } }
  },
  KEYS = {
   [ACT.STOP] = oObjectStop,

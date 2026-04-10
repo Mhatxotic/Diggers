@@ -624,6 +624,7 @@ local function InitSetAction()
       OFL.NOSOUND, OFL.PUMANY, OFL.PUEANY, OFL.RNGSPRITE, OFL.STAMINABOOST,
       OFL.TPMASTER, JOB.DIGDOWN, JOB.HOME, JOB.KEEP, JOB.NONE, JOB.PHASE,
       oSfxData.JUMP, TYP.GATEB, TYP.LIFTB;
+  local BlankTable<const> = { };
   -- Train track data tile translation lookup ------------------------------ --
   local oTrainTrackData<const> = {
     [  7] = 210, [ 95] = 210, [ 96] = 210, [171] = 210, [172] = 210,
@@ -1004,6 +1005,11 @@ local function InitSetAction()
       error(oObjInitData.NAME.." actdata for "..iAction..
         " not found!"..tostring(oAction)) end;
     oObj.AD = oAction;
+    -- Set AI choices data for current action (AI Digger, Corkscrew)
+    oObj.CH = oAction.CHOICES or BlankTable;
+    -- Set jump data for current action (AI Digger, Troll)
+    local oObsData<const> = oAction.OBSTACLE;
+    if oObsData then oObj.OB = oObsData[iDirection] else oObj.OB = nil end;
     -- If object has patience?
     local iPatience<const> = oObj.PW;
     if iPatience then
@@ -2389,25 +2395,6 @@ local function InitCreateObject()
     end
     -- Jump successful but caller doesn't need to know this
   end
-  -- Jump check logic ------------------------------------------------------ --
-  --                              Move Timer/XAdj/Centre position for water
-  local aAIWalkJumpGapLeftData<const>  = { 2, -1, 7 }; -- ACT.WALK+DIR.L/DL/UL
-  local aAIWalkJumpGapRightData<const> = { 2,  1, 8 }; -- ACT.WALK+DIR.R/DR/UR
-  local aAIRunJumpGapLeftData<const>   = { 1, -1, 7 }; -- ACT.RUN+DIR.L/DL/UL
-  local aAIRunJumpGapRightData<const>  = { 1,  1, 8 }; -- ACT.RUN+DIR.R/DR/UR
-  -- Jump logic ------------------------------------------------------------ --
-  local oAIJumpLogic<const> = {
-    [ACT.WALK] = {
-      [DIR.UL]  = aAIWalkJumpGapLeftData,  [DIR.L]  = aAIWalkJumpGapLeftData,
-      [DIR.UR]  = aAIWalkJumpGapRightData, [DIR.DL] = aAIWalkJumpGapLeftData,
-      [iDRight] = aAIWalkJumpGapRightData, [DIR.DR] = aAIWalkJumpGapRightData
-    },
-    [ACT.RUN] = {
-      [DIR.UL]  = aAIRunJumpGapLeftData,  [DIR.L]  = aAIRunJumpGapLeftData,
-      [DIR.UR]  = aAIRunJumpGapRightData, [DIR.DL] = aAIRunJumpGapLeftData,
-      [iDRight] = aAIRunJumpGapRightData, [DIR.DR] = aAIRunJumpGapRightData
-    }
-  };
   -- Returns if object is in the water ------------------------------------- --
   local function ObjectInWaterXY(oObj, iX, iY)
     -- Return false if position isn't invalid or flags not in the water
@@ -2457,20 +2444,17 @@ local function InitCreateObject()
     -- Restore original properties as if nothing happened
     oObj.X, oObj.Y = iOldX, iOldY;
   end
-  -- Search for obstacles or gaps and try to jump them --------------------- --
-  local function ObjectJumped(oObj)
-    -- Get jump gap data for action and if return if no action data
-    local oActionData<const> = oAIJumpLogic[oObj.A];
-    if not oActionData then return end;
-    -- Get jump gap data for direction and return if no direction data
-    local oDirData<const> = oActionData[oObj.D];
-    if not oDirData then return end;
+  -- Search for obstacles and try to jump them ----------------------------- --
+  local function FindObstacle(oObj)
+    -- Get obstacle data for direction and return if no data
+    local aObsData<const> = oObj.OB;
+    if not aObsData then return end;
     -- Cache some variables
     local iAnimAmount<const>, -- Move at this action timer
           iAdjX<const>,       -- X adjustment
           iAdjXW<const>,      -- Water X tile adjustment
           nHealthLimit        -- Maximum amount of HP reduction
-       = oDirData[1], oDirData[2], oDirData[3], oObj.H - 10;
+       = aObsData[1], aObsData[2], aObsData[3], oObj.H - 10;
     -- Double health limit if the object has more strength
     if oObj.F & iFDelicate == 0 then nHealthLimit = nHealthLimit * 2.0 end;
     -- Save position, action timer and flags
@@ -2538,7 +2522,9 @@ local function InitCreateObject()
           -- enough then check to see if the object is intelligent enough to
           -- avoid the gap.
           (vResult == false and random() >= oObj.IN) then break end;
-        -- Fall down
+        -- Set object falling
+        oObj.FD = 0;
+        -- Fall down and perform no more actions
         return false;
       end
       -- Increase Y position and fall damage. We go at 14 pixels each time as
@@ -2567,45 +2553,6 @@ local function InitCreateObject()
     -- This fall would kill cause the digger harm so evade the fall.
     return SetAction(oObj, iAKeep, iJKeep, iDOpposite);
   end
-  -- Digger AI choices (Chances to change action per frame) ---------------- --
-  local oAIData<const> = {
-    -- Ai is currently stopped?
-    [iAStop] = {
-      -- No job currently set? (1%)
-      [iJNone] = { [DIR.UL] = 0.01, [iDUp]   = 0.01, [DIR.UR]  = 0.01,
-                   [DIR.L]  = 0.01, [iDNone] = 0.01, [iDRight] = 0.01,
-                   [DIR.DL] = 0.01, [iDDown] = 0.01, [DIR.DR]  = 0.01 },
-      -- Job is currently to dig? (1%)
-      [iJDig] = { [DIR.UL] = 0.01, [DIR.U]  = 0.01, [DIR.UR]  = 0.01,
-                  [DIR.L]  = 0.01, [iDNone] = 0.01, [iDRight] = 0.01,
-                  [DIR.DL] = 0.01, [iDDown] = 0.01, [DIR.DR]  = 0.01 },
-    -- Ai is currently walking?
-    }, [ACT.WALK] = {
-      -- Job is currently bouncing around? (0.1%)
-      [JOB.BOUNCE] = { [DIR.UL]  = 0.001, [DIR.UR] = 0.001, [DIR.L] = 0.001,
-                       [iDRight] = 0.001, [DIR.DL] = 0.001, [DIR.D] = 0.001,
-                       [DIR.DR]  = 0.001 },
-      -- Job is already digging? (0.1% or 5% if going down)
-      [iJDig] = { [DIR.UL]  = 0.001, [DIR.UR] = 0.001, [DIR.L]  = 0.001,
-                  [iDRight] = 0.001, [DIR.DL] = 0.05,  [DIR.DR] = 0.05 },
-      -- Job is digging down? (95% chance due to very narrow time frame)
-      [JOB.DIGDOWN] = { [DIR.D] = 0.95 },
-      -- Job is searching for treasure? (0.2%)
-      [iJSearch] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002, [DIR.L] = 0.002,
-                     [iDRight] = 0.002, [DIR.DL] = 0.002, [DIR.D] = 0.002,
-                     [DIR.DR]  = 0.002 },
-    -- Ai is currently running?
-    }, [ACT.RUN] = {
-      -- Job is currently bouncing around? (1%)
-      [JOB.BOUNCE] = { [DIR.UL]  = 0.01, [DIR.UR] = 0.01, [DIR.L] = 0.01,
-                       [iDRight] = 0.01, [DIR.DL] = 0.01, [DIR.D] = 0.01,
-                       [DIR.DR]  = 0.01 },
-      -- Job is currently in danger? (0.2%)
-      [iJInDanger] = { [DIR.UL]  = 0.002, [DIR.UR] = 0.002, [DIR.L] = 0.002,
-                       [iDRight] = 0.002, [DIR.DL] = 0.002, [DIR.D] = 0.002,
-                       [DIR.DR]  = 0.002 },
-    }
-  };
   -- Pickup objects or just gems ------------------------------------------- --
   local function AIPickupOrDrop(oObj, iEqual)
     -- 95% chance to pickup gems only
@@ -2635,8 +2582,8 @@ local function InitCreateObject()
       -- Nothing else to do whilst teleporting
       return;
     end
-    -- Return if object jumped
-    if ObjectJumped(oObj) then return end;
+    -- Return if object found an obstacle
+    if FindObstacle(oObj) then return end;
     -- Generate a random number for this digger for this frame
     local nRandom<const> = random();
     -- Stop the Digger if needed so it can heal a bit if...
@@ -2679,11 +2626,8 @@ local function InitCreateObject()
          nRandom >= oObj.IN and        -- *and* intelligent enough?
          AIPickupOrDrop(oObj, 0)) then -- *and* pickup or drop?
       return end;
-    -- Return if no data for current action
-    local oAIDataAction<const> = oAIData[oObj.A];
-    if not oAIDataAction then return end;
     -- Return if no data for specified job
-    local oAIDataJob<const> = oAIDataAction[oObj.J];
+    local oAIDataJob<const> = oObj.CH[oObj.J];
     if not oAIDataJob then return end;
     -- Return if no chance to change job
     local nAIDataDirection<const> = oAIDataJob[oObj.D];
@@ -2763,9 +2707,10 @@ local function InitCreateObject()
   -- Troll AI -------------------------------------------------------------- --
   local function AITroll(oObj)
     -- Return if...
-    if oObj.F & iFFall == 0 or             -- ...*or* or not allowed to fall...
-       oObj.FD < 0 or                      -- ...*or* already falling...
-       ObjectJumped(oObj) then return end; -- ...*or* we jumped.
+    if oObj.F & iFFall == 0 or  -- ...not allowed to fall...
+       oObj.FD < 0 or           -- ...*or* already falling...
+       FindObstacle(oObj) then  -- ...*or* we found an obstacle?
+      return end;               -- Don't do anymore
     -- Every 60 game frames (a second). Try to pick up gems with a
     -- 5% chance to pickup devices as well and if no objects were picked up
     -- then another 5% chance to drop a piece of inventory.
@@ -2814,33 +2759,18 @@ local function InitCreateObject()
     -- Move around every odd frame
     if oObj.AT % 2 == 0 then AIRoam(oObj) end;
   end
-  -- Corkscrew actions ----------------------------------------------------- --
-  local oAICorkscrewActions<const> = {
-    [iAStop] = { [iJNone] = {
-      { 0.001, ACT.CREEP, iJNone,      DIR.LR   },
-      { 0.001, ACT.CREEP, JOB.DIGDOWN, DIR.TCTR } }
-    }, [ACT.DIG] = { [JOB.DIGDOWN] = {
-      { 0.01,  iAStop,    iJNone,      iDNone   },
-      { 0.001, ACT.CREEP, iJNone,      DIR.LR   } }
-    }, [ACT.CREEP] = { [iJNone] = {
-      { 0.001, iAStop,    iJNone,      DIR.LR   },
-      { 0.001, ACT.CREEP, JOB.DIGDOWN, DIR.TCTR } }
-    } };
   -- Corkscrew ------------------------------------------------------------- --
   local function AICorkscrew(oObj)
-    -- Get data for current action
-    local oAIActionData<const> = oAICorkscrewActions[oObj.A];
-    if not oAIActionData then return end;
     -- Get data for current job
-    local aAIJobData<const> = oAIActionData[oObj.J];
+    local aAIJobData<const> = oObj.CH[oObj.J];
     if not aAIJobData then return end;
     -- For each item
     for iIndex = 1, #aAIJobData do
       -- Get item and set new action if the specified chance occurs
       local oAction<const> = aAIJobData[iIndex];
-      if random() < oAction[1] then
-        return SetAction(oObj, oAction[2], oAction[3], oAction[4], oAction[5]);
-      end
+      if random() < oAction[1] and
+         SetAction(oObj, oAction[2], oAction[3], oAction[4], oAction[5]) then
+        return end;
     end
   end
   -- Exploder -------------------------------------------------------------- --
@@ -3076,37 +3006,38 @@ end
 -- Main logic tick procedures ---------------------------------------------- --
 local function GameProc()
   -- Commonly accessed aliases --------------------------------------------- --
-  local iADeath<const>, iAEaten<const>, iAFight<const>, iAHide<const>,
+  local iADeath<const>, iADig<const>, iAEaten<const>, iAFight<const>, iAHide<const>,
     iAKeep<const>, iAPhase<const>, iARun<const>, iAStop<const>, iAWalk<const>,
     iDDown<const>, iDDownRight<const>, iDKeep<const>, iDKeepMoving<const>,
     iDLeftRight<const>, iDNone<const>, iDOpposite<const>, iDRight<const>,
     iDUpRight<const>, iFAquaLung<const>, iFBusy<const>, iFConsume<const>,
     iFDangerous<const>, iFDelicate<const>, iFDigger<const>, iFDigBusy<const>,
     iFDigWBase<const>, iFFall<const>, iFFloat<const>, iFFloating<const>,
-    iFHealNearby<const>, iFHurtDigger<const>, iFInWater<const>, iFiFall<const>,
-    iFiFloating<const>, iFiInWater<const>, iFiJumpFallBusy<const>,
-    iFiJumpRise<const>, iFJumping<const>, iFJumpFall<const>, iFJumpRise<const>,
-    iFPhaseDigger<const>, iFPhaseTarget<const>, iFPuGemMask<const>,
-    iFPuGemEq<const>, iFPursueDigger<const>, iFRegenerate<const>,
-    iFStationary<const>, iFTPMaster<const>, iFWaterBased<const>,
-    iJDigDown<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
+    iFHealNearby<const>, iFHurtDigger<const>, iFInWater<const>, iFiBusy<const>,
+    iFiFall<const>, iFiFloating<const>, iFiInWater<const>,
+    iFiJumpFallBusy<const>, iFiJumpRise<const>, iFJumping<const>,
+    iFJumpFall<const>, iFJumpRise<const>, iFPhaseDigger<const>,
+    iFPhaseTarget<const>, iFPuGemMask<const>, iFPuGemEq<const>,
+    iFPursueDigger<const>, iFRegenerate<const>, iFStationary<const>,
+    iFTPMaster<const>, iFTrack<const>, iFWaterBased<const>, iJDigDown<const>,
+    iJHome<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
     iJPhase<const>, iJSearch<const>, iSError<const>, iTDeadWait<const>,
     iTyFirstAid<const>, iTyTelepole<const>, iTFW<const>, iTFP<const>,
     iTFEL<const>, iTFER<const>, iTFEB<const>, iTFET<const>,
     iTFAnimateBegin<const>, iTFAnimateEnd<const> =
-      ACT.DEATH, ACT.EATEN, ACT.FIGHT, ACT.HIDE, ACT.KEEP, ACT.PHASE, ACT.RUN,
+      ACT.DEATH, ACT.DIG, ACT.EATEN, ACT.FIGHT, ACT.HIDE, ACT.KEEP, ACT.PHASE, ACT.RUN,
       ACT.STOP, ACT.WALK, DIR.D, DIR.DR, DIR.KEEP, DIR.KEEPMOVE, DIR.LR,
       DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.UR, OFL.AQUALUNG, OFL.BUSY,
       OFL.CONSUME, OFL.DANGEROUS, OFL.DELICATE, OFL.DIGGER, OFL.DGRBUSY,
       OFL.DGRWB, OFL.FALL, OFL.FLOAT, OFL.FLOATING, OFL.HEALNEARBY,
-      OFL.HURTDIGGER, OFL.INWATER, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER,
-      OFL.iJUMPFALLBUSY, OFL.iJUMPRISE, OFL.JUMP, OFL.JUMPFALL, OFL.JUMPRISE,
-      OFL.PHASEDIGGER, OFL.PHASETARGET, OFL.PUMGEMS, OFL.PUEGEMS,
+      OFL.HURTDIGGER, OFL.INWATER, OFL.iBUSY, OFL.iFALL, OFL.iFLOATING,
+      OFL.iINWATER, OFL.iJUMPFALLBUSY, OFL.iJUMPRISE, OFL.JUMP, OFL.JUMPFALL,
+      OFL.JUMPRISE, OFL.PHASEDIGGER, OFL.PHASETARGET, OFL.PUMGEMS, OFL.PUEGEMS,
       OFL.PURSUEDIGGER, OFL.REGENERATE, OFL.STATIONARY, OFL.TPMASTER,
-      OFL.WATERBASED, JOB.DIGDOWN, JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE,
-      JOB.SEARCH, oSfxData.ERROR, 600, TYP.FIRSTAID, TYP.TELEPOLE,
-      oTileFlags.W, oTileFlags.P, oTileFlags.EL, oTileFlags.ER, oTileFlags.EB,
-      oTileFlags.ET, oTileFlags.AB, oTileFlags.AE;
+      OFL.TRACK, OFL.WATERBASED, JOB.DIGDOWN, JOB.HOME, JOB.INDANGER, JOB.KEEP,
+      JOB.NONE, JOB.PHASE, JOB.SEARCH, oSfxData.ERROR, 600, TYP.FIRSTAID,
+      TYP.TELEPOLE, oTileFlags.W, oTileFlags.P, oTileFlags.EL, oTileFlags.ER,
+      oTileFlags.EB, oTileFlags.ET, oTileFlags.AB, oTileFlags.AE;
   -- == TILE DIGGING LOGIC ================================================= --
   -- Storage for certain positions and tile ids relative to the object
   local iDP,   -- Vertical position at objects feet
@@ -3245,7 +3176,7 @@ local function GameProc()
     if iTBS then iTIdB = iTBS end;
     -- Set digger flags if needed
     if iFlags & DF.OB ~= 0 then oObj.F = oObj.F | OFL.BUSY end;
-    if iFlags & DF.OI ~= 0 then oObj.F = oObj.F & OFL.iBUSY end;
+    if iFlags & DF.OI ~= 0 then oObj.F = oObj.F & iFiBusy end;
     -- Update above tile if tile location if we can
     if iDP >= iLLAbsW then UpdateLevel(iDP - iLLAbsW, iTIdA) end;
     -- Update level
@@ -3547,27 +3478,26 @@ local function GameProc()
   };
   -- Run procedure --------------------------------------------------------- --
   local function ACTRun(oObj)
-    -- Object wants to dig down and object X position is in the middle of
-    -- the tile?
-    if oObj.J == iJDigDown and oObj.X % 16 == 0 then
-      -- Make object dig down
-      SetAction(oObj, ACT.DIG, iJDigDown, iDDown);
-      -- Done
-      return;
-    end
-    -- Object wants to enter the trading centre? Stop object
-    if oObj.J == JOB.HOME and ObjectIsAtHome(oObj) then
-      -- If object can't enter? Just stop it.
-      if oObj.F & OFL.NOHOME ~= 0 then
-        SetAction(oObj, iAStop, iJNone, iDNone);
-      -- Go into trade centre and if successful? Prevent diggers entering
-      elseif SetAction(oObj, iAPhase, iJPhase, DIR.UL) then
-        SetAllDiggersNoHome(oObj.P.D) end;
-      -- Done
-      return;
+    -- Return if object is...
+    if oObj.J == iJDigDown and                        -- ...set to dig down?
+       oObj.X % 16 == 0 and                           -- *and* in tile centre?
+       oObj.F & iFJumpRise == 0 and                   -- *and* not jumping?
+       SetAction(oObj, iADig, iJDigDown, iDDown) then -- *and* now digging?
+      return end;
+    -- If object is going home, and object is at home and not busy?
+    if oObj.J == iJHome and
+       ObjectIsAtHome(oObj) and
+       oObj.F & iFBusy == 0 then
+      -- If object can enter? If going inside succeeded? Prevent all other
+      -- diggers entering to prevent undefined behaviour.
+      if oObj.F & OFL.NOHOME == 0 and
+         SetAction(oObj, iAPhase, iJPhase, DIR.UL) then
+        return SetAllDiggersNoHome(oObj.P.D) end;
+      -- Just stop the digger if we can and return if we did
+      if SetAction(oObj, iAStop, iJNone, iDNone) then return end;
     end
     -- Object is for rails only and train is not on track
-    if oObj.F & OFL.TRACK ~= 0 then
+    if oObj.F & iFTrack ~= 0 then
       -- Get X pos adjust depending on direction
       local aTrainMoveItem<const> = oTrainMoveData[oObj.D];
       -- Get absolute tile position and if valid?
@@ -3587,7 +3517,7 @@ local function GameProc()
     -- Unset busy flag as abnormal digging can make it stick for every one
     -- second of game time and object is busy.
     if oObj.AT >= 60 and
-       oObj.F & iFBusy ~= 0 then oObj.F = oObj.F & OFL.iBUSY end;
+       oObj.F & iFBusy ~= 0 then oObj.F = oObj.F & iFiBusy end;
     -- Get function associated with direction and move appropriately. It is
     -- assumed that all directions are catered for thus no check required.
     oMoveFuncs[oObj.D](oObj);
@@ -4416,7 +4346,9 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
   local function Teleport() GenericAction(iAPhase, iJPhase, iDUp) end;
   -- Spawn Jennite? (Cheat)
   local function SpawnJennite()
-    if GetTestMode() then CreateObject(iTyJennite, GetTileUnderMouse()) end;
+    if not GetTestMode() then return end;
+    if not CreateObject(iTyJennite, GetTileUnderMouse()) then
+      PlayInterfaceSound(iSError) end;
   end
   -- Shroud reveal key? (Cheat)
   local function ShroudReveal()
@@ -4433,8 +4365,9 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
   -- Create explosion (Cheat)
   local function CauseExplosion()
     if not GetTestMode() then return end
-    AdjustObjectHealth(CreateObject(iTyTNT,
-      GetTileUnderMouse()), -100, oObjActive);
+    local oTNT<const> = CreateObject(iTyTNT, GetTileUnderMouse());
+    if oTNT then AdjustObjectHealth(oTNT, -100, oObjActive);
+    else PlayInterfaceSound(iSError) end;
   end
   -- Slow down cvar
   local cvSlowDown;
