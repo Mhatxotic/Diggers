@@ -62,7 +62,7 @@ local CursorRender, DisableKeyHandlers, JoystickProc, MainProcFunc,
 -- Constants for loader ---------------------------------------------------- --
 local oBFlags<const> = Image.FlagsPre;     -- Get bitmap loading flags
 local iPNG<const> = oBFlags.TOGPU|oBFlags.FCE_PNG;-- Get forced PNG format flag
-local oPFlags<const> = Pcm.Flags;          -- Get waveform loading flags
+local oPFlags<const> = Pcm.FlagsPre;       -- Get waveform loading flags
 local iOGG<const> = oPFlags.FCE_OGG;       -- Get forced wave format
 local oPrFlags<const> = Asset.Progress;    -- Asset progress flags
 local iFStart<const> = oPrFlags.FILESTART; -- File opened with information

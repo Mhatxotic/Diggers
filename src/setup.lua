@@ -33,7 +33,7 @@ local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
     Display.MonitorData, Display.Monitors, Display.Reset, Display.VidModeData,
     Display.VidModes, Display.VReset, Input.GetKeyName, Input.OnKey,
     Util.Clamp, Util.ClampInt, Util.Explode, Util.GetRatio, Util.WordWrap,
-    Variable.Register, Variable.Internal, Input.KeyMods, Core.Libraries.MAX,
+    Variable.Register, Variable.Internal, Input.KeyMods, #Core.Libraries,
     Display.FSTypes.NATIVE;
 -- Read and prepare engine version information ----------------------------- --
 local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
@@ -181,9 +181,8 @@ local function ColouriseText(sText)
   -- For each letter in the title
   for iIndex = 1, #sText do
     -- Apply colour to the letter
-    sOutText = sOutText..format("\rc%08x",
-      aColours[1 + (iColour % #aColours)])..
-      sText:sub(iIndex, iIndex);
+    sOutText = sOutText..format("\rc%08x%s\rr",
+      aColours[1 + (iColour % #aColours)], sText:sub(iIndex, iIndex));
     -- Next colour
     iColour = iColour - 1;
   end
