@@ -20,7 +20,7 @@ local BlitSLT, AdjustViewportX, AdjustViewportY, AdjustViewportNoScroll,
   IsMouseYLessThan, IsSpriteCollide, LoadResources, PlayMusic, PlayStaticSound,
   PrintC, RegisterFBUCallback, RenderFade, RenderObjects, RenderTerrain,
   SelectObject, SetCallbacks, SetCursor, SetHotSpot, SetKeys, oGlobalData,
-  aLevelsData, aObjectFlags, aObjs, fontSpeech;
+  aLevelsData, aObjs, fontSpeech;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Required assets
       iCLeft, iCRight, iCTop, iCExit,  -- Cursor ids
@@ -227,7 +227,7 @@ local function OnScriptLoaded(GetAPI)
     PlayStaticSound, PrintC, RegisterFBUCallback, RegisterHotSpot,
     RegisterKeys, RenderFade, RenderObjects, RenderTerrain, SelectObject,
     SetCallbacks, SetCursor, SetHotSpot, SetKeys, oAssetsData, oCursorIdData,
-    oGlobalData, aLevelsData, aObjectFlags, aObjs, oSfxData, fontSpeech =
+    oGlobalData, aLevelsData, aObjs, oSfxData, fontSpeech =
       GetAPI("AdjustViewportX", "AdjustViewportY", "AdjustViewportNoScroll",
         "BlitSLT", "DeInitLevel", "Fade", "GetAbsMousePos", "InitEnding",
         "InitFail", "InitLobby", "IsMouseXGreaterEqualThan",
@@ -236,8 +236,8 @@ local function OnScriptLoaded(GetAPI)
         "PrintC", "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys",
         "RenderFade", "RenderObjects", "RenderTerrain", "SelectObject",
         "SetCallbacks", "SetCursor", "SetHotSpot", "SetKeys", "oAssetsData",
-        "oCursorIdData", "oGlobalData", "aLevelsData", "aObjectFlags", "aObjs",
-        "oSfxData", "fontSpeech");
+        "oCursorIdData", "oGlobalData", "aLevelsData", "aObjs", "oSfxData",
+        "fontSpeech");
   -- Setup required assets
   aAssets = { oAssetsData.post, oAssetsData.postm };
   -- Register keybinds

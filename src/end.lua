@@ -364,19 +364,19 @@ local function InitLose(iLId, aP, aOP)
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
   local RegisterHotSpot, RegisterKeys, oAssetsData, oCursorIdData,
-    aObjectFlags, oSfxData;
+    oObjectFlags, oSfxData;
   -- Grab imports
   BlitSLTWHA, Fade, GetGameTicks, InitPost, InitScore, LoadResources,
     PlayMusic, PlayStaticSound, PrintC, RegisterHotSpot, RegisterKeys,
     RenderFade, RenderObjects, RenderTerrain, SetCallbacks, SetHotSpot,
     SetKeys, oAssetsData, oCursorIdData, aGemsAvailable, oGlobalData,
-    aObjectFlags, aObjs, oSfxData, aShroudData, fontLarge =
+    oObjectFlags, aObjs, oSfxData, aShroudData, fontLarge =
       GetAPI("BlitSLTWHA", "Fade", "GetGameTicks", "InitPost", "InitScore",
         "LoadResources", "PlayMusic", "PlayStaticSound", "PrintC",
         "RegisterHotSpot", "RegisterKeys", "RenderFade", "RenderObjects",
         "RenderTerrain", "SetCallbacks", "SetHotSpot", "SetKeys",
         "oAssetsData", "oCursorIdData", "aGemsAvailable", "oGlobalData",
-        "aObjectFlags", "aObjs", "oSfxData", "aShroudData", "fontLarge");
+        "oObjectFlags", "aObjs", "oSfxData", "aShroudData", "fontLarge");
   -- Setup assets required
   local aEndAssets<const> = oAssetsData.post;
   aWinAssets = { true, { aEndAssets, oAssetsData.scenem } };
@@ -396,7 +396,7 @@ local function OnScriptLoaded(GetAPI)
     [iPress] = { { iEnter, GoPostMortem, "igwpm", "POST MORTEM" } }
   });
   -- Get object flag device id for calculating capital carried
-  iDeviceId = aObjectFlags.DEVICE;
+  iDeviceId = oObjectFlags.DEVICE;
   -- Set sound effect ids
   iSSelect = oSfxData.SELECT;
   -- Set cursor ids

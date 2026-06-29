@@ -780,7 +780,8 @@ local function OnScriptLoaded(GetAPI)
   local aButtons<const> =
     { GoFinish, ApplySettings, SetDefaults, InitBinds, InitReadme };
   -- Get frequently used sound effect ids
-  local iSClick<const>, iSSelect<const> = oSfxData.CLICK, oSfxData.SELECT;
+  local iSClick<const>, iSSelect<const>, iSError<const> =
+    oSfxData.CLICK, oSfxData.SELECT, oSfxData.ERROR;
   -- Start drawing buttons from the left and the size of each button. We set
   -- the shader to round off any sub-pixelling so fractions are handled safely.
   local nX, nSize<const>, nYButton<const> = 4.0, 312.0 / #aButtons, 193.0;
@@ -1132,6 +1133,7 @@ local function OnScriptLoaded(GetAPI)
   -- Force configuration option change
   local function ConfigSetOption(iAdjust)
     local aOption<const> = aOptions[iSelectedOption];
+    if not aOption then return PlayStaticSound(iSError) end;
     ConfigAdjustOption(aSetupOptionData[iSelectedOption],
       aOption[iAdjust], aOption[1], aOption[4]);
   end

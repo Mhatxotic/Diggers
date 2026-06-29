@@ -45,13 +45,12 @@ local function SetCreditId(iId)
 end
 -- Render credits proc ----------------------------------------------------- --
 local function ProcRender()
-  -- Set text colour
-  fontLittle:SetCRGB(1.0, 0.7, 1.0);
-  fontLarge:SetCRGB(1.0, 1.0, 1.0);
   -- Draw background
   BlitLT(texTitle, -96.0, 0.0);
   -- Display text compared to amount of time passed
+  fontLittle:SetCRGB(0.99, 0.69, 0.16);
   PrintC(fontLittle, 160.0, nCredits1Y, strCredits1);
+  fontLarge:SetCRGB(1.0, 1.0, 1.0);
   PrintC(fontLarge, 160.0, nCredits2Y, strCredits2);
 end
 -- On fade out init title screen without setting music --------------------- --
