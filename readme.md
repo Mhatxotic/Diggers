@@ -191,17 +191,17 @@ The hud is explained as follows from left to right…
 * Digger buttons and indicators…
   - The numbers are clickable buttons which will quickly centre the view around the specified digger. You cannot click on the button if the corresponding digger has perished.
   - The indicators above the buttons indicate what the digger is doing…
-    * Green: Digger is stopped and doing nothing.
-    * Orange: Digger is moving.
-    * Red: Digger is busy and cannot take orders until the current job is complete or is in danger.
-    * Blue: The digger is in danger and the player must take action to save them from imminent death.
-    * Black: The digger is impatient and the player must take action before they decide to do something else on their own.
+    * `🟢 Green`: Digger is stopped and doing nothing.
+    * `🟠 Orange`: Digger is moving.
+    * `🔴 Red`: Digger is busy and cannot take orders until the current job is complete or is in danger.
+    * `🔵 Blue`: The digger is in danger and the player must take action to save them from imminent death.
+    * `⚫ Black`: The digger is impatient and the player must take action before they decide to do something else on their own.
 * Utility buttons…
-  - Cog: Centres around all your dropped and deployed inventory.
-  - Hand: Shows all your diggers stats and inventory.
-  - Arrows: Shows the position of all your diggers and what they're doing.
-  - Question: Shows statistics and prediction information about the current zone operations.
-  - Page: Displays the book.
+  - `⚙️ Cog`: Centres around all your dropped and deployed inventory.
+  - `✋ Hand`: Shows all your diggers stats and inventory.
+  - `↕️ Arrows`: Shows the position of all your diggers and what they're doing.
+  - `❓ Question`: Shows statistics and prediction information about the current zone operations.
+  - `⏸️ Pause`: Pause the game.
 
 ### Anywhere in the game (not configurable)…
 * `Alt`+`F4` on Windows and Linux or `Cmd`+`Q` on a Mac…
@@ -248,16 +248,16 @@ You can change cvars by opening up the console with the `GRAVE` key (key under `
 All the assets for the default release of Diggers is contained inside the `diggers.elf` binary on Linux, `diggers.exe` on Windows and in a separate `.adb` file on MacOS alongside the `diggers.mac` binary which is a non-solid maximum compression 7-zip file. If you know how the Quake or Half-Life engine works then overriding internal files operates similar to the engine. You can easily override any of the assets by mimicking the directory structure on disk or in another external `.adb` file alongside the executable file. The `.adb` files are sorted by name at startup and checked in reverse order so if you have an archive called `diggers.adb`, `diggers1.adb` then another archive called `diggers0.adb`, since the files are enumerated alphabetically, `diggers1.adb` and all its assets will take precedence over the prior archives `diggers0.adb` and `diggers.adb` in that order.
 
 ### Graphics…
-Basic support for scaled textures is supported. To use, you add a text file called `scale.txt` to the `tex` directory which contains a simple integer of the scaling factor of your texture pack (i.e. `2`) which modifies the main frame buffer to be double the size, then all your textures (keeping the same filename structure as the game) have to be enlarged using that factor from the games' original texture size (e.g. `tex/sprites.png` is `512x512` pixel dimensions by default, so if the factor is `2` then your new texture size must be `1024x1024` pixels) so you can add more detail. Do not change any positioning of any of the tiles because the tile positions are scaled using the same factor too. You can put all these files in a `.adb` (7-zip) file to override the original games data files but you must not use a `solid` mode archive or load times will be crippled. Do not modify or include `tex/smask.png` or `tex/lmask.png` in your archives as these binary tile sets are used for the mask collision system which is not scaled. The limit is capped to `16` even though the theoretical limit is `25` (if GPU supports `16384x16384` pixel textures) as the largest texture is `tex/bookpage.png` at `640x640` pixels at 1X scale. You also do not have to keep the 8-bit palette texture format so you can use 32-bit depth textures if you like. As long as `LibPNG` supports the format you want, the engine should be able to process it.
+Basic support for scaled textures is supported. To use, you simply add a text file called `scale.txt` to the `tex` sub-directory which contains a simple integer of the scaling factor of your texture pack (i.e. `2`) which modifies the main frame buffer to be double the size, then all your textures (keeping the same filename structure as the game) have to be enlarged using that factor from the games' original texture size (e.g. `tex/sprites.png` is `512x512` pixel dimensions by default, so if the factor is `2` then your new texture size must be `1024x1024` pixels) so you can add more detail. Do not change any positioning of any of the tiles because the tile positions are scaled using the same factor too. You can put all these files in a `.adb` (7-zip) file to override the original games data files but you must not use a `solid` mode archive or load times will be crippled. Do not modify or include `tex/smask.png` or `tex/lmask.png` in your archives as these binary tile sets are used for the mask collision system which is not scaled. The limit is capped to `16` even though the theoretical limit is `25` (if GPU supports `16384x16384` pixel textures) as the largest texture is `tex/bookpage.png` at `640x640` pixels at 1X scale. You also do not have to keep the 8-bit palette texture format so you can use 32-bit depth textures if you like. As long as `LibPNG` supports the format you want, the engine should be able to process it.
 
 <sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
 ## F.A.Q.…
 * **Q. This does not [look](https://www.youtube.com/watch?v=9w7v3TXBEGY) like the original game.**
   - A. The original game was in a `320x200` resolution which is not an aspect ratio of `16:9` or even `4:3` like most modern displays are and adaptations had to be made to support all display types and most of the old textures had to be updated to be compatible with OpenGL. If you can help upgrade the textures to make them look better (up to `16x` scale of the original) then that would be awesome!
 * **Q. I got an error, strange behaviour or found a bug.**
-  - A. You can start the game with the `log_file=...` (filename) and the `log_level=4` parameters to give a pretty detailed log of what the app is doing so you can send me that along with as much info as possible such as the `.log` `.crt` `.dbg` and `.udb` files that the app generates. Neither of these files will contain any personal information, only technical information to help me squash the problem.
+  - A. You can start the game with the `log_file=...` (filename) and the `log_level=4` parameters to give a pretty detailed log of what the app is doing so you can send us that along with as much info as possible such as the `.log` `.crt` `.dbg` and `.udb` files that the app generates. Neither of these files will contain any personal information, only technical information to help me squash the problem.
 * **Q. I've picked the wrong game-engine settings and the game crashed/won't start.**
-  - A. Try specifying the parameter `sql_defaults=1` command-line option to reset all the engine settings to default. If this doesn't work you'll have to delete the `.udb` file or set `sql_defaults=2` and start again from scratch thus losing all your Diggers saved game data. All that said though, the game shouldn't really crash though so please send me any logs/crash dumps you may have.
+  - A. Try specifying the parameter `sql_defaults=1` command-line option to reset all the engine settings to default. If this doesn't work you'll have to delete the `.udb` file or set `sql_defaults=2` and start again from scratch thus losing all your Diggers saved game data. All that said though, the game shouldn't really crash though so please send us any logs/crash dumps you may have.
 * **Q. Can I [speed run](https://en.wikipedia.org/wiki/Speedrunning) or [T.A.S.](https://en.wikipedia.org/wiki/Tool-assisted_speedrun) this game?**
   - A. This game is overkill on RNG but you can set the seed that makes the `math.random()` function predictable on the command-line with the `lua_randomseed=value` argument so hopefully you can use that to your advantage.
 * **Q. What's with the fog?**
