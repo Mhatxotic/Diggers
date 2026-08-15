@@ -101,9 +101,9 @@ local function ProcRenderScore()
       Print(fontLittle, aData[7] + 16.0, aData[8], aData[6]);
       fontTiny:SetCRGBA(1.0, 1.0, 1.0, 1.0);
       PrintR(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[11]);
-      fontTiny:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+      fontTiny:SetCRGB(1.0, 1.0, 1.0);
       Print(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[12]);
-      fontLittle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
+      fontLittle:SetCRGB(1.0, 1.0, 1.0);
       PrintR(fontLittle, aData[7] + 304.0, aData[8], aData[9]);
     else
       if iTotalId > iI then texSpr:SetCRGB(0.0, 0.0, 0.5);
@@ -113,11 +113,11 @@ local function ProcRenderScore()
         aData[7] + 312.0, aData[8] + 10.0, 1022);
       fontLittle:SetCRGBA(0.75, 0.75, 0.75, 1.0);
       Print(fontLittle, aData[7] + 16.0, aData[8], aData[6]);
-      fontTiny:SetCRGBA(0.0, 0.5, 0.0, 1.0);
+      fontTiny:SetCRGBA(0.99, 0.69, 0.16, 1.0);
       PrintR(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[11]);
-      fontTiny:SetCRGBA(1.0, 1.0, 0.0, 1.0);
+      fontTiny:SetCRGB(0.99, 0.99, 0.16);
       Print(fontTiny, aData[7] + 180.0, aData[8] + 1.0, aData[12]);
-      fontLittle:SetCRGBA(1.0, 0.0, 1.0, 1.0);
+      fontLittle:SetCRGB(1.0, 0.0, 1.0);
       PrintR(fontLittle, aData[7] + 304.0, aData[8], aData[9]);
     end
   end

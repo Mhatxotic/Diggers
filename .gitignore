@@ -16,8 +16,6 @@
 !tex/
 !tex/*.png
 !tex/*.json
-!tex/e
-!tex/e/*.png
 !docs/
 !docs/*.html
 !docs/*.md

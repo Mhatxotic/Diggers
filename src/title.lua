@@ -60,7 +60,7 @@ local function RenderProcEnterAnim()
     BlitSLT(texTitle, 3, nStageL - nAnimCounter1, nPostY);
     BlitSLT(texTitle, 4, nStageR - (168.0 - nAnimCounter2), nPostY);
     -- Render status text
-    fontTiny:SetCRGB(1.0, 0.9, 0.0);
+    fontTiny:SetCRGB(0.99, 0.69, 0.16);
     PrintC(fontTiny, nCentreX, 58.0 - nAnimCounter1, strSubTitle);
     PrintC(fontTiny, nCentreX, 206.0 + nAnimCounter1, strCredits);
     -- Move components in
@@ -77,7 +77,7 @@ local function RenderProcEnterAnim()
       BlitSLT(texTitle, 3, nStageL, nPostY);
       BlitSLT(texTitle, 4, nPostSGX, nPostY);
       -- Render status text
-      fontTiny:SetCRGB(1.0, 0.9, 0.0);
+      fontTiny:SetCRGB(0.99, 0.69, 0.16);
       PrintC(fontTiny, nCentreX, nSubY, strSubTitle);
       PrintC(fontTiny, nCentreX, nCreditsY, strCredits);
     end
@@ -103,7 +103,7 @@ local function RenderProcLeaveAnim()
     BlitSLT(texTitle, 3, nStageL - 168.0 + nAnimCounter1, nPostY);
     BlitSLT(texTitle, 4, nStageR - nAnimCounter2, nPostY);
     -- Render status text
-    fontTiny:SetCRGB(1.0, 0.9, 0.0);
+    fontTiny:SetCRGB(0.99, 0.69, 0.16);
     PrintC(fontTiny, nCentreX, nAnimCounter1 - 106.0, strSubTitle);
     PrintC(fontTiny, nCentreX, 370.0 - nAnimCounter1, strCredits);
     -- Move components in
@@ -276,7 +276,7 @@ local function OnAssetsLoaded(aResources, bNoMusic)
   texTitle:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Initialise credits
   strCredits = "ORIGINAL VERSIONS BY TOBY SIMPSON AND MIKE FROGGATT\n\z
-    (C) 1994 MILLENNIUM INTERACTIVE LTD. ALL RIGHTS RESERVED\n\rcffffff4f\z
+    (C) 1994 MILLENNIUM INTERACTIVE LTD. ALL RIGHTS RESERVED\n\rcfffdb259\z
     POWERED BY "..sAppTitle.." (C) 2026 "..sAppVendor..". \z
       ALL RIGHTS RESERVED\n\z
     PRESS "..GetKeyName("gksc").." TO SETUP, "..GetKeyName("gksb")..
