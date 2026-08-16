@@ -224,46 +224,45 @@ local function ProcScore()
   -- Get category data and if category needs tallying?
   local aData<const> = aTotals[iTotalId];
   if aData[1] == 1 then
-    -- No more categories left to add? Set finished
-    if aData[4] == 0 then aData[1] = 2;
-    -- Still tallying?
-    else
-      -- Do tally function
-      local function Tallied()
-        -- Clamp value
-        aData[2] = aData[3];
-        -- Set human readable final quantity
-        aData[12] = UtilFormatNumber(aData[2], 0);
-        -- Set final score for quantity and update human readable score
-        iScoreItem = aData[2] * aData[5]
-        aData[9] = UtilFormatNumber(iScoreItem, 0);
-        -- Update total score and human readable score
-        iTotalScore = iTotalScore + iScoreItem;
-        strScore = UtilFormatNumber(iTotalScore, 0);
-        -- Set category completed to goto next category
-        aData[1] = 2;
-        -- Clear score incase the next category is zero
-        iScoreItem = 0;
-      end
-      -- Tallying function
-      local function Tally()
-        -- Add to tally
-        aData[2] = aData[2] + aData[4];
-        -- Set human readable final quantity
-        aData[12] = UtilFormatNumber(aData[2], 0);
-        -- Set tallied score for quantity and update human readable score
-        iScoreItem = aData[2] * aData[5]
-        aData[9] = UtilFormatNumber(iScoreItem, 0);
-        -- Update human readable score
-        strScore = UtilFormatNumber(iTotalScore + iScoreItem, 0);
-      end
+    -- Do tally function
+    local function Tallied()
+      -- Clamp value
+      aData[2] = aData[3];
+      -- Set human readable final quantity
+      aData[12] = UtilFormatNumber(aData[2], 0);
+      -- Set final score for quantity and update human readable score
+      iScoreItem = aData[2] * aData[5]
+      aData[9] = UtilFormatNumber(iScoreItem, 0);
+      -- Update total score and human readable score
+      iTotalScore = iTotalScore + iScoreItem;
+      strScore = UtilFormatNumber(iTotalScore, 0);
+      -- Set category completed to goto next category
+      aData[1] = 2;
+      -- Clear score incase the next category is zero
+      iScoreItem = 0;
+    end
+    -- Tallying function
+    local function Tally()
+      -- Add to tally
+      aData[2] = aData[2] + aData[4];
+      -- Set human readable final quantity
+      aData[12] = UtilFormatNumber(aData[2], 0);
+      -- Set tallied score for quantity and update human readable score
+      iScoreItem = aData[2] * aData[5]
+      aData[9] = UtilFormatNumber(iScoreItem, 0);
+      -- Update human readable score
+      strScore = UtilFormatNumber(iTotalScore + iScoreItem, 0);
+    end
+    -- No wait?
+    if aData[13] <= 0 then
       -- Category counting up?
       if aData[3] >= 0 then
         -- Run function depending if tallying or tally finished
         if aData[2] >= aData[3] then Tallied() else Tally() end;
       -- Category counting down? If tallying completed or overflowed?
       elseif aData[2] <= aData[3] then Tallied() else Tally() end;
-    end
+    -- Waiting because no value
+    else aData[13] = aData[13] - 1 end;
     -- Update rank
     for iI = 1, #aRanks do
       local aRank<const> = aRanks[iI];
@@ -326,6 +325,9 @@ local function AddTotal(sLabel, iValue, iScorePerTick)
     -- Set call back to move in from right
     fcbMove = MoveFromRight;
   end
+  -- If there is no value to tally then this is the wait value
+  local iWait;
+  if iValue == 0 then iWait = 60 else iWait = 0 end;
   -- Prepare the category in the categories list
   aTotals[1 + #aTotals] = {
     1,                             -- [01] Operational function
@@ -340,6 +342,7 @@ local function AddTotal(sLabel, iValue, iScorePerTick)
     fcbMove,                       -- [10] Move animation callback
     UtilFormatNumber(iScorePerTick, 0).."x", -- [11] Localised 'iScorePerTick'
     "0",                           -- [12] Localised 'value'
+    iWait,                         -- [13] Wait time before next categrory
   };
 end
 -- When the main fbo dimensions changed ------------------------------------ --

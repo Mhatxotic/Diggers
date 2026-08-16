@@ -607,17 +607,18 @@ end
 -- Set object action ------------------------------------------------------- --
 local function InitSetAction()
   -- Frequently used variables --------------------------------------------- --
-  local iAClose<const>, iAFight<const>, iAKeep<const>, iAOpen<const>,
-    iAPhase<const>, iAStop<const>, iAWalk<const>, iDDown<const>, iDLeft<const>,
-    iDNone<const>, iDOpposite<const>, iDRight<const>, iDUp<const>,
-    iDUpLeft<const>, iFiBusy<const>, iFiFall<const>, iFiJump<const>,
-    iFiNoSound<const>, iFBlock<const>, iFBusy<const>, iFImpatient<const>,
-    iFJumpBusy<const>, iFJumpRiseBusy<const>, iFNoAIBusy<const>,
-    iFNoHome<const>, iFNoSound<const>, iFPuAnyMask<const>, iFPuAnyEq<const>,
-    iFRngSprite<const>, iFStaminaBoost<const>, iFTPMaster<const>,
-    iJDigDown<const>, iJHome<const>, iJKeep<const>, iJNone<const>,
-    iJPhase<const>, iSJump<const>, iTyGateB<const>, iTyLiftB<const> =
-      ACT.CLOSE, ACT.FIGHT, ACT.KEEP, ACT.OPEN, ACT.PHASE, ACT.STOP, ACT.WALK,
+  local iAClose<const>, iAEaten<const>, iAFight<const>, iAKeep<const>,
+    iAOpen<const>, iAPhase<const>, iAStop<const>, iAWalk<const>, iDDown<const>,
+    iDLeft<const>, iDNone<const>, iDOpposite<const>, iDRight<const>,
+    iDUp<const>, iDUpLeft<const>, iFiBusy<const>, iFiFall<const>,
+    iFiJump<const>, iFiNoSound<const>, iFBlock<const>, iFBusy<const>,
+    iFImpatient<const>, iFJumpBusy<const>, iFJumpRiseBusy<const>,
+    iFNoAIBusy<const>, iFNoHome<const>, iFNoSound<const>, iFPuAnyMask<const>,
+    iFPuAnyEq<const>, iFRngSprite<const>, iFStaminaBoost<const>,
+    iFTPMaster<const>, iJDigDown<const>, iJHome<const>, iJKeep<const>,
+    iJNone<const>, iJPhase<const>, iSJump<const>, iTyGateB<const>,
+    iTyLiftB<const> =
+      ACT.CLOSE, ACT.EATEN, ACT.FIGHT, ACT.KEEP, ACT.OPEN, ACT.PHASE, ACT.STOP, ACT.WALK,
       DIR.D, DIR.L, DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.U, DIR.UL, OFL.iBUSY,
       OFL.iFALL, OFL.iJUMP, OFL.iNOSOUND, OFL.BLOCK, OFL.BUSY, OFL.IMPATIENT,
       OFL.JUMPBUSY, OFL.JUMPRISEBUSY, OFL.NOAIBUSY, OFL.NOHOME,
@@ -835,7 +836,7 @@ local function InitSetAction()
   -- success of that action (used by the the player interface).
   local oActions<const> = {
     [ACT.DEATH]  = ACTDeathOrEaten,  [ACT.DIG]  = ACTDig,
-    [ACT.EATEN]  = ACTDeathOrEaten,  [ACT.MAP]  = ACTDisplayMap,
+    [iAEaten]    = ACTDeathOrEaten,  [ACT.MAP]  = ACTDisplayMap,
     [iAOpen]     = ACTOpenCloseGate, [iAClose]  = ACTOpenCloseGate,
     [ACT.DEPLOY] = ACTDeployObject,  [ACT.JUMP] = ACTJump,
     [ACT.GRAB]   = ACTGrabItem,      [ACT.DROP] = ACTDropItem,
@@ -920,7 +921,9 @@ local function InitSetAction()
     [DIR.UD]       = DIRUpDown,
   };
   -- Actions to ignore for job in danger function -------------------------- --
-  local aActionsToIgnore<const> = { [ACT.DEATH] = true, [iAPhase] = true };
+  local aActionsToIgnore<const> =
+    { [ACT.DYING] = true, [iAEaten] = true,
+      [ACT.DEATH] = true, [iAPhase] = true };
   -- Performed when object is in danger ------------------------------------ --
   local function JOBInDanger(oObj, iJob)
     -- Keep busy unset if not dead or phasing!

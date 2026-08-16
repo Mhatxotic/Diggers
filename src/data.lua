@@ -615,7 +615,6 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
     [ACT.PHASE] = oDiggerActPhaseData,
     [ACT.HIDE] = oGenericActHideData,
     [ACT.REST] = aRest,
-
     [ACT.DEATH] = {
       [DIR.NONE] = { 451, 454 },
       FLAGS = OFL.BUSY|OFL.NOAI,
@@ -2453,7 +2452,10 @@ local aCreditsXData<const> = {
   { "LZMA general codec",              "Igor Pavlov" },
   { "Z-Lib general codec",             "Jean-loup Gailly\n\z
                                         Mark Adler" },
-  { "OpenSSL crypto & socket engine",  "OpenSSL SW Foundation" },
+  { "OpenSSL crypto & socket engine",  "OpenSSL Software\n\z
+                                        Foundation" },
+  { "Simple WebP decoder",             "Miku AuahDark\n\z
+                                        Google Inc." },
   { "RapidJSON parsing engine",        "THL A29 Ltd.\n\z
                                         Tencent co.\n\z
                                         Milo Yip" },
