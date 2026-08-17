@@ -94,7 +94,8 @@ local iStageR, iStageT, iStageW;       -- Fbo right/top/width bounds
 local iTilesHeight, iTilesWidth;       -- Total tiles on screen
 local iViewportH, iViewportW;          -- Current viewport width and height
 local iViewportX, iViewportY;          -- Current viewport absolute position
--- Blank function ---------------------------------------------------------- --
+-- Blank function and table ------------------------------------------------ --
+local BlankTable<const> = { };
 local function BlankFunction() end;
 -- Function to play a sound ------------------------------------------------ --
 local function DoPlaySoundAtObject(oObj, iSfxId, nPitch)
@@ -607,25 +608,25 @@ end
 -- Set object action ------------------------------------------------------- --
 local function InitSetAction()
   -- Frequently used variables --------------------------------------------- --
-  local iAClose<const>, iAEaten<const>, iAFight<const>, iAKeep<const>,
-    iAOpen<const>, iAPhase<const>, iAStop<const>, iAWalk<const>, iDDown<const>,
-    iDLeft<const>, iDNone<const>, iDOpposite<const>, iDRight<const>,
-    iDUp<const>, iDUpLeft<const>, iFiBusy<const>, iFiFall<const>,
-    iFiJump<const>, iFiNoSound<const>, iFBlock<const>, iFBusy<const>,
-    iFImpatient<const>, iFJumpBusy<const>, iFJumpRiseBusy<const>,
-    iFNoAIBusy<const>, iFNoHome<const>, iFNoSound<const>, iFPuAnyMask<const>,
-    iFPuAnyEq<const>, iFRngSprite<const>, iFStaminaBoost<const>,
-    iFTPMaster<const>, iJDigDown<const>, iJHome<const>, iJKeep<const>,
-    iJNone<const>, iJPhase<const>, iSJump<const>, iTyGateB<const>,
-    iTyLiftB<const> =
-      ACT.CLOSE, ACT.EATEN, ACT.FIGHT, ACT.KEEP, ACT.OPEN, ACT.PHASE, ACT.STOP, ACT.WALK,
-      DIR.D, DIR.L, DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.U, DIR.UL, OFL.iBUSY,
-      OFL.iFALL, OFL.iJUMP, OFL.iNOSOUND, OFL.BLOCK, OFL.BUSY, OFL.IMPATIENT,
-      OFL.JUMPBUSY, OFL.JUMPRISEBUSY, OFL.NOAIBUSY, OFL.NOHOME,
-      OFL.NOSOUND, OFL.PUMANY, OFL.PUEANY, OFL.RNGSPRITE, OFL.STAMINABOOST,
-      OFL.TPMASTER, JOB.DIGDOWN, JOB.HOME, JOB.KEEP, JOB.NONE, JOB.PHASE,
-      oSfxData.JUMP, TYP.GATEB, TYP.LIFTB;
-  local BlankTable<const> = { };
+  local iAClose<const>, iADeath<const>, iAEaten<const>, iAFight<const>,
+    iAKeep<const>, iAOpen<const>, iAPhase<const>, iAStop<const>, iAWalk<const>,
+    iDDown<const>, iDLeft<const>, iDNone<const>, iDOpposite<const>,
+    iDRight<const>, iDUp<const>, iDUpLeft<const>, iFiBusy<const>,
+    iFiFall<const>, iFiJump<const>, iFiNoSound<const>, iFBlock<const>,
+    iFBusy<const>, iFImpatient<const>, iFJumpBusy<const>,
+    iFJumpRiseBusy<const>, iFNoAIBusy<const>, iFNoHome<const>, iFNoMenu<const>,
+    iFNoSound<const>, iFPuAnyMask<const>, iFPuAnyEq<const>,
+    iFRngSprite<const>, iFStaminaBoost<const>, iFTPMaster<const>,
+    iJDigDown<const>, iJHome<const>, iJKeep<const>, iJNone<const>,
+    iJPhase<const>, iSJump<const>, iTyGateB<const>, iTyLiftB<const> =
+      ACT.CLOSE, ACT.DEATH, ACT.EATEN, ACT.FIGHT, ACT.KEEP, ACT.OPEN,
+      ACT.PHASE, ACT.STOP, ACT.WALK, DIR.D, DIR.L, DIR.NONE, DIR.OPPOSITE,
+      DIR.R, DIR.U, DIR.UL, OFL.iBUSY, OFL.iFALL, OFL.iJUMP, OFL.iNOSOUND,
+      OFL.BLOCK, OFL.BUSY, OFL.IMPATIENT, OFL.JUMPBUSY, OFL.JUMPRISEBUSY,
+      OFL.NOAIBUSY, OFL.NOHOME, OFL.IGMENU, OFL.NOSOUND, OFL.PUMANY,
+      OFL.PUEANY, OFL.RNGSPRITE, OFL.STAMINABOOST, OFL.TPMASTER, JOB.DIGDOWN,
+      JOB.HOME, JOB.KEEP, JOB.NONE, JOB.PHASE, oSfxData.JUMP, TYP.GATEB,
+      TYP.LIFTB;
   -- Train track data tile translation lookup ------------------------------ --
   local oTrainTrackData<const> = {
     [  7] = 210, [ 95] = 210, [ 96] = 210, [171] = 210, [172] = 210,
@@ -835,7 +836,7 @@ local function InitSetAction()
   -- from further processing and an additional boolean is returned of the
   -- success of that action (used by the the player interface).
   local oActions<const> = {
-    [ACT.DEATH]  = ACTDeathOrEaten,  [ACT.DIG]  = ACTDig,
+    [iADeath]    = ACTDeathOrEaten,  [ACT.DIG]  = ACTDig,
     [iAEaten]    = ACTDeathOrEaten,  [ACT.MAP]  = ACTDisplayMap,
     [iAOpen]     = ACTOpenCloseGate, [iAClose]  = ACTOpenCloseGate,
     [ACT.DEPLOY] = ACTDeployObject,  [ACT.JUMP] = ACTJump,
@@ -866,8 +867,8 @@ local function InitSetAction()
     return iAction, iJob, iDirection;
   end
   -- Requested actions allowed --------------------------------------------- --
-  local oPreserve<const> = { [iAKeep] = true, [ACT.RUN] = true,
-    [iAWalk] = true };
+  local oPreserve<const> = {
+    [iAKeep] = true, [ACT.RUN] = true, [iAWalk] = true };
   -- Actions allowed if keep object action requested ----------------------- --
   local oPreserveKeep<const> = { [ACT.RUN] = true, [iAWalk] = true };
   -- Move towards trade centre? -------------------------------------------- --
@@ -920,10 +921,11 @@ local function InitSetAction()
     [DIR.KEEPMOVE] = DIRKeepIfMoving, [iDOpposite]   = DIROpposite,
     [DIR.UD]       = DIRUpDown,
   };
-  -- Actions to ignore for job in danger function -------------------------- --
-  local aActionsToIgnore<const> =
-    { [ACT.DYING] = true, [iAEaten] = true,
-      [ACT.DEATH] = true, [iAPhase] = true };
+  -- Actions to ignore to unset busy when in danger ------------------------ --
+  local aActionsToIgnore<const> = {
+    [ACT.DYING] = true, [iAEaten] = true,
+    [iADeath]   = true, [iAPhase] = true
+  };
   -- Performed when object is in danger ------------------------------------ --
   local function JOBInDanger(oObj, iJob)
     -- Keep busy unset if not dead or phasing!
@@ -1029,9 +1031,13 @@ local function InitSetAction()
         " not found! "..tostring(aDirection)) end;
     oObj.DD = aDirection;
     -- Re-add flags and direction specific according to lookup table
-    oObj.F = oObj.F | (oAction.FLAGS or 0);
+    local iNewFlags<const> = oObj.F | (oAction.FLAGS or 0);
+    oObj.F = iNewFlags;
+    -- Remove menu on active object if menu not allowed for this action
+    if oObj == oObjActive and
+       iNewFlags & iFNoMenu ~= 0 then SetContextMenu() end;
     -- Set collision mask id if is a platform
-    if oObj.F & iFBlock ~= 0 then oObj.M = 474 else oObj.M = 478 end;
+    if iNewFlags & iFBlock ~= 0 then oObj.M = 474 else oObj.M = 478 end;
     -- Get and check starting sprite id
     local iSprIdBegin<const> = aDirection[1];
     if not UtilIsInteger(iSprIdBegin) then
@@ -1047,7 +1053,7 @@ local function InitSetAction()
     -- Set optional sprite draw offset
     oObj.OFX, oObj.OFY = aDirection[3] or 0, aDirection[4] or 0;
     -- Random tile requested?
-    if oObj.F & iFRngSprite ~= 0 then
+    if iNewFlags & iFRngSprite ~= 0 then
       -- Get random sprite id
       local iSprite<const> = random(0) % (iSprIdEnd - iSprIdBegin);
       -- Does a new animation id need to be set?
@@ -1110,10 +1116,10 @@ local function InitSetAction()
     -- Set no attachment
     end
     -- Set AI function if forced no AI or busy.
-    if oObj.F & iFNoAIBusy ~= 0 then oObj.AIF = BlankFunction;
-                                else oObj.AIF = oObj.AIDF end;
+    if iNewFlags & iFNoAIBusy ~= 0 then oObj.AIF = BlankFunction;
+                                   else oObj.AIF = oObj.AIDF end;
     -- Stamina boost?
-    if oObj.F & iFStaminaBoost ~= 0 then
+    if iNewFlags & iFStaminaBoost ~= 0 then
       -- Enable stamina boost (heal faster)
       local iStaminaBoost<const> = oObjInitData.STAMINA // 8;
       oObj.SM, oObj.SMM1 = iStaminaBoost, iStaminaBoost - 1;
@@ -1124,9 +1130,9 @@ local function InitSetAction()
       oObj.SM, oObj.SMM1 = iStamina, iStamina - 1;
     end
     -- If we're overriding the action sound?
-    if oObj.F & iFNoSound ~= 0 then
+    if iNewFlags & iFNoSound ~= 0 then
       -- Remove the flag and return success
-      oObj.F = oObj.F & iFiNoSound;
+      oObj.F = iNewFlags & iFiNoSound;
       return true;
     end
     -- Get optional sound id and optional pitch and if specified?
@@ -1459,8 +1465,6 @@ local function AdjustObjectHealth()
       ProcessExplosion(oObjVictim, oObjCause) end;
     -- Make victim drop all objects
     while oObjVictim.IS do DropObject(oObjVictim, oObjVictim.IS) end;
-    -- Disable menu if object is selected and menu open
-    if oObjActive == oObjVictim and aContextMenu then SetContextMenu() end;
     -- Object died
     return -1;
   end
@@ -2196,12 +2200,10 @@ local function MoveX(oObj, iX)
 end
 -- Check for colliding objects and move them ------------------------------- --
 local function InitMoveOtherObjects()
-  -- Common variables
+  -- Block and device variables
   local iFBlock<const>, iFDevice<const> = OFL.BLOCK, OFL.DEVICE;
-  -- Objects can't be moved if they are set to any of these actions
-  local aIgnoredActions<const> = {
-    [ACT.DEATH] = true, [ACT.HIDE] = true, [ACT.PHASE] = true,
-  };
+  -- Moving other objects is ignored if target has any of these flags
+  local iFBlkIgMove<const> = iFBlock | OFL.IGTMOVE | OFL.JUMP;
   -- Actual function
   local function MoveOtherObjects(oObj, iX, iY)
     -- If i'm not a platform then nothing to do here
@@ -2211,11 +2213,10 @@ local function InitMoveOtherObjects()
       -- Not a potential target if...
       local oTarget<const> = aObjs[iTObjId];
       local iTFlags<const> = oTarget.F;
-      if iTFlags & iFBlock ~= 0 or       -- ...target object blocks?
+      if iTFlags & iFBlkIgMove ~= 0 or   -- ...target obj blocks or n/a action?
          oTarget == oObj or              -- *or* target object is me?
          not maskSpr:IsCollideEx(oObj.S, -- *or* src collides with target?
-           oObj.X, oObj.Y, maskSpr, 478, oTarget.X, oTarget.Y) or
-         aIgnoredActions[oTarget.A] then -- *or* target action is ignored?
+           oObj.X, oObj.Y, maskSpr, 478, oTarget.X, oTarget.Y) then
         goto lContinue end;
       -- If...
       if iY >= 1 and                 -- ...falling from above?
@@ -2895,7 +2896,7 @@ local function InitCreateObject()
     local oObj<const> = {
       A    = false,                      -- Object action (ACT.*)
       AA   = false,                      -- Attachment action data
-      AD   = { },                        -- Reference to action data
+      AD   = BlankTable,                 -- Reference to action data
       AI   = iAI,                        -- Object AI procedure
       AIF  = false,                      -- Active AI function
       AIDF = false,                      -- Default AI function
@@ -2907,7 +2908,7 @@ local function InitCreateObject()
       CS   = not not oObjData[ACT.STOP], -- Object can stop?
       D    = false,                      -- Direction to go in (DIR.*)
       DA   = false,                      -- Attachment direction data
-      DD   = { },                        -- Reference to direction data
+      DD   = BlankTable,                 -- Reference to direction data
       DID  = oObjData.DIGDELAY,          -- Digging delay
       DUG  = 0,                          -- Successful dig count
       EK   = 0,                          -- Fiends killed
@@ -2924,7 +2925,7 @@ local function InitCreateObject()
       IS   = nil,                        -- Selected inventory item
       IW   = 0,                          -- Weight of inventory
       J    = false,                      -- Object job (JOB.*)
-      JD   = { },                        -- Reference to job data
+      JD   = BlankTable,                 -- Reference to job data
       JT   = 0,                          -- Job timer
       LC   = oObjData.LUNGS or 1,        -- Lung capacity
       LDT  = iGameTicks,                 -- Last successful dig time
@@ -3015,32 +3016,33 @@ local function GameProc()
     iDLeftRight<const>, iDNone<const>, iDOpposite<const>, iDRight<const>,
     iDUpRight<const>, iFAquaLung<const>, iFBusy<const>, iFConsume<const>,
     iFDangerous<const>, iFDelicate<const>, iFDigger<const>, iFDigBusy<const>,
-    iFDigWBase<const>, iFFall<const>, iFFloat<const>, iFFloating<const>,
-    iFHealNearby<const>, iFHurtDigger<const>, iFInWater<const>, iFiBusy<const>,
-    iFiFall<const>, iFiFloating<const>, iFiInWater<const>,
-    iFiJumpFallBusy<const>, iFiJumpRise<const>, iFJumping<const>,
-    iFJumpFall<const>, iFJumpRise<const>, iFPhaseDigger<const>,
-    iFPhaseTarget<const>, iFPuGemMask<const>, iFPuGemEq<const>,
-    iFPursueDigger<const>, iFRegenerate<const>, iFStationary<const>,
-    iFTPMaster<const>, iFTrack<const>, iFWaterBased<const>, iJDigDown<const>,
-    iJHome<const>, iJInDanger<const>, iJKeep<const>, iJNone<const>,
-    iJPhase<const>, iJSearch<const>, iSError<const>, iTDeadWait<const>,
-    iTyFirstAid<const>, iTyTelepole<const>, iTFW<const>, iTFP<const>,
-    iTFEL<const>, iTFER<const>, iTFEB<const>, iTFET<const>,
-    iTFAnimateBegin<const>, iTFAnimateEnd<const> =
-      ACT.DEATH, ACT.DIG, ACT.EATEN, ACT.FIGHT, ACT.HIDE, ACT.KEEP, ACT.PHASE, ACT.RUN,
-      ACT.STOP, ACT.WALK, DIR.D, DIR.DR, DIR.KEEP, DIR.KEEPMOVE, DIR.LR,
-      DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.UR, OFL.AQUALUNG, OFL.BUSY,
+    iFDigIgCol<const>, iFFall<const>, iFFloat<const>, iFFloating<const>,
+    iFHealNearby<const>, iFHurtDigger<const>, iFIgColAct<const>,
+    iFInWater<const>, iFiBusy<const>, iFiFall<const>, iFiFloating<const>,
+    iFiInWater<const>, iFiJumpFallBusy<const>, iFiJumpRise<const>,
+    iFJumping<const>, iFJumpFall<const>, iFJumpRise<const>,
+    iFPhaseDigger<const>, iFPhaseTarget<const>, iFPuGemMask<const>,
+    iFPuGemEq<const>, iFPursueDigger<const>, iFRegenerate<const>,
+    iFStationary<const>, iFTPMaster<const>, iFTrack<const>,
+    iFWaterBased<const>, iJDigDown<const>, iJHome<const>, iJInDanger<const>,
+    iJKeep<const>, iJNone<const>, iJPhase<const>, iJSearch<const>,
+    iSError<const>, iTDeadWait<const>, iTyFirstAid<const>, iTyTelepole<const>,
+    iTFW<const>, iTFP<const>, iTFEL<const>, iTFER<const>, iTFEB<const>,
+    iTFET<const>, iTFAnimateBegin<const>, iTFAnimateEnd<const> =
+      ACT.DEATH, ACT.DIG, ACT.EATEN, ACT.FIGHT, ACT.HIDE, ACT.KEEP, ACT.PHASE,
+      ACT.RUN, ACT.STOP, ACT.WALK, DIR.D, DIR.DR, DIR.KEEP, DIR.KEEPMOVE,
+      DIR.LR, DIR.NONE, DIR.OPPOSITE, DIR.R, DIR.UR, OFL.AQUALUNG, OFL.BUSY,
       OFL.CONSUME, OFL.DANGEROUS, OFL.DELICATE, OFL.DIGGER, OFL.DGRBUSY,
-      OFL.DGRWB, OFL.FALL, OFL.FLOAT, OFL.FLOATING, OFL.HEALNEARBY,
-      OFL.HURTDIGGER, OFL.INWATER, OFL.iBUSY, OFL.iFALL, OFL.iFLOATING,
-      OFL.iINWATER, OFL.iJUMPFALLBUSY, OFL.iJUMPRISE, OFL.JUMP, OFL.JUMPFALL,
-      OFL.JUMPRISE, OFL.PHASEDIGGER, OFL.PHASETARGET, OFL.PUMGEMS, OFL.PUEGEMS,
-      OFL.PURSUEDIGGER, OFL.REGENERATE, OFL.STATIONARY, OFL.TPMASTER,
-      OFL.TRACK, OFL.WATERBASED, JOB.DIGDOWN, JOB.HOME, JOB.INDANGER, JOB.KEEP,
-      JOB.NONE, JOB.PHASE, JOB.SEARCH, oSfxData.ERROR, 600, TYP.FIRSTAID,
-      TYP.TELEPOLE, oTileFlags.W, oTileFlags.P, oTileFlags.EL, oTileFlags.ER,
-      oTileFlags.EB, oTileFlags.ET, oTileFlags.AB, oTileFlags.AE;
+      OFL.DGIGCOL, OFL.FALL, OFL.FLOAT, OFL.FLOATING, OFL.HEALNEARBY,
+      OFL.HURTDIGGER, OFL.IGCOLACT, OFL.INWATER, OFL.iBUSY, OFL.iFALL,
+      OFL.iFLOATING, OFL.iINWATER, OFL.iJUMPFALLBUSY, OFL.iJUMPRISE, OFL.JUMP,
+      OFL.JUMPFALL, OFL.JUMPRISE, OFL.PHASEDIGGER, OFL.PHASETARGET,
+      OFL.PUMGEMS, OFL.PUEGEMS, OFL.PURSUEDIGGER, OFL.REGENERATE,
+      OFL.STATIONARY, OFL.TPMASTER, OFL.TRACK, OFL.WATERBASED, JOB.DIGDOWN,
+      JOB.HOME, JOB.INDANGER, JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH,
+      oSfxData.ERROR, 600, TYP.FIRSTAID, TYP.TELEPOLE, oTileFlags.W,
+      oTileFlags.P, oTileFlags.EL, oTileFlags.ER, oTileFlags.EB, oTileFlags.ET,
+      oTileFlags.AB, oTileFlags.AE;
   -- == TILE DIGGING LOGIC ================================================= --
   -- Storage for certain positions and tile ids relative to the object
   local iDP,   -- Vertical position at objects feet
@@ -3241,45 +3243,37 @@ local function GameProc()
   local function AIEnterTradeCentreLogic(oObj)
     -- Hide the digger
     SetAction(oObj, iAHide, iJPhase, iDRight);
-    -- Get owner of this object
-    local oParent<const> = oObj.P;
-    -- Get the lowest amount of money a player has
-    local iLowest, oOpponent = maxinteger;
-    for iPlayerId = 1, #aPlayers do
-      local oPlr<const> = aPlayers[iPlayerId];
-      if oPlr ~= oParent then
-        local iMoney<const> = oPlr.M;
-        if iMoney < iLowest then oOpponent, iLowest = oPlr, iMoney end;
-      end
+    -- Get owner of this object and an opponent player
+    local oParent<const>, oOpponent = oObj.P;
+    if oParent == oPlrActive then oOpponent = oPlrOpponent else
+                                  oOpponent = oPlrActive end;
+    -- Get object inventory and if inventory held?
+    local aObjInvList<const>, iItemsSold = oObj.I, 0;
+    if #aObjInvList > 0 then
+      -- Repeat for each item in digger inventory...
+      local iObjId = 1 repeat
+        -- Get the inventory object and if the gem is sellable or the
+        -- object has a owner and doesn't belong to this objects owner?
+        -- Then try to sell the item and if succeeded? Increment the
+        -- items sold.
+        local oObjInv<const> = aObjInvList[iObjId];
+        local oParentInv<const> = oObjInv.P;
+        if (CanSellGem(oObjInv.ID) or
+           (oParentInv and oParentInv ~= oParent)) and
+          SellItem(oObj, oObjInv) then iItemsSold = iItemsSold + 1;
+        -- Conditions fail so try next inventory item.
+        else iObjId = iObjId + 1 end;
+      -- ...until we've enumerated the whole inventory.
+      until iObjId > #aObjInvList;
     end
     -- If object is intelligent enough and a random number based on the money
     -- gap and the money to win?
     if random() >= oObj.IN and
-       random() < (oParent.M - oOpponent.M) / iWinLimit / 4.0 then
+       random() < (oParent.M - oOpponent.M) / iWinLimit / 3.0 then
       -- Try to purchase something random to keep the scores fair if objects
       -- owner has more money than the lowest player?
       BuyItem(oObj, aShopData[random(#aShopData)]);
     end
-    -- Get object inventory and return if no inventory held
-    local aObjInvList<const> = oObj.I;
-    if #aObjInvList == 0 then return end;
-    -- Number of items sold
-    local iItemsSold = 0;
-    -- Repeat for each item in digger inventory...
-    local iObjId = 1 repeat
-      -- Get the inventory object and if the gem is sellable or the
-      -- object has a owner and doesn't belong to this objects owner?
-      -- Then try to sell the item and if succeeded? Increment the
-      -- items sold.
-      local oObjInv<const> = aObjInvList[iObjId];
-      local oParentInv<const> = oObjInv.P;
-      if (CanSellGem(oObjInv.ID) or
-         (oParentInv and oParentInv ~= oParent)) and
-        SellItem(oObj, oObjInv) then iItemsSold = iItemsSold + 1;
-      -- Conditions fail so try next inventory item.
-      else iObjId = iObjId + 1 end;
-    -- ...until we've enumerated the whole inventory.
-    until iObjId > #aObjInvList;
     -- If items were sold? Check if any player won
     if iItemsSold > 0 and EndConditionsCheck() then return true end;
   end
@@ -3332,7 +3326,7 @@ local function GameProc()
     end
     -- Return if not going home
     if not bGoingHome then return end;
-    -- Clear objects ignore destination list
+    -- Clear objects ignore destination array
     UtilFlushArray(aDestinations);
     -- Set position of object to player's home
     local oPlrParent<const> = oObj.P;
@@ -3577,9 +3571,6 @@ local function GameProc()
     [iAPhase]   = ACTPhase, [ACT.REST] = ACTRest,  [iARun]   = ACTRun,
     [ACT.WALK]  = ACTWalk
   };
-  -- Actions to ignore when checking collisions ---------------------------- --
-  local oCollisionIgnoredActions<const> =
-    { [iAPhase] = true, [iAHide] = true, [iADeath] = true, [iAEaten] = true };
   -- Fighting frame data (there's 5 frames in each fight animation) -------- --
   local aFightData<const> = { [2] = oSfxData.KICK, [4] = oSfxData.PUNCH };
   -- Process object jump logic --------------------------------------------- --
@@ -3604,8 +3595,6 @@ local function GameProc()
     local iId<const> = GetLevelDataFromObject(oObj, 8, iY);
     return iId and aTileData[1 + iId] & iTFW ~= 0;
   end
-  -- Actions that are ignored when checking for obj collisions and water --- --
-  local oIgnoreCollideActions<const> = { [iAPhase] = true, [iADeath] = true };
   -- Main game tick function ----------------------------------------------- --
   local function GameProc()
     -- Check if we need to horizontally scroll the viewport and if we do?
@@ -3876,7 +3865,7 @@ local function GameProc()
       -- Skipped falling
       ::lFallingDone::
       -- Skip checking object collisions and water checks with certain actions
-      if oIgnoreCollideActions[oObj.A] then goto lObjFrozen end;
+      if oObj.F & iFIgColAct ~= 0 then goto lObjFrozen end;
       -- Do we have more than one object? Check object collision logic.
       -- Warning: This scope needs optimising if we can. It is EXTREMELY slow
       -- meaning this only lets us add up to around 300 objects per level.
@@ -3936,11 +3925,11 @@ local function GameProc()
         local oTarget<const> = aObjs[iObjId];
         if oTarget == oObj then goto lRestart end;
         -- Get target flags and skip if target not a digger or is water based
+        -- or the ignore collision detection flag is set.
         local iTFlags<const> = oTarget.F;
-        if iTFlags & iFDigWBase ~= iFDigger then goto lRestart end;
-        -- Get target object action and skip if target has ignored action
+        if iTFlags & iFDigIgCol ~= iFDigger then goto lRestart end;
+        -- Get target action
         local iTAction<const> = oTarget.A;
-        if oCollisionIgnoredActions[iTAction] then goto lRestart end;
         -- Get source object action and skip if target not colliding with obj
         if not maskSpr:IsCollideEx(477, oObj.X, oObj.Y, maskSpr, 477,
           oTarget.X, oTarget.Y) then goto lRestart end;
@@ -3951,8 +3940,6 @@ local function GameProc()
         AdjustObjectHealth(oObj, -100, oTarget);
         -- Eat digger and set it to busy
         SetAction(oTarget, iAEaten, iJKeep, iDKeep);
-        -- This digger is selected by the client? Unset control menu
-        if oObjActive == oTarget then SetContextMenu() end;
         -- Test next object
         goto lRestart;
         -- Object cannot consume the digger if we get here
@@ -4201,17 +4188,17 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     iDHome<const>, iDKeep<const>, iDLeft<const>, iDLeftRight<const>,
     iDNone<const>, iDRight<const>, iDTileCentre<const>, iDUp<const>,
     iDUpLeft<const>, iDUpRight<const>, iFBusy<const>, iFDevice<const>,
-    iFNoHome<const>, iJDig<const>, iJDigDown<const>, iJHome<const>,
-    iJKeep<const>, iJNone<const>, iJPhase<const>, iJSearch<const>,
-    iMDrop<const>, iMNone<const>, iSClick<const>, iSError<const>,
-    iSSelect<const>, iTyJennite<const>, iTyTNT<const> =
+    iFNoHome<const>, iFNoMenu<const>, iJDig<const>, iJDigDown<const>,
+    iJHome<const>, iJKeep<const>, iJNone<const>, iJPhase<const>,
+    iJSearch<const>, iMDrop<const>, iMNone<const>, iSClick<const>,
+    iSError<const>, iSSelect<const>, iTyJennite<const>, iTyTNT<const> =
       ACT.CLOSE, ACT.CREEP, ACT.DEPLOY, ACT.DROP, ACT.DYING, ACT.GRAB,
       ACT.JUMP, ACT.MAP, ACT.OPEN, ACT.PHASE, ACT.RUN, ACT.STOP, ACT.WALK,
       oCursorIdData.SELECT, DIR.D, DIR.DL, DIR.DR, DIR.HOME, DIR.KEEP, DIR.L,
       DIR.LR, DIR.NONE, DIR.R, DIR.TCTR, DIR.U, DIR.UL, DIR.UR, OFL.BUSY,
-      OFL.DEVICE, OFL.NOHOME, JOB.DIG, JOB.DIGDOWN, JOB.HOME, JOB.KEEP,
-      JOB.NONE, JOB.PHASE, JOB.SEARCH, MNU.DROP, MNU.NONE, oSfxData.CLICK,
-      oSfxData.ERROR, oSfxData.SELECT, TYP.JENNITE, TYP.TNT;
+      OFL.DEVICE, OFL.NOHOME, OFL.IGMENU, JOB.DIG, JOB.DIGDOWN, JOB.HOME,
+      JOB.KEEP, JOB.NONE, JOB.PHASE, JOB.SEARCH, MNU.DROP, MNU.NONE,
+      oSfxData.CLICK, oSfxData.ERROR, oSfxData.SELECT, TYP.JENNITE, TYP.TNT;
   -- Select digger if active
   local function SelectDigger(iDiggerId)
     local oDigger<const> = oPlrActive.D[iDiggerId];
@@ -4278,8 +4265,11 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
   -- Helper for digging
   local function GenericAction(iAction, iJob, iDirection, bNoBusy)
     -- Return if object not selected or not mine or not busy.
-    if not oObjActive or oObjActive.P ~= oPlrActive or
-      (oObjActive.F & iFBusy ~= 0 and not bNoBusy) then return end;
+    if not oObjActive or oObjActive.P ~= oPlrActive then return end;
+    -- Get object flags and return if context menu not allowed or busy
+    local iFlags<const> = oObjActive.F;
+    if iFlags & iFNoMenu ~= 0 or (iFlags & iFBusy ~= 0 and not bNoBusy) then
+      return end;
     -- Get object data and if requesting special movement detection?
     local oObjData<const> = oObjActive.OD;
     if iAction == 0 then
@@ -4288,8 +4278,8 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
         -- If object can run?
         if oObjData[iARun] then
           -- Run if already walking
-          if oObjActive.A == iAWalk and oObjActive.D == iDirection then
-            iAction = iARun;
+          if oObjActive.A == iAWalk and
+             oObjActive.D == iDirection then iAction = iARun;
           -- Else keep to walking
           else iAction = iAWalk end
         -- Object can't run but can walk?
@@ -4591,7 +4581,6 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     SelectObject();
   end
   -- Right mouse button / Joystick button 2 pressed function
-  local oNoMenuActions<const> = { [ACT.DEATH] = true, [ACT.EATEN] = true };
   local function OnButton1Pressed(iX, iY)
     -- Right mouse button held down and menu open?
     if aContextMenu then return UpdateMenuPosition(iX, iY) end;
@@ -4601,7 +4590,7 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     -- isn't our object, is dead or eaten.
     local aObjContextMenu<const> = oObjActive.OD.MENU;
     if not aObjContextMenu or oObjActive.P ~= oPlrActive or
-       oNoMenuActions[oObjActive.A] then return end;
+      oObjActive.F & iFNoMenu ~= 0 then return end;
     -- Object does belong to active player so play context menu sound and
     -- set the appropriate default menu for the object.
     PlayStaticSound(iSClick);

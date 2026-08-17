@@ -162,48 +162,52 @@ local aCursorData<const> = {
   -- CID ------- S - C - X  Y ---- CID ------- S - C - X  Y ---
 };
 -- Object flags ------------------------------------------------------------ --
-local OFL<const> = {          -- Max 64-bits
+local OFL<const> = {            -- Max 64-bits
   -- Generic object flags -------------------------------------------------- --
-  NONE         = 0x0000000000, -- Object has no flags
-  NOAI         = 0x0000000001, -- Object AI is temporarily blocked
-  RESPAWN      = 0x0000000002, -- Object respawns where it was created
-  BUSY         = 0x0000000004, -- Object is busy and commands disabled
-  FALL         = 0x0000000008, -- Object should fall
-  LIVING       = 0x0000000010, -- Object is a living object
-  ENEMY        = 0x0000000020, -- Object is an enemy
-  DELICATE     = 0x0000000040, -- Object is delicate (takes more damage)
-  INWATER      = 0x0000000080, -- Object is in water
-  PHASETARGET  = 0x0000000100, -- Object is a valid random phase target
-  SOUNDLOOP    = 0x0000000200, -- Object sound looped when sprite anim is reset
-  NOANIMLOOP   = 0x0000000400, -- Object is not allowed to loop its animation
-  DIGGER       = 0x0000000800, -- Object is a digger
-  REGENERATE   = 0x0000001000, -- Object can regenerate health?
-  TPMASTER     = 0x0000002000, -- Object is master at teleporting
-  IMPATIENT    = 0x0000004000, -- Object is a digger and becoming impatient
-  JUMPFALL     = 0x0000008000, -- Object is falling (while jumping)
-  JUMPRISE     = 0x0000010000, -- Object is jumping
-  EXPLODE      = 0x0000020000, -- Object explodes on death
-  FLOAT        = 0x0000040000, -- Object floats in water
-  FLOATING     = 0x0000080000, -- Object is floating right now
-  HURTDIGGER   = 0x0000100000, -- Object hurts diggers
-  PHASEDIGGER  = 0x0000200000, -- Object teleports diggers anywhere
-  PICKUP       = 0x0000400000, -- Object can be picked up
-  PURSUEDIGGER = 0x0000800000, -- Object follows a digger when colliding
-  RNGSPRITE    = 0x0001000000, -- Object selects a random sprite in animation.
-  SELLABLE     = 0x0002000000, -- Object is sellable to shop
-  STATIONARY   = 0x0004000000, -- Object does not move and is stationary
-  TRACK        = 0x0008000000, -- Object can only move on tracks
-  TREASURE     = 0x0010000000, -- Object is treasure
-  DANGEROUS    = 0x0020000000, -- Object is dangerous and diggers run away
-  WATERBASED   = 0x0040000000, -- Object is water based
-  AQUALUNG     = 0x0080000000, -- Object can breathe in water
-  BLOCK        = 0x0100000000, -- Object is a platform for diggers
-  DEVICE       = 0x0200000000, -- Object is a device
-  HEALNEARBY   = 0x0400000000, -- Object heals nearby Diggers
-  CONSUME      = 0x0800000000, -- Object consumes another object
-  NOHOME       = 0x1000000000, -- Object cannot enter home
-  STAMINABOOST = 0x2000000000, -- Object has boosted stamina
-  NOSOUND      = 0x4000000000, -- Object isn't to play it's action sound
+  NONE         = 0x00000000000, -- Object has no flags
+  NOAI         = 0x00000000001, -- Object AI is temporarily blocked
+  RESPAWN      = 0x00000000002, -- Object respawns where it was created
+  BUSY         = 0x00000000004, -- Object is busy and commands disabled
+  FALL         = 0x00000000008, -- Object should fall
+  LIVING       = 0x00000000010, -- Object is a living object
+  ENEMY        = 0x00000000020, -- Object is an enemy
+  DELICATE     = 0x00000000040, -- Object is delicate (takes more damage)
+  INWATER      = 0x00000000080, -- Object is in water
+  PHASETARGET  = 0x00000000100, -- Object is a valid random phase target
+  SOUNDLOOP    = 0x00000000200, -- Object sound loop when sprite anim is reset
+  NOANIMLOOP   = 0x00000000400, -- Object is not allowed to loop its animation
+  DIGGER       = 0x00000000800, -- Object is a digger
+  REGENERATE   = 0x00000001000, -- Object can regenerate health?
+  TPMASTER     = 0x00000002000, -- Object is master at teleporting
+  IMPATIENT    = 0x00000004000, -- Object is a digger and becoming impatient
+  JUMPFALL     = 0x00000008000, -- Object is falling (while jumping)
+  JUMPRISE     = 0x00000010000, -- Object is jumping
+  EXPLODE      = 0x00000020000, -- Object explodes on death
+  FLOAT        = 0x00000040000, -- Object floats in water
+  FLOATING     = 0x00000080000, -- Object is floating right now
+  HURTDIGGER   = 0x00000100000, -- Object hurts diggers
+  IGTCOL       = 0x00000200000, -- Object (as target) ignores collision detect
+  IGCOLACT     = 0x00000400000, -- Object ignores collision actions
+  IGTMOVE      = 0x00000800000, -- Object (as target) cannot be moved
+  IGMENU       = 0x00001000000, -- Object's context menu is not allowed
+  PHASEDIGGER  = 0x00002000000, -- Object teleports diggers anywhere
+  PICKUP       = 0x00004000000, -- Object can be picked up
+  PURSUEDIGGER = 0x00008000000, -- Object follows a digger when colliding
+  RNGSPRITE    = 0x00010000000, -- Object selects a random sprite in animation
+  SELLABLE     = 0x00020000000, -- Object is sellable to shop
+  STATIONARY   = 0x00040000000, -- Object does not move and is stationary
+  TRACK        = 0x00080000000, -- Object can only move on tracks
+  TREASURE     = 0x00100000000, -- Object is treasure
+  DANGEROUS    = 0x00200000000, -- Object is dangerous and diggers run away
+  WATERBASED   = 0x00400000000, -- Object is water based
+  AQUALUNG     = 0x00800000000, -- Object can breathe in water
+  BLOCK        = 0x01000000000, -- Object is a platform for diggers
+  DEVICE       = 0x02000000000, -- Object is a device
+  HEALNEARBY   = 0x04000000000, -- Object heals nearby Diggers
+  CONSUME      = 0x08000000000, -- Object consumes another object
+  NOHOME       = 0x10000000000, -- Object cannot enter home
+  STAMINABOOST = 0x20000000000, -- Object has boosted stamina
+  NOSOUND      = 0x40000000000, -- Object isn't to play it's action sound
 };
 -- Commonly used bit masks
 OFL.JUMP         = OFL.JUMPRISE | OFL.JUMPFALL; -- Jumping (rising OR fallign)
@@ -216,7 +220,8 @@ OFL.PUMGEMS = OFL.PUMANY | OFL.TREASURE; -- Pickup only treasure (& mask)
 OFL.PUEANY  = OFL.PICKUP;                -- Pickup any items (== match)
 OFL.PUEGEMS = OFL.PUEANY | OFL.TREASURE; -- Pickup only treasure (== match)
 OFL.NOAIBUSY = OFL.NOAI | OFL.BUSY;         -- Disable AI bits mask
-OFL.DGRWB    = OFL.DIGGER | OFL.WATERBASED; -- Collision checking bits mask
+OFL.DGIGCOL = OFL.DIGGER | OFL.WATERBASED | -- Collision checking bits mask
+              OFL.IGTCOL;                   -- Digger | Waterbased | Ignore
 OFL.DGRBUSY  = OFL.DIGGER | OFL.BUSY;       -- Fighting checking bits mask
 -- Commonly used combinations that are inverted for the '&' (AND) operator
 OFL.iBUSY, OFL.iFALL, OFL.iFLOATING, OFL.iINWATER, OFL.iJUMP, OFL.iJUMPRISE,
@@ -517,12 +522,15 @@ local oObjectJobDirKeep<const> = { [JOB.KEEP] = { [DIR.KEEP] = true } };
 -- Search for treasure keys supported -------------------------------------- --
 local oObjectSearch<const> = { [DIR.LR] = true };
 -- Generic death data ------------------------------------------------------ --
-local oGenericActDeathData<const> =
-  { [DIR.NONE] = { 451, 454 }, FLAGS = OFL.BUSY|OFL.NOAI };
+local oGenericActDeathData<const> = {
+  [DIR.NONE] = { 451, 454 },
+  FLAGS = OFL.BUSY|OFL.NOAI|OFL.IGTCOL|OFL.IGCOLACT|OFL.IGTMOVE|OFL.IGMENU
+};
 -- Find treasure phase data ------------------------------------------------ --
 local oTreasureActPhaseData<const> = {
   [DIR.NONE] = { 106, 109, 0, 7 },
-  FLAGS      = OFL.FALL|OFL.PICKUP|OFL.NOAI|OFL.BUSY,
+  FLAGS      = OFL.FALL|OFL.PICKUP|OFL.NOAI|OFL.BUSY|OFL.IGTCOL|OFL.IGCOLACT|
+               OFL.IGTMOVE,
   SOUND      = oSfxData.FIND
 };
 -- Generic object hide data ------------------------------------------------ --
@@ -530,14 +538,14 @@ local oGenericActHideData<const> = {
   [DIR.UL] = {  95,  95 }, [DIR.U]    = {  95,  95 }, [DIR.UR] = {  95,  95 },
   [DIR.L]  = {  95,  95 }, [DIR.NONE] = {  95,  95 }, [DIR.R]  = {  95,  95 },
   [DIR.DL] = {  95,  95 }, [DIR.D]    = {  95,  95 }, [DIR.DR] = {  95,  95 },
-  FLAGS    = OFL.BUSY|OFL.STAMINABOOST|OFL.REGENERATE
+  FLAGS    = OFL.BUSY|OFL.STAMINABOOST|OFL.REGENERATE|OFL.IGTCOL|OFL.IGTMOVE
 };
 -- Digger phase data ------------------------------------------------------- --
 local oDiggerActPhaseData<const> = {
   [DIR.UL] = { 106, 109 }, [DIR.U]    = { 106, 109 }, [DIR.UR] = { 106, 109 },
   [DIR.L]  = { 106, 109 }, [DIR.NONE] = { 106, 109 }, [DIR.R]  = { 106, 109 },
   [DIR.DL] = { 106, 109 }, [DIR.D]    = { 106, 109 }, [DIR.DR] = { 106, 109 },
-  FLAGS    = OFL.BUSY|OFL.NOAI,
+  FLAGS    = OFL.BUSY|OFL.NOAI|OFL.IGTCOL|OFL.IGCOLACT|OFL.IGTMOVE,
   SOUND    = oSfxData.PHASE
 }
 -- Digger walk or run movement keys supported ------------------------------ --
@@ -617,7 +625,7 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
     [ACT.REST] = aRest,
     [ACT.DEATH] = {
       [DIR.NONE] = { 451, 454 },
-      FLAGS = OFL.BUSY|OFL.NOAI,
+      FLAGS = OFL.BUSY|OFL.NOAI|OFL.IGTCOL|OFL.IGCOLACT|OFL.IGTMOVE|OFL.IGMENU,
       SOUND = iSfxDeath
     }, [ACT.STOP] = {
       [DIR.UL] = aStop, [DIR.U]    = aStop, [DIR.UR] = aStop,
@@ -697,7 +705,8 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
       [DIR.UL] = aEatenLeft, [DIR.U]    = aEatenLeft, [DIR.UR] = aEatenRight,
       [DIR.L]  = aEatenLeft, [DIR.NONE] = aEatenLeft, [DIR.R]  = aEatenRight,
       [DIR.DL] = aEatenLeft, [DIR.D]    = aEatenLeft, [DIR.DR] = aEatenRight,
-      FLAGS    = OFL.FALL|OFL.NOANIMLOOP|OFL.BUSY|OFL.PHASETARGET|OFL.NOAI
+      FLAGS    = OFL.FALL|OFL.NOANIMLOOP|OFL.BUSY|OFL.PHASETARGET|OFL.NOAI|
+                 OFL.IGTCOL|OFL.IGMENU|OFL.DANGEROUS
     },
     ACTION       = ACT.STOP,           AITYPE       = AI.DIGGER,
     ANIMTIMER    = iAnimNormal,        DIGDELAY     = iDigDelay,
@@ -900,10 +909,10 @@ local oObjectData<const> = {           -- Objects data
  [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 388, 388 }, [DIR.NONE] = { 393, 393 }, [DIR.R] = { 393, 393 },
-  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
+  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET|OFL.IGTMOVE
  }, [ACT.FIGHT] = {
   [DIR.L] = { 389, 392 }, [DIR.R] = { 394, 397 },
-  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
+  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET|OFL.IGTMOVE
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
  ANIMTIMER = iAnimNormal,              DIRECTION = DIR.NONE,
@@ -917,10 +926,10 @@ local oObjectData<const> = {           -- Objects data
  [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.L] = { 398, 401 }, [DIR.NONE] = { 398, 401 }, [DIR.R] = { 398, 401 },
-  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
+  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET|OFL.IGTMOVE
  }, [ACT.FIGHT] = {
   [DIR.L] = { 402, 408 }, [DIR.NONE] = { 402, 408 }, [DIR.R] = { 402, 408 },
-  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET
+  FLAGS   = OFL.FALL|OFL.HURTDIGGER|OFL.PHASETARGET|OFL.IGTMOVE
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
  ANIMTIMER = iAnimNormal,              DIRECTION = DIR.NONE,
@@ -950,10 +959,12 @@ local oObjectData<const> = {           -- Objects data
   FLAGS      = OFL.FALL|OFL.CONSUME|OFL.PHASETARGET
  }, [ACT.PHASE] = {
   [DIR.NONE] = { 68, 68 },
-  FLAGS      = OFL.FALL|OFL.PHASETARGET|OFL.NOAI
+  FLAGS      = OFL.FALL|OFL.PHASETARGET|OFL.NOAI|OFL.IGTCOL|OFL.IGCOLACT|
+               OFL.IGTMOVE
  }, [ACT.DEATH] = {
   [DIR.NONE] = { 375, 378 },
-  FLAGS      = OFL.FALL|OFL.NOANIMLOOP|OFL.BUSY|OFL.NOAI
+  FLAGS      = OFL.FALL|OFL.NOANIMLOOP|OFL.BUSY|OFL.NOAI|OFL.IGTCOL|
+               OFL.IGTMOVE|OFL.IGCOLACT|OFL.IGMENU
  },
  ACTION    = ACT.PHASE,                AITYPE    = AI.NONE,
  ANIMTIMER = iAnimNormal,              DIRECTION = DIR.NONE,
@@ -1033,7 +1044,9 @@ local oObjectData<const> = {           -- Objects data
  WEIGHT     = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.STEGOB] = {
- [ACT.DEATH] = { [DIR.NONE] = { 451, 454, -16, 0 }, FLAGS = OFL.BUSY },
+ [ACT.DEATH] = {
+   [DIR.NONE] = { 451, 454, -16, 0 },
+   FLAGS = OFL.BUSY|OFL.IGTCOL|OFL.IGCOLACT|OFL.IGTMOVE },
  [ACT.CREEP] = { [DIR.L] = { 25, 28, -16, 0 }, [DIR.R] = { 43, 46, 16, 0 } },
  [ACT.STOP]  = { [DIR.L] = { 36, 38, 16, 0 }, [DIR.R] = { 50, 52, 16, 0 } }
 -- ------------------------------------------------------------------------- --
@@ -1131,8 +1144,10 @@ local oObjectData<const> = {           -- Objects data
  WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.LTUNNELB] = {
- [ACT.DEATH] = { [DIR.NONE] = { 451, 454, -16, 0 }, FLAGS = OFL.BUSY },
- [ACT.STOP] = {
+ [ACT.DEATH] = {
+   [DIR.NONE] = { 451, 454, -16, 0 },
+   FLAGS = OFL.BUSY|OFL.IGTCOL|OFL.IGCOLACT
+ }, [ACT.STOP] = {
   [DIR.L] = { 181, 181, -16, 0 }, [DIR.NONE] = { 193, 193, 16, 0 },
   [DIR.R] = { 193, 193,  16, 0 }
  }, [ACT.WALK] = {
@@ -1213,7 +1228,8 @@ local oObjectData<const> = {           -- Objects data
   FLAGS = OFL.FALL|OFL.PICKUP|OFL.DANGEROUS|OFL.BUSY|OFL.PHASETARGET|OFL.NOAI
  }, [ACT.DEATH] = {
   [DIR.NONE] = { 291, 296 },
-  FLAGS      = OFL.BUSY|OFL.NOAI|OFL.HURTDIGGER,
+  FLAGS      = OFL.BUSY|OFL.NOAI|OFL.HURTDIGGER|OFL.IGTCOL|OFL.IGCOLACT|
+               OFL.IGTMOVE|OFL.IGMENU,
   SOUND      = oSfxData.EXPLODE,
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.EXPLODER,
@@ -1428,7 +1444,7 @@ local oObjectData<const> = {           -- Objects data
  [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = {
   [DIR.NONE] = { 133, 134 },
-  FLAGS      = OFL.BUSY|OFL.HEALNEARBY|OFL.PHASETARGET
+  FLAGS      = OFL.BUSY|OFL.HEALNEARBY|OFL.PHASETARGET|OFL.IGTMOVE
  },
  ACTION    = ACT.STOP,                 AITYPE    = AI.NONE,
  ANIMTIMER = iAnimNormal,
