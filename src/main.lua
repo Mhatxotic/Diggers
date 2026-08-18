@@ -57,8 +57,9 @@ local iStageTopO   = iStageTop;        -- Top of stage (unscaled)
 local iStageRightO = iStageRight;      -- Right of stage (unscaled)
 -- These could be called even though they aren't initialised yet ----------- --
 local CursorRender, DisableKeyHandlers, JoystickProc, MainProcFunc,
-  RestoreKeyHandlers, SetKeys, SetHotSpot, SetTip = UtilBlank, UtilBlank,
-    UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank;
+  RestoreKeyHandlers, SetKeys, SetHotSpot, SetTip =
+    UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank, UtilBlank,
+    UtilBlank, UtilBlank;
 -- Constants for loader ---------------------------------------------------- --
 local oBFlags<const> = Image.FlagsPre;     -- Get bitmap loading flags
 local iPNG<const> = oBFlags.TOGPU|oBFlags.FCE_PNG;-- Get forced PNG format flag

@@ -150,6 +150,29 @@ local function AdjustViewportX(iX) SetViewportX(iPixPosX + iX) end;
 local function AdjustViewportY(iY) SetViewportY(iPixPosY + iY) end;
 local function AdjustViewport(iX, iY) AdjustViewportX(iX);
                                       AdjustViewportY(iY) end;
+-- Scroll viewport to specified target ------------------------------------- --
+local function ScrollViewport()
+  -- Check if we need to horizontally scroll the viewport and if we do?
+  local iDifference = iPixPosTargetX - iPixPosX;
+  if iDifference == 0 then
+    -- Check if we need to vertically scroll the viewport and if we do?
+    iDifference = iPixPosTargetY - iPixPosY
+    if iDifference ~= 0 then
+      -- Scroll the viewport vertically only
+      AdjustViewportY(UtilSign(iDifference) * ceil(abs(iDifference) / 16));
+    end
+    return;
+  end
+  -- Check if we need to vertically scroll the viewport and if we do?
+  local iDifferenceY<const> = iPixPosTargetY - iPixPosY
+  if iDifferenceY ~= 0 then
+    -- Scroll the viewport both horizontally and vertically
+    AdjustViewport(UtilSign(iDifference) * ceil(abs(iDifference) / 16),
+                   UtilSign(iDifferenceY) * ceil(abs(iDifferenceY) / 16));
+  -- Scroll the viewport horizontally only
+  else AdjustViewportX(UtilSign(iDifference) *
+    ceil(abs(iDifference) / 16)) end;
+end
 -- Update new viewport ----------------------------------------------------- --
 local function SetViewport(iX, iY) SetViewportX(iX) SetViewportY(iY) end
 -- Set instant focus on object horizontally -------------------------------- --
@@ -3597,27 +3620,8 @@ local function GameProc()
   end
   -- Main game tick function ----------------------------------------------- --
   local function GameProc()
-    -- Check if we need to horizontally scroll the viewport and if we do?
-    local iDifference = iPixPosTargetX - iPixPosX;
-    if iDifference ~= 0 then
-      -- Check if we need to vertically scroll the viewport and if we do?
-      local iDifferenceY<const> = iPixPosTargetY - iPixPosY
-      if iDifferenceY ~= 0 then
-        -- Scroll the viewport both horizontally and vertically
-        AdjustViewport(UtilSign(iDifference) * ceil(abs(iDifference) / 16),
-                       UtilSign(iDifferenceY) * ceil(abs(iDifferenceY) / 16));
-      -- Scroll the viewport horizontally only
-      else AdjustViewportX(UtilSign(iDifference) *
-        ceil(abs(iDifference) / 16)) end;
-    -- We don't need to scroll the viewport horizontally?
-    else
-      -- Check if we need to vertically scroll the viewport and if we do?
-      iDifference = iPixPosTargetY - iPixPosY
-      if iDifference ~= 0 then
-        -- Scroll the viewport vertically only
-        AdjustViewportY(UtilSign(iDifference) * ceil(abs(iDifference) / 16));
-      end
-    end
+    -- Adjust viewport to specified position
+    ScrollViewport();
     -- Ignore if we're in slowdown mode
     if iGameTicks % iSlowDown ~= 0 then iGameTicks = iGameTicks + 1 return end;
     -- For every 1/6th of a game second we can process terrain animations
@@ -4750,7 +4754,7 @@ local function OnPreInitAPI(GetAPI)
     aRacesData, oDugRandShaftData, oFloodGateData, maskLev, maskSpr,
     oGlobalData, aShopData, aAIChoicesData, aShroudCircle, aShroudTileLookup =
       GetAPI("oObjectTypes", "aLevelsData", "oObjectData", "oObjectActions",
-        "oObjectJobs", "oObjectDirections", "aAITypesData", "aObjectFlags",
+        "oObjectJobs", "oObjectDirections", "aAITypesData", "oObjectFlags",
         "aDigTileData", "aTileData", "oTileFlags", "oDigData", "BlitSLTRB",
         "BlitSLTWH", "BlitSLT", "aDigTileFlags", "GetTestMode", "oSfxData",
         "aJumpRiseData", "aJumpFallData", "iAnimNormal", "PlayStaticSound",
@@ -4761,6 +4765,8 @@ local function OnPreInitAPI(GetAPI)
         "oDugRandShaftData", "oFloodGateData", "maskLevel", "maskSprites",
         "oGlobalData", "aShopData", "aAIChoicesData", "aShroudCircle",
         "aShroudTileLookup");
+  -- Must have 512 tiles
+  if #aTileData ~= 512 then error("aTileData must only have 512 tiles!") end;
   -- Setup required assets for LoadLevel() and InitContinueGame().
   local oAssetTerrain<const>, oAssetObject<const>, oAssetTexture<const> =
     oAssetsData.mapt, oAssetsData.mapo, oAssetsData.game;
@@ -5345,7 +5351,7 @@ local function OnPreInitAPI(GetAPI)
       for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
         aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
       -- Execute caller initialisation function
-      fcbInit(iLvlId, sLvlName, sLvlType, iWinLimit);
+      fcbInit(iLvlId, sLvlName, sLvlType, iWinLimit, texLev);
       -- Do fade then set requested game callbacks
       local function OnFadeIn()
         -- Key bank requested?
@@ -5377,24 +5383,26 @@ local function OnPreInitAPI(GetAPI)
   end
   -- Return rest of the API functions which needed external data ----------- --
   return { AdjustViewportNoScroll = AdjustViewportNoScroll,
-    DeInitLevel = DeInitLevel, GameProc = GameProc,
-    GetAbsMousePos = GetAbsMousePos, GetActiveObject = GetActiveObject,
-    GetActivePlayer = GetActivePlayer, GetGameTicks = GetGameTicks,
-    GetOpponentPlayer = GetOpponentPlayer,
+    CreateObject = CreateObject, DeInitLevel = DeInitLevel,
+    GameProc = GameProc, GetAbsMousePos = GetAbsMousePos,
+    GetActiveObject = GetActiveObject, GetActivePlayer = GetActivePlayer,
+    GetGameTicks = GetGameTicks, GetOpponentPlayer = GetOpponentPlayer,
     GetTileUnderMouse = GetTileUnderMouse, GetViewportData = GetViewportData,
     InitContinueGame = InitContinueGame, LoadLevel = LoadLevel,
     LockViewport = LockViewport, RenderAll = RenderAll,
     RenderInterface = RenderInterface, RenderObjects = RenderObjects,
     RenderShroud = RenderShroud, RenderTerrain = RenderTerrain,
-    SellSpecifiedItems = SellSpecifiedItems, TriggerEnd = TriggerEnd };
+    SellSpecifiedItems = SellSpecifiedItems, SetAction = SetAction,
+    TriggerEnd = TriggerEnd };
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, I = OnPreInitAPI, A = {
   AdjustViewportX = AdjustViewportX, AdjustViewportY = AdjustViewportY,
-  BuyItem = BuyItem, CreateObject = CreateObject,
+  BuyItem = BuyItem, DestroyObject = DestroyObject,
   DrawHealthBar = DrawHealthBar, EndConditionsCheck = EndConditionsCheck,
   HaveZogsToWin = HaveZogsToWin, IsSpriteCollide = IsSpriteCollide,
-  SelectObject = SelectObject, SetPlaySounds = SetPlaySounds,
+  ScrollViewport = ScrollViewport, SelectObject = SelectObject,
+  SetPlaySounds = SetPlaySounds, SetPosition = SetPosition,
   UpdateShroud = UpdateShroud, aGemsAvailable = aGemsAvailable,
   aLvlData = aLvlData, aObjs = aObjs, aPlayers = aPlayers,
   aShroudData = aShroudData } };

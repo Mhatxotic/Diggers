@@ -115,6 +115,17 @@ local TYP<const> = {
   -- [45] Maximum objects  Test marker              Select a random race
   MAX        = 0x0000002D, TEST       = 0x000000FE, DIGRANDOM = 0x000000FF
 };
+-- Types available that can be placed in the level editor ------------------ --
+local aEditorTypes<const> = {
+  TYP.JENNITE,  TYP.DIAMOND,  TYP.GOLD,     TYP.EMERALD, TYP.RUBY,
+  TYP.PHANTOM,  TYP.SKELETON, TYP.ZOMBIE,   TYP.GHOST,   TYP.ZIPPER,
+  TYP.SWRLYPRT, TYP.PIRANA,   TYP.FUNGUS,   TYP.MUTANT,  TYP.EGG,
+  TYP.BIRD,     TYP.FISH,     TYP.RAPTOR,   TYP.ROTARY,  TYP.STEGO,
+  TYP.TURTLE,   TYP.TROLL,    TYP.STUNNEL,  TYP.LTUNNEL, TYP.CORK,
+  TYP.TELEPOLE, TYP.TNT,      TYP.FIRSTAID, TYP.MAP,     TYP.TRACK,
+  TYP.TRAIN,    TYP.BRIDGE,   TYP.BOAT,     TYP.GATE,    TYP.LIFT,
+  TYP.LIFTB,    TYP.CAMPFIRE
+};
 -- Races available list ---------------------------------------------------- --
 local aRacesData<const> =
   { TYP.FTARG, TYP.GRABLIN, TYP.HABBISH, TYP.QUARRIOR };
@@ -2241,7 +2252,6 @@ local aTileData<const> = {             -- 0TITXTY NOTE (total 512 tiles)
   TF.NONE,                             -- 5103015 Unused
   TF.NONE,                             -- 5113115 Unused
 };
-assert(#aTileData == 512, "aTileData must only have 512 tiles!");
 -- Flood gate data --------------------------------------------------------- --
 local oFloodGateData<const> = {
   -- (TID=Tile Id, FFL=Flood from left, FFR=Flood right)
@@ -2666,21 +2676,22 @@ return { F = Util.Blank, A = {         -- Sending API to main loader
   aAIChoicesData = aAIChoicesData, aAITypesData = AI,
   aCreditsData = aCreditsData, aCreditsXData = aCreditsXData,
   aCursorData = aCursorData, aDigBlockData = aDigBlockData,
-  aDigTileData = aDigTileData, aDigTileFlags = DF,
+  aDigTileData = aDigTileData, aDigTileFlags = DF, aEditorTypes = aEditorTypes,
   aExplodeDirData = aExplodeDirData, aIntroSubTitles = aIntroSubTitles,
   aJumpFallData = aJumpFallData, aJumpRiseData = aJumpRiseData,
   aLevelTypesData = aLevelTypesData, aLevelsData = aLevelsData,
-  aObjectFlags = OFL, aRaceStatData = aRaceStatData, aRacesData = aRacesData,
+  oObjectFlags = OFL, aRaceStatData = aRaceStatData, aRacesData = aRacesData,
   aSetupButtonData = aSetupButtonData, aSetupOptionData = aSetupOptionData,
   aShopData = aShopData, aShroudCircle = aShroudCircle,
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,
   aZoneData = aZoneData, iAnimNormal = iAnimNormal, oCursorIdData = CID,
   oDigData = oDigData, oDugRandShaftData = oDugRandShaftData,
-  oEndingData = oEndingData, oFloodGateData = oFloodGateData,
-  oKeyToLiteral = oKeyToLiteral, oMenuData = oMenuData, oMenuFlags = MFL,
-  oMenuIds = MNU, oObjectActions = ACT, oObjectData = oObjectData,
-  oObjectDirections = DIR, oObjectJobs = JOB, oObjectTypes = TYP,
-  oSfxData = oSfxData, oTileFlags = TF, oTileIdToPlayer = oTileIdToPlayer,
+  oEditorTypes = oEditorTypes, oEndingData = oEndingData,
+  oFloodGateData = oFloodGateData, oKeyToLiteral = oKeyToLiteral,
+  oMenuData = oMenuData, oMenuFlags = MFL, oMenuIds = MNU,
+  oObjectActions = ACT, oObjectData = oObjectData, oObjectDirections = DIR,
+  oObjectJobs = JOB, oObjectTypes = TYP, oSfxData = oSfxData, oTileFlags = TF,
+  oTileIdToPlayer = oTileIdToPlayer,
   -- ----------------------------------------------------------------------- --
 } };                                   -- End of definitions to send to loader
 -- End-of-File ============================================================= --
