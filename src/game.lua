@@ -4739,11 +4739,11 @@ local function OnPreInitAPI(GetAPI)
     InitLoseDead<const>, InitWin<const>, InitWinDead<const>,
     LoadResources<const>, PlayMusic<const>, RegisterFBUCallback<const>,
     SetCallbacks<const>, SetHotSpot<const>, SetKeys<const>, TileA<const>,
-    oTileIdToPlayer<const>, oAssetsData<const> =
+    aLevelTypesData<const>, oTileIdToPlayer<const>, oAssetsData<const> =
       GetAPI("Fade", "GetMouseX", "GetMouseY", "InitLose", "InitLoseDead",
         "InitWin", "InitWinDead", "LoadResources", "PlayMusic",
         "RegisterFBUCallback", "SetCallbacks", "SetHotSpot", "SetKeys",
-        "TileA", "oTileIdToPlayer", "oAssetsData");
+        "TileA", "aLevelTypesData", "oTileIdToPlayer", "oAssetsData");
   -- Get and assign outer imports
   TYP, aLevelsData, oObjectData, ACT, JOB, DIR, AI, OFL, aDigTileData,
     aTileData, oTileFlags, oDigData, BlitSLTRB, BlitSLTWH, BlitSLT, DF,
@@ -4770,10 +4770,11 @@ local function OnPreInitAPI(GetAPI)
   -- Setup required assets for LoadLevel() and InitContinueGame().
   local oAssetTerrain<const>, oAssetObject<const>, oAssetTexture<const> =
     oAssetsData.mapt, oAssetsData.mapo, oAssetsData.game;
-  local aAssetsMusic<const>, aAssetsNoMusic<const>, aAssetsContinue<const> =
+  local aAssetsMusic<const>, aAssetsNoMusic<const>, aAssetsContinue<const>,
+    aAssetsTexture<const> =
     { oAssetTerrain, oAssetObject, oAssetTexture, oAssetsData.gamem },
     { oAssetTerrain, oAssetObject, oAssetTexture },
-    { oAssetsData.gamem };
+    { oAssetsData.gamem }, { oAssetTexture }
   -- Pre-initialisations of functions which required data from another module.
   AdjustObjectHealth, CreateObject, GameProc, MoveOtherObjects, SetAction =
     AdjustObjectHealth(), InitCreateObject(), GameProc(),
@@ -5129,6 +5130,34 @@ local function OnPreInitAPI(GetAPI)
   local function TriggerEnd(iReason)
     aEndReasons[iReason](iLvlId, oPlrActive, oPlrOpponent);
   end
+  -- Switch terrain type --------------------------------------------------- --
+  local function SwitchTerrainType(iLvlType, fcbOnLoaded)
+    -- Get new type data
+    if not UtilIsInteger(iLvlType) then
+      error("Invalid terrain id '"..tostring(iLvlType).."' to switch to!") end;
+    if not UtilIsFunction(fcbOnLoaded) then
+      error("Invalid finish callback '"..tostring(fcbOnLoaded).."'!") end;
+    local aLevelTypeData<const> = aLevelTypesData[iLvlType];
+    if not UtilIsTable(aLevelTypeData) then
+      error("Invalid terrain type '"..iLvlType.."' to switch to!") end;
+    -- Get new name of text
+    local sType<const> = aLevelTypeData.n;
+    -- Set texture filename to load
+    oAssetTexture.F =  aLevelTypeData.f;
+    -- When new texture has loaded
+    local function OnLoaded(aResources)
+      -- Set the new handle
+      texLev = aResources[1];
+      -- Grab the background part
+      iTileBg = TileA(texLev, 0, 256, 512, 512);
+      -- Set new shoud colour
+      iShroudColour = aLevelTypeData.s;
+      -- Send to completion function
+      fcbOnLoaded(texLev, sType);
+    end
+    -- Load the new texture
+    LoadResources(sLvlName.."->"..sType, aAssetsTexture, OnLoaded);
+  end
   -- Load level ------------------------------------------------------------ --
   local function LoadLevel(iLId, sMusic, iKB, iRace1, bAI1, iRace2, bAI2,
     fcbNLogic, fcbNRender, fcbNEnd, iNHotSpotId, iSM1, iSM2, bRespawn, fcbInit)
@@ -5351,7 +5380,7 @@ local function OnPreInitAPI(GetAPI)
       for iId = 1, #aDigTileData do aGemsAvailable[1 + #aGemsAvailable] =
         aDigTileData[1 + ((iGemStart + iId) % #aDigTileData)] end;
       -- Execute caller initialisation function
-      fcbInit(iLvlId, sLvlName, sLvlType, iWinLimit, texLev);
+      fcbInit(iLvlId, sLvlName, sLvlType, iWinLimit, texLev, iLvlType);
       -- Do fade then set requested game callbacks
       local function OnFadeIn()
         -- Key bank requested?
@@ -5393,7 +5422,7 @@ local function OnPreInitAPI(GetAPI)
     RenderInterface = RenderInterface, RenderObjects = RenderObjects,
     RenderShroud = RenderShroud, RenderTerrain = RenderTerrain,
     SellSpecifiedItems = SellSpecifiedItems, SetAction = SetAction,
-    TriggerEnd = TriggerEnd };
+    SwitchTerrainType = SwitchTerrainType, TriggerEnd = TriggerEnd };
 end
 -- Exports and imports ----------------------------------------------------- --
 return { F = OnScriptLoaded, I = OnPreInitAPI, A = {

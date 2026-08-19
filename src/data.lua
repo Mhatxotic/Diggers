@@ -115,17 +115,6 @@ local TYP<const> = {
   -- [45] Maximum objects  Test marker              Select a random race
   MAX        = 0x0000002D, TEST       = 0x000000FE, DIGRANDOM = 0x000000FF
 };
--- Types available that can be placed in the level editor ------------------ --
-local aEditorTypes<const> = {
-  TYP.JENNITE,  TYP.DIAMOND,  TYP.GOLD,     TYP.EMERALD, TYP.RUBY,
-  TYP.PHANTOM,  TYP.SKELETON, TYP.ZOMBIE,   TYP.GHOST,   TYP.ZIPPER,
-  TYP.SWRLYPRT, TYP.PIRANA,   TYP.FUNGUS,   TYP.MUTANT,  TYP.EGG,
-  TYP.BIRD,     TYP.FISH,     TYP.RAPTOR,   TYP.ROTARY,  TYP.STEGO,
-  TYP.TURTLE,   TYP.TROLL,    TYP.STUNNEL,  TYP.LTUNNEL, TYP.CORK,
-  TYP.TELEPOLE, TYP.TNT,      TYP.FIRSTAID, TYP.MAP,     TYP.TRACK,
-  TYP.TRAIN,    TYP.BRIDGE,   TYP.BOAT,     TYP.GATE,    TYP.LIFT,
-  TYP.LIFTB,    TYP.CAMPFIRE
-};
 -- Races available list ---------------------------------------------------- --
 local aRacesData<const> =
   { TYP.FTARG, TYP.GRABLIN, TYP.HABBISH, TYP.QUARRIOR };
@@ -413,13 +402,13 @@ local aLevelTypeDesert<const>,  aLevelTypeGrass<const>,
       aLevelTypeMountain<const>, aLevelTypeRock<const>,
       aLevelTypeWinter<const> =
   -- Type - Filename ------- Name ----- Shroud colour (0xAARRGGBB) --------- --
-  { i=0, f="desert",   n="DESERTOUS",   s=0xF8AA6651 },
-  { i=1, f="grass",    n="TEMPERATE",   s=0xF8804331 },
-  { i=2, f="islands",  n="COASTAL",     s=0xF8BC5700 },
-  { i=3, f="jungle",   n="TROPICAL",    s=0xF8290600 },
-  { i=4, f="mountain", n="MOUNTAINOUS", s=0xF8CC6666 },
-  { i=5, f="rock",     n="BARRENOUS",   s=0xF8743423 },
-  { i=6, f="snow",     n="WINTEROUS",   s=0xF8666699 };
+  { i=1, f="desert",   n="DESERTOUS",   s=0xF8AA6651 },
+  { i=2, f="grass",    n="TEMPERATE",   s=0xF8804331 },
+  { i=3, f="islands",  n="COASTAL",     s=0xF8BC5700 },
+  { i=4, f="jungle",   n="TROPICAL",    s=0xF8290600 },
+  { i=5, f="mountain", n="MOUNTAINOUS", s=0xF8CC6666 },
+  { i=6, f="rock",     n="BARRENOUS",   s=0xF8743423 },
+  { i=7, f="snow",     n="WINTEROUS",   s=0xF8666699 };
 -- Level data types array -------------------------------------------------- --
 local aLevelTypesData<const> = {
   aLevelTypeDesert,   aLevelTypeGrass, aLevelTypeIslands, aLevelTypeJungle,
@@ -727,8 +716,8 @@ local function MakeDiggerObject(iSB, iSE,  iWLB, iWLE, iWRB, iWRE,
     LUNGS        = iLungs,             MENU         = MNU.MAIN,
     NAME         = sName,              PATIENCE     = iPatience,
     STAMINA      = iStamina,           STRENGTH     = iStrength,
-    TELEDELAY    = iTeleDelay,         VALUE        = 1000,
-    WEIGHT       = 0
+    TELEDELAY    = iTeleDelay,         THUMBNAIL    = iSB,
+    VALUE        = 1000,               WEIGHT       = 0
   };
 end
 -- Function to make data for a treasure object ----------------------------- --
@@ -746,8 +735,8 @@ local function MakeTreasureObject(iAB, iAE, iHS, iValue, sName)
     HUDSPRITE = iHS,                   JOB       = JOB.NONE,
     LONGNAME  = sName,                 NAME      = sName,
     STAMINA   = -1,                    STRENGTH  = 0,
-    TELEDELAY = 60,                    VALUE     = iValue,
-    WEIGHT    = 1,
+    TELEDELAY = 60,                    THUMBNAIL = iAB,
+    VALUE     = iValue,                WEIGHT    = 1,
   }
 end
 -- ------------------------------------------------------------------------- --
@@ -793,6 +782,7 @@ local oObjectData<const> = {           -- Objects data
 --   STAMINA      = <integer>,         Frame delay before adding HP.
 --   STRENGTH     = <integer>,         Strength when fighting and max carry.
 --   TELEDELAY    = <integer>,         Delay before completing teleport.
+--   THUMBNAIL    = <integer>,         Sprite tile id preview for level editor
 --   VALUE        = <integer>,         Cost of item to purchase (sell 1/2).
 --   WEIGHT       = <integer>          Required weight in order to carry.
 -- };                                  End of specific type data.
@@ -833,8 +823,8 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "PHANTOM",                NAME      = "PHANTOM",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0
+ TELEDELAY = 200,                      THUMBNAIL = 442,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.SKELETON] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -849,8 +839,8 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "SKELETON",               NAME      = "SKELETON",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0
+ TELEDELAY = 200,                      THUMBNAIL = 409,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.ZOMBIE] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -865,8 +855,8 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "ZOMBIE",                 NAME      = "ZOMBIE",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0,
+ TELEDELAY = 200,                      THUMBNAIL = 147,
+ VALUE     = 0,                        WEIGHT    = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.GHOST] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -881,8 +871,8 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "GHOST",                  NAME      = "GHOST",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0
+ TELEDELAY = 200,                      THUMBNAIL = 360,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.ZIPPER] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -897,8 +887,8 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "ZIPPER",                 NAME      = "ZIPPER",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0,
+ TELEDELAY = 200,                      THUMBNAIL = 373,
+ VALUE     = 0,                        WEIGHT    = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.SWRLYPRT] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -913,8 +903,8 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.AQUALUNG|OFL.ENEMY,   JOB       = JOB.NONE,
  LONGNAME  = "SWIRLYPORT",             NAME      = "SWRLYPRT",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0
+ TELEDELAY = 200,                      THUMBNAIL = 424,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.PIRANA] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -931,7 +921,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "PIRANA PLANT",           LUNGS     = 128,
  NAME      = "PIRANA",                 STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 0,                        WEIGHT    = 0
+ THUMBNAIL = 388,                      VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.FUNGUS] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -948,7 +939,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.NONE,                 LONGNAME  = "FUNGUS",
  NAME      = "FUNGUS",                 STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 0,                        WEIGHT    = 0
+ THUMBNAIL = 398,                      VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.MUTANT] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -962,7 +954,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "MUTANT",                 LUNGS     = 32,
  NAME      = "MUTANT",                 STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 20,
- VALUE     = 0,                        WEIGHT    = 0
+ THUMBNAIL = 102,                      VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.EGG] = {
  [ACT.STOP]  = {
@@ -983,7 +976,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "MYSTERIOUS EGG",         LUNGS     = 128,
  NAME      = "EGG",                    STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 3600,
- VALUE     = 0,                        WEIGHT    = 0
+ THUMBNAIL = 71,                       VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.BIRD] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -994,7 +988,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "BIRD",                   LUNGS     = 2,
  NAME      = "BIRD",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 0,                        WEIGHT    = 0
+ THUMBNAIL = 297,                      VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.FISH] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1005,8 +1000,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.BOUNCE,               LONGNAME  = "GOLDFISH",
  LUNGS     = 2,                        NAME      = "FISH",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0
+ TELEDELAY = 200,                      THUMBNAIL = 58,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.RAPTOR] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1020,7 +1015,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "VELOCIRAPTOR",           LUNGS     = 16,
  NAME      = "VRAPTOR",                STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 0,                        WEIGHT    = 0,
+ THUMBNAIL = 362,                      VALUE     = 0,
+ WEIGHT    = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.ROTARY] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1033,8 +1029,9 @@ local oObjectData<const> = {           -- Objects data
  FLAGS     = OFL.LIVING,               JOB       = JOB.BOUNCE,
  LONGNAME  = "ROTARYSAURUS",           LUNGS     = 16,
  NAME      = "RTRYSRUS",               STAMINA   = -1,
- STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 0,                        WEIGHT    = 0
+ STRENGTH  = 0,                        THUMBNAIL = 380,
+ TELEDELAY = 200,                      VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.STEGO] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1051,8 +1048,8 @@ local oObjectData<const> = {           -- Objects data
  JOB        = JOB.BOUNCE,              LONGNAME   = "STEGOSAURUS",
  LUNGS      = 16,                      NAME       = "STEGSAUR",
  STAMINA    = -1,                      STRENGTH   = 0,
- TELEDELAY  = 200,                     VALUE      = 0,
- WEIGHT     = 0,
+ TELEDELAY  = 200,                     THUMBNAIL  = 33,
+ VALUE      = 0,                       WEIGHT     = 0,
 -- ------------------------------------------------------------------------- --
 }, [TYP.STEGOB] = {
  [ACT.DEATH] = {
@@ -1070,8 +1067,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.BOUNCE,               LONGNAME  = "TURTLE",
  LUNGS     = 60,                       NAME      = "TURTLE",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 0,
- WEIGHT    = 0
+ TELEDELAY = 200,                      THUMBNAIL = 307,
+ VALUE     = 0,                        WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.TROLL] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1101,8 +1098,8 @@ local oObjectData<const> = {           -- Objects data
  INTELLIGENCE = 0.5,                   JOB       = JOB.BOUNCE,
  LONGNAME     = "TROLL",               NAME      = "TROLL",
  STAMINA      = 60,                    STRENGTH  = 100,
- TELEDELAY    = 100,                   VALUE     = 0,
- WEIGHT       = 100,
+ TELEDELAY    = 100,                   THUMBNAIL = 329,
+ VALUE        = 0,                     WEIGHT    = 100,
 -- Devices ----------------------------------------------------------------- --
 }, [TYP.STUNNEL] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1126,8 +1123,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "SMALL TUNNELER",         LUNGS     = 1,
  MENU      = MNU.TUNNEL,               NAME      = "SMALLTUN",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 150,
- WEIGHT    = 2,
+ TELEDELAY = 200,                      THUMBNAIL = 284,
+ VALUE     = 150,                      WEIGHT    = 2,
 -- ------------------------------------------------------------------------- --
 }, [TYP.LTUNNEL] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1151,8 +1148,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "LARGE TUNNELER",         LUNGS      = 1,
  MENU      = MNU.TUNNEL,               NAME       = "LARGETUN",
  STAMINA   = -1,                       STRENGTH   = 0,
- TELEDELAY = 200,                      VALUE      = 230,
- WEIGHT    = 3
+ TELEDELAY = 200,                      THUMBNAIL  = 185,
+ VALUE     = 230,                      WEIGHT     = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.LTUNNELB] = {
  [ACT.DEATH] = {
@@ -1211,7 +1208,8 @@ local oObjectData<const> = {           -- Objects data
  LUNGS     = 1,                        MENU      = MNU.CORK,
  NAME      = "CORKSCRW",               STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 170,                      WEIGHT    = 3
+ THUMBNAIL = 288,                      VALUE     = 170,
+ WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.TELEPOLE] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1227,8 +1225,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.NONE,                 LONGNAME  = "TELEPOLE",
  LUNGS     = 1,                        NAME      = "TELEPOLE",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 260,
- WEIGHT    = 2
+ TELEDELAY = 200,                      THUMBNAIL = 66,
+ VALUE     = 260,                      WEIGHT    = 2
 -- ------------------------------------------------------------------------- --
 }, [TYP.TNT] = {
  [ACT.STOP] = {
@@ -1253,7 +1251,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "EXPLOSIVES",             MENU      = MNU.TNT,
  NAME      = "TNT",                    STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 600,
- VALUE     = 20,                       WEIGHT    = 1
+ THUMBNAIL = 24,                       VALUE     = 20,
+ WEIGHT    = 1
 -- ------------------------------------------------------------------------- --
 }, [TYP.FIRSTAID] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1268,8 +1267,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.NONE,                 LONGNAME  = "FIRST AID KIT",
  LUNGS     = 2,                        NAME      = "FIRSTAID",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 60,
- WEIGHT    = 2,
+ TELEDELAY = 200,                      THUMBNAIL = 450,
+ VALUE     = 60,                       WEIGHT    = 2,
 -- ------------------------------------------------------------------------- --
 }, [TYP.MAP] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1285,8 +1284,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "TNT MAP",                LUNGS     = 32,
  MENU      = MNU.MAP,                  NAME      = "MAP",
  STAMINA   = -1,                       STRENGTH  = 0,
- TELEDELAY = 200,                      VALUE     = 215,
- WEIGHT    = 3,
+ TELEDELAY = 200,                      THUMBNAIL = 370,
+ VALUE     = 215,                      WEIGHT    = 3,
 -- ------------------------------------------------------------------------- --
 }, [TYP.TRACK] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1303,7 +1302,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "TRACK FOR TRAIN",        MENU      = MNU.DEPLOY,
  NAME      = "TRACK",                  STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 10,                       WEIGHT    = 1,
+ THUMBNAIL = 441,                      VALUE     = 10,
+ WEIGHT    = 1,
 -- ------------------------------------------------------------------------- --
 }, [TYP.TRAIN] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1329,7 +1329,8 @@ local oObjectData<const> = {           -- Objects data
  LUNGS     = 1,                        MENU      = MNU.TRAIN,
  NAME      = "TRAIN",                  STAMINA   = -1,
  STRENGTH  = 20,                       TELEDELAY = 200,
- VALUE     = 100,                      WEIGHT    = 3
+ THUMBNAIL = 4,                        VALUE     = 100,
+ WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.BRIDGE] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1345,7 +1346,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.NONE,                 LONGNAME  = "BRIDGE PIECE",
  NAME      = "BRIDGE",                 STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 25,                       WEIGHT    = 1
+ THUMBNAIL = 146,                      VALUE     = 25,
+ WEIGHT    = 1
 -- ------------------------------------------------------------------------- --
 }, [TYP.BOAT] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1366,7 +1368,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "INFLATABLE BOAT",        MENU      = MNU.FLOAT,
  NAME      = "BOAT",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 60,                       WEIGHT    = 2
+ THUMBNAIL = 154,                      VALUE     = 60,
+ WEIGHT    = 2
 -- ------------------------------------------------------------------------- --
 }, [TYP.GATE] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1383,13 +1386,14 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "FLOOD GATE",             MENU      = MNU.DEPLOY,
  NAME      = "GATE",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 80,                       WEIGHT    = 2
+ THUMBNAIL = 440,                      VALUE     = 80,
+ WEIGHT    = 2
 -- ------------------------------------------------------------------------- --
 }, [TYP.GATEB] = {
  [ACT.DEATH] = oGenericActDeathData,
  [ACT.STOP] = { [DIR.NONE] = { 475, 475 } },
  ACTION    = ACT.STOP,                 AITYPE    = AI.GATE,
- ANIMTIMER = iAnimNormal,      DIRECTION = DIR.NONE,
+ ANIMTIMER = iAnimNormal,              DIRECTION = DIR.NONE,
  FLAGS     = OFL.DEVICE|OFL.AQUALUNG,  JOB       = JOB.NONE,
  KEYS = { [ACT.OPEN] = oObjectStop, [ACT.CLOSE] = oObjectStop },
  MENU      = MNU.GATE,                 LONGNAME  = "FLOOD GATE",
@@ -1409,7 +1413,8 @@ local oObjectData<const> = {           -- Objects data
  LONGNAME  = "LIFT",                   MENU      = MNU.DEPLOY,
  NAME      = "LIFT",                   STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 200,
- VALUE     = 220,                      WEIGHT    = 3
+ THUMBNAIL = 320,                      VALUE     = 220,
+ WEIGHT    = 3
 -- ------------------------------------------------------------------------- --
 }, [TYP.LIFTB] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1425,13 +1430,12 @@ local oObjectData<const> = {           -- Objects data
  },
  ACTION     = ACT.STOP,                AITYPE     = AI.LIFT,
  ANIMTIMER  = iAnimNormal,             ATTACHMENT = TYP.LIFTC,
- DIRECTION  = DIR.D,
- FLAGS      = OFL.DEVICE|OFL.AQUALUNG,
+ DIRECTION  = DIR.D,                   FLAGS      = OFL.DEVICE|OFL.AQUALUNG,
  JOB        = JOB.NONE,                LONGNAME   = "ELEVATOR",
  MENU       = MNU.LIFT,                NAME       = "ELEVATOR",
  STAMINA    = -1,                      STRENGTH   = 0,
- TELEDELAY  = 0,                       VALUE      = 0,
- WEIGHT     = 0
+ TELEDELAY  = 0,                       THUMBNAIL  = 0,
+ VALUE      = 0,                       WEIGHT     = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.LIFTC] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1464,7 +1468,8 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.NONE,                 LONGNAME  = "CAMPFIRE",
  NAME      = "CAMPFIRE",               STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 0,
- VALUE     = 110,                      WEIGHT    = 0
+ THUMBNAIL = 133,                      VALUE     = 110,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 }, [TYP.TEST] = {
  [ACT.DEATH] = oGenericActDeathData,
@@ -1475,9 +1480,21 @@ local oObjectData<const> = {           -- Objects data
  JOB       = JOB.NONE,                 LONGNAME  = "TEST OBJECT MASK",
  NAME      = "TEST OBJECT MASK",       STAMINA   = -1,
  STRENGTH  = 0,                        TELEDELAY = 0,
- VALUE     = 0,                        WEIGHT    = 0
+ THUMBNAIL = 478,                      VALUE     = 0,
+ WEIGHT    = 0
 -- ------------------------------------------------------------------------- --
 } };
+-- Types available that can be placed in the level editor ------------------ --
+local aEditorTypes<const> = {
+  TYP.JENNITE,  TYP.DIAMOND,  TYP.GOLD,     TYP.EMERALD, TYP.RUBY,
+  TYP.PHANTOM,  TYP.SKELETON, TYP.ZOMBIE,   TYP.GHOST,   TYP.ZIPPER,
+  TYP.SWRLYPRT, TYP.PIRANA,   TYP.FUNGUS,   TYP.MUTANT,  TYP.EGG,
+  TYP.BIRD,     TYP.FISH,     TYP.RAPTOR,   TYP.ROTARY,  TYP.STEGO,
+  TYP.TURTLE,   TYP.TROLL,    TYP.STUNNEL,  TYP.LTUNNEL, TYP.CORK,
+  TYP.TELEPOLE, TYP.TNT,      TYP.FIRSTAID, TYP.MAP,     TYP.TRACK,
+  TYP.TRAIN,    TYP.BRIDGE,   TYP.BOAT,     TYP.GATE,    TYP.LIFT,
+  TYP.LIFTB,    TYP.CAMPFIRE
+};
 -- Digging tile flags ------------------------------------------------------ --
 local DF<const> = {
   -- On success flags ------------------------------------------------------ --
@@ -2686,12 +2703,11 @@ return { F = Util.Blank, A = {         -- Sending API to main loader
   aShroudTileLookup = aShroudTileLookup, aTileData = aTileData,
   aZoneData = aZoneData, iAnimNormal = iAnimNormal, oCursorIdData = CID,
   oDigData = oDigData, oDugRandShaftData = oDugRandShaftData,
-  oEditorTypes = oEditorTypes, oEndingData = oEndingData,
-  oFloodGateData = oFloodGateData, oKeyToLiteral = oKeyToLiteral,
-  oMenuData = oMenuData, oMenuFlags = MFL, oMenuIds = MNU,
-  oObjectActions = ACT, oObjectData = oObjectData, oObjectDirections = DIR,
-  oObjectJobs = JOB, oObjectTypes = TYP, oSfxData = oSfxData, oTileFlags = TF,
-  oTileIdToPlayer = oTileIdToPlayer,
+  oEndingData = oEndingData, oFloodGateData = oFloodGateData,
+  oKeyToLiteral = oKeyToLiteral, oMenuData = oMenuData, oMenuFlags = MFL,
+  oMenuIds = MNU, oObjectActions = ACT, oObjectData = oObjectData,
+  oObjectDirections = DIR, oObjectJobs = JOB, oObjectTypes = TYP,
+  oSfxData = oSfxData, oTileFlags = TF, oTileIdToPlayer = oTileIdToPlayer,
   -- ----------------------------------------------------------------------- --
 } };                                   -- End of definitions to send to loader
 -- End-of-File ============================================================= --
