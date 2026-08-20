@@ -13,22 +13,24 @@
 local format<const>, remove<const>, maxinteger<const> =
   string.format, table.remove, math.maxinteger;
 -- Engine function aliases ------------------------------------------------- --
-local UtilClampInt<const>, UtilIsTable<const>, UtilIsInteger<const> =
-  Util.ClampInt, Util.IsTable, Util.IsInteger;
+local UtilClampInt<const>, UtilIsTable<const>, UtilIsInteger<const>,
+  JsonTable<const> =
+  Util.ClampInt, Util.IsTable, Util.IsInteger, Json.Table;
 -- Diggers function and data aliases --------------------------------------- --
-local ACT, AdjustViewportNoScroll, aLvlData,
-  aObjs, aTileData, BlitSLT, BlitSLTWH, CreateObject, DIR, fontLarge,
-  GetAbsMousePos, GetMouseX, GetMouseY, GetViewportData, IsSpriteCollide, JOB,
-  LoadLevel, LoadResources, OFL, oObjectData, oObjectTypes,
-  Print, PrintC, RegisterFBUCallback, RenderFade, RenderObjects, RenderTerrain,
-  ScrollViewport, SelectObject, SetAction, SetCallbacks, SetCursor, SetHotSpot,
-  SetKeys, SetPosition, SwitchTerrainType;
+local ACT, AdjustViewportNoScroll, aLvlData, aObjs, aTileData, BlitSLT,
+  BlitSLTWH, CreateObject, DIR, fontLarge, GetAbsMousePos, GetMouseX,
+  GetMouseY, GetViewportData, IsSpriteCollide, JOB, LoadLevel, LoadResources,
+  OFL, oObjectData, oObjectTypes, Print, PrintC, RegisterFBUCallback,
+  RenderFade, RenderObjects, RenderTerrain, ScrollViewport, SelectObject,
+  SetAction, SetCallbacks, SetCursor, SetHotSpot, SetKeys, SetPosition,
+  SwitchTerrainType;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       bShift,                          -- Shift being held?
       fontTiny,                        -- Tiny font
       iBrushAPos,                      -- Brush absolute position
       iBrushPosX, iBrushPosY,          -- Brush position
+      iBrushSizeW, iBrushSizeH,        -- Brush size
       iEditorHotSpotId,                -- Editor hot spot id
       iEditorKeyBankId,                -- Editor key bank id
       iPickerHotSpotId,                -- Picker hot spot id
@@ -103,9 +105,13 @@ local function EditorRender(aResources)
     -- Set terrain selection colour
     texSpr:SetCRGB(0.0, 0.0, 1.0);
     -- Draw terrain selection rectangle
-    BlitSLT(texSpr, 866 + ((Core.Ticks() // 2) % 2),
-                         (iBrushPosX * 16) - iVPX,
-                         (iBrushPosY * 16) - iVPY);
+    local iTile<const> = 866 + ((Core.Ticks() // 2) % 2);
+    for iY = iBrushPosY, iBrushPosY + iBrushSizeH do
+      local iYpix<const> = (iY * 16) - iVPY;
+      for iX = iBrushPosX, iBrushPosX + iBrushSizeW do
+        BlitSLT(texSpr, iTile, (iX * 16) - iVPX, iYpix);
+      end
+    end
     -- Draw status panel background
     RenderFade(0.75, nStatusX, nStatusY, nStatusX - 90.0, nStatusY - 42.0);
     -- Get selected tile id and if valid?
@@ -271,7 +277,8 @@ local function OnLoad(iNLvlId, sNLvlName, sNLvlType, iNWinLimit, texNLev,
   -- Set Jennite as initial paint object
   SetPaintObject(oObjectTypes.JENNITE);
   -- Reset brush position
-  iBrushPosX, iBrushPosY, iBrushAPos = 0, 0, nil;
+  iBrushPosX, iBrushPosY, iBrushSizeW, iBrushSizeH, iBrushAPos =
+    0, 0, 0, 0, nil;
   iPickerSelX, iPickerSelY, iPickerStart, iPickerSelected = 0, 0, 0, 0;
   -- Get mouse position
   iMouseX, iMouseY = GetMouseX(), GetMouseY();
@@ -382,10 +389,29 @@ local function OnScriptLoaded(GetAPI)
           return;
         end
       end
-      -- Set generic message
+      -- Deselect active object
       oObject, iObject = nil, 0;
-      SelectObject(nil);
-      iBrushPosX, iBrushPosY = iAMX // 16, iAMY // 16;
+      SelectObject();
+      -- Get clicked tile position on level
+      local iX<const>, iY<const> = iAMX // 16, iAMY // 16;
+      -- If shift is held and we already have a position
+      if bShift and iBrushAPos then
+        if iX < iBrushPosX then
+          iBrushSizeW = iBrushSizeW + (iBrushPosX - iX);
+          iBrushPosX = iX;
+        elseif iX > iBrushPosX then
+          iBrushSizeW = iX - iBrushPosX;
+        end;
+        if iY < iBrushPosY then
+          iBrushSizeH = iBrushSizeH + (iBrushPosY - iY);
+          iBrushPosY = iY;
+        elseif iY > iBrushPosY then
+          iBrushSizeH = iY - iBrushPosY;
+        end
+      else
+        iBrushPosX, iBrushPosY, iBrushSizeW, iBrushSizeH =
+          iX, iY, 0, 0;
+      end
       iBrushAPos = (iBrushPosY * 128) + iBrushPosX;
     -- Middle click?
     elseif iButton == 3 then CbKTerrainPicker();
@@ -482,7 +508,11 @@ local function OnScriptLoaded(GetAPI)
       iTileId = iTileId % #aTileData;
     end
     -- Push the new tile id back into the terrain data and return
-    aLvlData[1 + iBrushAPos] = iTileId;
+    for iY = iBrushPosY, iBrushPosY + iBrushSizeH do
+      for iX = iBrushPosX, iBrushPosX + iBrushSizeW do
+        aLvlData[1 + ((iY * 128) + iX)] = iTileId;
+      end
+    end
   end
   -- Delete selected object ------------------------------------------------ --
   local function CbKDeleteSelectedObject()
@@ -497,8 +527,13 @@ local function OnScriptLoaded(GetAPI)
   end
   -- Move object in the specified direction -------------------------------- --
   local function MoveObject(iX, iY)
-    -- Ignore if there is no active object
-    if not oObject then return end;
+    -- If there is no active object?
+    if not oObject then
+      -- Shift pressed? Move viewport gradually
+      if bShift then return AdjustViewportNoScroll(-iX, -iY) end;
+      -- Move viewport in tile sizes
+      return AdjustViewportNoScroll(-(iX * 16), -(iY * 16));
+    end
     -- Get the current object position
     local iNewPosX, iNewPosY = oObject.X, oObject.Y;
     -- If the shift key is pressed (move faster)
@@ -603,6 +638,27 @@ local function OnScriptLoaded(GetAPI)
   local function CbKPaintTile() SetTerrain(iPaintTile) end;
   local function CbKPaintObject() AddObject(iPaintObject) end;
   local function CbKCopy() PushTerrainOrObject() end;
+  -- Save current level ---------------------------------------------------- --
+  local function CbKSave()
+    -- Reformatted base objects list
+    local aObjects<const> = { };
+    -- Save data
+    local aSaveData<const> = {
+      Version = 1,                     -- Manifest version
+      Name    = sLvlName,              -- Level name
+      Type    = iLvlType,              -- Terrain type
+      Terrain = aLvlData,              -- Terrain data
+      Objects = aObjects               -- Reformatted objects
+    };
+    -- Enumerate through all the object indicies
+    for iIndex = 1, #aObjs do
+      -- Get the object and add the only data that matters
+      local oObject<const> = aObjs[iIndex];
+      aObjects[1 + #aObjects] = { oObject.ID, oObject.X, oObject.Y };
+    end
+    -- Write the data to json
+    File.WriteOneStr("test.json", JsonTable(aSaveData):ToString());
+  end
   -- Switch terrain type --------------------------------------------------- --
   local function CbKSwitchTerrain()
     -- Play click sound
@@ -658,13 +714,13 @@ local function OnScriptLoaded(GetAPI)
   iEditorKeyBankId = RegisterKeys("MAP EDITOR", {
     -- Key pressed events
     [iKSPress] = {
-      { oKeys.RIGHT_SHIFT,
-        CbKShiftHeld,                  "eeaf", "ENABLE ALTERNATE FUNCTION" },
-      { oKeys.C,     CbKCopy,          "eoct", "COPY OBJECT OR TILE" },
-      { oKeys.O,     CbKObjectPicker,  "eop",  "SHOW TERRAIN TILE PICKER" },
-      { oKeys.V,     CbKTerrainPicker, "etp",  "SHOW TERRAIN TILE PICKER" },
-      { oKeys.Y,     CbKSwitchTerrain, "est",  "SWITCH TERRAIN TYPE" },
-      { oKeys.ENTER, CbKPaintObject,   "epo",  "PAINT SELECTED OBJECT" },
+      { oKeys.LEFT_SHIFT, CbKShiftHeld, "eeaf", "ENABLE ALTERNATE FUNCTION" },
+      { oKeys.C,     CbKCopy,           "eoct", "COPY OBJECT OR TILE" },
+      { oKeys.O,     CbKObjectPicker,   "eop",  "SHOW TERRAIN TILE PICKER" },
+      { oKeys.S,     CbKSave,           "es",   "SAVE CURRENT LEVEL" },
+      { oKeys.V,     CbKTerrainPicker,  "etp",  "SHOW TERRAIN TILE PICKER" },
+      { oKeys.Y,     CbKSwitchTerrain,  "est",  "SWITCH TERRAIN TYPE" },
+      { oKeys.ENTER, CbKPaintObject,    "epo",  "PAINT SELECTED OBJECT" },
       aEditorPreviousObject, aEditorNextObject, aEditorCursorUp,
       aEditorCursorDown, aEditorCursorLeft, aEditorCursorRight,
       aEditorCycleLeft, aEditorCycleRight, aEditorMoveBack, aEditorMoveForward,
@@ -678,7 +734,7 @@ local function OnScriptLoaded(GetAPI)
       aEditorMoveBottom, aEditorMoveTop, aEditorDelete, aEditorPaintTile
     -- Key release events
     }, [oStates.RELEASE] = {
-      { oKeys.RIGHT_SHIFT,
+      { oKeys.LEFT_SHIFT,
         CbKShiftRelease, "eedf", "DISABLE ALTERNATE FUNCTION" },
     }
   });
