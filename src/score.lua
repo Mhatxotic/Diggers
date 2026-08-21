@@ -327,7 +327,7 @@ local function AddTotal(sLabel, iValue, iScorePerTick)
   end
   -- If there is no value to tally then this is the wait value
   local iWait;
-  if iValue == 0 then iWait = 60 else iWait = 0 end;
+  if iValue == 0 then iWait = 59 else iWait = 0 end;
   -- Prepare the category in the categories list
   aTotals[1 + #aTotals] = {
     1,                             -- [01] Operational function

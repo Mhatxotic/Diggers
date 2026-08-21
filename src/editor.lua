@@ -138,9 +138,9 @@ local function EditorRender(aResources)
   end
   -- Draw mouse position
   PrintC(fontTiny, nStatusX - 46.0, nStatusY - 16.0,
-    format("VIEWPORT: %04ux%04u\n\z
-            CURSOR: %04ux%04u",
-    iVPX, iVPY, iVPX + iMouseX, iVPX + iMouseY));
+    format("%s (%u)\n\z
+            C:%04ux%04u T:%03u",
+    sLvlName, iLvlType, iVPX + iMouseX, iVPX + iMouseY, #aObjs));
   -- Draw brushes
   RenderFade(0.75, nStatusX - 94.0, nStatusY,
                    nStatusX - 120.0, nStatusY - 26.0);
