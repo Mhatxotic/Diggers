@@ -21,20 +21,20 @@ local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
   CoreCPUUsage<const>, CoreEngine<const>, CoreLibrary<const>,
   CoreLicense<const>, CoreRAM<const>, CoreTime<const>, DisplayFSType<const>,
   DisplayGetSize<const>, DisplayGPUFPS<const>, DisplayMonitor<const>,
-  DisplayMonitorData<const>, DisplayMonitors<const>, DisplayReset<const>,
-  DisplayVidModeData<const>, DisplayVidModes<const>, DisplayVReset<const>,
-  InputGetKeyName<const>, InputOnKey<const>, UtilClamp<const>,
-  UtilClampInt<const>, UtilExplode<const>, UtilGetRatio<const>,
-  UtilWordWrap<const>, VariableRegister<const>, oCVars<const>,
-  oMods<const>, iCredits<const>, iNativeMode<const> =
+  DisplayMonitorData<const>, DisplayMonitors<const>, DisplayOnResized<const>,
+  DisplayReset<const>, DisplayVidModeData<const>, DisplayVidModes<const>,
+  DisplayVReset<const>, InputGetKeyName<const>, InputOnKey<const>,
+  UtilClamp<const>, UtilClampInt<const>, UtilExplode<const>,
+  UtilGetRatio<const>, UtilWordWrap<const>, VariableRegister<const>,
+  oCVars<const>, oMods<const>, iCredits<const>, iNativeMode<const> =
     Audio.GetNumPBDevices, Audio.GetPBDeviceName, Audio.Reset, Core.CPUUsage,
     Core.Engine, Core.Library, Core.License, Core.RAM, Core.Time,
     Display.FSType, Display.GetSize, Display.GPUFPS, Display.Monitor,
-    Display.MonitorData, Display.Monitors, Display.Reset, Display.VidModeData,
-    Display.VidModes, Display.VReset, Input.GetKeyName, Input.OnKey,
-    Util.Clamp, Util.ClampInt, Util.Explode, Util.GetRatio, Util.WordWrap,
-    Variable.Register, Variable.Internal, Input.KeyMods, #Core.Libraries,
-    Display.FSTypes.NATIVE;
+    Display.MonitorData, Display.Monitors, Display.OnResized, Display.Reset,
+    Display.VidModeData, Display.VidModes, Display.VReset, Input.GetKeyName,
+    Input.OnKey, Util.Clamp, Util.ClampInt, Util.Explode, Util.GetRatio,
+    Util.WordWrap, Variable.Register, Variable.Internal, Input.KeyMods,
+    #Core.Libraries, Display.FSTypes.NATIVE;
 -- Read and prepare engine version information ----------------------------- --
 local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
   iAppBuild<const>, iAppRevision<const>, _, _, sAppExeType = CoreEngine();
@@ -253,72 +253,76 @@ local function RenderBackgroundStart(nId)
   PrintR(fontTiny, 312.0, 9.0, format("%.1f%% SYS", nCPUUsageSystem));
   Print(fontTiny, 8.0, 18.0, format("%.1f FPS", nGPUFramesPerSecond));
 end
--- ------------------------------------------------------------------------- --
-local function Refresh()
-  -- Refresh monitor settings
-  local function RefreshMonitorSettings()
-    -- Initialise monitor video modes and use primary monitor if invalid
-    iMonitorId = tonumber(vVidmonitor:Get());
-    if iMonitorId < -1 or iMonitorId >= DisplayMonitors() then
-      iMonitorId = -1 end;
-    iMonitorIdOriginal = iMonitorId;
-    -- Initialise video resolution and use desktop resolution if invalid
-    iFullScreenState = tonumber(vVidfs:Get());
-    if iFullScreenState < 0 or iFullScreenState > 1 then
-      iFullScreenState = 0 end;
-    iFullScreenMode = tonumber(vVidfsmode:Get());
-    -- If full-screen mode is enabled?
-    if iFullScreenState == 1 then
-      -- If full-screen mode is -1 (Exclusive full-screen)?
-      if iFullScreenMode >= -1 then iFullScreenState = 2;
-      -- If full-screen mode is -2 (Borderless window mode)?
-      elseif iFullScreenMode == -2 then iFullScreenState = 1 end;
-    -- Windowed mode
-    else iFullScreenMode = -2 end;
-    -- If the full-screen mode CVar is invalid then reset to 'automatic' mode
-    -- where the engine will set the full-screen mode to the desktop mode.
-    if iFullScreenMode < -2 or
-      iFullScreenMode >= DisplayVidModes(GetMonitorIdOrPrimary()) then
-        iFullScreenMode = -1 end;
-    -- Record the the initialised variables so we can check if they were
-    -- modified when the user clicks the apply button.
-    iFullScreenModeOriginal = iFullScreenMode;
-    iFullScreenStateOriginal = iFullScreenState;
-  end;
-  -- Refresh window settings
-  local function RefreshWindowSettings()
-    -- Get window size
-    local iWindowWidth = tonumber(vWinwidth:Get());
-    local iWindowHeight = tonumber(vWinheight:Get());
-    -- Set to defaults if invalid
-    if iWindowWidth < -1 then iWindowWidth = -1 end;
-    if iWindowHeight < -1 then iWindowHeight = -1 end;
-    -- Set 'automatic' window id
-    iWindowId = 0;
-    -- Find window size in list and override the above index if found
-    for iIndex = 1, #aWindowSizes do
-      local aData = aWindowSizes[iIndex];
-      if aData[1] == iWindowWidth and aData[2] == iWindowHeight then
-        iWindowId = iIndex;
-      end
+-- Refresh monitor settings ------------------------------------------------ --
+local function RefreshMonitorSettings()
+  -- Initialise monitor video modes and use primary monitor if invalid
+  iMonitorId = tonumber(vVidmonitor:Get());
+  if iMonitorId < -1 or iMonitorId >= DisplayMonitors() then
+    iMonitorId = -1 end;
+  iMonitorIdOriginal = iMonitorId;
+  -- Initialise video resolution and use desktop resolution if invalid
+  iFullScreenState = tonumber(vVidfs:Get());
+  if iFullScreenState < 0 or iFullScreenState > 1 then
+    iFullScreenState = 0 end;
+  iFullScreenMode = tonumber(vVidfsmode:Get());
+  -- If full-screen mode is enabled?
+  if iFullScreenState == 1 then
+    -- If full-screen mode is -1 (Exclusive full-screen)?
+    if iFullScreenMode >= -1 then iFullScreenState = 2;
+    -- If full-screen mode is -2 (Borderless window mode)?
+    elseif iFullScreenMode == -2 then iFullScreenState = 1 end;
+  -- Windowed mode
+  else iFullScreenMode = -2 end;
+  -- If the full-screen mode CVar is invalid then reset to 'automatic' mode
+  -- where the engine will set the full-screen mode to the desktop mode.
+  if iFullScreenMode < -2 or
+    iFullScreenMode >= DisplayVidModes(GetMonitorIdOrPrimary()) then
+      iFullScreenMode = -1 end;
+  -- Record the the initialised variables so we can check if they were
+  -- modified when the user clicks the apply button.
+  iFullScreenModeOriginal = iFullScreenMode;
+  iFullScreenStateOriginal = iFullScreenState;
+end;
+-- Refresh window settings ------------------------------------------------- --
+local function RefreshWindowSettings()
+  -- Get window size
+  local iWindowWidth = tonumber(vWinwidth:Get());
+  local iWindowHeight = tonumber(vWinheight:Get());
+  -- Set to defaults if invalid
+  if iWindowWidth < -1 then iWindowWidth = -1 end;
+  if iWindowHeight < -1 then iWindowHeight = -1 end;
+  -- Set 'automatic' window id
+  iWindowId = 0;
+  -- Find window size in list and override the above index if found
+  for iIndex = 1, #aWindowSizes do
+    local aData = aWindowSizes[iIndex];
+    if aData[1] == iWindowWidth and aData[2] == iWindowHeight then
+      iWindowId = iIndex;
     end
-    -- Record original id
-    iWindowIdOriginal = iWindowId;
   end
-  -- Refresh audio settings
-  local function RefreshAudioSettings()
-    iAudioDeviceId = tonumber(vAudinterface:Get());
-    iAudioDeviceIdOriginal = iAudioDeviceId;
-  end
-  -- Perform refreshes
-  RefreshMonitorSettings();
-  RefreshWindowSettings();
-  RefreshAudioSettings();
+  -- Record original id
+  iWindowIdOriginal = iWindowId;
+end
+-- Refresh audio settings -------------------------------------------------- --
+local function RefreshAudioSettings()
+  iAudioDeviceId = tonumber(vAudinterface:Get());
+  iAudioDeviceIdOriginal = iAudioDeviceId;
+end
+-- Refresh display labels -------------------------------------------------- --
+local function RefreshConfigLabels()
   -- This will update the text on all the labels based on updated values
   for iIndex = 1, #aSetupOptionData do
     local aData<const> = aSetupOptionData[iIndex];
     aData[7] = aData[2]();
   end
+end
+-- ------------------------------------------------------------------------- --
+local function Refresh()
+  -- Perform refreshes
+  RefreshMonitorSettings();
+  RefreshWindowSettings();
+  RefreshAudioSettings();
+  RefreshConfigLabels();
 end
 -- On frame buffer refresh callback ---------------------------------------- --
 local function OnStageUpdated(iStageW, iStageH, iStageL, iStageT, iStageR,
@@ -704,6 +708,16 @@ local function DoInitSetup(iMode)
   VideoPause();
   -- Register frame buffer update
   RegisterFBUCallback("setup", OnStageUpdated);
+  -- Window resized event
+  local function OnResized()
+    -- Return if not auto mode
+    if iWindowId == 0 then return end;
+    -- Refresh window settings and update screen labels
+    RefreshWindowSettings();
+    RefreshConfigLabels();
+  end
+  -- Register window size window event
+  DisplayOnResized(OnResized);
   -- Load bank texture
   LoadResources("Setup", aAssets, OnLoaded);
 end
@@ -770,6 +784,7 @@ local function OnScriptLoaded(GetAPI)
     VideoResume();
     -- Restore redraw callback
     RegisterFBUCallback("setup");
+    DisplayOnResized(nil);
     -- Restore original hotspot and keyback
     SetKeys(true, iLastKeyBank);
     SetHotSpot(iLastHotSpot);

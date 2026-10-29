@@ -477,8 +477,9 @@ local function LoadTextureScale(oAssetsData)
     nTexScale.."' must be integral in '"..sScaleFile.."'!") end;
   if nTexScale < 1 or nTexScale > 16 then
     error("Scale '"..nTexScale.."' out of range in '"..sScaleFile.."'!") end;
-  -- Set new accepted scale
+  -- Set new accepted scale and return if 1x scale
   iTexScale = nTexScale;
+  if iTexScale == 1 then return end;
   -- Get maximum texture size and make sure guest's GPU supports it. 1024^2
   -- is the maximum size texture we use at 1X scale.
   local iMaxUsedTexSize<const> = 1024;
