@@ -342,20 +342,20 @@ local function ApplySettings()
   if iWindowId >= 1 and iWindowId <= #aWindowSizes then
     local aData<const> = aWindowSizes[iWindowId];
     if aData[1] == 0 and aData[2] == 0 then bWindowReset = true end;
-    vWinwidth:Integer(aData[1]);
-    vWinheight:Integer(aData[2]);
+    vWinwidth:SetInteger(aData[1]);
+    vWinheight:SetInteger(aData[2]);
   end
   -- Set window variables if needed
-  if iFullScreenState == 2 then vVidfs:Integer(1);
-                           else vVidfs:Integer(iFullScreenState) end;
+  if iFullScreenState == 2 then vVidfs:SetInteger(1);
+                           else vVidfs:SetInteger(iFullScreenState) end;
   -- If full-screen mode is resetting?
   if iFullScreenMode == -3 then
     -- Now set to default mode
     iFullScreenMode = -2;
     vVidfsmode:Reset();
-  else vVidfsmode:Integer(iFullScreenMode) end;
-  vVidmonitor:Integer(iMonitorId);
-  vAudinterface:Integer(iAudioDeviceId);
+  else vVidfsmode:SetInteger(iFullScreenMode) end;
+  vVidmonitor:SetInteger(iMonitorId);
+  vAudinterface:SetInteger(iAudioDeviceId);
   -- Reset audio subsystem if interface changed
   if iAudioDeviceIdOriginal ~= iAudioDeviceId then AudioReset() end;
   -- If GPU related parameters changed from original then reset video
@@ -943,8 +943,8 @@ local function OnScriptLoaded(GetAPI)
     local iVSync, iDelay;
     if iFrameLimiter >= 4 then iVSync, iDelay = -1 + (iFrameLimiter % 4), 1;
     else iVSync, iDelay = -1 + iFrameLimiter, 0 end;
-    vVidvsync:Integer(iVSync);
-    vAppdelay:Integer(iDelay);
+    vVidvsync:SetInteger(iVSync);
+    vAppdelay:SetInteger(iDelay);
   end
   local function LimiterDown()
     LimiterSet(UtilClampInt(LimiterGet()-1, 0, #aFrameLimiterLabels-1));
@@ -954,7 +954,7 @@ local function OnScriptLoaded(GetAPI)
   end
   -- Filter choice callbacks
   local function GetVarTexFilter() return tonumber(vTexfilter:Get()) end;
-  local function SetVarTexFilter(iV) return vTexfilter:Integer(iV) end;
+  local function SetVarTexFilter(iV) return vTexfilter:SetInteger(iV) end;
   local function FilterUpdate()
     -- Point filtering if disabled
     if GetVarTexFilter() == 0 then return "Point" end;
@@ -1264,7 +1264,7 @@ local function OnScriptLoaded(GetAPI)
     -- Update displayed readme lines
     UpdateBindsLines();
   end
-  -- Get OK result for Variable:Integer()
+  -- Get OK result for Variable:SetInteger()
   local iVROK<const> = Variable.Result.OK;
   -- Binds area clicked
   local function OnBindsClick()
@@ -1311,7 +1311,8 @@ local function OnScriptLoaded(GetAPI)
       -- Apply bind to cvar the cvar callback will change the text to the
       -- new value but won't if the value could not be changed in which we
       -- restore the original text value here.
-      if aBindData[7]:Integer(iKey) ~= iVROK then aBindData[8] = sTextSave end;
+      if aBindData[7]:SetInteger(iKey) ~= iVROK then
+        aBindData[8] = sTextSave end;
       -- Restore input handlers
       RestoreKeyHandlers();
       -- Restore hot spots

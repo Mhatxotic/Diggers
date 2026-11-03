@@ -144,7 +144,7 @@ end
 -- Function to parse a script ---------------------------------------------- --
 local function ParseScript(asScript)
   -- Get name of module
-  local sName<const> = asScript:Name();
+  local sName<const> = asScript:GetName();
   -- Compile the script and parse the return value
   ParseScriptResult(sName, AssetParseBlock(sName, 1, asScript));
   -- Return success
@@ -468,7 +468,7 @@ local function GetTestMode() return bTestMode end;
 local function LoadTextureScale(oAssetsData)
   -- Customised texture scale file exists?
   local sScaleFile<const> = "tex/scale.txt";
-  if not Asset.FileExists(sScaleFile) then iTexScale = 1 return end;
+  if not Asset.IsExist(sScaleFile) then iTexScale = 1 return end;
   -- Load the texture scale number from file and make sure it is valid
   local nTexScale<const> = tonumber(Asset.File(sScaleFile, 0):ToString());
   if not nTexScale then error("Erroneous texture scale '"..
@@ -745,7 +745,7 @@ local function fcbTick()
     -- Initialise setup screen by default
     InitIntro(true);
     -- No longer show setup screen
-    oAPI.cvSetup:Boolean(false);
+    oAPI.cvSetup:SetBoolean(false);
   end
   -- Start loading assets
   local fcbProgress<const> = LoadResources("Core", aBaseAssets, OnLoaded);

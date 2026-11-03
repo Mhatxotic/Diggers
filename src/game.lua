@@ -4175,12 +4175,12 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
         "IsMouseInBounds", "RegisterHotSpot", "RegisterKeys", "SetCursor",
         "oCursorIdData");
   -- Make sure we have the correct number of level tiles
-  local iMaskLev<const> = maskLev:Tiles();
+  local iMaskLev<const> = maskLev:GetTiles();
   if iMaskLev ~= #aTileData then
     error("Got only "..iMaskLev.." of "..#aTileData.." mask level tiles!");
   end
   -- Make sure we have the correct number of sprite tiles
-  local iMaskSpr<const> = maskSpr:Tiles();
+  local iMaskSpr<const> = maskSpr:GetTiles();
   if iMaskSpr ~= #aTileData then
     error("Got only "..iMaskSpr.." of "..#aTileData.." mask sprite tiles");
   end
@@ -4375,7 +4375,7 @@ local function OnScriptLoaded(GetAPI, _, oAPI)
     -- Toggle slow down
     if iSlowDown == 1 then iNewSlowDown = 2 else iNewSlowDown = 1 end;
     -- Set cvar to new value which also calls OnSlowDown()
-    cvSlowDown:Integer(iNewSlowDown);
+    cvSlowDown:SetInteger(iNewSlowDown);
   end
   -- Register slow down variable
   local function OnSlowDown(sV)
@@ -5055,7 +5055,7 @@ local function OnPreInitAPI(GetAPI)
   local aPlrExpected<const> = create(2);
   local function BuildLevel(asLevel)
     -- Create a blank mask with the specified level name
-    maskZone = MaskCreateZero(asLevel:Name(), iLLPixW, iLLPixH);
+    maskZone = MaskCreateZero(asLevel:GetName(), iLLPixW, iLLPixH);
     -- Player starting point data list
     local aPlrsFound<const> = create(2);
     -- For each row in the data file

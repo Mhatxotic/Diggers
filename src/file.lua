@@ -73,7 +73,7 @@ end
 -- Parse level data and return result -------------------------------------- --
 local function ParseSaveData(cvSlot)
   -- Get CVar and if not empty
-  if cvSlot:Empty() then return false end;
+  if cvSlot:IsEmpty() then return false end;
   -- We need 17 comma separated values
   local aTokens<const> = { cvSlot:Get():match(sFileMatchText); }
   if #aTokens ~= 17 then return false, 101 end;
@@ -316,7 +316,7 @@ local function GoSave()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Write data
-  aSaveSlot[iSelected]:String(
+  aSaveSlot[iSelected]:SetString(
     format("%u,%u,%u,%d,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%s",
       CoreOSTime(), oGlobalData.gTotalTimeTaken,
       oGlobalData.gSelectedRace, oGlobalData.gBankBalance,
@@ -475,7 +475,7 @@ local function OnScriptLoaded(GetAPI)
     CoreLogEx("Version change from "..
       iOldVersion.." to "..iVersion.."!", Core.LogLevels.WARNING);
     -- Update saved version to new version
-    cvVersion:Integer(iVersion);
+    cvVersion:SetInteger(iVersion);
     -- Here we can eventually make changes to the game saves if we ever need to
     -- change the format of them
   end
