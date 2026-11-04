@@ -213,7 +213,8 @@ local function DoLoadDemoLevel(iLCreditId, strMusic)
                        else fcbCreditsRender = RenderCreditsBottomLeft end;
   -- Init function
   local function OnInit()
-    -- Select a random object and not a digger! The last objects in-- the list are always the diggers so we can just crop them out.
+    -- Select a random object and not a digger! The last objects in
+    -- the list are always the diggers so we can just crop them out.
     -- If we get an object then select and focus on the object!
     if bRandObject then SelectObject(aObjs[random(#aObjs -
       (#aPlayers[1].D * 2))], true) end;

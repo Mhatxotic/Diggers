@@ -12,12 +12,13 @@
 -- Core function aliases --------------------------------------------------- --
 local cos<const>, sin<const> = math.cos, math.sin;
 -- Engine function aliases ------------------------------------------------- --
-local CoreTime<const>, UtilFormatNTime<const> = Core.Time, Util.FormatNTime;
+local CoreGetTime<const>, UtilFormatNTime<const> =
+  Core.GetTime, Util.FormatNTime;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTWHA, GetKeyName, InitContinueGame, PlayStaticSound, PrintC,
   RegisterFBUCallback, RenderAll, RenderFade, RenderTip, SetCallbacks,
   SetHotSpot, SetKeys, SetTip, StopMusic, TriggerEnd, fontLarge, fontTiny;
--- Statics ------------------------------------------------------------------ --
+-- Statics ----------------------------------------------------------------- --
 local nPauseX<const> = 160.0;                    -- Pause text X position
 local nPauseY<const> = 72.0;                     -- Pause text Y position
 local nInstructionY<const> = nPauseY + 24.0;     -- Instruction text Y position
@@ -49,7 +50,7 @@ end
 -- Pause logic callback ---------------------------------------------------- --
 local function ProcPause()
   -- Get current time
-  nTime = CoreTime();
+  nTime = CoreGetTime();
   -- Ignore if next update not elapsed
   if nTime < nTimeNext then return end;
   -- Set new pause string
@@ -78,7 +79,7 @@ local function RenderPause()
   end
   texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
   -- Write text informations
-  local nTime<const> = CoreTime();
+  local nTime<const> = CoreGetTime();
   fontLarge:SetCRGBA(1.0, 1.0, 1.0,
     0.1 + (0.5 + (sin(nTime) * cos(nTime) * 0.9)));
   PrintC(fontLarge, nPauseX, nInstructionY, sInstruction);

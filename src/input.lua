@@ -13,7 +13,7 @@
 local error<const>, floor<const>, pairs<const>, remove<const>, tostring<const>,
   xpcall<const> = error, math.floor, pairs, table.remove, tostring, xpcall;
 -- Engine function aliases ------------------------------------------------- --
-local CoreStack<const>, CoreTicks<const>, DisplayReset<const>,
+local CoreGetStack<const>, CoreGetTicks<const>, DisplayReset<const>,
   InputClearStates<const>, InputGetJoyAxis<const>, InputGetJoyButton<const>,
   InputGetNumJoyAxises<const>, InputGetNumJoyButtons<const>,
   InputOnJoyState<const>, InputOnKey<const>, InputOnMouseClick<const>,
@@ -22,13 +22,13 @@ local CoreStack<const>, CoreTicks<const>, DisplayReset<const>,
   SShotFbo<const>, UtilBlank<const>, UtilClamp<const>, UtilIsBoolean<const>,
   UtilIsFunction<const>, UtilIsInteger<const>, UtilIsString<const>,
   UtilIsTable<const>, fboMain<const> =
-    Core.Stack, Core.Ticks, Display.Reset, Input.ClearStates, Input.GetJoyAxis,
-    Input.GetJoyButton, Input.GetNumJoyAxises, Input.GetNumJoyButtons,
-    Input.OnJoyState, Input.OnKey, Input.OnMouseClick, Input.OnMouseFocus,
-    Input.OnMouseMove, Input.OnMouseScroll, Input.SetCursor,
-    Input.SetCursorCentre, Input.SetCursorPos, SShot.Fbo, Util.Blank,
-    Util.Clamp, Util.IsBoolean, Util.IsFunction, Util.IsInteger, Util.IsString,
-    Util.IsTable, Fbo.Main();
+    Core.GetStack, Core.GetTicks, Display.Reset, Input.ClearStates,
+    Input.GetJoyAxis, Input.GetJoyButton, Input.GetNumJoyAxises,
+    Input.GetNumJoyButtons, Input.OnJoyState, Input.OnKey, Input.OnMouseClick,
+    Input.OnMouseFocus, Input.OnMouseMove, Input.OnMouseScroll,
+    Input.SetCursor, Input.SetCursorCentre, Input.SetCursorPos, SShot.Fbo,
+    Util.Blank, Util.Clamp, Util.IsBoolean, Util.IsFunction, Util.IsInteger,
+    Util.IsString, Util.IsTable, Fbo.Main();
 -- Diggers function and data aliases --------------------------------------- --
 local oCursorIdData, InitSetup, RegisterFBUCallback, SetErrorMessage, SetTip,
   aCursorData, iTexScale, texSpr;
@@ -85,7 +85,7 @@ local function OnKey(iKey, iState)
   local fcbCb<const> = aKeyBankActive[iState][iKey];
   if not fcbCb then return end;
   -- Protected call so we can handle errors
-  local bResult<const>, sReason<const> = xpcall(fcbCb, CoreStack);
+  local bResult<const>, sReason<const> = xpcall(fcbCb, CoreGetStack);
   if not bResult then SetErrorMessage(sReason) end;
 end
 -- Register a hotspot ------------------------------------------------------ --
@@ -197,7 +197,7 @@ local function DoHotSpotHover(aHotSpot)
   if fcbCb then
     -- Protected call so we can handle errors
     local bResult<const>, sReason<const> =
-      xpcall(fcbCb, CoreStack, iCursorX, iCursorY);
+      xpcall(fcbCb, CoreGetStack, iCursorX, iCursorY);
     if not bResult then SetErrorMessage(sReason) end;
   end
 end
@@ -250,7 +250,7 @@ local function OnMouseClick(iButton, iState)
         if fcbCb then
           -- Protected call so we can handle errors
           local bResult<const>, vResult<const> =
-            xpcall(fcbCb, CoreStack, iButton, iCursorX, iCursorY);
+            xpcall(fcbCb, CoreGetStack, iButton, iCursorX, iCursorY);
           if not bResult then SetErrorMessage(vResult);
           -- If click was processed then run hover func to refresh position
           elseif vResult then DoHotSpotHover(aHotSpot) end;
@@ -280,7 +280,7 @@ local function OnMouseScroll(nX, nY)
       if fcbCb then
         -- Protected call so we can handle errors
         local bResult<const>, sReason<const> =
-          xpcall(fcbCb, CoreStack, nX, nY);
+          xpcall(fcbCb, CoreGetStack, nX, nY);
         if not bResult then SetErrorMessage(sReason) end;
       end
       return;
@@ -509,7 +509,7 @@ local function OnMouseMove(nX, nY)
     iCursorRX // iTexScale, iCursorRY // iTexScale;
   -- Protected call so we can handle errors
   local bResult<const>, sReason<const> =
-    xpcall(fcbCb, CoreStack, iDragButton, iCursorX, iCursorY,
+    xpcall(fcbCb, CoreGetStack, iDragButton, iCursorX, iCursorY,
       iCursorNX-iCursorX, iCursorNY-iCursorY);
   -- Now update the new cursor position
   iCursorX, iCursorY = iCursorNX, iCursorNY;
@@ -643,7 +643,7 @@ local function ClearStates()
 end
 -- Renders the mouse cursor ------------------------------------------------ --
 local function CursorRender()
-  texSpr:BlitSLT(CoreTicks() // 4 % iCursorMax + iCursorMin,
+  texSpr:BlitSLT(CoreGetTicks() // 4 % iCursorMax + iCursorMin,
     iCursorRX + iCursorAdjX, iCursorRY + iCursorAdjY);
 end
 -- When the fbo is resized ------------------------------------------------- --

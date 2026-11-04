@@ -11,8 +11,8 @@
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
 -- Engine function aliases ------------------------------------------------- --
-local CoreLocale<const>, CoreLog<const>, CoreLogEx<const>, UtilBlank<const>,
-  UtilClampInt<const> = Core.Locale, Core.Log, Core.LogEx, Util.Blank,
+local CoreGetLocale<const>, CoreLog<const>, CoreLogEx<const>, UtilBlank<const>,
+  UtilClampInt<const> = Core.GetLocale, Core.Log, Core.LogEx, Util.Blank,
     Util.ClampInt;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintW,
@@ -125,7 +125,7 @@ local function OnScriptLoaded(GetAPI, aModData, oNAPI)
   -- Language selector function
   local function SelectLanguage(sSelectedLang, bRetry)
     -- Auto-detect language?
-    if #sSelectedLang == 0 then sSelectedLang = CoreLocale():sub(1, 2);
+    if #sSelectedLang == 0 then sSelectedLang = CoreGetLocale():sub(1, 2);
     -- Not valid?
     elseif #sSelectedLang ~= 2 then
       -- Select English instead
@@ -150,7 +150,7 @@ local function OnScriptLoaded(GetAPI, aModData, oNAPI)
     end
   end
   -- Select requested language override
-  SelectLanguage(cvLang:Get());
+  SelectLanguage(cvLang:GetString());
   -- Page loader function
   local function LoadPage(fcbOnComplete)
     -- Get page data

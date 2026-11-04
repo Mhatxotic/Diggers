@@ -15,11 +15,11 @@ local max<const>, min<const>, random<const>, format<const>, ceil<const>,
     math.max, math.min, math.random, string.format, math.ceil, math.sin,
     math.cos;
 -- Engine function aliases ------------------------------------------------- --
-local UtilHex<const>, CoreCPUUsage<const>, CoreRAM<const>, CoreUptime<const>,
-  CoreLUATime<const>, CoreLUAUsage<const>, UtilDuration<const>,
-  CoreCPUFPS<const>, DisplayGPUFPS<const> =
-    Util.Hex, Core.CPUUsage, Core.RAM, Core.Uptime, Core.LUATime,
-    Core.LUAUsage, Util.Duration, Core.CPUFPS, Display.GPUFPS;
+local UtilHex<const>, CoreGetCPUUsage<const>, CoreGetRAM<const>,
+  CoreGetUptime<const>, CoreGetLUATime<const>, CoreGetLUAUsage<const>,
+  UtilDuration<const>, CoreGetCPUFPS<const>, DisplayGetGPUFPS<const> =
+    Util.Hex, Core.GetCPUUsage, Core.GetRAM, Core.GetUptime, Core.GetLUATime,
+    Core.GetLUAUsage, Util.Duration, Core.GetCPUFPS, Display.GetGPUFPS;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitSLTRB, BlitSLTWH, DrawHealthBar, Fade, GetGameTicks,
   GetMouseX, GetMouseY, GetTileUnderMouse, aPlayers, aObjs, RenderTerrain,
@@ -64,8 +64,8 @@ local function InitDebugPlay(iId)
     -- Render terrain
     RenderTerrain();
     -- Get system information
-    local nCpu<const>, nSys<const> = CoreCPUUsage();
-    local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreRAM();
+    local nCpu<const>, nSys<const> = CoreGetCPUUsage();
+    local nPerc<const>, _, _, _, nProc<const>, nPeak<const> = CoreGetRAM();
     -- For each object
     for iObjId = 1, #aObjs do
       -- Get object data
@@ -174,13 +174,13 @@ local function InitDebugPlay(iId)
       %d/%4d VPXT\n\z       %d/%4d VCPX\n\z   %d/%4d APOS\n\z
       %d/%4d ACPS\n\z       %d/%4d AMAX\n\z   %d/%4d MPOS\n\z
       %d/%4d MPLP",
-        CoreCPUFPS(), DisplayGPUFPS(), nCpu, nProc / 1048576,
-        nPeak / 1048576, CoreLUAUsage() / 1048576, nSys, nPerc, GetGameTicks(),
-        UtilDuration(GetGameTicks() / 60, 0), UtilDuration(CoreLUATime(), 0),
-        UtilDuration(CoreUptime(), 0), iPixPosX, iPixPosY, iPixPosTargetX,
-        iPixPosTargetY, iPixCenPosX, iPixCenPosY, iPosX, iPosY, iAbsCenPosX,
-        iAbsCenPosY, iViewportW, iViewportH, GetMouseX(), GetMouseY(),
-        GetTileUnderMouse()));
+        CoreGetCPUFPS(), DisplayGetGPUFPS(), nCpu, nProc / 1048576,
+        nPeak / 1048576, CoreGetLUAUsage() / 1048576, nSys, nPerc,
+        GetGameTicks(), UtilDuration(GetGameTicks() / 60, 0),
+        UtilDuration(CoreGetLUATime(), 0), UtilDuration(CoreGetUptime(), 0),
+        iPixPosX, iPixPosY, iPixPosTargetX, iPixPosTargetY, iPixCenPosX,
+        iPixCenPosY, iPosX, iPosY, iAbsCenPosX, iAbsCenPosY, iViewportW,
+        iViewportH, GetMouseX(), GetMouseY(), GetTileUnderMouse()));
     -- Restore font alpha as a lot of modules expect it to be 1.
     fontTiny:SetCA(1.0);
     -- Render interface

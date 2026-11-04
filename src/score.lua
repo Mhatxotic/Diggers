@@ -16,8 +16,8 @@ local unpack<const>, error<const>, pairs<const>, create<const>, max<const>,
     table.unpack, error, pairs, table.create, math.max, math.min, math.sin,
     math.cos, tostring, math.maxinteger, math.mininteger;
 -- Engine function aliases ------------------------------------------------- --
-local CoreTime<const>, UtilFormatNumber<const>, UtilIsInteger<const>,
-  UtilIsString<const> = Core.Time, Util.FormatNumber, Util.IsInteger,
+local CoreGetTime<const>, UtilFormatNumber<const>, UtilIsInteger<const>,
+  UtilIsString<const> = Core.GetTime, Util.FormatNumber, Util.IsInteger,
   Util.IsString;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLTWH, BlitSLT, Fade, InitTitle, LoadResources, PlayMusic,
@@ -59,7 +59,7 @@ local function DrawLogos()
   -- Don't draw anything if in 4:3 mode
   if nStageL >= 0.0 then return end;
   -- Draw right moving down and left moving up logogs
-  local nLX = (CoreTime() * 100.0) % 240.0;
+  local nLX = (CoreGetTime() * 100.0) % 240.0;
   local nLY = -nLX;
   local nRH = nHeight + nLY;
   texTitle:SetCA(0.25);
@@ -108,7 +108,7 @@ local function ProcRenderScore()
     else
       if iTotalId > iI then texSpr:SetCRGB(0.0, 0.0, 0.5);
                        else texSpr:SetCRGB(0.5, 0.0, 0.0) end;
-      local nVal<const> = CoreTime() + iI / 4.0;
+      local nVal<const> = CoreGetTime() + iI / 4.0;
       RenderFade(sin(nVal) * cos(nVal) + 0.75, aData[7] + 8.0, aData[8] - 2.0,
         aData[7] + 312.0, aData[8] + 10.0, 1022);
       fontLittle:SetCRGBA(0.75, 0.75, 0.75, 1.0);
@@ -146,7 +146,7 @@ local function ProcRenderScore()
     PrintC(fontLittle, 160.0, 12.0, sTitleText);
     -- Draw pulsating score
     fontLittle:SetSize(3.0);
-    local nVal<const> = CoreTime();
+    local nVal<const> = CoreGetTime();
     fontLittle:SetCA(sin(nVal) * cos(nVal) + 0.75);
     PrintR(fontLittle, 304.0, 213.0, strScore);
     -- Draw rank
@@ -198,7 +198,7 @@ local function OnFadedOutToTitle()
   --- ...and return to title screen. It can reuse the texture!
   InitTitle();
 end
--- GoToTitle procedure -------------------------------------------------------- --
+-- Go to title procedure --------------------------------------------------- --
 local function GoToTitle()
   -- Play sound
   PlayStaticSound(iSSelect);

@@ -16,9 +16,9 @@ local cos<const>, error<const>, floor<const>, format<const>, pairs<const>,
     table.create, table.unpack;
 -- Engine function aliases ------------------------------------------------- --
 local CoreLogEx<const>, UtilFormatNumber<const>, UtilFormatTime<const>,
-  CoreOSTime<const>, CoreTime<const>, VariableSave<const> =
-    Core.LogEx, Util.FormatNumber, Util.FormatTime, Core.OSTime, Core.Time,
-    Variable.Save;
+  CoreGetOSTime<const>, CoreGetTime<const>, VariableSave<const> =
+    Core.LogEx, Util.FormatNumber, Util.FormatTime, Core.GetOSTime,
+    Core.GetTime, Variable.Save;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, Fade, InitCon, LoadResources, PlayStaticSound, PrintC,
   RenderFade, RenderShadow, RenderTipShadow, SetCallbacks, SetHotSpot, SetKeys,
@@ -75,7 +75,7 @@ local function ParseSaveData(cvSlot)
   -- Get CVar and if not empty
   if cvSlot:IsEmpty() then return false end;
   -- We need 17 comma separated values
-  local aTokens<const> = { cvSlot:Get():match(sFileMatchText); }
+  local aTokens<const> = { cvSlot:GetString():match(sFileMatchText); }
   if #aTokens ~= 17 then return false, 101 end;
   -- For each string in the tokens list
   for iIndex = 1, #aTokens - 1 do
@@ -185,7 +185,7 @@ local function RenderFile()
     local nY<const> = iFileId * 13.0;
     -- File selected? Draw selection box!
     if iSelected == iFileId then
-      local nTime<const> = CoreTime();
+      local nTime<const> = CoreGetTime();
       RenderFade(0.5 + (sin(nTime) * cos(nTime) * 0.25),
         35.0, 41.0 + nY, 285.0, 54.0 + nY);
     end
@@ -318,7 +318,7 @@ local function GoSave()
   -- Write data
   aSaveSlot[iSelected]:SetString(
     format("%u,%u,%u,%d,%d,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%u,%s",
-      CoreOSTime(), oGlobalData.gTotalTimeTaken,
+      CoreGetOSTime(), oGlobalData.gTotalTimeTaken,
       oGlobalData.gSelectedRace, oGlobalData.gBankBalance,
       oGlobalData.gCapitalCarried, oGlobalData.gTotalHomicides,
       oGlobalData.gTotalCapital, oGlobalData.gTotalExploration,
@@ -461,7 +461,7 @@ local function OnScriptLoaded(GetAPI)
   local VariableRegister<const> = Variable.Register;
   -- Callback to check if game version changed
   local iVersion<const> =
-    tonumber(Variable.Internal.app_version:Get():match("%d+"));
+    tonumber(Variable.Internal.app_version:GetString():match("%d+"));
   if not iVersion then error("Internal error: App version not valid!") end;
   -- Note that this cvar will unregister when we're done with it as it is
   -- stored a local variable. There isn't any need for the user to modify
@@ -469,7 +469,7 @@ local function OnScriptLoaded(GetAPI)
   local cvVersion<const> = VariableRegister("gam_lastversion", "0",
     aCVF.UINTEGERSAVE, fcbEmpty);
   -- If version is different?
-  local iOldVersion<const> = tonumber(cvVersion:Get());
+  local iOldVersion<const> = tonumber(cvVersion:GetString());
   if iVersion ~= iOldVersion then
     -- Log that the version changed
     CoreLogEx("Version change from "..

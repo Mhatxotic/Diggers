@@ -13,8 +13,7 @@
 local random<const>, format<const>, error<const>, tostring<const> =
   math.random, string.format, error, tostring;
 -- Engine function aliases ------------------------------------------------- --
-local CoreTicks<const>, UtilIsInteger<const>, UtilIsTable<const> =
-  Core.Ticks, Util.IsInteger, Util.IsTable;
+local UtilIsInteger<const>, UtilIsTable<const> = Util.IsInteger, Util.IsTable;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BuyItem, Fade, GameProc, GetActiveObject, InitCon, InitLobby,
   LoadResources, LoopStaticSound, PlayMusic, PlayStaticSound, PrintC,

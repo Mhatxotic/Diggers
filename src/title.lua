@@ -13,10 +13,10 @@
 local create<const>, pairs<const>, random<const> =
   table.create, pairs, math.random;
 -- Engine function aliases ------------------------------------------------- --
-local CoreRAM<const>, DisplayVRAM<const>, UtilBytes<const> =
-  Core.RAM, Display.VRAM, Util.Bytes;
+local CoreGetRAM<const>, DisplayGetVRAM<const>, UtilBytes<const> =
+  Core.GetRAM, Display.GetVRAM, Util.Bytes;
 -- Consts ------------------------------------------------------------------ --
-local strVersion<const> = Variable.Internal.app_version:Get().." ";
+local strVersion<const> = Variable.Internal.app_version:GetString().." ";
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, DeInitLevel, Fade, GameProc, GetActivePlayer, GetGameTicks,
   GetKeyName, GetOpponentPlayer, InitLobby, InitNewGame, InitTitleCredits,
@@ -40,7 +40,7 @@ local aAssets,                         -- Assets to load
       texTitle;                        -- Texture tile
 -- Get engine information -------------------------------------------------- --
 local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
-  iAppBuild<const>, iAppRevision<const>, _, _, sAppExeType = Core.Engine();
+  iAppBuild<const>, iAppRevision<const>, _, _, sAppExeType = Core.GetVersion();
 sAppTitle, sAppVendor, sAppExeType =
   sAppTitle:upper(), sAppVendor:upper(), sAppExeType:upper();
 -- Static element positions ------------------------------------------------ --
@@ -172,12 +172,12 @@ local function ProcRender() fcbEnterAnimProc() end;
 -- Detect VRAM and update subtitle ----------------------------------------- --
 local function DetectVideoMemory()
   -- Setup VRAM update function and no VRAM available?
-  local _, _, nVFree<const> = DisplayVRAM();
+  local _, _, nVFree<const> = DisplayGetVRAM();
   if nVFree == -1 then
     -- No VRAM callback
     local function NoVRAM()
       -- Get and display only RAM
-      local _, _, nFree<const> = CoreRAM();
+      local _, _, nFree<const> = CoreGetRAM();
       strSubTitle = strVersion..UtilBytes(nFree, 1).." RAM FREE";
     end
     -- Set NO VRAM available callback
@@ -187,13 +187,13 @@ local function DetectVideoMemory()
     -- VRAM available callback
     local function VRAM()
       -- Get VRAM available and if is shared memory?
-      local _, _, nVFree<const>, _, bIsShared<const> = DisplayVRAM();
+      local _, _, nVFree<const>, _, bIsShared<const> = DisplayGetVRAM();
       if bIsShared then
         strSubTitle = strVersion..UtilBytes(nVFree, 1).. "(S+V) FREE";
       -- Is dedicated memory?
       else
         -- Get free main memory
-        local _, _, nFree<const> = CoreRAM();
+        local _, _, nFree<const> = CoreGetRAM();
         -- If both the same the memory is shared
         strSubTitle = strVersion..UtilBytes(nFree, 1).."(S)/"..
                                   UtilBytes(nVFree, 1).. "(V) FREE";

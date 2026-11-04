@@ -13,9 +13,9 @@
 local error<const>, tostring<const>, unpack<const> =
   error, tostring, table.unpack;
 -- Engine function aliases ------------------------------------------------- --
-local CoreTicks<const>, UtilBlank<const>, UtilIsTable<const>,
-  UtilIsBoolean<const>, UtilIsInteger<const> =
-    Core.Ticks, Util.Blank, Util.IsTable, Util.IsBoolean, Util.IsInteger;
+local UtilBlank<const>, UtilIsTable<const>, UtilIsBoolean<const>,
+  UtilIsInteger<const> =
+    Util.Blank, Util.IsTable, Util.IsBoolean, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, InitBank, InitCon,
   InitContinueGame, InitScene, InitShop, InitTitle, LoadResources, PlayMusic,

@@ -12,15 +12,15 @@
 -- Core function aliases --------------------------------------------------- --
 local collectgarbage<const>, format<const> = collectgarbage, string.format;
 -- Engine function aliases ------------------------------------------------- --
-local CoreCatchup<const>, CoreTime<const>, FontPrint<const>, FontPrintC<const>,
-  FontPrintCT<const>, FontPrintM<const>, FontPrintR<const>, FontPrintS<const>,
-  FontPrintU<const>, FontPrintUR<const>, FontPrintW<const>, FontPrintWS<const>,
-  TextureBlitLTRB<const>, TextureBlitSLTA<const>, TextureBlitSLTWHA<const>,
-  TextureBlitSLTWH<const>, TextureBlitLT<const>, TextureBlitSLT<const>,
-  TextureBlitSLTRB<const>, TextureTileA<const>, UtilCRC<const>,
-  UtilClamp<const>, UtilIsFunction<const>, UtilIsNumber<const>,
+local CoreCatchup<const>, CoreGetTime<const>, FontPrint<const>,
+  FontPrintC<const>, FontPrintCT<const>, FontPrintM<const>, FontPrintR<const>,
+  FontPrintS<const>, FontPrintU<const>, FontPrintUR<const>, FontPrintW<const>,
+  FontPrintWS<const>, TextureBlitLTRB<const>, TextureBlitSLTA<const>,
+  TextureBlitSLTWHA<const>, TextureBlitSLTWH<const>, TextureBlitLT<const>,
+  TextureBlitSLT<const>, TextureBlitSLTRB<const>, TextureTileA<const>,
+  UtilCRC<const>, UtilClamp<const>, UtilIsFunction<const>, UtilIsNumber<const>,
   VideoSetVLTRB<const> =
-    Core.Catchup, Core.Time, Font.Print, Font.PrintC, Font.PrintCT,
+    Core.Catchup, Core.GetTime, Font.Print, Font.PrintC, Font.PrintCT,
     Font.PrintM, Font.PrintR, Font.PrintS, Font.PrintU, Font.PrintUR,
     Font.PrintW, Font.PrintWS, Texture.BlitLTRB, Texture.BlitSLTA,
     Texture.BlitSLTWHA, Texture.BlitSLTWH, Texture.BlitLT, Texture.BlitSLT,
@@ -224,7 +224,7 @@ end
 -- Loading indicator ------------------------------------------------------- --
 local function ProcLoader()
   texSpr:SetCRGBA(1.0, 1.0, 1.0, 1.0);
-  BlitSLTA(texSpr, 801, nLoadX, nLoadY, CoreTime() * 2.0);
+  BlitSLTA(texSpr, 801, nLoadX, nLoadY, CoreGetTime() * 2.0);
 end
 -- Render fade ------------------------------------------------------------- --
 local function RenderFade(nAmount, nLeft, nTop, nRight, nBottom, iS)

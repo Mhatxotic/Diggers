@@ -13,9 +13,9 @@
 local pairs<const>, floor<const>, create<const> =
   pairs, math.floor, table.create;
 -- Engine function aliases ------------------------------------------------- --
-local CoreTicks<const>, UtilClampInt<const>, UtilFormatNumber<const>,
-  UtilIsNumber<const>, UtilIsTable<const> = Core.Ticks, Util.ClampInt,
-    Util.FormatNumber, Util.IsNumber, Util.IsTable;
+local UtilClampInt<const>, UtilFormatNumber<const>,
+  UtilIsNumber<const>, UtilIsTable<const> =
+    Util.ClampInt, Util.FormatNumber, Util.IsNumber, Util.IsTable;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BlitLT, Fade, GetMouseX, GetMouseY, InitCon, InitLobby,
   IsMouseXGreaterEqualThan, IsMouseXLessThan,  IsMouseYGreaterEqualThan,

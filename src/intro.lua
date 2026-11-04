@@ -13,8 +13,8 @@
 local error<const>, max<const>, maxinteger<const> =
   error, math.max, math.maxinteger;
 -- Engine function aliases ------------------------------------------------- --
-local CoreTime<const>, UtilBlank<const>, UtilIsInteger<const> =
-  Core.Time, Util.Blank, Util.IsInteger;
+local CoreGetTime<const>, UtilBlank<const>, UtilIsInteger<const> =
+  Core.GetTime, Util.Blank, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLT, BlitSLTRB, Fade, GetCallbacks, InitSetup, InitTitle,
   LoadResources, PrintC, RegisterFBUCallback, RenderFade, RenderShadow,
@@ -125,7 +125,7 @@ local function ProcRenderSetup()
   local nWidth<const> = -nStageL - 4.0;
   local nAspect<const> = 208.0 / 58.0;
   local nHeight<const> = nWidth * nAspect;
-  local nLX = (CoreTime() * 100.0) % 240.0;
+  local nLX = (CoreGetTime() * 100.0) % 240.0;
   local nLY = -nLX;
   local nX<const> = nStageL + 4.0;
   local nXpWidth<const> = nX + nWidth;
@@ -163,7 +163,7 @@ local function OnFadedOutToTitle()
   -- Load title screen
   InitTitle();
 end
--- GoTitle function --------------------------------------------------------- --
+-- Go to title function ---------------------------------------------------- --
 local function GoTitle()
   -- Remove event function
   vidVideo:OnEvent(UtilBlank);

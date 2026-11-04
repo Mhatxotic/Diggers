@@ -18,37 +18,39 @@ local cos<const>, floor<const>, format<const>, len<const>, maxinteger<const>,
     tostring, table.create;
 -- Engine function aliases ------------------------------------------------- --
 local AudioGetNumPBDs<const>, AudioGetPBDName<const>, AudioReset<const>,
-  CoreCPUUsage<const>, CoreEngine<const>, CoreLibrary<const>,
-  CoreLicense<const>, CoreRAM<const>, CoreTime<const>, DisplayFSType<const>,
-  DisplayGetSize<const>, DisplayGPUFPS<const>, DisplayMonitor<const>,
-  DisplayMonitorData<const>, DisplayMonitors<const>, DisplayOnResized<const>,
-  DisplayReset<const>, DisplayVidModeData<const>, DisplayVidModes<const>,
+  CoreGetCPUUsage<const>, CoreGetVersion<const>, CoreGetLibrary<const>,
+  CoreGetLicense<const>, CoreGetRAM<const>, CoreGetTime<const>,
+  DisplayGetFSType<const>, DisplayGetSize<const>, DisplayGetGPUFPS<const>,
+  DisplayGetMonitor<const>, DisplayGetMonitorData<const>,
+  DisplayGetMonitors<const>, DisplayOnResized<const>, DisplayReset<const>,
+  DisplayGetVidModeData<const>, DisplayGetVidModes<const>,
   DisplayVReset<const>, InputGetKeyName<const>, InputOnKey<const>,
-  UtilClamp<const>, UtilClampInt<const>, UtilExplode<const>,
-  UtilGetRatio<const>, UtilWordWrap<const>, VariableRegister<const>,
-  oCVars<const>, oMods<const>, iCredits<const>, iNativeMode<const> =
-    Audio.GetNumPBDevices, Audio.GetPBDeviceName, Audio.Reset, Core.CPUUsage,
-    Core.Engine, Core.Library, Core.License, Core.RAM, Core.Time,
-    Display.FSType, Display.GetSize, Display.GPUFPS, Display.Monitor,
-    Display.MonitorData, Display.Monitors, Display.OnResized, Display.Reset,
-    Display.VidModeData, Display.VidModes, Display.VReset, Input.GetKeyName,
-    Input.OnKey, Util.Clamp, Util.ClampInt, Util.Explode, Util.GetRatio,
-    Util.WordWrap, Variable.Register, Variable.Internal, Input.KeyMods,
-    #Core.Libraries, Display.FSTypes.NATIVE;
+  UtilClamp<const>, UtilClampInt<const>, UtilExplode<const>, UtilRatio<const>,
+  UtilWordWrap<const>, VariableRegister<const>, oCVars<const>, oMods<const>,
+  iCredits<const>, iNativeMode<const> =
+    Audio.GetNumPBDevices, Audio.GetPBDeviceName, Audio.Reset,
+    Core.GetCPUUsage, Core.GetVersion, Core.GetLibrary, Core.GetLicense,
+    Core.GetRAM, Core.GetTime, Display.GetFSType, Display.GetSize,
+    Display.GetGPUFPS, Display.GetMonitor, Display.GetMonitorData,
+    Display.GetMonitors, Display.OnResized, Display.Reset,
+    Display.GetVidModeData, Display.GetVidModes, Display.VReset,
+    Input.GetKeyName, Input.OnKey, Util.Clamp, Util.ClampInt, Util.Explode,
+    Util.Ratio, Util.WordWrap, Variable.Register, Variable.Internal,
+    Input.KeyMods, #Core.Libraries, Display.FSTypes.NATIVE;
 -- Read and prepare engine version information ----------------------------- --
 local sAppTitle, sAppVendor, iAppMajor<const>, iAppMinor<const>,
-  iAppBuild<const>, iAppRevision<const>, _, _, sAppExeType = CoreEngine();
+  iAppBuild<const>, iAppRevision<const>, _, _, sAppExeType = CoreGetVersion();
 sAppTitle, sAppVendor, sAppExeType =
   sAppTitle:upper(), sAppVendor:upper(), sAppExeType:upper();
 -- Read game version information ------------------------------------------- --
 local sGameVersion<const>, sGameName<const>, sGameCopyr<const>,
       sGameDescription<const>, sGameWebsite<const>
       = -- ----------------------------------------------------------------- --
-      oCVars.app_version:Get():upper(),
-      oCVars.app_longname:Get():upper(),
-      oCVars.app_copyright:Get():upper(),
-      oCVars.app_description:Get():upper(),
-      oCVars.app_website:Get():upper();
+      oCVars.app_version:GetString():upper(),
+      oCVars.app_longname:GetString():upper(),
+      oCVars.app_copyright:GetString():upper(),
+      oCVars.app_description:GetString():upper(),
+      oCVars.app_website:GetString():upper();
 -- Other CVars used -------------------------------------------------------- --
 local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>, vAudvol<const>,
       vAudstrvol<const>, vAudsamvol<const>, vAudfmvvol<const>,
@@ -170,7 +172,7 @@ local iKeyBankBind;                    -- Key bank id for key binds screen
 local function GetMonitorIdOrPrimary()
   -- If the monitor id is set to the primary monitor then we need to return
   -- the actual id of the primary monitor instead
-  if iMonitorId == -1 then return DisplayMonitor() end;
+  if iMonitorId == -1 then return DisplayGetMonitor() end;
   -- Return selected monitor id
   return iMonitorId;
 end
@@ -256,15 +258,15 @@ end
 -- Refresh monitor settings ------------------------------------------------ --
 local function RefreshMonitorSettings()
   -- Initialise monitor video modes and use primary monitor if invalid
-  iMonitorId = tonumber(vVidmonitor:Get());
-  if iMonitorId < -1 or iMonitorId >= DisplayMonitors() then
+  iMonitorId = vVidmonitor:GetInteger();
+  if iMonitorId < -1 or iMonitorId >= DisplayGetMonitors() then
     iMonitorId = -1 end;
   iMonitorIdOriginal = iMonitorId;
   -- Initialise video resolution and use desktop resolution if invalid
-  iFullScreenState = tonumber(vVidfs:Get());
+  iFullScreenState = vVidfs:GetInteger();
   if iFullScreenState < 0 or iFullScreenState > 1 then
     iFullScreenState = 0 end;
-  iFullScreenMode = tonumber(vVidfsmode:Get());
+  iFullScreenMode = vVidfsmode:GetInteger();
   -- If full-screen mode is enabled?
   if iFullScreenState == 1 then
     -- If full-screen mode is -1 (Exclusive full-screen)?
@@ -276,7 +278,7 @@ local function RefreshMonitorSettings()
   -- If the full-screen mode CVar is invalid then reset to 'automatic' mode
   -- where the engine will set the full-screen mode to the desktop mode.
   if iFullScreenMode < -2 or
-    iFullScreenMode >= DisplayVidModes(GetMonitorIdOrPrimary()) then
+    iFullScreenMode >= DisplayGetVidModes(GetMonitorIdOrPrimary()) then
       iFullScreenMode = -1 end;
   -- Record the the initialised variables so we can check if they were
   -- modified when the user clicks the apply button.
@@ -286,8 +288,8 @@ end;
 -- Refresh window settings ------------------------------------------------- --
 local function RefreshWindowSettings()
   -- Get window size
-  local iWindowWidth = tonumber(vWinwidth:Get());
-  local iWindowHeight = tonumber(vWinheight:Get());
+  local iWindowWidth = vWinwidth:GetInteger();
+  local iWindowHeight = vWinheight:GetInteger();
   -- Set to defaults if invalid
   if iWindowWidth < -1 then iWindowWidth = -1 end;
   if iWindowHeight < -1 then iWindowHeight = -1 end;
@@ -305,7 +307,7 @@ local function RefreshWindowSettings()
 end
 -- Refresh audio settings -------------------------------------------------- --
 local function RefreshAudioSettings()
-  iAudioDeviceId = tonumber(vAudinterface:Get());
+  iAudioDeviceId = vAudinterface:GetInteger();
   iAudioDeviceIdOriginal = iAudioDeviceId;
 end
 -- Refresh display labels -------------------------------------------------- --
@@ -371,11 +373,11 @@ end
 -- ------------------------------------------------------------------------- --
 local function ProcSysInfo()
   -- Get time
-  nTime = CoreTime();
+  nTime = CoreGetTime();
   -- Get cpu info, ram info and fps
-  nCPUUsageProcess, nCPUUsageSystem = CoreCPUUsage();
-  nRAMUsePercentage = CoreRAM();
-  nGPUFramesPerSecond = DisplayGPUFPS();
+  nCPUUsageProcess, nCPUUsageSystem = CoreGetCPUUsage();
+  nRAMUsePercentage = CoreGetRAM();
+  nGPUFramesPerSecond = DisplayGetGPUFPS();
 end
 -- ------------------------------------------------------------------------- --
 local function ProcRenderReadme()
@@ -700,7 +702,7 @@ local function DoInitSetup(iMode)
     -- Backup old callbacks (Return to them later)
     fcbLogic, fcbRender = CBProc, CBRender;
     -- Get time
-    nTime = CoreTime();
+    nTime = CoreGetTime();
     -- Call the mode init function
     aMode[1]();
   end
@@ -834,8 +836,8 @@ local function OnScriptLoaded(GetAPI)
   -- Option picker callbacks : Monitor choice callbacks
   local function MonitorUpdate()
     if iMonitorId == -1 then return "Primary Monitor" end;
-    local sMsg<const> = DisplayMonitorData(iMonitorId);
-    if #sMsg > 34 then return sMsg:sub(0,30).."..." end;
+    local sMsg<const> = DisplayGetMonitorData(iMonitorId);
+    if #sMsg > 34 then return sMsg:sub(0, 30).."..." end;
     return sMsg;
   end
   local function MonitorDown()
@@ -843,48 +845,48 @@ local function OnScriptLoaded(GetAPI)
     iMonitorId = iMonitorId - 1;
   end
   local function MonitorUp()
-    if iMonitorId == DisplayMonitors()-1 then return end;
+    if iMonitorId == DisplayGetMonitors() - 1 then return end;
     iMonitorId = iMonitorId + 1;
   end
   -- Full-screen state callbacks
   local function FSStateUpdate()
-    if DisplayFSType() == iNativeMode then return aWindowLabels[4] end;
+    if DisplayGetFSType() == iNativeMode then return aWindowLabels[4] end;
     return aWindowLabels[iFullScreenState + 1];
   end
   local function FSStateDown()
     if iFullScreenState <= 0 or
-       DisplayFSType() == iNativeMode then return end;
+       DisplayGetFSType() == iNativeMode then return end;
     iFullScreenState = iFullScreenState - 1;
     if iFullScreenState < 2 then iFullScreenMode = -2 end;
   end
   local function FSStateUp()
     if iFullScreenState >= #aWindowLabels-2 or
-       DisplayFSType() == iNativeMode then return end;
+       DisplayGetFSType() == iNativeMode then return end;
     iFullScreenState = iFullScreenState + 1;
     if iFullScreenState == 2 then iFullScreenMode = -1 end;
   end
   -- Resolution callbacks
   local function FSResUpdate()
     if iFullScreenMode == -2 or
-       DisplayFSType() == iNativeMode then return "Disabled" end;
+       DisplayGetFSType() == iNativeMode then return "Disabled" end;
     if iFullScreenMode == -1 then return "Automatic" end;
     -- Which one
     local iWidth<const>, iHeight<const>, iBits<const>, nRefresh<const> =
-      DisplayVidModeData(GetMonitorIdOrPrimary(), iFullScreenMode);
+      DisplayGetVidModeData(GetMonitorIdOrPrimary(), iFullScreenMode);
     -- Return data
     return iWidth.."x"..iHeight.."x"..iBits.." "..nRefresh.."hz ("..
-      UtilGetRatio(iWidth, iHeight)..")";
+      UtilRatio(iWidth, iHeight)..")";
   end
   local function FSResDown()
     if iFullScreenMode <= -1 or
-       DisplayFSType() == iNativeMode then
+       DisplayGetFSType() == iNativeMode then
       return end;
     iFullScreenMode = iFullScreenMode - 1;
   end
   local function FSResUp()
     if iFullScreenMode <= -2 or
-       DisplayFSType() == iNativeMode or
-       iFullScreenMode >= DisplayVidModes(GetMonitorIdOrPrimary())-1 then
+       DisplayGetFSType() == iNativeMode or
+       iFullScreenMode >= DisplayGetVidModes(GetMonitorIdOrPrimary()) - 1 then
       return end;
     iFullScreenMode = iFullScreenMode + 1;
   end
@@ -892,36 +894,35 @@ local function OnScriptLoaded(GetAPI)
   local function WSizeUpdate()
     -- Ignore if in full-screen
     if iFullScreenState ~= 0 or
-       DisplayFSType() == iNativeMode then
+       DisplayGetFSType() == iNativeMode then
       return "Disabled" end;
     -- Custom resolution? Return custom resolution label with size
     if iWindowId <= 1 then
       local iWinX<const>, iWinY<const> = DisplayGetSize();
       return aCustomLabels[iWindowId + 1].." "..
-        iWinX.."x"..iWinY.." ("..UtilGetRatio(iWinX, iWinY)..")";
+        iWinX.."x"..iWinY.." ("..UtilRatio(iWinX, iWinY)..")";
     end
     -- Which one
     local aData<const> = aWindowSizes[iWindowId];
     if not aData then return "Unknown ("..iWindowId..")" end;
     -- Return data
-    return aData[1].."x"..aData[2]..
-      " ("..UtilGetRatio(aData[1], aData[2])..")";
+    return aData[1].."x"..aData[2].." ("..UtilRatio(aData[1], aData[2])..")";
   end
   local function WSizeDown()
     if iFullScreenState ~= 0 or
-       DisplayFSType() == iNativeMode then return end;
+       DisplayGetFSType() == iNativeMode then return end;
     iWindowId = iWindowId - 1;
     if iWindowId < 1 then iWindowId = 1 end;
   end
   local function WSizeUp()
     if iFullScreenState ~= 0 or
-       DisplayFSType() == iNativeMode then return end;
+       DisplayGetFSType() == iNativeMode then return end;
     iWindowId = iWindowId + 1;
     if iWindowId > #aWindowSizes then iWindowId = #aWindowSizes end;
   end
   -- Frame limiter choice callbacks
-  local function GetVarVidVsync() return tonumber(vVidvsync:Get()) end;
-  local function GetVarAppDelay() return tonumber(vAppdelay:Get()) end;
+  local function GetVarVidVsync() return vVidvsync:GetInteger(); end;
+  local function GetVarAppDelay() return vAppdelay:GetInteger(); end;
   local function LimiterGet()
     -- Get VSync value, thread delay and kernel tick rate
     local iFrameLimiter = 1 + GetVarVidVsync();
@@ -953,8 +954,8 @@ local function OnScriptLoaded(GetAPI)
     LimiterSet(UtilClampInt(LimiterGet()+1, 0, #aFrameLimiterLabels-1));
   end
   -- Filter choice callbacks
-  local function GetVarTexFilter() return tonumber(vTexfilter:Get()) end;
-  local function SetVarTexFilter(iV) return vTexfilter:SetInteger(iV) end;
+  local function GetVarTexFilter() return vTexfilter:GetInteger(); end;
+  local function SetVarTexFilter(iV) vTexfilter:SetInteger(iV) end;
   local function FilterUpdate()
     -- Point filtering if disabled
     if GetVarTexFilter() == 0 then return "Point" end;
@@ -987,9 +988,9 @@ local function OnScriptLoaded(GetAPI)
     iAudioDeviceId = iAudioDeviceId + 1;
   end
   -- Volume set utilities
-  local function VPrepare(vCV) return floor(vCV:Get() * 100).."%" end;
+  local function VPrepare(vCV) return floor(vCV:GetNumber() * 100).."%" end;
   local function VSet(vCV, iAdj)
-    vCV:Number(UtilClamp(tonumber(vCV:Get()) + (iAdj * 0.01), 0, 1));
+    vCV:SetNumber(UtilClamp(vCV:GetNumber() + (iAdj * 0.01), 0, 1));
   end
   -- Master volume callbacks
   local function VMasterUpdate() return VPrepare(vAudvol) end;
@@ -1386,12 +1387,12 @@ local function OnScriptLoaded(GetAPI)
   local iIndex = 0;
   repeat
     -- Get first credit information and if we can show a second?
-    local sName<const>, sVersion<const> = CoreLibrary(iIndex);
+    local sName<const>, sVersion<const> = CoreGetLibrary(iIndex);
     -- 1-index credit id.
     iIndex = iIndex + 1;
     if iIndex < iCredits then
       -- Get second credit information
-      local sName2<const>, sVersion2<const> = CoreLibrary(iIndex);
+      local sName2<const>, sVersion2<const> = CoreGetLibrary(iIndex);
       -- Go forward another entry
       iIndex = iIndex + 1;
       -- Insert both credits
@@ -1412,7 +1413,7 @@ local function OnScriptLoaded(GetAPI)
   for iIndex = 0, iCredits - 1 do
     -- Get credit information
     local sName<const>, sVersion<const>, bCopyright, sAuthor<const> =
-      CoreLibrary(iIndex);
+      CoreGetLibrary(iIndex);
     -- Set copyright
     if bCopyright then bCopyright = "(C)";
                   else bCopyright = "BY" end;
@@ -1420,7 +1421,7 @@ local function OnScriptLoaded(GetAPI)
     Header((iIndex+1)..". USES "..sName:upper().." "..bCopyright.." "..
       sAuthor:upper());
     -- Add credit license
-    local aLines<const> = UtilExplode(CoreLicense(iIndex), "\n");
+    local aLines<const> = UtilExplode(CoreGetLicense(iIndex), "\n");
     for iIndex = 1, #aLines do
       local sLine<const> = aLines[iIndex];
       if #sLine > 78 then

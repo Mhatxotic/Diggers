@@ -20,19 +20,21 @@ local collectgarbage<const>, cos<const>, error<const>, floor<const>,
 -- Engine function aliases ------------------------------------------------- --
 local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
   CoreEnd<const>, CoreLog<const>, CoreLogEx<const>, CoreOnTick<const>,
-  CoreQuit<const>, CoreReset<const>, CoreStack<const>, CoreWrite<const>,
-  FboDraw<const>, FboMatrix<const>, InputOnKey<const>, InputSetCursor<const>,
-  CoreTime<const>, TextureCreate<const>, UtilBlank<const>, UtilDuration<const>,
-  UtilExplode<const>, UtilFlushArray<const>, UtilImplode<const>,
-  UtilIsFunction<const>, UtilIsInteger<const>, UtilIsString<const>,
-  UtilIsTable<const>, VariableRegister<const> =
+  CoreQuit<const>, CoreReset<const>, CoreGetStack<const>, CoreWrite<const>,
+  FboSetDraw<const>, FboGetMainSize<const>, InputOnKey<const>,
+  InputSetCursor<const>, CoreGetTime<const>, TextureCreate<const>,
+  UtilBlank<const>, UtilDuration<const>, UtilExplode<const>,
+  UtilFlushArray<const>, UtilImplode<const>, UtilIsFunction<const>,
+  UtilIsInteger<const>, UtilIsString<const>, UtilIsTable<const>,
+  VariableRegister<const> =
     Asset.ParseBlock, Clip.Set, Core.Catchup, Core.End, Core.Log, Core.LogEx,
-    Core.OnTick, Core.Quit, Core.Reset, Core.Stack, Core.Write, Fbo.Draw,
-    Fbo.Matrix, Input.OnKey, Input.SetCursor, Core.Time, Texture.Create,
-    Util.Blank, Util.Duration, Util.Explode, Util.FlushArray, Util.Implode,
-    Util.IsFunction, Util.IsInteger, Util.IsString, Util.IsTable,
+    Core.OnTick, Core.Quit, Core.Reset, Core.GetStack, Core.Write, Fbo.SetDraw,
+    Fbo.GetMainSize, Input.OnKey, Input.SetCursor, Core.GetTime,
+    Texture.Create, Util.Blank, Util.Duration, Util.Explode, Util.FlushArray,
+    Util.Implode, Util.IsFunction, Util.IsInteger, Util.IsString, Util.IsTable,
     Variable.Register;
 -- Locals ------------------------------------------------------------------ --
+local sBlank<const>  = "";             -- Blank string
 local CBProc, CBRender;                -- Generic tick callbacks
 local aMods<const>   = create(34);     -- Modules data
 local bTestMode      = false;          -- Test mode enabled
@@ -227,7 +229,7 @@ local function SetErrorMessage(sReason)
   -- Callback function
   local function OnTick()
     -- Set clear colour depending on time
-    local nTime<const>, nRed = CoreTime();
+    local nTime<const>, nRed = CoreGetTime();
     nRed = cos(nTime) * sin(nTime) + 0.5;
     -- Show error message
     fboMain:SetClearColour(nRed, 0.0, 0.0, 1.0);
@@ -235,7 +237,7 @@ local function SetErrorMessage(sReason)
     fFont:SetSize(1.0);
     fFont:PrintW(iTextLeft, iTextTop, iTextRight, 0, sMessage);
     -- Draw frame if we changed the background colour
-    if nTime >= nNext then FboDraw() nNext = nTime + 0.032 end;
+    if nTime >= nNext then FboSetDraw() nNext = nTime + 0.032 end;
   end
   -- Set loop function
   CoreOnTick(OnTick);
@@ -248,12 +250,12 @@ local function TimeIt(sName, fcbCallback, ...)
   if not UtilIsFunction(fcbCallback) then
     error("Function is invalid! "..tostring(fcbCallback)) end;
   -- Save time
-  local nTime<const> = CoreTime();
+  local nTime<const> = CoreGetTime();
   -- Execute function
   fcbCallback(...);
   -- Put result in console
   CoreLog("Procedure '"..sName.."' completed in "..
-    UtilDuration(CoreTime() - nTime, 3).." sec!");
+    UtilDuration(CoreGetTime() - nTime, 3).." sec!");
 end
 -- Generic function to return a handle ------------------------------------- --
 local function NoSecondStage(hH) return hH end;
@@ -266,14 +268,14 @@ local aTypes<const> = {
   { Image.FileAsync,  {iPNG}, "tex/", ".png", Font.Image,       false,   --  3
     { 1, 2, 3, 4, 9 } },
   { Pcm.FileAsync,    {iOGG}, "sfx/", ".ogg", Sample.Create,    false }, --  4
-  { Asset.FileAsync,  {0},    "",     "",     NoSecondStage,    false }, --  5
+  { Asset.FileAsync,  {0},    sBlank, sBlank, NoSecondStage,    false }, --  5
   { Image.FileAsync,  {0},    "tex/", ".png", Mask.Create,      false }, --  6
   { Stream.FileAsync, {},     "mus/", ".ogg", NoSecondStage,    false }, --  7
   { Video.FileAsync,  {},     "fmv/", ".ogv", NoSecondStage,    false }, --  8
   { Asset.FileAsync,  {0},    "src/", ".lua", ParseScript,      true  }, --  9
   { Image.FileAsync,  {iPNG}, "tex/", ".png", Texture.ImageUT,  false,   -- 10
     { 2 } },
-  { Json.FileAsync,   {},     "",    ".json", Json.ToTable,     false }, -- 11
+  { Json.FileAsync,   {},     sBlank,".json", Json.ToTable,     false }, -- 11
   -- Async function   Params  Prefix Suffix  Data loader function  Info?    Id
 };
 -- Loader ------------------------------------------------------------------ --
@@ -288,7 +290,7 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
     error("Finished callback is invalid! "..tostring(fComplete)) end;
   -- Initialise queue
   local sDst, aInfo, oNCache, iTotal, iLoaded =
-    "", { }, create(0, #aResources), nil, nil;
+    sBlank, { }, create(0, #aResources), nil, nil;
   -- Progress update on asynchronous loading
   local function ProgressUpdate(iCmd, ...)
     if iCmd == iFStart then aInfo = { ... } end;
@@ -330,7 +332,7 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
       -- Cache the handle unless requested not to
       if not bNoCache then oNCache[sDst] = vHandle end;
       -- Set stage 2 duration and total duration
-      oResource.ST2 = CoreTime() - oResource.ST2;
+      oResource.ST2 = CoreGetTime() - oResource.ST2;
       oResource.ST3 = oResource.ST1 + oResource.ST2;
       -- Loaded counter increment
       iLoaded = iLoaded + 1;
@@ -364,7 +366,7 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
     -- Setup handle
     local function SetupSecondStage()
       -- Get current time
-      local nTime<const> = CoreTime();
+      local nTime<const> = CoreGetTime();
       -- Set stage 1 duration and stage 2 start time
       oResource.ST1 = nTime - oResource.ST1;
       oResource.ST2 = nTime;
@@ -395,7 +397,7 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
     end
     aDstParams[1 + #aDstParams] = OnLoaded;
     -- Set stage 1 time
-    oResource.ST1 = CoreTime();
+    oResource.ST1 = CoreGetTime();
     -- Reset parameters for progress update
     UtilFlushArray(aInfo);
     -- Send cached handle if it exists
@@ -430,7 +432,7 @@ local function RefreshViewportInfo()
   -- Refresh matrix parameters
   iStageWidth, iStageHeight,
     iStageLeftO, iStageTopO, iStageRightO, iStageBottom = fboMain:GetMatrix();
-  iOrthoWidth, iOrthoHeight = FboMatrix();
+  iOrthoWidth, iOrthoHeight = FboGetMainSize();
   -- Floor all the values as the main frame buffer object is always on the
   -- pixel boundary
   iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight, iStageBottom,
@@ -442,7 +444,7 @@ local function RefreshViewportInfo()
   -- Call frame buffer callbacks
   for _, fcbC in pairs(oFbuCbs) do
     -- Protected call so we can handle errors
-    local bResult<const>, sReason<const> = xpcall(fcbC, CoreStack,
+    local bResult<const>, sReason<const> = xpcall(fcbC, CoreGetStack,
       iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight,
       iStageBottom, iOrthoWidth, iOrthoHeight);
     if not bResult then SetErrorMessage(sReason) end;
@@ -485,7 +487,7 @@ local function LoadTextureScale(oAssetsData)
   local iMaxUsedTexSize<const> = 1024;
   local iMaxSize<const> = Texture.MaxSize();
   if iTexScale * iMaxUsedTexSize > iMaxSize then
-    local _<const>, _<const>, sDisplay<const> = Display.GPU();
+    local _<const>, _<const>, sDisplay<const> = Display.GetGPU();
     error("Fatal error! The installed "..iTexScale.."X scale texture pack \z
            is not supported on this rendering device ("..sDisplay..") as \z
            it will only support a maximum scale of "..
@@ -542,8 +544,8 @@ local function LoadTextureScale(oAssetsData)
   end
   -- Resize frame buffer if texture scale different
   local oVariables<const> = Variable.Internal;
-  Fbo.Resize(oVariables.vid_orwidth:Get() * iTexScale,
-             oVariables.vid_orheight:Get() * iTexScale);
+  Fbo.SetMainSize(oVariables.vid_orwidth:GetInteger() * iTexScale,
+                  oVariables.vid_orheight:GetInteger() * iTexScale);
 end
 -- Main procedure callback ------------------------------------------------- --
 local function MainCallback()
@@ -556,7 +558,7 @@ local function MainCallback()
   -- Render the cursor (input.lua)
   CursorRender();
   -- Draw screen at end of engine tick
-  FboDraw();
+  FboSetDraw();
 end
 -- The first tick function ------------------------------------------------- --
 local function fcbTick()
@@ -639,9 +641,10 @@ local function fcbTick()
     -- ...and a CVar that lets us skip the intro
     oAPI.cvIntro = VariableRegister("gam_intro", 1, iCFB, fcbEmpty);
     -- ...and a CVar that lets us start straight into a level
-    oAPI.cvTest = VariableRegister("gam_test", "", oCVF.STRING, fcbEmpty);
+    oAPI.cvTest = VariableRegister("gam_test", sBlank, oCVF.STRING, fcbEmpty);
     -- ...and a CVar to force a different language
-    oAPI.cvLang = VariableRegister("gam_lang", "", oCVF.STRINGSAVE, fcbEmpty);
+    oAPI.cvLang = VariableRegister("gam_lang", sBlank, oCVF.STRINGSAVE,
+      fcbEmpty);
     -- Ask modules to grab needed functions from the API (first chance)
     for iI = 1, #aMods do
       local oModData<const> = aMods[iI];
@@ -681,13 +684,11 @@ local function fcbTick()
     -- Hide the cursor
     InputSetCursor(false);
     -- Test mode requested?
-    local sTestValue<const> = oAPI.cvTest:Get();
-    if #sTestValue > 0 then
+    if oAPI.cvTest:IsNotEmpty() then
       -- Test mode enabled
       bTestMode = true;
-      -- Get start level
-      local iStartLevel<const> = tonumber(sTestValue) or 0;
-      -- Test random level? (game.lua)
+      -- Get start level and test random level? Load a random level (game.lua)
+      local iStartLevel<const> = oAPI.cvTest:GetInteger();
       if iStartLevel == 0 then LoadLevel(random(#aLevelsData), "game", -1);
       -- Test a specific level (game.lua)
       elseif iStartLevel >= 1 and iStartLevel <= #aLevelsData then
@@ -736,9 +737,9 @@ local function fcbTick()
       ::invalid::
     end
     -- If being run for first time
-    if 0 == tonumber(oAPI.cvSetup:Get()) then
+    if 0 == oAPI.cvSetup:GetInteger() then
       -- Skip intro? Initialise title screen
-      if 0 == tonumber(oAPI.cvIntro:Get()) then return InitTitle() end;
+      if 0 == oAPI.cvIntro:GetInteger() then return InitTitle() end;
       -- Initialise intro with setup dialog
       return InitIntro(false);
     end
@@ -785,7 +786,7 @@ local function fcbTick()
     -- Catchup accumulator (we don't care about it);
     CoreCatchup();
     -- Draw screen at end of LUA tick
-    FboDraw();
+    FboSetDraw();
   end
   -- Set new tick function
   fcbTick = LoaderProc;
@@ -793,7 +794,7 @@ end
 -- Main callback with smart error handling --------------------------------- --
 local function MainProc()
   -- Protected call so we can handle errors
-  local bResult<const>, sReason<const> = xpcall(fcbTick, CoreStack);
+  local bResult<const>, sReason<const> = xpcall(fcbTick, CoreGetStack);
   if not bResult then SetErrorMessage(sReason) end;
 end
 -- Backup function for error handler --------------------------------------- --

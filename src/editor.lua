@@ -14,8 +14,8 @@ local format<const>, remove<const>, maxinteger<const> =
   string.format, table.remove, math.maxinteger;
 -- Engine function aliases ------------------------------------------------- --
 local UtilClampInt<const>, UtilIsTable<const>, UtilIsInteger<const>,
-  JsonTable<const> =
-  Util.ClampInt, Util.IsTable, Util.IsInteger, Json.Table;
+  JsonTable<const>, CoreGetTicks<const> =
+  Util.ClampInt, Util.IsTable, Util.IsInteger, Json.Table, Core.GetTicks;
 -- Diggers function and data aliases --------------------------------------- --
 local ACT, AdjustViewportNoScroll, aLvlData, aObjs, aTileData, BlitSLT,
   BlitSLTWH, CreateObject, DIR, fontLarge, GetAbsMousePos, GetMouseX,
@@ -34,6 +34,7 @@ local aAssets,                         -- Assets required
       iEditorHotSpotId,                -- Editor hot spot id
       iEditorKeyBankId,                -- Editor key bank id
       iPickerHotSpotId,                -- Picker hot spot id
+      iPickerKeyBankId,                -- Picker key bank id
       iObjPickerHotSpotId,             -- Object picker hotspot id
       iObjPickerKeyBankId,             -- Picker key bank id
       iLvlId,                          -- Level id
@@ -81,7 +82,7 @@ local function EditorRender(aResources)
     -- Set object selection colour
     texSpr:SetCRGB(0.0, 1.0, 0.0);
     -- Draw object selection rectangle
-    BlitSLT(texSpr, 866 + ((Core.Ticks() // 2) % 2),
+    BlitSLT(texSpr, 866 + ((CoreGetTicks() // 2) % 2),
                          oObject.X - iVPX,
                          oObject.Y - iVPY);
     -- Draw status panel background
@@ -105,7 +106,7 @@ local function EditorRender(aResources)
     -- Set terrain selection colour
     texSpr:SetCRGB(0.0, 0.0, 1.0);
     -- Draw terrain selection rectangle
-    local iTile<const> = 866 + ((Core.Ticks() // 2) % 2);
+    local iTile<const> = 866 + ((CoreGetTicks() // 2) % 2);
     for iY = iBrushPosY, iBrushPosY + iBrushSizeH do
       local iYpix<const> = (iY * 16) - iVPY;
       for iX = iBrushPosX, iBrushPosX + iBrushSizeW do
@@ -185,7 +186,7 @@ local function TerrainPickerRender()
   -- Set object selection colour
   texSpr:SetCRGB(0.0, 0.0, 1.0);
   -- Draw object selection rectangle
-  BlitSLT(texSpr, 866 + ((Core.Ticks() // 2) % 2),
+  BlitSLT(texSpr, 866 + ((CoreGetTicks() // 2) % 2),
                        iPickerSelX,
                        iPickerSelY);
   texSpr:SetCRGB(1.0, 1.0, 1.0);
@@ -224,20 +225,24 @@ local function ObjPickerRender()
   -- Set object selection colour
   texSpr:SetCRGB(0.0, 1.0, 0.0);
   -- Draw object selection rectangle
-  BlitSLT(texSpr, 866 + ((Core.Ticks() // 2) % 2),
+  BlitSLT(texSpr, 866 + ((CoreGetTicks() // 2) % 2),
                        iPickerSelX,
                        iPickerSelY);
   texSpr:SetCRGB(1.0, 1.0, 1.0);
   if iPickerSelX < 160 then
     if iPickerSelY < 120 then
-      PickerDrawPreview(texSpr, aEditorThumbs[1 + iPickerSelected], 15, 15, 16, 16);
+      PickerDrawPreview(texSpr,
+        aEditorThumbs[1 + iPickerSelected], 15, 15, 16, 16);
     else
-      PickerDrawPreview(texSpr, aEditorThumbs[1 + iPickerSelected], 15, -33, 16, -32);
+      PickerDrawPreview(texSpr,
+        aEditorThumbs[1 + iPickerSelected], 15, -33, 16, -32);
     end
   elseif iPickerSelY < 120 then
-    PickerDrawPreview(texSpr, aEditorThumbs[1 + iPickerSelected], -33, 15, -32, 16);
+    PickerDrawPreview(texSpr,
+      aEditorThumbs[1 + iPickerSelected], -33, 15, -32, 16);
   else
-    PickerDrawPreview(texSpr, aEditorThumbs[1 + iPickerSelected], -33, -33, -32, -32)
+    PickerDrawPreview(texSpr,
+      aEditorThumbs[1 + iPickerSelected], -33, -33, -32, -32)
   end
   PrintC(fontTiny, iPickerSelX + 8, iPickerSelY + 5, iPickerSelected);
 end
