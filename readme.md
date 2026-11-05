@@ -48,8 +48,8 @@ This modern version originated in 2006 as a [Win32 C build](https://github.com/M
 | | Minimum | Recommended | Note |
 | --- | --- | --- | --- |
 | **Processor** | Dual-Core 2GHz  | Multi-Core 2GHz+ | Multithreaded! |
-| **System** *(Windows)* | XP *(SP2 X64)* | 7/8.X/1X+ *(X64)* | None. |
-| **Memory** *(Windows)* | 32MB *(XP)* | 128MB+ *(7+)* | None. |
+| **System** *(Windows)* | 7 SP1 *(X64)* | 7/8.X/1X+ *(X64)* | None. |
+| **Memory** *(Windows)* | 128MB+ *(7)* | 256MB+ *(7+)* | None. |
 | **System** *(MacOS)* | 10.15 *(Intel)* / 11 *(Arm)* | 11.0+ *(Arm)* | FAT Universal executable. |
 | **Memory** *(MacOS)* | 256MB *(Intel)* | 512MB *(Arm)* | Close estimate. |
 | **System** *(Linux)* | Ubuntu 26.04 *(X64)* | Mint 22.1+ *(X64)* | See below for packages. |
@@ -71,7 +71,7 @@ You can always get the latest version of this project [here](https://github.com/
 Running the Windows version should be trivial. Just double click on the executable file. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is not writable then at `C:\Users\<Username>\AppData\Roaming\Mhatxotic Design\Diggers`.
 
 ### Linux version…
-The Linux version is linked against the `libglfw3` and `libtheora1` external package that you need to install for the game to work. This can be installed with `sudo apt-get install libglfw3`. You can read about the libraries used in the [engine documentation](https://github.com/Mhatxotic/Engine?tab=readme-ov-file#credits). Simply run the game with `./diggers.elf` in a terminal or press `ALT+F2` to bring up the run dialog box to find the aforementioned executable. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is not writable then at `~/.local/Mhatxotic Design/Diggers`. The Linux version is compatible with the Ubuntu and Mint distributions and should be compatible with all other Ubuntu based distributions. Compatibility with other Ubuntu and non-Ubuntu distributions is unknown at this time so please contact us if our binaries are compatible or incompatible so we can build a compatibility list.
+Running the Linux version should be trivial also although it is linked against external packages that may not be installed on your distribution. This can be solved with `sudo apt-get install <package>` where `<package>` is the name of the library it is asking for. You can read about the libraries used in the [engine documentation](https://github.com/Mhatxotic/Engine?tab=readme-ov-file#credits). Simply run the game with `./diggers.elf` in a terminal or press `ALT+F2` to bring up the run dialog box to find the aforementioned executable. All the files required for the game are stored inside the executable. Persistent data is stored in the directory where the executable is or if that directory is not writable then at `~/.local/Mhatxotic Design/Diggers`. The Linux version is compatible with the Ubuntu and Mint distributions and should be compatible with all other Ubuntu based distributions. Compatibility with other Ubuntu and non-Ubuntu distributions is unknown at this time so please contact us if our binaries are compatible or incompatible so we can build a compatibility list.
 
 ### MacOS version…
 Opening the `.dmg` file disk image will require you to bypass Gatekeeper. To bypass Gatekeeper, simply run the `Terminal.app` and `chdir` to the directory where you downloaded the disk image with `chdir ~/Downloads` and then execute the following command to remove the quarantine flag from the disk image archive with `xattr -d com.apple.quarantine Diggers-R<x>-MacOS-Universal.dmg` where `<x>` is the version of this application. You should then be able to mount the disk image and run the game without any issue. All the files required for the game are stored inside the `Diggers.app/Contents/Resources/diggers.adb` archive. Persistent data is stored at `~/Library/Application Support/Mhatxotic Design/Diggers`.
@@ -225,7 +225,7 @@ If for some reason you're an advanced-user or admin and need to fine tune how th
 * `diggers.exe vid_fs=0 win_border=0`
   - Will make the engine startup in window mode and hide the window border.
 
-You can change cvars by opening up the console with the `GRAVE` key (key under `ESCAPE` key). In the release version of the game, the console is semi-permanantly disabled, you can re-enable the console by using `con_disabled=0` to re-enable it. CVars can obviously be overloaded onto the command-line, not just one setting. This key may not be available on most keyboards so you can change it by changing the `con_key1` or `con_key2` var. This is a GLFW specific [key code](https://www.glfw.org/docs/3.4/group__keys.html). Once you're in the console, type `cmdlist` for the commands you can use or `cvarlist` for the settings you can change and escape key to clear the text input or to close the console.
+You can change cvars by opening up the console with the `GRAVE` key (key under `ESCAPE` key). This key may not be available on most keyboards so you can change it by changing the `con_key1` or `con_key2` var. This is a GLFW specific [key code](https://www.glfw.org/docs/3.5.1/group__keys.html). Once you're in the console, type `cmdlist` for the commands you can use or `cvarlist` for the settings you can change and escape key to clear the text input or to close the console.
 
 ### Diggers CVars…
 * `gam_data?` *(string)*
@@ -240,7 +240,7 @@ You can change cvars by opening up the console with the `GRAVE` key (key under `
   - Show configuration at startup (`1`) or skip configuration screen at startup (`0`). Always automatically sets to `0` when setup is shown.
 * `gam_slowdown` *(boolean)*
   - Emulate Amiga slowdown (`1`) or use normal PC speed (`0`).
-* `gam_test` *(integer)*
+* `gam_test` *(string)*
   - Debug all parts of the game (see main.lua).
 
 <sup><sub><sup><sub>[↑ Top](#contents)</sub></sup></sub></sup>
