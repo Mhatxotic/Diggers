@@ -13,9 +13,9 @@
 local format<const>, remove<const>, maxinteger<const> =
   string.format, table.remove, math.maxinteger;
 -- Engine function aliases ------------------------------------------------- --
-local UtilClampInt<const>, UtilIsTable<const>, UtilIsInteger<const>,
-  JsonTable<const>, CoreGetTicks<const> =
-  Util.ClampInt, Util.IsTable, Util.IsInteger, Json.Table, Core.GetTicks;
+local CoreGetTicks<const>, UtilClampInt<const>, UtilIsTable<const>,
+  UtilIsInteger<const>, JsonTable<const> =
+    Core.GetTicks, Util.ClampInt, Util.IsTable, Util.IsInteger, Json.Table;
 -- Diggers function and data aliases --------------------------------------- --
 local ACT, AdjustViewportNoScroll, aLvlData, aObjs, aTileData, BlitSLT,
   BlitSLTWH, CreateObject, DIR, fontLarge, GetAbsMousePos, GetMouseX,
@@ -703,9 +703,9 @@ local function OnScriptLoaded(GetAPI)
       { oKeys.LEFT,  CbKLeftCursor,      "esl",  "MOVE OBJECT LEFT" },
       { oKeys.RIGHT, CbKRightCursor,     "esr",  "MOVE OBJECT RIGHT" },
       { oKeys.LEFT_BRACKET,
-        CbKLeftBracket,                 "elot",  "LAST OBJECT OR TERRAIN ID" },
+        CbKLeftBracket,                  "elot", "LAST OBJECT OR TERRAIN ID" },
       { oKeys.RIGHT_BRACKET,
-        CbKRightBracket,                "enot",  "NEXT OBJECT OR TERRAIN ID" },
+        CbKRightBracket,                 "enot", "NEXT OBJECT OR TERRAIN ID" },
       { oKeys.N,     CbKMoveOrderNext,   "eof",  "MOVE OBJECT FORWARD" },
       { oKeys.L,     CbKMoveOrderLast,   "eob",  "MOVE OBJECT BACK" },
       { oKeys.B,     CbKMoveOrderBottom, "eoeb", "MOVE OBJECT BOTTOM" },

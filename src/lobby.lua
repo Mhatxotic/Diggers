@@ -13,9 +13,9 @@
 local error<const>, tostring<const>, unpack<const> =
   error, tostring, table.unpack;
 -- Engine function aliases ------------------------------------------------- --
-local UtilBlank<const>, UtilIsTable<const>, UtilIsBoolean<const>,
-  UtilIsInteger<const> =
-    Util.Blank, Util.IsTable, Util.IsBoolean, Util.IsInteger;
+local CoreGetTicks<const>, UtilBlank<const>, UtilIsTable<const>,
+  UtilIsBoolean<const>, UtilIsInteger<const> =
+    Core.GetTicks, Util.Blank, Util.IsTable, Util.IsBoolean, Util.IsInteger;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitLT, BlitSLT, Fade, GameProc, GetActiveObject, InitBank, InitCon,
   InitContinueGame, InitScene, InitShop, InitTitle, LoadResources, PlayMusic,
@@ -54,7 +54,7 @@ local function RenderOpen()
   BlitLT(texLobby, 8.0, 8.0);
   RenderShadow(8.0, 8.0, 312.0, 208.0);
   -- Render fire
-  local iFrame<const> = CoreTicks() % 9;
+  local iFrame<const> = CoreGetTicks() % 9;
   if iFrame >= 6 then BlitSLT(texLobby, 1, 113.0, 74.0);
   elseif iFrame >= 3 then BlitSLT(texLobby, 2, 113.0, 74.0);
   else fcbRenderExtra() end;
@@ -68,7 +68,7 @@ local function RenderClosed()
   RenderShadow(8.0, 8.0, 312.0, 208.0);
   BlitLT(texLobby, 8.0, 8.0);
   -- Render fire
-  local iFrame<const> = CoreTicks() % 9;
+  local iFrame<const> = CoreGetTicks() % 9;
   if iFrame >= 6 then BlitSLT(texLobby, 4, 113.0, 74.0);
   elseif iFrame >= 3 then BlitSLT(texLobby, 3, 113.0, 74.0);
   -- Flash if not ready to play

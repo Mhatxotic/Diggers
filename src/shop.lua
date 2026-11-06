@@ -13,7 +13,8 @@
 local random<const>, format<const>, error<const>, tostring<const> =
   math.random, string.format, error, tostring;
 -- Engine function aliases ------------------------------------------------- --
-local UtilIsInteger<const>, UtilIsTable<const> = Util.IsInteger, Util.IsTable;
+local CoreGetTicks<const>, UtilIsInteger<const>, UtilIsTable<const> =
+  Core.GetTicks, Util.IsInteger, Util.IsTable;
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BuyItem, Fade, GameProc, GetActiveObject, InitCon, InitLobby,
   LoadResources, LoopStaticSound, PlayMusic, PlayStaticSound, PrintC,
@@ -97,14 +98,14 @@ local function ProcLogic()
   -- Perform game functions in the background
   GameProc();
   -- Time elapsed to animate the holographic emitter?
-  if CoreTicks() % 4 == 0 then
+  if CoreGetTicks() % 4 == 0 then
     -- Animate the holographic emitter
     iHoloAnimTileId = iHoloAnimTileId + iHoloAnimTileIdMod;
     if iHoloAnimTileId == 19 then iHoloAnimTileIdMod = -1;
     elseif iHoloAnimTileId == 15 then iHoloAnimTileIdMod = 1 end;
   end
   -- Time elapsed to animate the door and forklift?
-  if CoreTicks() % 8 == 0 then
+  if CoreGetTicks() % 8 == 0 then
     -- Animate the door
     iAnimDoor = iAnimDoor + iAnimDoorMod;
     if iAnimDoor == iTileDoorMax then iAnimDoorMod = -1;
@@ -134,7 +135,7 @@ local function RenderBackground()
   -- Draw animations
   if iAnimDoor ~= 0 then BlitSLT(texShop, iAnimDoor, 272.0, 79.0) end;
   if random() < 0.001 and iAnimDoorMod == 0 then iAnimDoorMod = 1 end;
-  BlitSLT(texShop, CoreTicks() // 10 % 3 + 28, 9, 174); -- Floor lights
+  BlitSLT(texShop, CoreGetTicks() // 10 % 3 + 28, 9, 174); -- Floor lights
   if iForkAnim ~= 0 then BlitSLT(texShop, iForkAnim, 112.0, 95.0) end;
   if random() < 0.001 and iForkAnimMod == 0 then iForkAnimMod = 1 end;
 end
@@ -143,7 +144,7 @@ local function RenderSpeech()
   -- Speech ticks set?
   if iSpeechTicks > 0 then
     -- Render shopkeeper talking and speech bubble
-    BlitSLT(texShop, CoreTicks() // 10 % 4 + 22, 112.0, 127.0);
+    BlitSLT(texShop, CoreGetTicks() // 10 % 4 + 22, 112.0, 127.0);
     BlitSLT(texShop, 21, 0.0, 160.0);
     PrintC(fontSpeech, 56.0, 167.0, sMsg);
   end
