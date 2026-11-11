@@ -354,7 +354,7 @@ local function ApplySettings()
   if iFullScreenMode == -3 then
     -- Now set to default mode
     iFullScreenMode = -2;
-    vVidfsmode:Reset();
+    vVidfsmode:SetDefault();
   else vVidfsmode:SetInteger(iFullScreenMode) end;
   vVidmonitor:SetInteger(iMonitorId);
   vAudinterface:SetInteger(iAudioDeviceId);
@@ -759,16 +759,16 @@ local function OnScriptLoaded(GetAPI)
     iAudioDeviceId = -1;
     iWindowId = 1;
     -- Other options
-    vWinposx:Reset();
-    vWinposy:Reset();
-    vAppdelay:Reset();
-    vVidvsync:Reset();
-    vTexfilter:Reset();
+    vWinposx:SetDefault();
+    vWinposy:SetDefault();
+    vAppdelay:SetDefault();
+    vVidvsync:SetDefault();
+    vTexfilter:SetDefault();
     -- Reset volumes
-    vAudvol:Reset();
-    vAudstrvol:Reset();
-    vAudsamvol:Reset();
-    vAudfmvvol:Reset();
+    vAudvol:SetDefault();
+    vAudstrvol:SetDefault();
+    vAudsamvol:SetDefault();
+    vAudfmvvol:SetDefault();
     -- Set new settings
     ApplySettings();
   end
