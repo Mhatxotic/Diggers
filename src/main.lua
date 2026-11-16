@@ -26,13 +26,13 @@ local AssetParseBlock<const>, ClipSet<const>, CoreCatchup<const>,
   UtilBlank<const>, UtilDuration<const>, UtilExplode<const>,
   UtilFlushArray<const>, UtilImplode<const>, UtilIsFunction<const>,
   UtilIsInteger<const>, UtilIsString<const>, UtilIsTable<const>,
-  VariableRegister<const> =
+  UtilTimeIt<const>, VariableRegister<const> =
     Asset.ParseBlock, Clip.Set, Core.Catchup, Core.End, Core.Log, Core.LogEx,
     Core.OnTick, Core.Quit, Core.Reset, Core.GetStack, Core.Write, Fbo.SetDraw,
     Fbo.GetMainSize, Input.OnKey, Input.SetCursor, Core.GetTime,
     Texture.Create, Util.Blank, Util.Duration, Util.Explode, Util.FlushArray,
     Util.Implode, Util.IsFunction, Util.IsInteger, Util.IsString, Util.IsTable,
-    Variable.Register;
+    Util.TimeIt, Variable.Register;
 -- Locals ------------------------------------------------------------------ --
 local sBlank<const>  = "";             -- Blank string
 local CBProc, CBRender;                -- Generic tick callbacks
@@ -242,21 +242,6 @@ local function SetErrorMessage(sReason)
   -- Set loop function
   CoreOnTick(OnTick);
 end
--- ------------------------------------------------------------------------- --
-local function TimeIt(sName, fcbCallback, ...)
-  -- Check parameters
-  if not UtilIsString(sName) then
-    error("Name string is invalid! "..tostring(sName)) end;
-  if not UtilIsFunction(fcbCallback) then
-    error("Function is invalid! "..tostring(fcbCallback)) end;
-  -- Save time
-  local nTime<const> = CoreGetTime();
-  -- Execute function
-  fcbCallback(...);
-  -- Put result in console
-  CoreLog("Procedure '"..sName.."' completed in "..
-    UtilDuration(CoreGetTime() - nTime, 3).." sec!");
-end
 -- Generic function to return a handle ------------------------------------- --
 local function NoSecondStage(hH) return hH end;
 -- Asset types supported --------------------------------------------------- --
@@ -361,7 +346,8 @@ local function LoadResources(sProcedure, aResources, fComplete, ...)
       -- Garbage collect to remove unloaded assets
       collectgarbage();
       -- Execute finished handler function with our resource list
-      TimeIt(sProcedure, fComplete, aOutputHandles, unpack(aParams));
+      CoreLog("Procedure '"..sProcedure.."' completed in "..UtilDuration(
+        UtilTimeIt(fComplete, aOutputHandles, unpack(aParams)), 3).." sec!");
     end
     -- Setup handle
     local function SetupSecondStage()
@@ -582,7 +568,7 @@ local function fcbTick()
     RefreshViewportInfo = RefreshViewportInfo,
     RegisterFBUCallback = RegisterFrameBufferUpdateCallback,
     SetCallbacks = SetCallbacks, SetErrorMessage = SetErrorMessage,
-    TimeIt = TimeIt, fcbEmpty = fcbEmpty } });
+    fcbEmpty = fcbEmpty } });
   -- Store texture scale and assets data
   oAPI.iTexScale = iTexScale;
   oAPI.oAssetsData = oAssetsData;
