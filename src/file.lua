@@ -249,7 +249,7 @@ local function GoDelete()
   -- Play sound
   PlayStaticSound(iSSelect);
   -- Write data
-  aSaveSlot[iSelected]:Clear();
+  aSaveSlot[iSelected]:SetEmpty();
   -- Set message
   sMsg = format("FILE %d DELETED SUCCESSFULLY!", iSelected);
   -- Commit CVars on the game engine to persistent storage
