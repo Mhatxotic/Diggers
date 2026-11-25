@@ -232,7 +232,7 @@ local function SetErrorMessage(sReason)
     local nTime<const>, nRed = CoreGetTime();
     nRed = cos(nTime) * sin(nTime) + 0.5;
     -- Show error message
-    fboMain:SetClearColour(nRed, 0.0, 0.0, 1.0);
+    fboMain:SetCCRGBA(nRed, 0.0, 0.0, 1.0);
     fFont:SetCRGBA(1.0, 1.0, 1.0, 1.0);
     fFont:SetSize(1.0);
     fFont:PrintW(iTextLeft, iTextTop, iTextRight, 0, sMessage);

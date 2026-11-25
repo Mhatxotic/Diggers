@@ -10,8 +10,9 @@
 -- (c) Mhatxotic Design, 2026          (c) Millennium Interactive Ltd., 1994 --
 -- ========================================================================= --
 -- Core function aliases --------------------------------------------------- --
-local format<const>, remove<const>, maxinteger<const> =
-  string.format, table.remove, math.maxinteger;
+local abs<const>, format<const>, remove<const>, max<const>, maxinteger<const>,
+  min<const> =
+    math.abs, string.format, table.remove, math.max, math.maxinteger, math.min;
 -- Engine function aliases ------------------------------------------------- --
 local CoreGetTicks<const>, UtilClampInt<const>, UtilIsTable<const>,
   UtilIsInteger<const>, JsonTable<const> =
@@ -399,24 +400,21 @@ local function OnScriptLoaded(GetAPI)
       SelectObject();
       -- Get clicked tile position on level
       local iX<const>, iY<const> = iAMX // 16, iAMY // 16;
-      -- If shift is held and we already have a position
+      -- If shift is held and we already have a position?
       if bShift and iBrushAPos then
-        if iX < iBrushPosX then
-          iBrushSizeW = iBrushSizeW + (iBrushPosX - iX);
-          iBrushPosX = iX;
-        elseif iX > iBrushPosX then
-          iBrushSizeW = iX - iBrushPosX;
-        end;
-        if iY < iBrushPosY then
-          iBrushSizeH = iBrushSizeH + (iBrushPosY - iY);
-          iBrushPosY = iY;
-        elseif iY > iBrushPosY then
-          iBrushSizeH = iY - iBrushPosY;
-        end
+        -- Calculate top-left position based on mouse cursor
+        iBrushPosX, iBrushPosY =
+          min(iBrushAnchorX, iX), min(iBrushAnchorY, iY);
+        -- Calculate width and height based on original drag position
+        iBrushSizeW, iBrushSizeH =
+          abs(iX - iBrushAnchorX), abs(iY - iBrushAnchorY);
+      -- Shift is not pressed or we don't have a position
       else
-        iBrushPosX, iBrushPosY, iBrushSizeW, iBrushSizeH =
-          iX, iY, 0, 0;
+        -- Initialise selection positions for first time
+        iBrushAnchorX, iBrushAnchorY, iBrushPosX, iBrushPosY, iBrushSizeW,
+          iBrushSizeH = iX, iY, iX, iY, 0, 0;
       end
+      -- Calculate absolute position on map of where the top-left is
       iBrushAPos = (iBrushPosY * 128) + iBrushPosX;
     -- Middle click?
     elseif iButton == 3 then CbKTerrainPicker();
@@ -716,16 +714,19 @@ local function OnScriptLoaded(GetAPI)
         CbKDeleteSelectedObject,         "eclr", "CLEAR OBJECT OR TERRAIN" },
       { oKeys.SPACE, CbKPaintTile,       "ept",  "PAINT SELECTED TILE" };
   -- Register the new editor keyboard input events
+  local iLeftShift<const>, iRightShift<const> =
+    oKeys.LEFT_SHIFT, oKeys.RIGHT_SHIFT;
   iEditorKeyBankId = RegisterKeys("MAP EDITOR", {
     -- Key pressed events
     [iKSPress] = {
-      { oKeys.LEFT_SHIFT, CbKShiftHeld, "eeaf", "ENABLE ALTERNATE FUNCTION" },
-      { oKeys.C,     CbKCopy,           "eoct", "COPY OBJECT OR TILE" },
-      { oKeys.O,     CbKObjectPicker,   "eop",  "SHOW TERRAIN TILE PICKER" },
-      { oKeys.S,     CbKSave,           "es",   "SAVE CURRENT LEVEL" },
-      { oKeys.V,     CbKTerrainPicker,  "etp",  "SHOW TERRAIN TILE PICKER" },
-      { oKeys.Y,     CbKSwitchTerrain,  "est",  "SWITCH TERRAIN TYPE" },
-      { oKeys.ENTER, CbKPaintObject,    "epo",  "PAINT SELECTED OBJECT" },
+      { iLeftShift,  CbKShiftHeld,     "eeafa", "ENABLE ALTERNATE FUNC A" },
+      { iRightShift, CbKShiftHeld,     "eeafb", "ENABLE ALTERNATE FUNC B" },
+      { oKeys.C,     CbKCopy,          "eoct",  "COPY OBJECT OR TILE" },
+      { oKeys.O,     CbKObjectPicker,  "eop",   "SHOW TERRAIN TILE PICKER" },
+      { oKeys.S,     CbKSave,          "es",    "SAVE CURRENT LEVEL" },
+      { oKeys.V,     CbKTerrainPicker, "etp",   "SHOW TERRAIN TILE PICKER" },
+      { oKeys.Y,     CbKSwitchTerrain, "est",   "SWITCH TERRAIN TYPE" },
+      { oKeys.ENTER, CbKPaintObject,   "epo",   "PAINT SELECTED OBJECT" },
       aEditorPreviousObject, aEditorNextObject, aEditorCursorUp,
       aEditorCursorDown, aEditorCursorLeft, aEditorCursorRight,
       aEditorCycleLeft, aEditorCycleRight, aEditorMoveBack, aEditorMoveForward,
@@ -739,8 +740,8 @@ local function OnScriptLoaded(GetAPI)
       aEditorMoveBottom, aEditorMoveTop, aEditorDelete, aEditorPaintTile
     -- Key release events
     }, [oStates.RELEASE] = {
-      { oKeys.LEFT_SHIFT,
-        CbKShiftRelease, "eedf", "DISABLE ALTERNATE FUNCTION" },
+      { iLeftShift,  CbKShiftRelease, "eedfa", "DISABLE ALTERNATE FUNC A" },
+      { iRightShift, CbKShiftRelease, "eedfb", "DISABLE ALTERNATE FUNC B" },
     }
   });
   -- Move the picker cursor ------------------------------------------------ --

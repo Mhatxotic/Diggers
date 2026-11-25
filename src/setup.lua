@@ -727,8 +727,8 @@ InitSetup = DoInitSetup;
 -- Script has been initialised --------------------------------------------- --
 local function OnScriptLoaded(GetAPI)
   -- Functions and variables used in this scope only
-  local PlayStaticSound, RegisterHotSpot, RegisterKeys, oAssetsData,
-    oCursorIdData, oSfxData, tKeyBankCats;
+  local PlayStaticSound, RegisterHotSpot, RegisterKeys, SetCursorPos,
+    oAssetsData, oCursorIdData, oSfxData, tKeyBankCats;
   -- Grab import functions and data
   BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
     GetKeyName, GetMusic, IsMouseYLessThan, LoadResources, PlayMusic,

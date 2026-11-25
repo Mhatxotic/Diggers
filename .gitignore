@@ -1,7 +1,8 @@
 *
 !.gitignore
-!*.md
-!*.json
+!license.md
+!readme.md
+!app.json
 !fmv/
 !fmv/*.ogv
 !lvl/
@@ -18,8 +19,7 @@
 !tex/*.json
 !tex/*.txt
 !docs/
-!docs/*.html
-!docs/*.md
-!docs/*.png
-!docs/*.ico
-!docs/*.webp
+!docs/index.html
+!docs/diggers.png
+!docs/favicon.ico
+!docs/diggers.webp

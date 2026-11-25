@@ -251,7 +251,7 @@ local function InitDebugPlay(iId)
     -- If we're blocked from polling objects then don't
     if GetGameTicks() < iNextObjectPoll then GameProc() return end
     -- Mouse position or viewport changed?
-    iNewX, iNewY = GetMouseX(), GetMouseY();
+    local iNewX, iNewY = GetMouseX(), GetMouseY();
     if iNewX ~= iX or iNewY ~= iY or iPixPosX ~= iPPX or iPixPosY ~= iPPY then
       -- Update new position and block time for 10 seconds
       iX, iY, iNextObjectPoll, iPPX, iPPY = iNewX, iNewY, GetGameTicks() + 600,

@@ -216,8 +216,7 @@ local function DoLoadDemoLevel(iLCreditId, strMusic)
     -- Select a random object and not a digger! The last objects in
     -- the list are always the diggers so we can just crop them out.
     -- If we get an object then select and focus on the object!
-    if bRandObject then SelectObject(aObjs[random(#aObjs -
-      (#aPlayers[1].D * 2))], true) end;
+    SelectObject(aObjs[random(#aObjs - (#aPlayers[1].D * 2))], true);
   end
   -- Load demo level
   LoadLevel(iLevelId, strMusic, nil, nil, true, oObjectTypes.DIGRANDOM, true,
