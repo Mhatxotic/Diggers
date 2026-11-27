@@ -45,6 +45,7 @@ local iTexScale;                       -- Texture scale
 local oAPI<const>    = create(0, 183); -- API to send to other functions
 local oCache         = create(0, 4);   -- File cache
 local oFbuCbs<const> = create(0, 16);  -- Frame buffer updated function
+local oAudCbs<const> = create(0, 16);  -- Audio device updated function
 -- Stage dimensions -------------------------------------------------------- --
 local iStageWidth  = 320;              -- Width of stage (Monitor)
 local iStageHeight = 240;              -- Height of stage (Monitor)
@@ -450,6 +451,27 @@ local function RegisterFrameBufferUpdateCallback(sName, fCB)
     fCB(iStageWidth, iStageHeight, iStageLeft, iStageTop, iStageRight,
       iStageBottom, iOrthoWidth, iOrthoHeight) end;
 end
+-- Register a callback and automatically when audio device changes --------- --
+local function RegisterAudioUpdateCallback(sName, fCB)
+  -- Check parameters
+  if not UtilIsString(sName) then
+    error("Invalid callback name string! "..tostring(sName)) end;
+  if nil ~= fCB and not UtilIsFunction(fCB) then
+    error("Invalid callback function! "..tostring(fCB)) end;
+  -- Register callback when frame buffer is updated
+  oAudCbs[sName] = fCB;
+  -- If a callback was set then call it
+  if nil ~= fCB then fCB() end;
+end
+-- Refresh audio device info ----------------------------------------------- --
+local function RefreshAudio()
+  -- Call frame buffer callbacks
+  for _, fcbC in pairs(oAudCbs) do
+    -- Protected call so we can handle errors
+    local bResult<const>, sReason<const> = xpcall(fcbC, CoreGetStack);
+    if not bResult then SetErrorMessage(sReason) end;
+  end
+end
 -- Returns wether test mode is enabled ------------------------------------- --
 local function GetTestMode() return bTestMode end;
 -- Load the texture scale value -------------------------------------------- --
@@ -560,6 +582,8 @@ local function fcbTick()
   -- Refresh viewport info and automatically when window size changes
   Fbo.OnRedraw(RefreshViewportInfo);
   RefreshViewportInfo();
+  -- Register audio update event
+  Audio.OnUpdate(RefreshAudio);
   -- Empty CVar callback event function
   local function fcbEmpty() return true end;
   -- Initialise base API functions
@@ -567,6 +591,7 @@ local function fcbTick()
     GetTestMode = GetTestMode, LoadResources = LoadResources,
     RefreshViewportInfo = RefreshViewportInfo,
     RegisterFBUCallback = RegisterFrameBufferUpdateCallback,
+    RegisterAudioCallback = RegisterAudioUpdateCallback,
     SetCallbacks = SetCallbacks, SetErrorMessage = SetErrorMessage,
     fcbEmpty = fcbEmpty } });
   -- Store texture scale and assets data

@@ -29,12 +29,12 @@ local aAIChoicesData, aDigBlockData, aDigTileData, aJumpFallData,
   aJumpRiseData, aLevelsData, aShopData, aShroudCircle, aShroudTileLookup,
   aTileData, BlitSLT, BlitSLTRB, BlitSLTWH, CreateObject, fontLarge,
   fontLittle, fontTiny, GetTestMode, iAnimNormal, InitLobby, InitTNTMap,
-  iSavedSlowDown, iSlowDown, MoveOtherObjects, oActions, oAIs, oDigData,
-  oDigFlags, oDirs, oDugRandShaftData, oObjFlags, oFloodGateData, oGlobalData,
-  oJobs, oMenuData, oMenuFlags, oMenus, oObjectData, oSfxData, oTileFlags,
-  oTypes, PlayInterfaceSound, PlaySound, PlaySoundAtObject, PlayStaticSound,
-  Print, PrintC, PrintR, RenderFade, RenderShadow, RenderTip, SelectInfoScreen,
-  SetAction, SetCursorPos, SetTip, texSpr;
+  iSavedSlowDown, iSlowDown, MoveOtherObjects, oActions, oAIs,
+  oDigData, oDigFlags, oDirs, oDugRandShaftData, oObjFlags, oFloodGateData,
+  oGlobalData, oJobs, oMenuData, oMenuFlags, oMenus, oObjectData, oSfxData,
+  oTileFlags, oTypes, PlayInterfaceSound, PlaySound, PlaySoundAtObject,
+  PlayStaticSound, Print, PrintC, PrintR, RenderFade, RenderShadow, RenderTip,
+  SelectInfoScreen, SetAction, SetCursorPos, SetTip, texSpr;
 -- Level limits ------------------------------------------------------------ --
 local iLLAbsW<const>   = 128;               -- Total # of horizontal tiles
 local iLLAbsH<const>   = 128;               -- Total # of vertical tiles
@@ -62,6 +62,7 @@ local aRacesData;                      -- Races data (data.lua)
 local aShroudData<const>    = create(iLLAbs); -- Current level shroud data
 local bAIvsAI;                         -- Is currently an AI vs AI game?
 local fcbLogic, fcbRender, fcbEnd;     -- Current logic/render/end callbacks
+local fcbEndSaved;                     -- fcbEnd when in lobby prevent ending
 local iGameTicks;                      -- Frames rendered for this level
 local iHotSpotId;                      -- Current mouse hot spots id
 local iKeyBankId;                      -- Current key bank activated
@@ -416,6 +417,8 @@ end
 local function HaveZogsToWin(oPlr) return oPlr.M >= iWinLimit end;
 -- Level end conditions check ---------------------------------------------- --
 local function EndConditionsCheck()
+  -- Return if end function is disabled and player in trade centre
+  if fcbEndSaved then return end;
   -- Chosen ending condition.
   local iCondition;
   -- Player has enough Zogs?
@@ -921,12 +924,15 @@ local function InitSetAction()
        (iAction == iAKeep and not oPreserveKeep[oObj.A]) then
       iAction = iAWalk end;
     -- Get current X position and home position
-    local iX<const>, iHX<const> = oObj.X, oObj.P.HX;
+    local oParent<const> = oObj.P;
+    local iX<const>, iHX<const> = oObj.X, oParent.HX;
     -- Go left or right if homeward is to the left or right respectively
     if iX < iHX then return iAction, iJob, iDRight end;
     if iX > iHX then return iAction, iJob, iDLeft end;
-    -- At home pixel but if can't go inside then just stop
-    if bIsNoHome then return iAStop, iJNone, iDNone end;
+    -- At home pixel but if can't go inside then just stop or the object's Y
+    -- position does not match the home point
+    if bIsNoHome or oObj.Y ~= oParent.HY then
+      return iAStop, iJNone, iDNone end;
     -- Can go inside so prevent all Diggers entering trade centre
     SetAllDiggersNoHome(oObj.P.D);
     -- Phase inside the trade centre
@@ -3389,6 +3395,8 @@ local function GameProc()
     SetAction(oObj, iAHide, iJPhase, iDUpRight);
     -- We don't want to hear sounds
     SetPlaySounds(false);
+    -- Disable end function
+    fcbEndSaved = fcbEnd;
     -- Init lobby
     InitLobby(false, 1);
   end
@@ -4804,7 +4812,7 @@ local function OnPreInitAPI(GetAPI)
   -- Pre-initialisations of functions which required data from another module.
   AdjustObjectHealth, CreateObject, GameProc, MoveOtherObjects, SetAction =
     AdjustObjectHealth(), InitCreateObject(), GameProc(),
-      InitMoveOtherObjects(), InitSetAction();
+    InitMoveOtherObjects(), InitSetAction();
   -- Get render functions
   local RenderTerrain, RenderObjects, RenderShroud, RenderInterface;
   RenderAll, RenderTerrain, RenderObjects, RenderShroud,
@@ -4848,6 +4856,8 @@ local function OnPreInitAPI(GetAPI)
   end
   -- Continue game from book or lobby -------------------------------------- --
   local function InitContinueGame(bMusic, bNoObject)
+    -- Restore end procedure and clear saved one
+    if fcbEndSaved then fcbEnd, fcbEndSaved = fcbEndSaved, nil end;
     -- Make sure there is no info screen selected
     SelectInfoScreen();
     -- Post loaded

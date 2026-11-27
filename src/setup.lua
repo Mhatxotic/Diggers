@@ -65,10 +65,10 @@ local vVidvsync<const>, vAppdelay<const>, vTexfilter<const>, vAudvol<const>,
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
   GetMusic, InitSetup, IsMouseYLessThan, LoadResources, PlayMusic, PrintC,
-  PrintM, PrintR, PrintS, Print, RegisterFBUCallback, RenderFade, RenderShadow,
-  RestoreKeyHandlers, SetCallbacks, SetHotSpot, SetKeys, StopMusic, VideoPause,
-  VideoResume, GetKeyName, oKeyToLiteral, aSetupButtonData, aSetupOptionData,
-  fontLarge, fontLittle, fontTiny, texSpr;
+  PrintM, PrintR, PrintS, Print, RegisterAudioCallback, RegisterFBUCallback,
+  RenderFade, RenderShadow, RestoreKeyHandlers, SetCallbacks, SetHotSpot,
+  SetKeys, StopMusic, VideoPause, VideoResume, GetKeyName, oKeyToLiteral,
+  aSetupButtonData, aSetupOptionData, fontLarge, fontLittle, fontTiny, texSpr;
 -- Frame-limiter types ----------------------------------------------------- --
 local aFrameLimiterLabels<const> = {
   "Adaptive VSync",                    -- VSync = -1; Delay = 0
@@ -708,8 +708,9 @@ local function DoInitSetup(iMode)
   end
   -- Pause any video playing
   VideoPause();
-  -- Register frame buffer update
+  -- Register frame buffer and audio device update
   RegisterFBUCallback("setup", OnStageUpdated);
+  RegisterAudioCallback("setup", Refresh);
   -- Window resized event
   local function OnResized()
     -- Return if not auto mode
@@ -733,21 +734,21 @@ local function OnScriptLoaded(GetAPI)
   BlitSLTWHA, DisableKeyHandlers, GetCallbacks, GetHotSpot, GetKeyBank,
     GetKeyName, GetMusic, IsMouseYLessThan, LoadResources, PlayMusic,
     PlayStaticSound, PrintC, PrintM, PrintR, PrintS, Print,
-    RegisterFBUCallback, RegisterHotSpot, RegisterKeys, RenderFade,
-    RenderShadow, RestoreKeyHandlers, SetCallbacks, SetCursorPos, SetHotSpot,
-    SetKeys, StopMusic, VideoPause, VideoResume, oAssetsData, oCursorIdData,
-    tKeyBankCats, oKeyToLiteral, aSetupButtonData, aSetupOptionData, oSfxData,
-    fontLarge, fontLittle, fontTiny, texSpr =
+    RegisterAudioCallback, RegisterFBUCallback, RegisterHotSpot, RegisterKeys,
+    RenderFade, RenderShadow, RestoreKeyHandlers, SetCallbacks, SetCursorPos,
+    SetHotSpot, SetKeys, StopMusic, VideoPause, VideoResume, oAssetsData,
+    oCursorIdData, tKeyBankCats, oKeyToLiteral, aSetupButtonData,
+    aSetupOptionData, oSfxData, fontLarge, fontLittle, fontTiny, texSpr =
       GetAPI("BlitSLTWHA", "DisableKeyHandlers", "GetCallbacks", "GetHotSpot",
         "GetKeyBank", "GetKeyName", "GetMusic", "IsMouseYLessThan",
         "LoadResources", "PlayMusic", "PlayStaticSound", "PrintC", "PrintM",
-        "PrintR", "PrintS", "Print", "RegisterFBUCallback", "RegisterHotSpot",
-        "RegisterKeys", "RenderFade", "RenderShadow", "RestoreKeyHandlers",
-        "SetCallbacks", "SetCursorPos", "SetHotSpot", "SetKeys", "StopMusic",
-        "VideoPause", "VideoResume", "oAssetsData", "oCursorIdData",
-        "tKeyBankCats", "oKeyToLiteral", "aSetupButtonData",
-        "aSetupOptionData", "oSfxData", "fontLarge", "fontLittle", "fontTiny",
-        "texSpr");
+        "PrintR", "PrintS", "Print", "RegisterAudioCallback",
+        "RegisterFBUCallback", "RegisterHotSpot", "RegisterKeys", "RenderFade",
+        "RenderShadow", "RestoreKeyHandlers", "SetCallbacks", "SetCursorPos",
+        "SetHotSpot", "SetKeys", "StopMusic", "VideoPause", "VideoResume",
+        "oAssetsData", "oCursorIdData", "tKeyBankCats", "oKeyToLiteral",
+        "aSetupButtonData", "aSetupOptionData", "oSfxData", "fontLarge",
+        "fontLittle", "fontTiny", "texSpr");
   -- Set assetsData
   aAssets = { oAssetsData.setupm };
   -- Callback to set all settings to default
@@ -784,8 +785,9 @@ local function OnScriptLoaded(GetAPI)
     else StopMusic() end;
     -- Resume any video that might be playing
     VideoResume();
-    -- Restore redraw callback
+    -- Restore redraw and audio device update callback
     RegisterFBUCallback("setup");
+    RegisterAudioCallback("setup");
     DisplayOnResized(nil);
     -- Restore original hotspot and keyback
     SetKeys(true, iLastKeyBank);

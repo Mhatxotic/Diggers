@@ -18,9 +18,9 @@ local CoreGetTicks<const>, UtilIsInteger<const>, UtilIsTable<const> =
 -- Diggers function and data aliases --------------------------------------- --
 local BlitSLT, BuyItem, Fade, GameProc, GetActiveObject, InitCon, InitLobby,
   LoadResources, LoopStaticSound, PlayMusic, PlayStaticSound, PrintC,
-  RenderAll, RenderShadow, RenderTip, SetCallbacks, SetHotSpot, SetKeys,
-  SetTip, StopSound, oObjectActions, oObjectData, oObjectDirections,
-  oObjectJobs, aShopData, fontLittle, fontSpeech, fontTiny;
+  RegisterAudioCallback, RenderAll, RenderShadow, RenderTip, SetCallbacks,
+  SetHotSpot, SetKeys, SetTip, StopSound, oObjectActions, oObjectData,
+  oObjectDirections, oObjectJobs, aShopData, fontLittle, fontSpeech, fontTiny;
 -- Locals ------------------------------------------------------------------ --
 local aAssets,                         -- Assets required
       iAnimDoor,                       -- Current door animation id
@@ -191,12 +191,17 @@ local function SetSpeechSound(sMessage, iSfxId)
   PlayStaticSound(iSfxId);
   SetSpeech(sMessage);
 end
+-- Loop the holographic projector sound ------------------------------------ --
+local function PlayHoloProjector() LoopStaticSound(iSHoloHum) end;
 -- Open up the shop -------------------------------------------------------- --
 local function GoOpen()
   -- Play sound effects
   PlayStaticSound(iSSelect);
   PlayStaticSound(iSOpen);
-  LoopStaticSound(iSHoloHum);
+  -- Play ambient holographic projector sound
+  PlayHoloProjector()
+  -- Register an event so we can play it
+  RegisterAudioCallback("shop", PlayHoloProjector);
   -- Set open shop keys and active ids
   iKeyBankId = iKeyBankOpenId;
   SetKeys(true, iKeyBankOpenId);
@@ -209,6 +214,8 @@ end
 local function GoExit()
   -- Play sound
   PlayStaticSound(iSSelect);
+  -- Unregister the holo projector replay event
+  RegisterAudioCallback("shop");
   -- Stop humming sound
   StopSound(iSHoloHum);
   -- Dereference assets for garbage collector
@@ -274,18 +281,19 @@ local function OnScriptLoaded(GetAPI)
   -- Grab imports
   BlitSLT, BuyItem, Fade, GameProc, GetActiveObject, InitCon, InitLobby,
     LoadResources, LoopStaticSound, PlayMusic, PlayStaticSound, PrintC,
-    RegisterHotSpot, RegisterKeys, RenderAll, RenderShadow, RenderTip,
-    SetCallbacks, SetHotSpot, SetKeys, SetTip, StopSound, oAssetsData,
-    oCursorIdData, oObjectActions, oObjectData, oObjectDirections, oObjectJobs,
-    oSfxData, aShopData, fontLittle, fontSpeech, fontTiny =
+    RegisterAudioCallback, RegisterHotSpot, RegisterKeys, RenderAll,
+    RenderShadow, RenderTip, SetCallbacks, SetHotSpot, SetKeys, SetTip,
+    StopSound, oAssetsData, oCursorIdData, oObjectActions, oObjectData,
+    oObjectDirections, oObjectJobs, oSfxData, aShopData, fontLittle,
+    fontSpeech, fontTiny =
       GetAPI("BlitSLT", "BuyItem", "Fade", "GameProc", "GetActiveObject",
         "InitCon", "InitLobby", "LoadResources", "LoopStaticSound",
-        "PlayMusic", "PlayStaticSound", "PrintC", "RegisterHotSpot",
-        "RegisterKeys", "RenderAll", "RenderShadow", "RenderTip",
-        "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip", "StopSound",
-        "oAssetsData", "oCursorIdData", "oObjectActions", "oObjectData",
-        "oObjectDirections", "oObjectJobs", "oSfxData", "aShopData",
-        "fontLittle", "fontSpeech", "fontTiny");
+        "PlayMusic", "PlayStaticSound", "PrintC", "RegisterAudioCallback",
+        "RegisterHotSpot", "RegisterKeys", "RenderAll", "RenderShadow",
+        "RenderTip", "SetCallbacks", "SetHotSpot", "SetKeys", "SetTip",
+        "StopSound", "oAssetsData", "oCursorIdData", "oObjectActions",
+        "oObjectData", "oObjectDirections", "oObjectJobs", "oSfxData",
+        "aShopData", "fontLittle", "fontSpeech", "fontTiny");
   -- Setup assets required
   aAssets = { oAssetsData.shop, oAssetsData.shopm };
   -- Register hotspots
